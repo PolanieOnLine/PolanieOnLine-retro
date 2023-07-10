@@ -1,4 +1,4 @@
-/* $Id: SoundManager.java,v 1.31 2012/07/13 05:56:11 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,18 +12,6 @@
  ***************************************************************************/
 package games.stendhal.client.sound.manager;
 
-import games.stendhal.client.sound.facade.AudibleArea;
-import games.stendhal.client.sound.facade.InfiniteAudibleArea;
-import games.stendhal.client.sound.facade.SoundFileType;
-import games.stendhal.client.sound.facade.Time;
-import games.stendhal.client.sound.system.SignalProcessor;
-import games.stendhal.client.sound.system.SoundSystem;
-import games.stendhal.client.sound.system.processors.DirectedSound;
-import games.stendhal.client.sound.system.processors.Interruptor;
-import games.stendhal.client.sound.system.processors.SoundLayers;
-import games.stendhal.client.sound.system.processors.VolumeAdjustor;
-import games.stendhal.common.math.Algebra;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,6 +23,18 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.sound.sampled.AudioFormat;
 
 import org.apache.log4j.Logger;
+
+import games.stendhal.client.sound.facade.AudibleArea;
+import games.stendhal.client.sound.facade.InfiniteAudibleArea;
+import games.stendhal.client.sound.facade.SoundFileType;
+import games.stendhal.client.sound.facade.Time;
+import games.stendhal.client.sound.system.SignalProcessor;
+import games.stendhal.client.sound.system.SoundSystem;
+import games.stendhal.client.sound.system.processors.DirectedSound;
+import games.stendhal.client.sound.system.processors.Interruptor;
+import games.stendhal.client.sound.system.processors.SoundLayers;
+import games.stendhal.client.sound.system.processors.VolumeAdjustor;
+import games.stendhal.common.math.Algebra;
 
 /**
  * Old implementation of the sound manager.
@@ -81,7 +81,7 @@ public final class SoundManager
         public boolean isActive()                { return channel.get() != null && channel.get().isActive(); }
 		public void    setAttachment(Object obj) { object = obj;                                             }
     }
-	
+
     private final class SoundChannel extends SignalProcessor
     {
         final float[]                      mSoundPosition = new float[DIMENSION];
@@ -118,7 +118,7 @@ public final class SoundManager
 			if(area == null) {
 				area = INFINITE_AUDIBLE_AREA;
 			}
-			
+
 			mAudibleArea.set(area);
 		}
 
@@ -135,9 +135,9 @@ public final class SoundManager
             if(newSound != null)
             {
                 if(time == null) {
-                    time = ZERO_DURATION;
+					time = ZERO_DURATION;
 				}
-                
+
                 mInterruptor.play();
                 mGlobalVolume.setVolume(0.0f);
                 mGlobalVolume.startFading(volume, time);
@@ -159,7 +159,7 @@ public final class SoundManager
             mGlobalVolume.startFading(0.0f, time);
             mInterruptor.stop(time);
         }
-        
+
         void update()
         {
             float intensity = mAudibleArea.get().getHearingIntensity(mHearerPosition);
@@ -182,7 +182,7 @@ public final class SoundManager
             }
         }
     }
-    
+
     private final LinkedList<SoundChannel> mChannels       = new LinkedList<SoundChannel>();
     private final float[]                  mHearerPosition = new float[DIMENSION];
     private final SoundLayers              mSoundLayers    = new SoundLayers();
@@ -232,15 +232,15 @@ public final class SoundManager
         for(SoundChannel channel: mChannels)
         {
             if(channel.isActive()) {
-                channel.update();
-	        }
-    	}
+				channel.update();
+			}
+        }
     }
 
 	public synchronized void play(Sound sound, float volume, int layerLevel, AudibleArea area, boolean autoRepeat, Time fadeInDuration)
     {
         if(sound == null) {
-            return;
+			return;
 		}
 
         if(sound.isActive())
@@ -273,29 +273,29 @@ public final class SoundManager
     public synchronized void stop(Sound sound, Time fadeOutDuration)
     {
         if(sound != null && sound.isActive()) {
-            sound.channel.get().stopPlayback(fadeOutDuration);
-	    }
+			sound.channel.get().stopPlayback(fadeOutDuration);
+		}
     }
 
     public synchronized void changeVolume(Sound sound, float volume)
     {
         if(sound != null && sound.isActive()) {
-            sound.channel.get().setVolume(volume);
-	    }
+			sound.channel.get().setVolume(volume);
+		}
     }
 
     public synchronized void changeLayer(Sound sound, int layerLevel)
     {
         if(sound != null && sound.isActive()) {
-            sound.channel.get().setLayer(layerLevel);
-	    }
+			sound.channel.get().setLayer(layerLevel);
+		}
     }
 
     public synchronized void changeAudibleArea(Sound sound, AudibleArea area)
     {
         if(sound != null && sound.isActive()) {
-            sound.channel.get().setAudibleArea(area);
-	    }
+			sound.channel.get().setAudibleArea(area);
+		}
     }
 
 	public synchronized void mute(boolean turnOffSound, boolean useFading, Time delay)
@@ -349,7 +349,7 @@ public final class SoundManager
 		sounds.trimToSize();
 		return sounds;
 	}
-	
+
     public synchronized void exit()
     {
 		mSoundSystem.exit(null);
@@ -374,7 +374,7 @@ public final class SoundManager
 			if(mChannels.size() <= leaveNumChannelsOpen) {
 				break;
 			}
-			
+
 			SoundChannel currChannel = iChannel.next();
 
 			if(!currChannel.isActive())
@@ -390,7 +390,7 @@ public final class SoundManager
 			logger.debug("close " + numChannels + " inactive sound channels");
 		}
 	}
-	
+
     private SoundChannel getInactiveChannel()
     {
         SoundChannel foundChannel = null;

@@ -1,4 +1,4 @@
-/* $Id: Recorder.java,v 1.4 2010/11/27 16:35:14 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,8 +12,8 @@
  ***************************************************************************/
 package games.stendhal.client.sound.system.processors;
 
+import games.stendhal.client.sound.Field;
 import games.stendhal.client.sound.system.SignalProcessor;
-import games.stendhal.common.memory.Field;
 
 /**
  * Recorder can be used to record sound signals in memory.
@@ -98,9 +98,10 @@ public class Recorder extends SignalProcessor
     @Override
     protected synchronized void modify(float[] data, int samples, int channels, int rate)
     {
-        if(data == null || samples == 0)
-            return;
-        
+        if(data == null || samples == 0) {
+			return;
+		}
+
         if(mData == null)
         {
             mData        = new float[samples * channels * 3];
@@ -114,8 +115,9 @@ public class Recorder extends SignalProcessor
         int requiredBufferSpace  = samples * channels;
 
         // if the buffer is to small to hold the whole data, we expand it
-        if(remainingBufferSpace < requiredBufferSpace)
+        if(remainingBufferSpace < requiredBufferSpace) {
 			mData = Field.expand(mData, (mNumSamplesBuffered + requiredBufferSpace) * 2, true);
+		}
 
         System.arraycopy(data, 0, mData, mNumSamplesBuffered, requiredBufferSpace);
         mNumSamplesBuffered += requiredBufferSpace;

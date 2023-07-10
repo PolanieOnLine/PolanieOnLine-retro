@@ -1,4 +1,4 @@
-/* $Id: Time.java,v 1.1 2012/07/13 05:56:12 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -17,7 +17,7 @@ package games.stendhal.client.sound.facade;
  * to and from samples per sample rate
  * <p>
  * internally this class will calculate in nanosecond resolution only
- * 
+ *
  * @author silvio
  */
 public class Time implements Cloneable
@@ -54,7 +54,7 @@ public class Time implements Cloneable
     {
         mNanoSeconds = nanos;
     }
-    
+
     /**
      * Creates an instance of the Time class
      * from a time value and a time unit
@@ -79,12 +79,12 @@ public class Time implements Cloneable
         set(samples, sampleRate);
     }
 
-    public void set(long value, Unit unit)
+    public final void set(long value, Unit unit)
     {
         mNanoSeconds = value * unit.getNanos();
     }
 
-    public void set(long samples, int sampleRate)
+    public final void set(long samples, int sampleRate)
     {
         mNanoSeconds = (samples * Unit.SEC.getNanos()) / sampleRate;
     }
@@ -99,20 +99,20 @@ public class Time implements Cloneable
 	void sub(Time time ) { mNanoSeconds -= time.mNanoSeconds; }
 	void add(long nanos) { mNanoSeconds += nanos;             }
 	void sub(long nanos) { mNanoSeconds -= nanos;             }
-	
+
     /**
      * Calculates the number of samples for a given sample rate
      * that would fit into this time range
-     * 
+     *
      * @param sampleRate any sample rate
      * @return           number of samples
      */
     public double getInSamples(int sampleRate)
     {
         double seconds = (double)mNanoSeconds / (double)Unit.SEC.getNanos();
-        return seconds * (double)sampleRate;
+        return seconds * sampleRate;
     }
-	
+
 	@Override
 	public Time clone()
 	{

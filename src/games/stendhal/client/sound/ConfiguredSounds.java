@@ -1,13 +1,5 @@
-/**
- * the core used by several different text clients.<!--sic--> Please be responsible with bots.
- */
-package games.stendhal.bot.core;
-
-
-
-/* $Id: package-info.java,v 1.1 2010/11/29 21:39:02 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                     Copyright © 2020 - Arianne                          *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -17,3 +9,26 @@ package games.stendhal.bot.core;
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+package games.stendhal.client.sound;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import games.stendhal.common.constants.SoundID;
+
+
+public class ConfiguredSounds {
+
+	private static final Map<SoundID, String> sounds = new HashMap<SoundID, String>() {{
+		put(SoundID.LEVEL_UP, "player/tadaa");
+		put(SoundID.STAT_UP, "player/stat_up-01");
+		put(SoundID.ACHIEVEMENT, "player/yay");
+		put(SoundID.COMMERCE, "coins-01");
+		put(SoundID.COMMERCE2, "cha-ching");
+		put(SoundID.HEAL, "heal-01");
+	}};
+
+	public static String get(final SoundID id) {
+		return sounds.get(id);
+	}
+}

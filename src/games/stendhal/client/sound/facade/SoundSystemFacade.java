@@ -1,4 +1,4 @@
-/* $Id: SoundSystemFacade.java,v 1.1 2012/07/13 05:56:12 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,26 +12,18 @@
  ***************************************************************************/
 package games.stendhal.client.sound.facade;
 
-import games.stendhal.client.WorldObjects.WorldListener;
-
 import java.util.Collection;
 import java.util.List;
+
+import games.stendhal.client.listener.PositionChangeListener;
 
 /**
  * this class is the interface between the game logic and the
  * sound system.
- * 
+ *
  * @author hendrik, silvio
  */
-// TODO: Do not extend WorldListener
-public interface SoundSystemFacade extends WorldListener {
-
-	public void playerMoved();
-
-	public void zoneEntered(String zoneName);
-
-	public void zoneLeft(String zoneName);
-
+public interface SoundSystemFacade extends PositionChangeListener {
 	public void exit();
 
 	public SoundGroup getGroup(String groupName);
@@ -49,5 +41,4 @@ public interface SoundSystemFacade extends WorldListener {
 	public void changeVolume(float volume);
 
 	public List<String> getDeviceNames();
-	
 }

@@ -1,4 +1,4 @@
-/* $Id: SoundSystemFacadeImpl.java,v 1.9 2012/07/13 05:56:12 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,8 +12,12 @@
  ***************************************************************************/
 package games.stendhal.client.sound.sound;
 
-import games.stendhal.client.WorldObjects.WorldListener;
-import games.stendhal.client.entity.User;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.client.sound.facade.SoundGroup;
 import games.stendhal.client.sound.facade.SoundHandle;
 import games.stendhal.client.sound.facade.SoundSystemFacade;
@@ -22,26 +26,20 @@ import games.stendhal.client.sound.manager.DeviceEvaluator.Device;
 import games.stendhal.client.sound.manager.SoundManagerNG.Sound;
 import games.stendhal.common.math.Algebra;
 
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-
-import org.apache.log4j.Logger;
-
 /**
  * This class is the interface between the game logic and the
  * sound system.
- * 
+ *
  * @author hendrik, silvio
  */
-public class SoundSystemFacadeImpl implements SoundSystemFacade, WorldListener {
+public class SoundSystemFacadeImpl implements SoundSystemFacade {
 	private static Logger logger = Logger.getLogger(SoundSystemFacadeImpl.class);
-	
-	private ExtendedSoundManager manager = new ExtendedSoundManager();
 
-	public void playerMoved() {
+	private ExtendedSoundManager manager = new ExtendedSoundManager();
+	@Override
+	public void positionChanged(double x, double y) {
 		try {
-			float[] position = Algebra.vecf((float) User.get().getX(), (float) User.get().getY());
+			float[] position = Algebra.vecf((float) x, (float) y);
 			manager.setHearerPosition(position);
 			manager.update();
 		} catch (RuntimeException e) {
@@ -49,14 +47,7 @@ public class SoundSystemFacadeImpl implements SoundSystemFacade, WorldListener {
 		}
 	}
 
-	public void zoneEntered(String zoneName) {
-		// ignored
-	}
-
-	public void zoneLeft(String zoneName) {
-		// ignored
-	}
-
+	@Override
 	public void exit() {
 		try {
 			manager.exit();
@@ -65,10 +56,12 @@ public class SoundSystemFacadeImpl implements SoundSystemFacade, WorldListener {
 		}
 	}
 
+	@Override
 	public SoundGroup getGroup(String groupName) {
 		return manager.getGroup(groupName);
 	}
 
+	@Override
 	public void update() {
 		try {
 			manager.update();
@@ -77,36 +70,42 @@ public class SoundSystemFacadeImpl implements SoundSystemFacade, WorldListener {
 		}
 	}
 
+	@Override
 	public void stop(SoundHandle sound, Time fadingDuration) {
 		if (sound != null) {
-		try {
+			try {
 				if (sound instanceof Sound) {
-			manager.stop((Sound) sound, fadingDuration);
+					manager.stop((Sound) sound, fadingDuration);
 				} else {
 					logger.error("sound handle not instance of Sound but " + sound, new Throwable());
 				}
-		} catch (RuntimeException e) {
-			logger.error(e, e);
+			} catch (RuntimeException e) {
+				logger.error(e, e);
 			}
 		}
 	}
 
+	@Override
 	public void mute(boolean turnOffSound, boolean useFading, Time delay) {
 		manager.mute(turnOffSound, useFading, delay);
 	}
 
+	@Override
 	public float getVolume() {
 		return manager.getVolume();
 	}
 
+	@Override
 	public Collection<String> getGroupNames() {
 		return manager.getGroupNames();
 	}
 
+	@Override
 	public void changeVolume(float volume) {
 		manager.changeVolume(volume);
 	}
 
+	@Override
 	public List<String> getDeviceNames() {
 		List<String> res = new LinkedList<String>();
 		for (Device device : manager.getDevices()) {

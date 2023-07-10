@@ -1,13 +1,5 @@
-/**
- * a command line client that will /tellall the text on stdin.
- */
-package games.stendhal.bot.shouter;
-
-
-
-/* $Id: package-info.java,v 1.1 2010/11/29 21:39:03 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                      (C) Copyright 2003 - Arianne                       *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -17,3 +9,12 @@ package games.stendhal.bot.shouter;
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+package games.stendhal.common.constants;
+
+/**
+ * Generic constants.
+ */
+public class General {
+	/* property indicating entity has a path set */
+	public final static String PATHSET = "pathset";
+}

@@ -1,4 +1,4 @@
-/* $Id: NoSoundFacade.java,v 1.4 2012/07/13 05:56:11 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,66 +12,67 @@
  ***************************************************************************/
 package games.stendhal.client.sound.nosound;
 
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+
 import games.stendhal.client.sound.facade.SoundGroup;
 import games.stendhal.client.sound.facade.SoundHandle;
 import games.stendhal.client.sound.facade.SoundSystemFacade;
 import games.stendhal.client.sound.facade.Time;
 
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-
 public class NoSoundFacade implements SoundSystemFacade {
 
+	@Override
 	public void changeVolume(float volume) {
 		// do nothing
 	}
 
+	@Override
 	public void exit() {
 		// do nothing
 	}
 
+	@Override
 	public SoundGroup getGroup(String groupName) {
 		// do nothing
 		return new NoSoundGroup();
 	}
 
+	@Override
 	public Collection<String> getGroupNames() {
 		// do nothing
 		return new LinkedList<String>();
 	}
 
+	@Override
 	public float getVolume() {
 		// do nothing
 		return 0;
 	}
 
+	@Override
 	public void mute(boolean turnOffSound, boolean useFading, Time delay) {
 		// do nothing
 	}
 
-	public void playerMoved() {
-		// do nothing
-	}
-
+	@Override
 	public void stop(SoundHandle sound, Time fadingDuration) {
 		// do nothing
 	}
 
+	@Override
 	public void update() {
 		// do nothing
 	}
 
-	public void zoneEntered(String zoneName) {
+	@Override
+	public void positionChanged(double x, double y) {
 		// do nothing
 	}
 
-	public void zoneLeft(String zoneName) {
-		// do nothing
-	}
-
+	@Override
 	public List<String> getDeviceNames() {
 		return new LinkedList<String>();
 	}
-
 }

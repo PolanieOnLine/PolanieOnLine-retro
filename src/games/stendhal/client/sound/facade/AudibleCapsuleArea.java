@@ -1,4 +1,4 @@
-/* $Id: AudibleCapsuleArea.java,v 1.1 2012/07/13 05:56:12 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -47,20 +47,23 @@ public class AudibleCapsuleArea implements AudibleArea
     public float getInnerRadius()               { return mInnerRadius;                   }
     public float getOuterRadius()               { return mOuterRadius;                   }
 
-    public float getHearingIntensity(float[] hearerPos)
+    @Override
+	public float getHearingIntensity(float[] hearerPos)
     {
         float distance = Geometry.distanceSqrt_LinePointf(mStartPoint, mEndPoint, hearerPos);
-        
-        if(distance > (mOuterRadius * mOuterRadius))
-            return 0.0f;
-        else if(distance < (mInnerRadius * mInnerRadius))
-            return 1.0f;
+
+        if(distance > (mOuterRadius * mOuterRadius)) {
+			return 0.0f;
+		} else if(distance < (mInnerRadius * mInnerRadius)) {
+			return 1.0f;
+		}
 
         distance = (float)Math.sqrt(distance) - mInnerRadius;
         return 1.0f - distance / (mOuterRadius - mInnerRadius);
     }
 
-    public void getClosestPoint(float[] result, float[] hearerPos)
+    @Override
+	public void getClosestPoint(float[] result, float[] hearerPos)
     {
         Geometry.closestPoint_CapsulePointf(result, mStartPoint, mEndPoint, mInnerRadius, hearerPos);
     }

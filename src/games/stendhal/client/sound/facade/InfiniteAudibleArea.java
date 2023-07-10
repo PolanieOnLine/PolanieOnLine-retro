@@ -1,4 +1,4 @@
-/* $Id: InfiniteAudibleArea.java,v 1.1 2012/07/13 05:56:12 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -20,6 +20,8 @@ import games.stendhal.common.math.Algebra;
  */
 public class InfiniteAudibleArea implements AudibleArea
 {
-    public float getHearingIntensity(float[] hearerPos)                 { return 1.0f;                         }
-    public void  getClosestPoint    (float[] result, float[] hearerPos) { Algebra.mov_Vecf(result, hearerPos); }
+    @Override
+	public float getHearingIntensity(float[] hearerPos)                 { return 1.0f;                         }
+    @Override
+	public void  getClosestPoint    (float[] result, float[] hearerPos) { Algebra.mov_Vecf(result, hearerPos); }
 }

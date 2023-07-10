@@ -1,4 +1,4 @@
-/* $Id: ToneGenerator.java,v 1.4 2010/11/27 19:13:57 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,8 +12,9 @@
  ***************************************************************************/
 package games.stendhal.client.sound.system.processors;
 
-import games.stendhal.client.sound.system.SignalProcessor;
 import java.util.ArrayList;
+
+import games.stendhal.client.sound.system.SignalProcessor;
 
 /**
  * Generates a PCM audio signal consisting of sine waveforms
@@ -70,8 +71,9 @@ public class ToneGenerator extends SignalProcessor
     @Override
     protected synchronized void modify(float[] data, int samples, int channels, int rate)
     {
-        for(Tone tone: mTones)
-            makeTone(tone, data, samples, channels, true);
+        for(Tone tone: mTones) {
+			makeTone(tone, data, samples, channels, true);
+		}
 
         super.propagate(data, samples, channels, rate);
     }
@@ -79,20 +81,22 @@ public class ToneGenerator extends SignalProcessor
     private void makeTone(Tone tone, float[] data, int samples, int channels, boolean mixSound)
     {
         final double RAD                      = 2.0 * Math.PI;
-        final float  frequencySampleRateRatio = tone.mFrequency / (float)mSampleRate;
+        final float  frequencySampleRateRatio = tone.mFrequency / mSampleRate;
 
         if(mixSound)
         {
             for(int i=0; i<samples; ++i)
             {
                 int   index = i * channels;
-                float value = (float)Math.sin(RAD * frequencySampleRateRatio * (double)tone.mPosition);
+                float value = (float)Math.sin(RAD * frequencySampleRateRatio * tone.mPosition);
 
                 value *= tone.mVolume;
 
                 for(int c=0; c<channels; ++c)
-                    data[index + c] = data[index + c] + value - data[index + c] * value;	//MF: mix using amplitude modulation between the generated tones?
-                
+				 {
+					data[index + c] = data[index + c] + value - data[index + c] * value;	//MF: mix using amplitude modulation between the generated tones?
+				}
+
                 ++tone.mPosition;
             }
         }
@@ -101,12 +105,13 @@ public class ToneGenerator extends SignalProcessor
             for(int i=0; i<samples; ++i)
             {
                 int   index = i * channels;
-                float value = (float)Math.sin(RAD * frequencySampleRateRatio * (double)tone.mPosition);
+                float value = (float)Math.sin(RAD * frequencySampleRateRatio * tone.mPosition);
 
                 value *= tone.mVolume;
 
-                for(int c=0; c<channels; ++c)
-                    data[index + c] = value;
+                for(int c=0; c<channels; ++c) {
+					data[index + c] = value;
+				}
 
                 ++tone.mPosition;
             }

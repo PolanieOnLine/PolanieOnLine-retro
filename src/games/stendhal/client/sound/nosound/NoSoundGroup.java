@@ -1,4 +1,4 @@
-/* $Id: NoSoundGroup.java,v 1.5 2012/07/13 05:56:11 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -20,30 +20,36 @@ import games.stendhal.client.sound.facade.Time;
 
 public class NoSoundGroup implements SoundGroup {
 
+	@Override
 	public void changeVolume(float intToFloat) {
 		// do nothing
 	}
 
+	@Override
 	public float getVolume() {
 		// do nothing
 		return 0;
 	}
 
+	@Override
 	public boolean loadSound(String name, String fileURI, SoundFileType fileType, boolean enableStreaming) {
 		// do nothing
 		return false;
 	}
 
+	@Override
 	public SoundHandle play(String soundName, int layerLevel, AudibleArea area, Time fadeInDuration, boolean autoRepeat, boolean clone) {
 		// do nothing
 		return new NoSoundHandle();
 	}
 
+	@Override
 	public SoundHandle play(String soundName, float volume, int layerLevel, AudibleArea area, Time fadeInDuration, boolean autoRepeat, boolean clone) {
 		// do nothing
 		return new NoSoundHandle();
 	}
 
+	@Override
 	public void enableStreaming() {
 		// do nothing
 	}

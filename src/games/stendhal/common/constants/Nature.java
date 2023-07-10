@@ -1,6 +1,5 @@
-/* $Id: Nature.java,v 1.4 2011/09/02 22:27:42 sjtsp2008 Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2013 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -18,15 +17,19 @@ import org.apache.log4j.Logger;
 
 /**
  * Available natures.
- * 
+ *
  * Note that Nature is related to the magic system, and is not intended
  * to support other kinds of "effects", like slowdown, drop, paralysis, etc.
  */
 public enum Nature {
+	/** physical attack */
 	CUT,
+	/** fire magic */
 	FIRE,
+	/** ice magic */
 	ICE,
 	LIGHT,
+	/** dark magic */
 	DARK;
 
 	/**

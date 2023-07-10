@@ -1,4 +1,4 @@
-/* $Id: MonoMixer.java,v 1.3 2010/11/27 19:13:57 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -29,8 +29,9 @@ public class MonoMixer extends SignalProcessor
         {
             float value = 0;
 
-            for(int c=0; c<channels; ++c)
-                value += data[i * channels + c];
+            for(int c=0; c<channels; ++c) {
+				value += data[i * channels + c];
+			}
 
             value  /= channels;
             data[i] = value;
@@ -61,6 +62,7 @@ public class MonoMixer extends SignalProcessor
             data[i] = (float)(sum - combined + product);
         }
 
-        super.propagate(data, samples, 1, rate);//*/
+        super.propagate(data, samples, 1, rate);
+		*/
     }
 }

@@ -1,4 +1,4 @@
-/* $Id: SoundFile.java,v 1.19 2012/07/13 05:56:11 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,12 +12,6 @@
  ***************************************************************************/
 package games.stendhal.client.sound.manager;
 
-import games.stendhal.client.sound.facade.SoundFileType;
-import games.stendhal.client.sound.system.SignalProcessor;
-import games.stendhal.client.sound.system.processors.OggVorbisDecoder;
-import games.stendhal.client.sound.system.processors.PCMStreamConverter;
-import games.stendhal.client.sound.system.processors.Recorder;
-
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,24 +20,25 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
-import org.apache.log4j.Logger;
+import games.stendhal.client.sound.facade.SoundFileType;
+import games.stendhal.client.sound.system.SignalProcessor;
+import games.stendhal.client.sound.system.processors.OggVorbisDecoder;
+import games.stendhal.client.sound.system.processors.PCMStreamConverter;
+import games.stendhal.client.sound.system.processors.Recorder;
 
 /**
  *
  * @author silvio
  */
-public class SoundFile extends SignalProcessor implements Cloneable
+public class SoundFile extends SignalProcessor implements Cloneable {
 
-{
-	private static Logger logger = Logger.getLogger(SoundFile.class);
-
-	private int						mNumChannels;
-	private int						mSampleRate;
-	private SignalProcessor			mGenerator = null;
-	private Recorder				mRecorder  = null;
-	private final AudioResource		mAudioResource;
-	private final boolean			mEnableStreaming;
-	private final int				mOutputNumSamples;
+    private int                   mNumChannels;
+    private int                   mSampleRate;
+	private SignalProcessor       mGenerator = null;
+	private Recorder              mRecorder  = null;
+	private final AudioResource        mAudioResource;
+	private final boolean         mEnableStreaming;
+    private final int             mOutputNumSamples;
     private final SoundFileType            mFileType;
 
 	private final SignalProcessor mPropagator = new SignalProcessor()
@@ -62,67 +57,67 @@ public class SoundFile extends SignalProcessor implements Cloneable
 	};
 
     public SoundFile(AudioResource audioResource, SoundFileType fileType, int outputNumSamplesPerChannel, boolean enableStreaming) throws IOException
-	{
+    {
 
-		InputStream stream = audioResource.getInputStream();
+    	InputStream stream = audioResource.getInputStream();
 		if(stream == null) {
-			throw new IOException("audio AudioResource doesn't exist: " + audioResource.getName());
+            throw new IOException("audio AudioResource doesn't exist: " + audioResource.getName());
 		}
 
-		mAudioResource		= audioResource;
-		mFileType			= fileType;
-		mEnableStreaming	= enableStreaming;
-		mOutputNumSamples	= outputNumSamplesPerChannel;
+		mAudioResource         = audioResource;
+        mFileType         = fileType;
+        mEnableStreaming  = enableStreaming;
+        mOutputNumSamples = outputNumSamplesPerChannel;
 
-		SignalProcessor decoder = chooseDecoder(stream, fileType, outputNumSamplesPerChannel);
+        SignalProcessor decoder = chooseDecoder(stream, fileType, outputNumSamplesPerChannel);
 
-		if(decoder == null) {
+        if(decoder == null) {
 			throw new IOException("could not load audio AudioResource: " + audioResource.getName());
 		}
 
-		if(enableStreaming)
-		{
-			decoder.connectTo(mPropagator, true);
-			mGenerator = decoder;
-		}
-		else
-		{
-			mRecorder = new Recorder();
-			mRecorder.connectTo(decoder, false);
+        if(enableStreaming)
+        {
+            decoder.connectTo(mPropagator, true);
+            mGenerator = decoder;
+        }
+        else
+        {
+            mRecorder = new Recorder();
+            mRecorder.connectTo(decoder, false);
 
             while (mRecorder.request()) {
-				// sleep(1) causes freezes, see #arianne log of 2012-07-03
+    			// sleep(1) causes freezes, see #arianne log of 2012-07-03
     			/* try {
-					Thread.sleep(1);
-				} catch (InterruptedException e) {
-					logger.error(e, e);
+    				Thread.sleep(1);
+    			} catch (InterruptedException e) {
+    				logger.error(e, e);
     			} */
-			}
+            }
 
-			mRecorder.disconnect();
-			mRecorder.trim();
+            mRecorder.disconnect();
+            mRecorder.trim();
 
 			Recorder.Player player = mRecorder.createPlayer(outputNumSamplesPerChannel);
 			player.connectTo(mPropagator, true);
-			
-			mGenerator = player;
-		}
-	}
+
+            mGenerator = player;
+        }
+    }
 
 	private SoundFile(Recorder recorder, AudioResource audioResource, SoundFileType fileType, int outputNumSamplesPerChannel)
 	{
-		mAudioResource		= audioResource;
-		mFileType			= fileType;
-		mOutputNumSamples	= outputNumSamplesPerChannel;
-		mEnableStreaming	= false;
-		mRecorder			= recorder;
-		mGenerator			= recorder.createPlayer(outputNumSamplesPerChannel);
+		mAudioResource         = audioResource;
+		mFileType         = fileType;
+		mOutputNumSamples = outputNumSamplesPerChannel;
+		mEnableStreaming  = false;
+		mRecorder         = recorder;
+		mGenerator        = recorder.createPlayer(outputNumSamplesPerChannel);
 
 		mGenerator.connectTo(mPropagator, true);
 	}
 
-	public int getNumChannels() { return mNumChannels; }
-	public int getSampleRate () { return mSampleRate;  }
+    public int getNumChannels() { return mNumChannels; }
+    public int getSampleRate () { return mSampleRate;  }
 
 	public void close()
 	{
@@ -142,10 +137,10 @@ public class SoundFile extends SignalProcessor implements Cloneable
 		}
 	}
 
-	@Override
-	public SoundFile clone()
-	{
-		SoundFile file = null;
+    @Override
+    public SoundFile clone()
+    {
+        SoundFile file = null;
 
 		if(mGenerator instanceof Recorder.Player)
 		{
@@ -162,52 +157,52 @@ public class SoundFile extends SignalProcessor implements Cloneable
 				assert false: "catched exception - " + exception;
 			}
 		}
-		return file;
-	}
+        return file;
+    }
 
-	public void restart()
-	{
-		if(mGenerator instanceof OggVorbisDecoder)
-		{
-			OggVorbisDecoder decoder = (OggVorbisDecoder)mGenerator;
-			decoder.close();
+    public void restart()
+    {
+        if(mGenerator instanceof OggVorbisDecoder)
+        {
+            OggVorbisDecoder decoder = (OggVorbisDecoder)mGenerator;
+            decoder.close();
 
-			try
-			{
-				decoder.open(mAudioResource.getInputStream(), 256, mOutputNumSamples);
-			}
-			catch(IOException exception) { }
+            try
+            {
+                decoder.open(mAudioResource.getInputStream(), 256, mOutputNumSamples);
+            }
+            catch(IOException exception) { }
 
-		}
-		else if(mGenerator instanceof PCMStreamConverter)
-		{
-			PCMStreamConverter converter = (PCMStreamConverter)mGenerator;
-			converter.close();
+        }
+        else if(mGenerator instanceof PCMStreamConverter)
+        {
+            PCMStreamConverter converter = (PCMStreamConverter)mGenerator;
+            converter.close();
 
-			try
-			{
-				AudioInputStream stream = AudioSystem.getAudioInputStream(mAudioResource.getInputStream());
-				converter.open(stream, stream.getFormat(), mOutputNumSamples);
-			}
-			catch(IOException                   exception) { }
-			catch(UnsupportedAudioFileException exception) { }
-		}
+            try
+            {
+                AudioInputStream stream = AudioSystem.getAudioInputStream(mAudioResource.getInputStream());
+                converter.open(stream, stream.getFormat(), mOutputNumSamples);
+            }
+            catch(IOException                   exception) { }
+            catch(UnsupportedAudioFileException exception) { }
+        }
 		else if(mGenerator instanceof Recorder.Player)
 		{
 			Recorder.Player player = (Recorder.Player)mGenerator;
 			player.restart();
 		}
-	}
+    }
 
 	private SignalProcessor chooseDecoder(InputStream stream, SoundFileType fileType, int outputNumSamplesPerChannel)
-	{
-		SignalProcessor decoder = null;
+    {
+        SignalProcessor decoder = null;
 
-		switch(fileType)
-		{
-		case OGG:
-			try
-			{
+        switch(fileType)
+        {
+        case OGG:
+            try
+            {
 				if(stream != null)
 				{
 					OggVorbisDecoder oggdec = new OggVorbisDecoder(stream, 256, outputNumSamplesPerChannel);
@@ -216,29 +211,29 @@ public class SoundFile extends SignalProcessor implements Cloneable
 					mSampleRate  = oggdec.getSampleRate();
 					decoder      = oggdec;
 				}
-			}
-			catch(Exception exception) { decoder = null; }
-			break;
+            }
+            catch(Exception exception) { decoder = null; }
+            break;
 
-		case WAV:
-			try
-			{
-				AudioInputStream audioStream = AudioSystem.getAudioInputStream(new BufferedInputStream(stream));
-				decoder                 = new PCMStreamConverter(stream, audioStream.getFormat(), outputNumSamplesPerChannel);
+        case WAV:
+            try
+            {
+                AudioInputStream audioStream = AudioSystem.getAudioInputStream(new BufferedInputStream(stream));
+                decoder                 = new PCMStreamConverter(stream, audioStream.getFormat(), outputNumSamplesPerChannel);
 
-				mNumChannels = audioStream.getFormat().getChannels();
-				mSampleRate  = (int)audioStream.getFormat().getSampleRate();
-			}
-			catch(Exception exception) { decoder = null; }
-			break;
-		}
+                mNumChannels = audioStream.getFormat().getChannels();
+                mSampleRate  = (int)audioStream.getFormat().getSampleRate();
+            }
+            catch(Exception exception) { decoder = null; }
+            break;
+        }
 
-		return decoder;
-	}
+        return decoder;
+    }
 
-	@Override
-	protected boolean generate()
-	{
-		return mPropagator.request();
-	}
+    @Override
+    protected boolean generate()
+    {
+        return mPropagator.request();
+    }
 }

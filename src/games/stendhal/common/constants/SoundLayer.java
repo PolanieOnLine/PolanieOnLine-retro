@@ -1,6 +1,5 @@
-/* $Id: SoundLayer.java,v 1.3 2010/09/19 02:20:45 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2013 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -23,7 +22,7 @@ public enum SoundLayer {
 	BACKGROUND_MUSIC("music"),
 
 	/**
-	 * sounds that are related to the zone and are in-game, 
+	 * sounds that are related to the zone and are in-game,
 	 * like a waterfall, wind, the hammering at the blacksmith
 	 */
 	AMBIENT_SOUND("ambient"),
@@ -37,6 +36,7 @@ public enum SoundLayer {
 	/** user interface feedback, opening of windows, private message notification */
 	USER_INTERFACE("gui");
 
+	/** the internal name of the sound layer */
 	public final String groupName;
 
 	/**

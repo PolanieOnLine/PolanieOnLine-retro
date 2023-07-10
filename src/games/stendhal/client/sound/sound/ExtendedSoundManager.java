@@ -1,4 +1,4 @@
-/* $Id: ExtendedSoundManager.java,v 1.19 2012/07/13 05:56:12 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,20 +12,6 @@
  ***************************************************************************/
 package games.stendhal.client.sound.sound;
 
-import games.stendhal.client.MemoryCache;
-import games.stendhal.client.WorldObjects.WorldListener;
-import games.stendhal.client.entity.User;
-import games.stendhal.client.gui.wt.core.WtWindowManager;
-import games.stendhal.client.sound.facade.AudibleArea;
-import games.stendhal.client.sound.facade.SoundFileType;
-import games.stendhal.client.sound.facade.SoundGroup;
-import games.stendhal.client.sound.facade.Time;
-import games.stendhal.client.sound.manager.AudioResource;
-import games.stendhal.client.sound.manager.DeviceEvaluator;
-import games.stendhal.client.sound.manager.SoundManagerNG;
-import games.stendhal.common.math.Algebra;
-import games.stendhal.common.math.Numeric;
-
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -35,13 +21,24 @@ import javax.sound.sampled.AudioFormat;
 
 import org.apache.log4j.Logger;
 
+import games.stendhal.client.MemoryCache;
+import games.stendhal.client.gui.wt.core.WtWindowManager;
+import games.stendhal.client.sound.facade.AudibleArea;
+import games.stendhal.client.sound.facade.SoundFileType;
+import games.stendhal.client.sound.facade.SoundGroup;
+import games.stendhal.client.sound.facade.Time;
+import games.stendhal.client.sound.manager.AudioResource;
+import games.stendhal.client.sound.manager.DeviceEvaluator;
+import games.stendhal.client.sound.manager.SoundManagerNG;
+import games.stendhal.common.math.Numeric;
+
 /**
  * this class is the main interface between the game logic and the low level
  * sound system. It is a refinement of the manager.SoundManager class.
- * 
+ *
  * @author hendrik, silvio
  */
-public class ExtendedSoundManager extends SoundManagerNG implements WorldListener {
+public class ExtendedSoundManager extends SoundManagerNG {
 	private static Logger logger = Logger.getLogger(ExtendedSoundManager.class);
 
 	private static class Multiplicator {
@@ -62,22 +59,23 @@ public class ExtendedSoundManager extends SoundManagerNG implements WorldListene
 		private final MemoryCache<String, Sound> mGroupSounds = new MemoryCache<String, Sound>();
 		private boolean streaming = false;
 
+		@Override
 		public boolean loadSound(String name, String filename, SoundFileType fileType, boolean enableStreaming) {
 			try {
 				Sound sound = ExtendedSoundManager.this.mSounds.get(name);
-	
+
 				if (sound == null) {
 					sound = openSound(new AudioResource(filename), fileType, 256, enableStreaming);
-	
+
 					if (sound != null) {
 						ExtendedSoundManager.this.mSounds.put(name, sound);
 					}
 				}
-	
+
 				if (sound != null) {
 					mGroupSounds.put(name, sound);
 				}
-	
+
 				return sound != null;
 			} catch (RuntimeException e) {
 				logger.error(e, e);
@@ -85,10 +83,12 @@ public class ExtendedSoundManager extends SoundManagerNG implements WorldListene
 			return false;
 		}
 
+		@Override
 		public float getVolume() {
 			return mVolume;
 		}
 
+		@Override
 		public void changeVolume(float volume) {
 			mVolume = volume;
 
@@ -104,36 +104,39 @@ public class ExtendedSoundManager extends SoundManagerNG implements WorldListene
 		/**
 		 * enables streaming of the music data for this group.
 		 */
+		@Override
 		public void enableStreaming() {
 			streaming = true;
 		}
 
+		@Override
 		public Sound play(String soundName, int layerLevel, AudibleArea area, Time fadeInDuration, boolean autoRepeat, boolean clone) {
 			return play(soundName, 1.0f, layerLevel, area, fadeInDuration, autoRepeat, clone);
 		}
 
+		@Override
 		public Sound play(String soundName, float volume, int layerLevel, AudibleArea area, Time fadeInDuration, boolean autoRepeat, boolean clone) {
 			if (soundName == null) {
 				return null;
 			}
 			try {
-				
+
 				if (mEnabled) {
 					Sound sound = mGroupSounds.get(soundName);
 					if (sound == null) {
 						loadSound(soundName, soundName + ".ogg", SoundFileType.OGG, this.streaming);
 						sound = mGroupSounds.get(soundName);
 					}
-	
+
 					if (sound != null) {
 						if (clone) {
 							sound = sound.clone();
 						}
-	
+
 						sound.setAttachment(new Multiplicator(volume, this));
 						ExtendedSoundManager.this.play(sound, (mMasterVolume * mVolume * volume), layerLevel, area, autoRepeat, fadeInDuration);
 					}
-	
+
 					return sound;
 				}
 			} catch (RuntimeException e) {
@@ -151,10 +154,11 @@ public class ExtendedSoundManager extends SoundManagerNG implements WorldListene
 		WtWindowManager wm = WtWindowManager.getInstance();
 		mDeviceEvaluator = new DeviceEvaluator();
 		String userSelected = wm.getProperty("sound.device", "auto");
-		if (!userSelected.equals("auto - recommended")) {
+		if (!userSelected.equals("auto - rekomendowane")) {
 			logger.info("User selected sound device: " + userSelected);
 			mDeviceEvaluator.setRating(Pattern.compile(Pattern.quote(userSelected)), null, 100);
 		}
+		mDeviceEvaluator.setRating(Pattern.compile(".*default.*", Pattern.CASE_INSENSITIVE), null, 3);
 		mDeviceEvaluator.setRating(Pattern.compile(".*pulseaudio.*", Pattern.CASE_INSENSITIVE), null, 2);
 		mDeviceEvaluator.setRating(Pattern.compile(".*plughw.0.0.*"), null, 1);
 		mDeviceEvaluator.setRating(Pattern.compile(".*Java Sound Audio Engine.*"), null, -1);
@@ -167,7 +171,7 @@ public class ExtendedSoundManager extends SoundManagerNG implements WorldListene
 	private float mMasterVolume = 1.0f;
 
 	ExtendedSoundManager() {
-		super(!Boolean.parseBoolean(WtWindowManager.getInstance().getProperty("sound.play", "true")),
+		super(!WtWindowManager.getInstance().getPropertyBoolean("sound.play", true),
 				mDeviceEvaluator.createDeviceList(mAudioFormat), mAudioFormat);
 		initVolumes();
 	}
@@ -193,20 +197,6 @@ public class ExtendedSoundManager extends SoundManagerNG implements WorldListene
 		boolean play = Boolean.parseBoolean(config.getProperty("sound.play", "true"));
 		mute(!play, false, new Time(0, Time.Unit.SEC));
 	}*/
-
-	public void playerMoved() {
-		float[] position = Algebra.vecf((float) User.get().getX(), (float) User.get().getY());
-		super.setHearerPosition(position);
-		super.update();
-	}
-
-	public void zoneEntered(String zoneName) {
-		// ignored
-	}
-
-	public void zoneLeft(String zoneName) {
-		// ignored
-	}
 
 	public Group getGroup(String groupName) {
 		Group group = mGroups.get(groupName);

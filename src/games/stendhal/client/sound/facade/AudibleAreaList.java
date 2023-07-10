@@ -1,4 +1,4 @@
-/* $Id: AudibleAreaList.java,v 1.1 2012/07/13 05:56:12 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -27,11 +27,13 @@ public class AudibleAreaList extends LinkedList<AudibleArea> implements AudibleA
 	 */
 	private static final long serialVersionUID = 8277563402183797791L;
 
+	@Override
 	public float getHearingIntensity(float[] hearerPos)
     {
-        if(isEmpty())
-            return 0.0f;
-        
+        if(isEmpty()) {
+			return 0.0f;
+		}
+
         Iterator<AudibleArea> iterator  = super.iterator();
         AudibleArea           area      = iterator.next();
         float                 intensity = area.getHearingIntensity(hearerPos);
@@ -41,14 +43,16 @@ public class AudibleAreaList extends LinkedList<AudibleArea> implements AudibleA
             area = iterator.next();
             intensity = Math.max(intensity, area.getHearingIntensity(hearerPos));
         }
-        
+
         return intensity;
     }
 
-    public void getClosestPoint(float[] result, float[] hearerPos)
+    @Override
+	public void getClosestPoint(float[] result, float[] hearerPos)
     {
-        if(isEmpty())
-            return;
+        if(isEmpty()) {
+			return;
+		}
 
         Iterator<AudibleArea> iterator    = super.iterator();
         AudibleArea           closestArea = iterator.next();

@@ -1,4 +1,4 @@
-/* $Id: DirectedSound.java,v 1.4 2010/11/27 16:35:14 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,9 +12,9 @@
  ***************************************************************************/
 package games.stendhal.client.sound.system.processors;
 
-import games.stendhal.common.math.Algebra;
+import games.stendhal.client.sound.Field;
 import games.stendhal.client.sound.system.SignalProcessor;
-import games.stendhal.common.memory.Field;
+import games.stendhal.common.math.Algebra;
 
 /**
  * Signal processor to handle directed sound.
@@ -29,7 +29,7 @@ public class DirectedSound extends SignalProcessor
 	private float[]       mOutputBuffer = null;
 
     public DirectedSound() { }
-    
+
     public DirectedSound(float[] upVector)
     {
         assert upVector.length == 3;

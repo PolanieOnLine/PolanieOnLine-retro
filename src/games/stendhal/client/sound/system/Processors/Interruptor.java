@@ -1,4 +1,4 @@
-/* $Id: Interruptor.java,v 1.6 2012/07/13 05:56:12 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,10 +12,11 @@
  ***************************************************************************/
 package games.stendhal.client.sound.system.processors;
 
-import games.stendhal.client.sound.facade.Time;
-import games.stendhal.client.sound.system.SignalProcessor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+
+import games.stendhal.client.sound.facade.Time;
+import games.stendhal.client.sound.system.SignalProcessor;
 
 /**
  * Signal processor stage to pause sound signals.
@@ -63,7 +64,7 @@ public class Interruptor extends SignalProcessor
                 return false;
             }
         }
-        
+
         return super.request();
     }
 

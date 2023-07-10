@@ -1,4 +1,4 @@
-/* $Id: SoundSystemNG.java,v 1.18 2012/07/13 05:56:12 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,11 +12,6 @@
  ***************************************************************************/
 package games.stendhal.client.sound.system;
 
-import games.stendhal.client.sound.facade.Time;
-import games.stendhal.common.math.Dsp;
-import games.stendhal.common.math.Numeric;
-import games.stendhal.common.memory.Field;
-
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -28,6 +23,11 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 
 import org.apache.log4j.Logger;
+
+import games.stendhal.client.sound.Dsp;
+import games.stendhal.client.sound.Field;
+import games.stendhal.client.sound.facade.Time;
+import games.stendhal.common.math.Numeric;
 
 /**
  * Thread to manage sound output.
@@ -64,8 +64,9 @@ public class SoundSystemNG extends Thread
 
 		void close()
 		{
-			if(mLine.isOpen())
+			if(mLine.isOpen()) {
 				mLine.close();
+			}
 		}
 
 		boolean start()
@@ -79,13 +80,14 @@ public class SoundSystemNG extends Thread
 				catch(LineUnavailableException e) { return false; }
 				catch(SecurityException        e) { return false; }
 			}
-			
-			if(!mLine.isRunning())
+
+			if(!mLine.isRunning()) {
 				mLine.start();
+			}
 
 			return true;
 		}
-		
+
 		void pause()
 		{
 			if(mLine != null && mLine.isOpen() && mLine.isRunning())
@@ -114,7 +116,7 @@ public class SoundSystemNG extends Thread
 		void setNumBytesToWrite(int numBytesToWrite)
 		{
 			int frameSize = getNumBytesPerSample() * getNumChannels();
-			
+
 			mNumBytesToWrite  = Math.min(numBytesToWrite, mLine.getBufferSize());
 			mNumBytesToWrite /= frameSize;
 			mNumBytesToWrite *= frameSize;
@@ -143,8 +145,9 @@ public class SoundSystemNG extends Thread
 			//            from its native C method and thus will be handled as an
 			//            "signed int" in java. for a fix we simply set the value
 			//            to the highest possible signed interger value
-			if(available < 0)
+			if(available < 0) {
 				available = Integer.MAX_VALUE;
+			}
 
 			numBytes  = Math.min(numBytes, numRemainingBytesInBuffer);
 			numBytes  = Math.min(numBytes, mNumBytesToWrite         );
@@ -158,20 +161,19 @@ public class SoundSystemNG extends Thread
 			//            the line blocks for some (unknown) reason
 			//            the simplest workaround here is to simply discard the remaining
 			//            audio data and pretend everything was written (return false)
-			if(available > 0 && numBytes == 0)
+			if(available > 0 && numBytes == 0) {
 				return false;
+			}
 
 			mNumBytesWritten          += numBytes;
 			mNumBytesToWrite          -= numBytes;
 			numRemainingBytesInBuffer -= numBytes;
-			
-			if(numRemainingBytesInBuffer < frameSize)
-				reset();
 
-			if(mNumBytesToWrite < frameSize)
-				return false;
-			
-			return true;
+			if(numRemainingBytesInBuffer < frameSize) {
+				reset();
+			}
+
+			return (mNumBytesToWrite >= frameSize);
         }
 	}
 
@@ -212,7 +214,7 @@ public class SoundSystemNG extends Thread
 			mMixingBuffer = Field.expand(mMixingBuffer, bufferSize, false);
 			Arrays.fill(mMixingBuffer, 0.0f);
 		}
-		
+
 		void setBuffer(float[] buffer, int numSamples)
 		{
 			assert (buffer == null) || (numSamples <= buffer.length);
@@ -221,7 +223,7 @@ public class SoundSystemNG extends Thread
 			mAudioBuffer = buffer;
 			mNumSamples  = numSamples;
 		}
-		
+
 		boolean mix(float[] buffer, int size)
 		{
 			int offset          = 0;
@@ -229,11 +231,13 @@ public class SoundSystemNG extends Thread
 
 			while(numSamplesToMix > 0)
 			{
-				if(!receivedData())
+				if(!receivedData()) {
 					request();
+				}
 
-				if(!receivedData())
+				if(!receivedData()) {
 					return false;
+				}
 
 				int numSamples = mNumSamples - mNumSamplesMixed;
 				numSamples = Math.min(numSamples, numSamplesToMix);
@@ -244,8 +248,9 @@ public class SoundSystemNG extends Thread
 				mNumSamplesMixed += numSamples;
 				numSamplesToMix  -= numSamples;
 
-				if(mNumSamples == mNumSamplesMixed)
+				if(mNumSamples == mNumSamplesMixed) {
 					reset();
+				}
 			}
 
 			return true;
@@ -259,18 +264,18 @@ public class SoundSystemNG extends Thread
                 assert (frames * channels) <= buffer.length;
 				buffer = Dsp.convertChannels(buffer, frames, channels, getNumChannels());
 
-					setBuffer(buffer, (frames * getNumChannels()));
+				setBuffer(buffer, (frames * getNumChannels()));
 
 				buffer = Dsp.convertSampleRate(buffer, (frames * channels), channels, rate, getSampleRate());
 
-					float ratio = (float)frames / (float)rate;
-					setBuffer(buffer, (int)(ratio * getSampleRate() * channels));
-				}
-				else
-				{
-					setBuffer(null, 0);
-					assert false: "could not convert sample rate";
-				}
+				float ratio = (float)frames / (float)rate;
+				setBuffer(buffer, (int)(ratio * getSampleRate() * channels));
+			}
+			else
+			{
+				setBuffer(null, 0);
+				assert false: "could not convert sample rate";
+			}
         }
 	}
 
@@ -300,20 +305,23 @@ public class SoundSystemNG extends Thread
 
     public SoundSystemNG(SourceDataLine outputLine, Time bufferDuration)
     {
-		if(outputLine == null)
+		if(outputLine == null) {
 			throw new IllegalArgumentException("outputLine argument must not be null");
-		if(bufferDuration == null)
+		}
+		if(bufferDuration == null) {
 			throw new IllegalArgumentException("bufferDuration argument must not be null");
+		}
 
 		init(outputLine, outputLine.getFormat(), bufferDuration);
     }
 
 	public void suspend(Time delay, boolean closeSystemOutput)
 	{
-		if(closeSystemOutput)
+		if(closeSystemOutput) {
 			changeSystemState(STATE_SUSPENDED, delay);
-		else
+		} else {
 			changeSystemState(STATE_PAUSING, delay);
+		}
 	}
 
 	public void proceed(Time delay)
@@ -323,13 +331,14 @@ public class SoundSystemNG extends Thread
 
 	public void proceed(Time delay, SourceDataLine outputLine)
     {
-		if(outputLine != null && !outputLine.getFormat().matches(mAudioFormat))
+		if(outputLine != null && !outputLine.getFormat().matches(mAudioFormat)) {
 			throw new IllegalArgumentException("outputLine has the wrong audio format");
-		
+		}
+
 		init(outputLine, mAudioFormat, mBufferDuration.get());
 		changeSystemState(STATE_RUNNING, delay);
 	}
-	
+
 	public boolean isRunning()
 	{
 		return mCurrentSystemState.get() == STATE_RUNNING;
@@ -394,7 +403,7 @@ public class SoundSystemNG extends Thread
 					if(mCurrentSystemState.get() != mTargetSystemState.get())
 					{
 						logger.debug("change state");
-						
+
 						if(mStateChangeDelay.get().getInNanoSeconds() <= 0)
 						{
 							mCurrentSystemState.set(mTargetSystemState.get());
@@ -453,8 +462,9 @@ public class SoundSystemNG extends Thread
 						duration                  = System.nanoTime() - duration;
 						averageTimeToProcessSound = (averageTimeToProcessSound + duration) / 2.0;
 
-						if(averageTimeToProcessSound > bufferDuration)
+						if(averageTimeToProcessSound > bufferDuration) {
 							averageTimeToProcessSound = bufferDuration;
+						}
 
 						long nanos = (long)((bufferDuration - averageTimeToProcessSound) * multiplicator);
 						threadSleep(nanos);
@@ -468,8 +478,9 @@ public class SoundSystemNG extends Thread
 				break;
 
 			case STATE_SUSPENDED:
-				if(mSystemOutput != null)
+				if(mSystemOutput != null) {
 					mSystemOutput.close();
+				}
 				threadSleep(SLEEP_DURATION.getInNanoSeconds());
 				break;
 			}
@@ -477,16 +488,18 @@ public class SoundSystemNG extends Thread
 
         closeAllOutputs();
 
-		if(mSystemOutput != null)
+		if(mSystemOutput != null) {
 			mSystemOutput.close();
+		}
     }
 
 	private void changeSystemState(int state, Time delay)
 	{
-		if(delay == null)
+		if(delay == null) {
 			delay = ZERO_DURATION;
-		else
+		} else {
 			delay = delay.clone();
+		}
 
 		mStateChangeDelay.set(delay);
 		mTargetSystemState.set(state);
@@ -516,8 +529,9 @@ public class SoundSystemNG extends Thread
 		mMixBuffer = Field.expand(mMixBuffer, numSamples, false);
 		Arrays.fill(mMixBuffer, 0, numSamples, 0.0f);
 
-		for(Output output: mixerOutputs)
+		for(Output output: mixerOutputs) {
 			output.mix(mMixBuffer, numSamples);
+		}
 
 		systemOutput.setBuffer(mMixBuffer, numSamples);
 		systemOutput.convert();
@@ -531,8 +545,9 @@ public class SoundSystemNG extends Thread
 				// if the line is full even though we waited a few milliseconds
 				// we will asume that the line is blocked for some (unknown) reason
 				// so we will discard the rest of the non written audio data and return
-				if(lineIsBlocked)
+				if(lineIsBlocked) {
 					return;
+				}
 
 				// if the buffer of the output line is full we will wait a few milliseconds
 				// to let the system mixer process the audio data
