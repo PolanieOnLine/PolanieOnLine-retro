@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="18" height="26" tilewidth="32" tileheight="32">
+ <tileset name="collision" firstgid="1" tilewidth="32" tileheight="32">
+  <image source="../../tileset/logic/collision.png" width="32" height="32"/>
+ </tileset>
+ <tileset name="kamienne_schody_brazowe" firstgid="2" tilewidth="32" tileheight="32">
+  <image source="../../tileset/pol/domki/schody/kamienne_schody_brazowe.png" width="96" height="64"/>
+ </tileset>
+ <tileset name="kafelki_rozne" firstgid="8" tilewidth="32" tileheight="32">
+  <image source="../../tileset/building/wall/dojo_walls.png" width="320" height="512"/>
+ </tileset>
+ <tileset name="floors 3" firstgid="168" tilewidth="32" tileheight="32">
+  <image source="../../tileset/ground/indoor/floors_3.png" width="192" height="64"/>
+ </tileset>
+ <tileset name="altana_green" firstgid="180" tilewidth="32" tileheight="32">
+  <image source="../../tileset/pol/altana_green.png" width="96" height="160"/>
+ </tileset>
+ <tileset name="green_paving" firstgid="195" tilewidth="32" tileheight="32">
+  <image source="../../tileset/ground/green_paving.png" width="96" height="192"/>
+ </tileset>
+ <tileset name="Holy_Tree" firstgid="213" tilewidth="32" tileheight="32">
+  <image source="../../tileset/pol/natura/drzewa/holy_tree.png" width="256" height="320"/>
+ </tileset>
+ <tileset name="kwiatki3" firstgid="293" tilewidth="32" tileheight="32">
+  <image source="../../tileset/pol/natura/kwiaty/kwiatki3.png" width="96" height="32"/>
+ </tileset>
+ <tileset name="Krzak1" firstgid="296" tilewidth="32" tileheight="32">
+  <image source="../../tileset/pol/natura/drzewa/krzak1.png" width="64" height="64"/>
+ </tileset>
+ <tileset name="sign_large" firstgid="300" tilewidth="32" tileheight="32">
+  <image source="../../tileset/item/sign_large.png" width="160" height="96"/>
+ </tileset>
+ <tileset name="swing" firstgid="315" tilewidth="32" tileheight="32">
+  <image source="../../tileset/item/swing.png" width="64" height="64"/>
+ </tileset>
+ <tileset name="birds" firstgid="319" tilewidth="32" tileheight="32">
+  <image source="../../tileset/object/birds.png" width="64" height="64"/>
+ </tileset>
+ <tileset name="meat_and_fish" firstgid="323" tilewidth="32" tileheight="32">
+  <image source="../../tileset/logic/item/meat_and_fish.png" width="160" height="32"/>
+ </tileset>
+ <tileset name="balia_kukurydza" firstgid="328" tilewidth="32" tileheight="32">
+  <image source="../../tileset/pol/wyposazenie/jedzenie/balia_kukurydza.png" width="64" height="32"/>
+ </tileset>
+ <tileset name="schody" firstgid="330" tilewidth="32" tileheight="32">
+  <image source="../../tileset/building/stairs/stairs.png" width="64" height="64"/>
+ </tileset>
+ <tileset name="woda" firstgid="334" tilewidth="32" tileheight="32">
+  <image source="../../tileset/ground/ground.png" width="96" height="352"/>
+ </tileset>
+ <tileset name="plot" firstgid="367" tilewidth="32" tileheight="32">
+  <image source="../../tileset/building/fence/stone_fence_white.png" width="96" height="96"/>
+ </tileset>
+ <tileset name="tr" firstgid="376" tilewidth="32" tileheight="32">
+  <image source="../../tileset/pol/podloze/ground_grass01.png" width="96" height="192"/>
+ </tileset>
+ <tileset name="protection" firstgid="394" tilewidth="32" tileheight="32">
+  <image source="../../tileset/logic/protection.png" width="32" height="32"/>
+ </tileset>
+ <layer name="0_floor" width="18" height="26">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC1vNwMCwmgJcz4hgwwCyHLI8jI8Po5uNzQxs9hNSQwrGpnfUHMJxNFDmYEtj5JpJK/cMljCihb/CScS4/ESqObjcOGrO0DJnOGEAOGZGlFAHAAA=
+  </data>
+ </layer>
+ <layer name="1_terrain" width="18" height="26">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC+3VOQrCQBTG8Rd3G0VsXK7hEbTVTrFy6YwiWLsQl6CdN/Ayiuul/IJPCAMDLxMhjQM/ZsIwf2aq1IhoFNIJOpCBLOQFcsp3ARzuNKEIZYGSb12BqtJpUfDR5vP/TnSdM1yEdB2vcWNPAV3nyo274bvq0IAHd16Gne99YhCHRMhOElKQDtk5WEQbob316Qy44/LsdRxLeBGMFXeOfA9pZ469pW8/SMd/do15a9hRz/7iXVF0XOwthHaaThd6AfWVzhBsQ2PuzGBKsn+XzgTe3q+xF1AHAAA=
+  </data>
+ </layer>
+ <layer name="2_object" width="18" height="26">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC2NgGAWUAkNGBgY7ILZFokFihIAAUI0gkjozKFsYixguIA6UlwBiSSCWAmJpIuzFBuSB+hSAWBGIlYBYGc0cFSLM9QSqUQNiVSJpfOYQC7zI9C+5AOZucvyFC2gB9WiT6Y+9QLwPiPcjiakzIsxUJdLcA0B8EIgPkeeMIQPUSQgTfHrJjWuY3lEwPAEABiN1dVAHAAA=
+  </data>
+ </layer>
+ <layer name="3_roof" width="18" height="26">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC+3RxwoCMRSF4RvFLgo+hYJt1vrY1tHXsXfFjuUXXQxiwDgLNznwERJyz+aKPNNDHwMMMcIYE0zl+8wwxwJLrLDGBnklUkDxpYSy+tyzxQ57HHDECWc4zFRR8ZyOpueCK26PC38UAggqs54Q72FEEEUMcSSQ1MzokuJ/2jOTMZy3MU8NdTR89jTRQhtZ9pb7cXcuOui+vfvptLGx+W/usJZi8FAHAAA=
+  </data>
+ </layer>
+ <layer name="4_roof_add" width="18" height="26">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC2NgoB/4gsZ3YiTPnD8UuwQCWMiw34FMN4+C4QEcofFvP5oORsEoGAVoAAD8HtxZUAcAAA==
+  </data>
+ </layer>
+ <layer name="objects" width="18" height="26">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC2NgGAWjYBSMglEwCkYBpQAA298E8VAHAAA=
+  </data>
+ </layer>
+ <layer name="collision" width="18" height="26">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC2NkYGBgHOYYF8AmRy9zcIlRwxx87sTnL2qZQywYNQdVPTnmEBKn1BxS3UMMGDVn1JzhigEr4RdYUAcAAA==
+  </data>
+ </layer>
+ <layer name="protection" width="54" height="34">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC+3DMQ0AAAwDoM5+VVfGHkjoJVVVVVVVVVV9OHJ/84uwHAAA
+  </data>
+ </layer>
+</map>

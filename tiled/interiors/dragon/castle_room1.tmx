@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="15" height="15" tilewidth="32" tileheight="32">
+ <tileset name="kolizja" firstgid="1" tilewidth="32" tileheight="32">
+  <image source="../../tileset/logic/collision.png" width="32" height="32"/>
+ </tileset>
+ <tileset name="podloga" firstgid="2" tilewidth="32" tileheight="32">
+  <image source="../../tileset/pol/domki/podloga/deski_kafle.png" width="161" height="64"/>
+ </tileset>
+ <tileset name="sciany" firstgid="12" tilewidth="32" tileheight="32">
+  <image source="../../tileset/building/wall/int_wall_dark_red.png" width="128" height="128"/>
+ </tileset>
+ <tileset name="sciany" firstgid="28" tilewidth="32" tileheight="32">
+  <image source="../../tileset/building/wall/int_wall_dark_red_corners.png" width="128" height="128"/>
+ </tileset>
+ <tileset name="drzwi" firstgid="44" tilewidth="32" tileheight="32">
+  <image source="../../tileset/building/entrance/dark_red_ew.png" width="128" height="96"/>
+ </tileset>
+ <tileset name="drzwi1" firstgid="56" tilewidth="32" tileheight="32">
+  <image source="../../tileset/building/entrance/dark_red_ns.png" width="96" height="128"/>
+ </tileset>
+ <tileset name="swiece" firstgid="68" tilewidth="32" tileheight="32">
+  <image source="../../tileset/furniture/light/menorah.png" width="64" height="128"/>
+ </tileset>
+ <tileset name="kwiaty" firstgid="76" tilewidth="32" tileheight="32">
+  <image source="../../tileset/pol/natura/kwiaty/flakon_kwiaty.png" width="32" height="64"/>
+ </tileset>
+ <tileset name="dywan" firstgid="78" tilewidth="32" tileheight="32">
+  <image source="../../tileset/furniture/carpet/purple.png" width="96" height="96"/>
+ </tileset>
+ <tileset name="skrzynki" firstgid="87" tilewidth="32" tileheight="32">
+  <image source="../../tileset/item/chest/chests_red.png" width="64" height="64"/>
+ </tileset>
+ <tileset name="Nieuprawniony" firstgid="91" tilewidth="32" tileheight="32">
+  <image source="../../tileset/furniture/bed/large_purple.png" width="64" height="96"/>
+ </tileset>
+ <tileset name="komoda" firstgid="97" tilewidth="32" tileheight="32">
+  <image source="../../tileset/pol/wyposazenie/regaly/komoda_lustro_male.png" width="32" height="64"/>
+ </tileset>
+ <tileset name="smok1" firstgid="99" tilewidth="32" tileheight="32">
+  <image source="../../tileset/logic/creature/huge_animal.png" width="416" height="32"/>
+ </tileset>
+ <layer name="0_floor" width="15" height="15">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC2NlYGBgHcWjeBQPGAYA884e+oQDAAA=
+  </data>
+ </layer>
+ <layer name="1_terrain" width="15" height="15">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC+3LOwqAMBBF0dmCglaK+MXgRpLGv7a6/1X4imAlw0xqL5zyZkSUByiggRJihQpq/0akKxW+F9yCd4SJMTPvAitj+9/33eFgnMwr7eu14JRvC4lC598eTIABHsNe/0SEAwAA
+  </data>
+ </layer>
+ <layer name="2_object" width="15" height="15">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC2NgQAA7ILYHYgcG0oEjEDsBsTOSWDQQx0DZiSSaFwvEcVB2EhnuIQTCKdAbQSe9OkCsi8SPJEGvARAbkqAeGZgAsSmZeoca8B1oBwABAOPoZn+EAwAA
+  </data>
+ </layer>
+ <layer name="3_roof" width="15" height="15">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC2NgGAWjgLbABYhdydTrBsTuBNT4kGn2YAEAumQBn4QDAAA=
+  </data>
+ </layer>
+ <layer name="4_roof_add" width="15" height="15">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC2NgGAWjYBQMJAAA7Ly31YQDAAA=
+  </data>
+ </layer>
+ <layer name="objects" width="15" height="15">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC2NgGAVDGaQMtANGAcUAAGYxpdOEAwAA
+  </data>
+ </layer>
+ <layer name="collision" width="15" height="15">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC2NkYGBgpBJmIFMPIYDLbHzq0eXJtXuo6kXXT66+oayXGHOolfYpwQAVBWLYhAMAAA==
+  </data>
+ </layer>
+ <layer name="protection" width="15" height="15">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC2NgGAWjYBQMJAAA7Ly31YQDAAA=
+  </data>
+ </layer>
+</map>

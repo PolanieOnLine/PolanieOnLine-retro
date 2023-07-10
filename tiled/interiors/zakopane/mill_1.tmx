@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="20" height="20" tilewidth="32" tileheight="32">
+ <tileset name="collision" firstgid="1" tilewidth="32" tileheight="32">
+  <image source="../../tileset/logic/collision.png" width="32" height="32"/>
+ </tileset>
+ <tileset name="protection" firstgid="2" tilewidth="32" tileheight="32">
+  <image source="../../tileset/logic/protection.png" width="32" height="32"/>
+ </tileset>
+ <tileset name="sciany" firstgid="3" tilewidth="32" tileheight="32">
+  <image source="../../tileset/pol/domki/kosciol_sciany.png" width="160" height="192"/>
+ </tileset>
+ <tileset name="posadzka" firstgid="33" tilewidth="32" tileheight="32">
+  <image source="../../tileset/ground/slate_tiles.png" width="160" height="96"/>
+ </tileset>
+ <tileset name="ogien" firstgid="48" tilewidth="32" tileheight="32">
+  <image source="../../tileset/pol/oswietlenie/plomien_big.png" width="128" height="64"/>
+ </tileset>
+ <tileset name="podstawa" firstgid="56" tilewidth="32" tileheight="32">
+  <image source="../../tileset/furniture/light/iron_lamp.png" width="32" height="96"/>
+ </tileset>
+ <tileset name="statula" firstgid="59" tilewidth="32" tileheight="32">
+  <image source="../../tileset/pol/posagi/statua_z_mieczem.png" width="192" height="288"/>
+ </tileset>
+ <tileset name="brama" firstgid="113" tilewidth="32" tileheight="32">
+  <image source="../../tileset/pol/domki/drzwi/warownia_wejscie_big.png" width="96" height="64"/>
+ </tileset>
+ <tileset name="kafelki" firstgid="119" tilewidth="32" tileheight="32">
+  <image source="../../tileset/pol/domki/podloga/kafelki_blyszczace.png" width="192" height="192"/>
+ </tileset>
+ <tileset name="schody" firstgid="155" tilewidth="32" tileheight="32">
+  <image source="../../tileset/building/stairs/stairs.png" width="64" height="64"/>
+ </tileset>
+ <tileset name="schody" firstgid="159" tilewidth="32" tileheight="32">
+  <image source="../../tileset/building/stairs/grey_stone_stairs.png" width="96" height="64"/>
+ </tileset>
+ <tileset name="okno" firstgid="165" tilewidth="32" tileheight="32">
+  <image source="../../tileset/building/window/classic_window.png" width="64" height="64"/>
+ </tileset>
+ <tileset name="kafelki" firstgid="169" tilewidth="32" tileheight="32">
+  <image source="../../tileset/pol/domki/podloga/kafelki_blyszczace3smok.png" width="224" height="416"/>
+ </tileset>
+ <tileset name="kula" firstgid="260" tilewidth="32" tileheight="32">
+  <image source="../../tileset/pol/wyposazenie/kula_czarna.png" width="64" height="64"/>
+ </tileset>
+ <layer name="0_floor" width="20" height="20">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC9XS2U7CQBhA4YJXPLE3vJA7ggqKCwjuu+C+AcriAghuqLichk4yaYZJM+GGSb+0F/1Pm04DlmUFXAY9cs9143X1uqdq98MakohvbV8PYwSjGMM4Jqzu+6PqCSFMIowIpjCNGcWzvfSiiGEWc4hjHgtS024EpbOut4glJJDEMlJIG77fClaxhnVsYBNbhr1t7GAXe9jHAQ4NexlkcYRjnOAUZ4a9c1zgEle4xg1yhr08CrjFHYoooew0df9fXtGr4B4PeMQTqqg5TV2voujV8YwGmnjBK96cpq4nZuXeOz7Qwie+8I2209T1xKzc+8Ev/uwbfBzwY8DXaep6Yla1L26iqev1cv0DKXBR9UAGAAA=
+  </data>
+ </layer>
+ <layer name="1_terrain" width="20" height="20">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC+3OywpAQBSA4VFCyAKFwoN4H/fr+6/8S2YzaUZZOPUtzmn6m1AIERkSwEeMRFMK76VehlxTcemVqDTVl56pebvXokMvvXOs+z5gxKTozViwKv6xYceh6OnO3/t7X+g10l3en/Rc2IY4OAGE2fppQAYAAA==
+  </data>
+ </layer>
+ <layer name="2_object" width="20" height="20">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC2NgoC9YhoNNij5ksAIHm5BeXGqJAZToHQWjYBSMguECAJLrmz9ABgAA
+  </data>
+ </layer>
+ <layer name="3_roof" width="20" height="20">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC2NgwA6CcYiDQAQeuZEMQGEWAsShBNSFAXE4AyQcYRgbiATiKCCOJmBeDBDHAnEcAXXxQJwAxIlo4iyMqPwkIE4G4hQC5o2CUTCUACcahgEDNHXofFLNM0FTh84n1TxyAbXNwwYAVuwRjEAGAAA=
+  </data>
+ </layer>
+ <layer name="4_roof_add" width="20" height="20">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC2NgGAWjYBSMglEwCkgHADV9EcVABgAA
+  </data>
+ </layer>
+ <layer name="objects" width="20" height="20">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC2NgGAWjYBSMglEwCkgHADV9EcVABgAA
+  </data>
+ </layer>
+ <layer name="collision" width="20" height="20">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC2NkYGBgHMWDClMLEGsesXaim4fLzdj4uNQRYx4udxAyj1Iwat7wMo/a+Y3a6Y+UfEOpeYw4xEjFADyPfO9ABgAA
+  </data>
+ </layer>
+ <layer name="protection" width="20" height="20">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC2NiYGBgGsWjeBSP4lE8iknEAC9MrVpABgAA
+  </data>
+ </layer>
+</map>

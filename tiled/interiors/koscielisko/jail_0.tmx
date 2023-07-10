@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="32" height="21" tilewidth="32" tileheight="32">
+ <tileset firstgid="1" name="collision" tilewidth="32" tileheight="32">
+  <image source="../../tileset/logic/collision.png" width="32" height="32"/>
+ </tileset>
+ <tileset firstgid="2" name="protection" tilewidth="32" tileheight="32">
+  <image source="../../tileset/logic/protection.png" width="32" height="32"/>
+ </tileset>
+ <tileset firstgid="3" name="sciany" tilewidth="32" tileheight="32">
+  <image source="../../tileset/pol/domki/wiezienie_sciany.png" width="416" height="64"/>
+ </tileset>
+ <tileset firstgid="29" name="podloga" tilewidth="32" tileheight="32">
+  <image source="../../tileset/pol/domki/podloga/wiezienie_kafelki.png" width="128" height="64"/>
+ </tileset>
+ <tileset firstgid="37" name="kraty" tilewidth="32" tileheight="32">
+  <image source="../../tileset/pol/ogrodzenie/wiezienie_kraty.png" width="160" height="64"/>
+ </tileset>
+ <tileset firstgid="47" name="pkna" tilewidth="32" tileheight="32">
+  <image source="../../tileset/pol/domki/okna/wiezienie_okna.png" width="64" height="96"/>
+ </tileset>
+ <tileset firstgid="53" name="prycze" tilewidth="32" tileheight="32">
+  <image source="../../tileset/pol/wyposazenie/lozka/wiezienie_prycze.png" width="96" height="128"/>
+ </tileset>
+ <tileset firstgid="65" name="out" tilewidth="32" tileheight="32">
+  <image source="../../tileset/pol/domki/drzwi/wiezienie_wejscia.png" width="192" height="64"/>
+ </tileset>
+ <tileset firstgid="77" name="stoliki" tilewidth="32" tileheight="32">
+  <image source="../../tileset/pol/wyposazenie/stoly/wiezienie_stolik.png" width="96" height="64"/>
+ </tileset>
+ <tileset firstgid="83" name="latarnia_blask" tilewidth="32" tileheight="32">
+  <image source="../../tileset/pol/oswietlenie/latarnia_blask.png" width="160" height="160"/>
+ </tileset>
+ <layer name="0_floor" width="32" height="21">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC8VVWw7DMAjLBXqEqWjL/c+4fTQSYjaGZtI+olQ8jaHkGGM8/niOTX+7zm6MeX3PoHt+zilkVpSxeCuvudvbv0CMTDabvnN84zCgi5whOasj6rP+RzwMA8sf8cVaGHYDceJ8ZHE6OBUvrC+KK6azcKuaK9yb44bZRR3KjzCguhQWlVvNriW5FM9GclXmDmHz//DZlC15Z/+gvix7tkN8XTv7h/HFZh7NTZXXik/230T/bCZjHEvsszqVjYppzk7tqKhHOZFMYajsxiqXrP+dPXSn7up+z3bHL071Tey+nXdw7MZ4A6kIZm6ACgAA
+  </data>
+ </layer>
+ <layer name="1_terrain" width="32" height="21">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC+NlYGDgGyDMD8S8QMwFxNx0xjxo9jMDMQsQs0LZIBoZUFtMEs1+Wto11OwXAGIhGovhs58eYNT+wWu/OFSelmKj9g9u+yVojAez/fQAo/Yj7KdHfOOKfykglh4gLAPEAJFbxz+ACgAA
+  </data>
+ </layer>
+ <layer name="2_object" width="32" height="21">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC2NgGBzAEYidgNgZScwISlvRUAwG3IHYA4g9kcT8oLQtkpg/FjFs6ojViw8EQmkHGooNZqAFxNpArEtDsVEwCnCBwZL+sJVX1BbDBqhd1mFThw8MdPmnTwexUTAKRjIAAJ7B00SACgAA
+  </data>
+ </layer>
+ <layer name="3_roof" width="32" height="21">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC2NgGAWEgDkdxAYjUAViNSDWoKHYKBgF6IALiHkYUNMLtcVGAfFgpJZ/o2AUjALaAgD/44AmgAoAAA==
+  </data>
+ </layer>
+ <layer name="4_roof_add" width="32" height="21">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC+3BMQEAAADCoPVPbQsvoAAA4Gepgq9rgAoAAA==
+  </data>
+ </layer>
+ <layer name="objects" width="32" height="21">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC+3BMQEAAADCoPVPbQsvoAAA4Gepgq9rgAoAAA==
+  </data>
+ </layer>
+ <layer name="collision" width="32" height="21">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC2NkYGBgHMVgzIBDDF2c2mLI4gwE1NLCbkL201KMGDl6xT09waj9g9f+gU5/gyX/09MN2Oynl92DNf4Hyn56gFH7RzEIAwCPaADKgAoAAA==
+  </data>
+ </layer>
+ <layer name="protection" width="32" height="21">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC+3DwQkAAAwDoSP7D90t+lJw1VRV9ekBw6tSvIAKAAA=
+  </data>
+ </layer>
+ <layer name="blend_ground" width="32" height="21" opacity="0.3">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC+3UOwqAQBCD4b2kCio+8MGq9+9NE5hquyxb5IO/mBxgUmrDgla0hY33LtzoQCe6wsb7Fm6U0YPesPH+hJuZtalDPRqEW8mIJjQLt5Ka/9/M6vsB9jnwUoAKAAA=
+  </data>
+ </layer>
+ <layer name="blend_roof" width="32" height="21" opacity="0.3">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC+3BMQEAAADCoPVPbQsvoAAA4Gepgq9rgAoAAA==
+  </data>
+ </layer>
+</map>
