@@ -1,4 +1,3 @@
-/* $Id: Deathmatch.java,v 1.12 2010/09/19 02:28:11 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,13 +11,14 @@
  ***************************************************************************/
 package games.stendhal.server.maps.ados.wall;
 
-import games.stendhal.server.core.config.ZoneConfigurator;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.maps.quests.AdosDeathmatch;
-import games.stendhal.server.util.Area;
-
 import java.awt.geom.Rectangle2D;
 import java.util.Map;
+
+import games.stendhal.server.core.config.ZoneConfigurator;
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.maps.quests.AdosDeathmatch;
+import games.stendhal.server.util.Area;
 
 /**
  * Ados Wall North population - Deathmatch.
@@ -26,6 +26,7 @@ import java.util.Map;
  * @author hendrik
  */
 public class Deathmatch implements ZoneConfigurator {
+	private static Area arena;
 
 	/**
 	 * Configure a zone.
@@ -33,12 +34,25 @@ public class Deathmatch implements ZoneConfigurator {
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		final Rectangle2D shape = new Rectangle2D.Double();
 		shape.setRect(88, 77, 112 - 88 + 1, 94 - 77 + 1);
-		final Area arena = new Area(zone, shape);
+		arena = new Area(zone, shape);
 		final AdosDeathmatch deathmatch = new AdosDeathmatch(zone, arena);
 		deathmatch.createHelmet(102, 75);
 		deathmatch.createNPC("Thanatos", 98, 77);
+	}
+
+	/**
+	 * Checks if player is within boundaries of deathmatch arena.
+	 *
+	 * @param player
+	 *     Player whose position is to be checked.
+	 * @return
+	 *     <code>true</code> if player is in arena.
+	 */
+	public static boolean playerInArena(final Player player) {
+		return arena != null && arena.contains(player);
 	}
 }

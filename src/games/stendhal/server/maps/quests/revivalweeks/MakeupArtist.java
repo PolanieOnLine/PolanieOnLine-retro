@@ -1,4 +1,4 @@
-/* $Id: MakeupArtist.java,v 1.4 2011/10/09 16:25:11 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -38,6 +38,7 @@ public class MakeupArtist implements LoadableContent {
 		npc.getZone().remove(npc);
 	}
 
+	@Override
 	public void addToWorld() {
 		removeNPC("Fidorea");
 
@@ -55,6 +56,7 @@ public class MakeupArtist implements LoadableContent {
 	 *
 	 * @return <code>true</code>, if the content was removed, <code>false</code> otherwise
 	 */
+	@Override
 	public boolean removeFromWorld() {
 		removeNPC("Fidorea");
 

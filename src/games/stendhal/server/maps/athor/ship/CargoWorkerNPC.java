@@ -1,6 +1,5 @@
-/* $Id: CargoWorkerNPC.java,v 1.22 2012/08/23 20:05:43 yoriy Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,34 +11,28 @@
  ***************************************************************************/
 package games.stendhal.server.maps.athor.ship;
 
-import games.stendhal.server.core.config.ZoneConfigurator;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.core.pathfinder.FixedPath;
-import games.stendhal.server.core.pathfinder.Node;
-import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.behaviour.adder.BuyerAdder;
-import games.stendhal.server.entity.npc.behaviour.impl.BuyerBehaviour;
-import games.stendhal.server.maps.athor.ship.AthorFerry.Status;
-
 import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
-/** Factory for cargo worker on Athor Ferry. */
+import games.stendhal.common.Direction;
+import games.stendhal.server.core.config.ZoneConfigurator;
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.entity.RPEntity;
+import games.stendhal.server.entity.npc.SpeakerNPC;
+import games.stendhal.server.maps.athor.ship.AthorFerry.Status;
 
+/**
+ * Factory for cargo worker on Athor Ferry.
+ */
 public class CargoWorkerNPC implements ZoneConfigurator  {
-
-	public void configureZone(StendhalRPZone zone,
-			Map<String, String> attributes) {
+	@Override
+	public void configureZone(StendhalRPZone zone, Map<String, String> attributes) {
 		buildNPC(zone);
 	}
 
 	private void buildNPC(StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Klaas") {
-
-			@Override
+			/*@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
 				// to the bucket
@@ -50,12 +43,12 @@ public class CargoWorkerNPC implements ZoneConfigurator  {
 				nodes.add(new Node(17,35));
 				// to the stairs
 				nodes.add(new Node(17,39));
-				// walk between the barrels 
+				// walk between the barrels
 				nodes.add(new Node(22,39));
 				// towards the bow
 				nodes.add(new Node(22,42));
 				setPath(new FixedPath(nodes, true));
-			}
+			}*/
 
 			@Override
 			public void createDialog() {
@@ -63,34 +56,37 @@ public class CargoWorkerNPC implements ZoneConfigurator  {
 				addJob("Opiekuje się ładunkiem. Moja praca byłaby łatwiejsza gdyby nie było #szczurów.");
 				addHelp("Mógłbyś zarobić jeżeli #zaoferowałbyś mi coś do wytrucia tych #szczurów.");
 				addReply(Arrays.asList("szczur", "szczury", "szczurów"),
-		        "Te szczury są wszędzie. Ciekaw jestem skąd one się biorą nawet nie zdążę ich powybijać tak szybko się pojawiają.");
+						"Te szczury są wszędzie. Ciekaw jestem skąd one się biorą nawet nie zdążę ich powybijać tak szybko się pojawiają.");
+				addGoodbye("Proszę zabij kilka szczurów po drodze!");
+			}
 
-				new BuyerAdder().addBuyer(this, 
-						new BuyerBehaviour(SingletonRepository.getShopList().get("buypoisons")), true);
+			@Override
+			protected void onGoodbye(RPEntity player) {
+				setDirection(Direction.DOWN);
+			}
+		};
 
-				addGoodbye("Please kill some rats on your way up!");
-			}};
+		new AthorFerry.FerryListener() {
+			@Override
+			public void onNewFerryState(final Status status) {
+				switch (status) {
+				case ANCHORED_AT_MAINLAND:
+				case ANCHORED_AT_ISLAND:
+					npc.say("UWAGA: Dopłyneliśmy!");
+					break;
 
-			new AthorFerry.FerryListener() {
-
-			
-				public void onNewFerryState(final Status status) {
-					switch (status) {
-					case ANCHORED_AT_MAINLAND:
-					case ANCHORED_AT_ISLAND:
-						npc.say("UWAGA: Dopłyneliśmy!");
-						break;
-
-					default:
-						npc.say("UWAGA: Wypływamy!");
-						break;
-					}
+				default:
+					npc.say("UWAGA: Wypływamy!");
+					break;
 				}
-			};
+			}
+		};
 
-			npc.setPosition(24, 42);
-			npc.setEntityClass("seller2npc");
-			npc.setDescription ("Oto Klaas, który zajmuje się ładunkiem. Nie cierpi szczurów!");
-			zone.add(npc);	
+		npc.setDescription ("Oto Klaas, który zajmuje się ładunkiem. Nie cierpi szczurów!");
+		npc.setEntityClass("seller2npc");
+		npc.setGender("M");
+		npc.setPosition(25, 38);
+		npc.setDirection(Direction.DOWN);
+		zone.add(npc);
 	}
 }

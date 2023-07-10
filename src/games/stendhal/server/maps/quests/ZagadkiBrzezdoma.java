@@ -1,6 +1,5 @@
-/* $Id: ZagadmiBrzezdoma.java,v 1.50 2011/12/11 02:17:23 Legolas Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,6 +11,13 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
+import games.stendhal.common.grammar.Grammar;
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.item.StackableItem;
@@ -28,13 +34,6 @@ import games.stendhal.server.entity.npc.condition.QuestCompletedCondition;
 import games.stendhal.server.entity.npc.condition.QuestInStateCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotStartedCondition;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-
-import org.apache.log4j.Logger;
 
 /**
  * QUEST: The Jailed Barbarian
@@ -68,16 +67,11 @@ import org.apache.log4j.Logger;
  * <li>Not repeatable.</li>
  * </ul>
  */
-
- public class ZagadkiBrzezdoma extends AbstractQuest {
-
+public class ZagadkiBrzezdoma extends AbstractQuest {
 	private static final String QUEST_SLOT = "zagadki";
+
 	private static Logger logger = Logger.getLogger(ZagadkiBrzezdoma.class);
 
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
 	private void step1() {
 		final SpeakerNPC npc = npcs.get("Brzezdom");
 
@@ -111,15 +105,16 @@ import org.apache.log4j.Logger;
 	}
 
 	private void step2() {
-	final SpeakerNPC npc = npcs.get("Brzezdom");	
+		final SpeakerNPC npc = npcs.get("Brzezdom");
 
 		npc.add(ConversationStates.ATTENDING, "maryna",
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, "start"),
 				new PlayerHasItemWithHimCondition("kierpce")),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
-				  player.drop("kierpce");
+					player.drop("kierpce");
 					player.addKarma(10);
 					player.addXP(1000);
 					npc.say("A widzisz! Jednak ta czarownica dała mu te rzeczy!! Pierwszą część mamy za sobą!"
@@ -146,12 +141,13 @@ import org.apache.log4j.Logger;
 	}
 
 	private void step3() {
-	final SpeakerNPC npc = npcs.get("Stary Baca");
+		final SpeakerNPC npc = npcs.get("Stary Baca");
 
 		npc.add(ConversationStates.ATTENDING, Arrays.asList("król", "króla"),
 				new QuestInStateCondition(QUEST_SLOT, "baca"),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					npc.say("Dziękuję bardzo. A to łajdak można było wykorzystać wojsko króla, dlaczego mi nic nie powiedział...."
 					+ " Widzę, że dobrze radzisz sobie ze zbieraniem wiadomości. Mam małą prośbę."
@@ -174,6 +170,7 @@ import org.apache.log4j.Logger;
 				new QuestInStateCondition(QUEST_SLOT, "gerlach"),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					npc.say("Hm... No cóż jednak Brzezdom miał rację. Cieszę się że w końcu ten spór został zakończony."
 					 + " Mam dla ciebie małe zadanie. Tylko ty możesz je wykonać. Zdobądź góralski gorset i zanieś go Marynie."
@@ -184,13 +181,14 @@ import org.apache.log4j.Logger;
 	}
 
 	private void step5() {
-	final SpeakerNPC npc = npcs.get("Maryna");	
+		final SpeakerNPC npc = npcs.get("Maryna");	
 
 		npc.add(ConversationStates.ATTENDING, Arrays.asList("sabała", "sabalik", "jan krzeptowski"),
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, "gorset"),
 				new PlayerHasItemWithHimCondition("góralski gorset")),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					player.drop("góralski gorset");
 					player.addKarma(30);
@@ -229,17 +227,18 @@ import org.apache.log4j.Logger;
 	}
 
 	private void step6() {
-	final SpeakerNPC npc = npcs.get("Boguś");
+		final SpeakerNPC npc = npcs.get("Boguś");
 
 		npc.add(ConversationStates.ATTENDING, Arrays.asList("gąsienica", "gąsienice"),
 				new QuestInStateCondition(QUEST_SLOT, "kapusta"),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					npc.say("Ha ha ha ☺ Dałeś nabrać się Marynie. Toż to stary kawał jej o kapuście i gąsienicach."
 					+ " Ale dość żartów. Jak już tu jesteś zrobisz coś dla mnie. Udaj się do Edgarda. Znajdziesz go na ziemiach Zakonu Rycerzy Cienia."
 					+ " Spaceruje koło zamku, przekaż mu moje #pozdrowienia i powiedz mu kto był odpowiednikiem Zeusa w wierzeniach słowiańskich."
-					+ " Odpowiedź znajdziesz na #'http://www.gra.polskaonline.org/'" );
+					+ " Odpowiedź znajdziesz na #'https://polanieonline.eu/'" );
 					player.setQuest(QUEST_SLOT, "bogowie");
 				};
 		});
@@ -251,12 +250,13 @@ import org.apache.log4j.Logger;
 	}
 
 	private void step7() {
-	final SpeakerNPC npc = npcs.get("Edgard");
+		final SpeakerNPC npc = npcs.get("Edgard");
 
-		npc.add(ConversationStates.ATTENDING,  "perun",
+		npc.add(ConversationStates.ATTENDING, "perun",
 				new QuestInStateCondition(QUEST_SLOT, "bogowie"),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					npc.say("Dziękuję przyjacielu. Moja wiedza poszerzyła się, widzę iż potrafisz bardzo dużo."
 					+ " Mam zadanie dla tak wszechstronnego wojownika. Zdobądź czarną zbroje i zanieś go Bercikowi. Powodzenia.");
@@ -266,16 +266,17 @@ import org.apache.log4j.Logger;
 	}
 
 	private void step8() {
-	final SpeakerNPC npc = npcs.get("Bercik");
-	
+		final SpeakerNPC npc = npcs.get("Bercik");
+
 		npc.add(ConversationStates.ATTENDING, Arrays.asList("armor", "zbroja", "zbroję"),
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, "armor"),
 				new PlayerHasItemWithHimCondition("czarna zbroja")),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					player.drop("czarna zbroja");
-					 final StackableItem gold = (StackableItem) SingletonRepository.getEntityManager().getItem("sztabka złota");
+					final StackableItem gold = (StackableItem) SingletonRepository.getEntityManager().getItem("sztabka złota");
 					final int goldamount = 30;
 					gold.setQuantity(goldamount);
 					player.equipOrPutOnGround(gold);
@@ -288,24 +289,22 @@ import org.apache.log4j.Logger;
 				};
 		});
 
-		npc.add(
-			ConversationStates.ATTENDING, Arrays.asList("armor", "zbroja", "zbroję"),
+		npc.add(ConversationStates.ATTENDING, Arrays.asList("armor", "zbroja", "zbroję"),
 			new AndCondition(new QuestInStateCondition(QUEST_SLOT, "armor"), new NotCondition(new PlayerHasItemWithHimCondition("czarna zbroja"))),
 			ConversationStates.ATTENDING,
 			"Nie posiadasz black armor przy sobie! Edgard mówił, że można liczyć na ciebie! Idź i zdobądź go dla mnie!",
 			null);
 
 		npc.add(ConversationStates.ATTENDING,
-				ConversationPhrases.QUEST_MESSAGES, 
-				new QuestInStateCondition(QUEST_SLOT, "armor"),
-				ConversationStates.ATTENDING,
-				"Czekam na black #armor od Ciebie.",
-				null);
+			ConversationPhrases.QUEST_MESSAGES, 
+			new QuestInStateCondition(QUEST_SLOT, "armor"),
+			ConversationStates.ATTENDING,
+			"Czekam na black #armor od Ciebie.",
+			null);
 	}
 
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
 			"Zagadki Brzezdoma",
 			"Znajdź odpowiedzi na pytania Brzezdoma.",
@@ -322,18 +321,13 @@ import org.apache.log4j.Logger;
 	}
 
 	@Override
-	public String getName() {
-		return "ZagadkiBrzezdoma";
-	}
-
-	@Override
 	public List<String> getHistory(final Player player) {
 		final List<String> res = new ArrayList<String>();
 		if (!player.hasQuest(QUEST_SLOT)) {
 			return res;
 		}
 		final String questState = player.getQuest(QUEST_SLOT);
-		res.add("Spotkałem Brzezdoma na łąkach Kościeliska.");
+		res.add(Grammar.genderVerb(player.getGender(), "Spotkałem") + " Brzezdoma na łąkach Kościeliska.");
 		res.add("Nurtuje go pytanie kto dał pas i kierpce Janosikowi. Mam mu też przynieść kierpce.");
 		if ("rejected".equals(questState)) {
 			res.add("Nie mam głowy do zagadek, może innym razem.");
@@ -342,31 +336,31 @@ import org.apache.log4j.Logger;
 		if ("start".equals(questState)) {
 			return res;
 		} 
-		res.add("Odpowiedziałem Brzedomowi na pytanie, dostarczyłem też kierpce. Starego Bace nurtuje pytanie kogo spotkał juhas Kuba. Mam do niego iść z odpowiedzią.");
+		res.add(Grammar.genderVerb(player.getGender(), "Odpowiedziałem") + " Brzedomowi na pytanie, dostarczyłem też kierpce. Starego Bace nurtuje pytanie kogo spotkał juhas Kuba. Mam do niego iść z odpowiedzią.");
 		if ("baca".equals(questState)) {
 			return res;
 		} 
-		res.add("Stary baca poprosił mnie abym poszedł do kowala Andrzeja i powiedział mu jaki jest najwiekrzy szczyt w Tatrach.");
+		res.add("Stary baca poprosił mnie, abym " + Grammar.genderVerb(player.getGender(), "spotkał") + " się z kowalem Andrzejem i powiedział mu jaki jest największy szczyt w Tatrach.");
 		if ("gerlach".equals(questState)) {
 			return res;
 		}
-		res.add("Kowal Andrzej kazał mi zanieść Marynie gorset i powiedziec imie i nazwisko lub pseudonim najwiekrzego bajkopisarza Podhala.");
+		res.add("Kowal Andrzej kazał mi zanieść Marynie gorset i powiedziec imie i nazwisko lub pseudonim największego bajkopisarza Podhala.");
 		if ("gorset".equals(questState)) {
 			return res;
 		}
-		res.add("Maryna poprosiła mnie abym znalazł odpowiedź na pytanie 'dlaczego w Zakopanym nie rośnie kapusta'. Odpowiedzi mam udzielić Bogusiowi.");
+		res.add("Maryna poprosiła mnie abym " + Grammar.genderVerb(player.getGender(), "znalazł") + " odpowiedź na pytanie 'dlaczego w Zakopanym nie rośnie kapusta'. Odpowiedzi mam udzielić Bogusiowi.");
 		if ("kapusta".equals(questState)) {
 			return res;
 		}
-		res.add("Boguś Kazał mi iść do Edgarda. Znajdę go na ziemiach ZRC. Mam mu powiedzieć imie odpowiednika Zeusa w wierzeniach słowiańskich.");
+		res.add("Boguś kazał mi iść do Edgarda. Znajdę go na ziemiach ZRC. Mam mu powiedzieć imie odpowiednika Zeusa w wierzeniach słowiańskich.");
 		if ("bogowie".equals(questState)) {
 			return res;
 		}
-		res.add("Edgart kazał zdoobyć mi czarną zbroję i zanieść ją do Bercika.");
+		res.add("Edgart kazał zdobyć mi czarną zbroję i zanieść ją do Bercika.");
 		if ("armor".equals(questState)) {
 			return res;
 		}
-		res.add("Dostałem od Bercika za zbroje sztabki złota.");
+		res.add(Grammar.genderVerb(player.getGender(), "Dostałem") + " od Bercika za zbroje sztabki złota.");
 		if (isCompleted(player)) {
 			return res;
 		}
@@ -378,9 +372,20 @@ import org.apache.log4j.Logger;
 	}
 
 	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
+	}
+
+	@Override
+	public String getName() {
+		return "Zagadki Brzezdoma";
+	}
+
+	@Override
 	public int getMinLevel() {
 		return 60;
 	}
+
 	@Override
 	public String getNPCName() {
 		return "Brzezdom";

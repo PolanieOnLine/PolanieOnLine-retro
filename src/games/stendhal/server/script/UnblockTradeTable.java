@@ -1,6 +1,5 @@
-/* $Id: UnblockTradeTable.java,v 1.5 2010/09/19 02:36:26 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -11,6 +10,10 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.script;
+
+import java.util.List;
+
+import org.apache.log4j.Logger;
 
 import games.stendhal.common.Direction;
 import games.stendhal.server.core.engine.GameEvent;
@@ -23,13 +26,9 @@ import games.stendhal.server.core.scripting.ScriptImpl;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.util.Area;
 
-import java.util.List;
-
-import org.apache.log4j.Logger;
-
 /**
  * Moves players away that spend to much time in an restricted area
- * 
+ *
  * @author hendrik
  */
 public class UnblockTradeTable extends ScriptImpl implements TurnListener {
@@ -37,7 +36,7 @@ public class UnblockTradeTable extends ScriptImpl implements TurnListener {
 	private static final int GRACE_PERIOD_IN_TURNS = 200;
 
 	private static Logger logger = Logger.getLogger(UnblockTradeTable.class);
-	
+
 	private StendhalRPZone zone;
 	private Area pathArea;
 	private Area tablePathArea;
@@ -47,6 +46,7 @@ public class UnblockTradeTable extends ScriptImpl implements TurnListener {
 	/**
 	 * checks
 	 */
+	@Override
 	public void onTurnReached(int currentTurn) {
 		TurnNotifier.get().notifyInSeconds(CHECK_INTERVAL, this);
 		if (!isBlockSituation()) {

@@ -1,4 +1,3 @@
-/* $Id: PrincessNPC.java,v 1.16 2010/09/19 02:31:47 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,15 +11,15 @@
  ***************************************************************************/
 package games.stendhal.server.maps.nalwor.tower;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Builds a Princess NPC who lives in a tower.
@@ -34,13 +33,13 @@ public class PrincessNPC implements ZoneConfigurator {
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildNPC(zone);
 	}
 
 	private void buildNPC(final StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Tywysoga") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -58,18 +57,18 @@ public class PrincessNPC implements ZoneConfigurator {
 
 			@Override
 			protected void createDialog() {
-				addGreeting("Cześć człeku, człowieku.");
+				addGreeting("Witaj, człowieku!");
 				addJob("Jestem księżniczką. Co mogę zrobić?");
 				addHelp("Stanowcza osoba mogłaby zrobić dla mnie #zadanie.");
 				addOffer("Nie handluję. Moi rodzice mogliby to uważać za poniżające.");
-				addGoodbye("Dowidzenia nieznajomy.");
+				addGoodbye("Do widzenia nieznajomy.");
 			}
 		};
 
-		npc.setDescription("Oto piękna, ale samotna Najwyższa Elfka.");
+		npc.setDescription("Oto Tywysoga, piękna, ale samotna Najwyższa Elfka.");
 		npc.setEntityClass("elfprincessnpc");
+		npc.setGender("F");
 		npc.setPosition(17, 13);
-		npc.initHP(100);
 		zone.add(npc);
 	}
 }

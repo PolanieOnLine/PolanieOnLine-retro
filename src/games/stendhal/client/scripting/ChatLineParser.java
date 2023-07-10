@@ -1,4 +1,4 @@
-/* $Id: ChatLineParser.java,v 1.38 2012/01/19 23:36:09 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -24,10 +24,10 @@ public abstract class ChatLineParser {
 
 	/**
 	 * parses a chat/command line and processes the result.
-	 * 
+	 *
 	 * @param input
 	 *            string to handle
-	 * 
+	 *
 	 * @return <code>true</code> if command was valid enough to process,
 	 *         <code>false</code> otherwise.
 	 */

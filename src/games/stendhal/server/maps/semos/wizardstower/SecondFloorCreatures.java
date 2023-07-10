@@ -1,4 +1,3 @@
-/* $Id: SecondFloorCreatures.java,v 1.6 2012/02/26 16:51:50 kiheru Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +11,9 @@
  ***************************************************************************/
 package games.stendhal.server.maps.semos.wizardstower;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import games.stendhal.common.Direction;
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.SingletonRepository;
@@ -19,23 +21,19 @@ import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.rule.EntityManager;
 import games.stendhal.server.entity.creature.Creature;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class SecondFloorCreatures implements ZoneConfigurator {
-
 	/**
 	 * Configure a zone.
-	 * 
+	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
-
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
-		buildSecondFloor(zone, attributes);
+		buildSecondFloor(zone);
 	}
 
-	private void buildSecondFloor(final StendhalRPZone zone, final Map<String, String> attributes) {
+	private void buildSecondFloor(final StendhalRPZone zone) {
 		final EntityManager manager = SingletonRepository.getEntityManager();
 
 		final Creature creature = manager.getCreature("żywioł powietrza");
@@ -43,9 +41,9 @@ public class SecondFloorCreatures implements ZoneConfigurator {
 		final Creature creature2 = manager.getCreature("dżin");
 		final Creature creature3 = manager.getCreature("niewidoczny człowiek");
 
-		creature1.setName("cloudwalker");
-		creature2.setName("djinn windmaster");
-		creature3.setName("incorporeal man");
+		creature1.setName("podróżnik po chmurach");
+		creature2.setName("mistrz wiatru dżin");
+		creature3.setName("człowiek bezcielesny");
 
 		creature.setAIProfiles(new HashMap<String, String>());
 		creature1.setAIProfiles(new HashMap<String, String>());
@@ -61,7 +59,7 @@ public class SecondFloorCreatures implements ZoneConfigurator {
 		creature1.setXP(0);
 		creature2.setXP(0);
 		creature3.setXP(0);
-		
+
 		creature.setPosition(29,15);
 		creature1.setPosition(1,15);
 		creature2.setPosition(15,28);

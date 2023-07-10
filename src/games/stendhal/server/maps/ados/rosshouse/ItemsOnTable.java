@@ -1,4 +1,4 @@
-/* $Id: ItemsOnTable.java,v 1.6 2010/09/19 02:28:21 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -25,6 +25,7 @@ import java.util.Map;
  * @author kymara
  */
 public class ItemsOnTable implements ZoneConfigurator {
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildRossHouseArea(zone);
 	}

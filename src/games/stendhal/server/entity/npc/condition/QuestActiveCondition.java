@@ -1,4 +1,4 @@
-/* $Id: QuestActiveCondition.java,v 1.19 2012/09/09 12:33:24 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,15 +12,15 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.condition;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
 import games.stendhal.server.core.config.annotations.Dev.Category;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.npc.ChatCondition;
+import games.stendhal.server.entity.npc.ConditionBuilder;
 import games.stendhal.server.entity.player.Player;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Was this quest started but not completed?
@@ -37,10 +37,12 @@ public class QuestActiveCondition implements ChatCondition {
 	 *            name of quest slot
 	 */
 	public QuestActiveCondition(final String questname) {
-		this.questname = questname;
+		this.questname = checkNotNull(questname);
 	}
 
+	@Override
 	public boolean fire(final Player player, final Sentence sentence, final Entity entity) {
+		// FIXME: this should check IQuest.isCompleted
 		return (player.hasQuest(questname) && !player.isQuestInState(questname, 0, "rejected") && !player.isQuestCompleted(questname));
 	}
 
@@ -51,12 +53,19 @@ public class QuestActiveCondition implements ChatCondition {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 45767 * questname.hashCode();
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				QuestActiveCondition.class);
+		if (!(obj instanceof QuestActiveCondition)) {
+			return false;
+		}
+		QuestActiveCondition other = (QuestActiveCondition) obj;
+		return questname.equals(other.questname);
+	}
+
+	public static ConditionBuilder questActive(String questName) {
+		return new ConditionBuilder(new QuestActiveCondition(questName));
 	}
 }

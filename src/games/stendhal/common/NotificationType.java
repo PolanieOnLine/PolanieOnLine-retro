@@ -1,4 +1,4 @@
-/* $Id: NotificationType.java,v 1.16 2012/05/30 18:50:04 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -173,7 +173,20 @@ public enum NotificationType {
 		public String getStyleDescription() {
 			return REGULAR;
 		}
+	},
+	WARNING("warning") {
+		@Override
+		public Color getColor() {
+			return COLOR_WARNING;
+		}
+	},
+	EMOJI("emoji") {
+		@Override
+		public String getStyleDescription() {
+			return getMnemonic();
+		}
 	};
+
 	public static final Color COLOR_CLIENT = Color.gray;
 
 	public static final Color COLOR_ERROR = new Color(255, 80, 80);
@@ -188,46 +201,49 @@ public enum NotificationType {
 
 	public static final Color COLOR_POSITIVE = new Color(128, 255, 128);
 	
-	// dark blue
+	/** dark blue */
 	public static final Color COLOR_GROUP = new Color(120, 120, 255);
 
-	// muted purple
+	/** muted purple */
 	public static final Color COLOR_EMOTE = new Color(220, 200, 160);
 
 	public static final Color COLOR_PRIVMSG = new Color(200, 255, 200);
 
-	// dark green
+	/** dark green */
 	public static final Color COLOR_RESPONSE = new Color(128, 255, 128);
 	
-	// dark brown 
+	/** dark brown */
 	public static final Color COLOR_SCENE_SETTING = Color.gray;
 
 	public static final Color COLOR_SIGNIFICANT_NEGATIVE = Color.pink;
 
-	// bright turquoise blue
+	/** bright turquoise blue */
 	public static final Color COLOR_SIGNIFICANT_POSITIVE = new Color(65,
 			105, 225);
 
-	// purple
+	/** purple */
 	public static final Color COLOR_TUTORIAL = new Color(255, 220, 255);
 	
-	// strong bright orange
+	/** strong bright orange */
 	public static final Color COLOR_SUPPORT = new Color(255, 220, 200);
 	
-	// strong bright yellow
+	/** dark red */
+	public static final Color COLOR_WARNING = new Color(0xa00000);
+
+	/** strong bright yellow */
 	public static final Color COLOR_TELLALL = new Color(255, 255, 180);
 	
 	// TODO: review thinking here of using constants.
 	// these are tied to the ones in client.KTextEdit.gui.initStylesForTextPane
 	// so should we tie them together somehow?
 	// also the definitions are crazy.
-	
-	// normal is bold
+
+	/** normal is bold */
 	public static final String NORMALSTYLE = "normal";
-	// regular is not bold
+	/** regular is not bold */
 	public static final String REGULAR = "regular";
 	// fwiw, "bold" is blue, italic, bigger than normal, bold and blue.
-	
+
 	/**
 	 * The mapping mnemonic.
 	 */
@@ -262,7 +278,7 @@ public enum NotificationType {
 	 * @return The appropriate color.
 	 */
 	public Color getColor() {
-					return COLOR_NORMAL;
+		return COLOR_NORMAL;
 	}
 
 	/**
@@ -277,8 +293,8 @@ public enum NotificationType {
 	/**
 	 * Get notification type for server messages that the client can show
 	 * without problems. Call this instead of using SERVER directly.
-	 * 
-	 * @param clientVersion
+	 *
+	 * @param clientVersion version of the client
 	 * @return appropriate type
 	 */
 	public static NotificationType getServerNotificationType(String clientVersion) {

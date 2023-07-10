@@ -1,4 +1,4 @@
-/* $Id: ShopSignFactory.java,v 1.6 2010/04/01 20:13:36 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                    (C) Copyright 2003-2010 - Stendhal                   *
  ***************************************************************************
@@ -28,10 +28,10 @@ public class ShopSignFactory implements ConfigurableFactory {
 
 	/**
 	 * Extract the shop name from a context.
-	 * 
+	 *
 	 * @param ctx
 	 *            The configuration context. Must provide 'shop'.
-	 * 
+	 *
 	 * @return The shop name.
 	 */
 	protected String getShop(final ConfigurableFactoryContext ctx) {
@@ -40,10 +40,10 @@ public class ShopSignFactory implements ConfigurableFactory {
 
 	/**
 	 * Extract the sign title from a context.
-	 * 
+	 *
 	 * @param ctx
 	 *            The configuration context. Must provide 'title'.
-	 * 
+	 *
 	 * @return The sign title.
 	 */
 	protected String getTitle(final ConfigurableFactoryContext ctx) {
@@ -52,10 +52,10 @@ public class ShopSignFactory implements ConfigurableFactory {
 
 	/**
 	 * Extract the selling/buying-type from a context.
-	 * 
+	 *
 	 * @param ctx
 	 *            The configuration context. Must provide 'seller'.
-	 * 
+	 *
 	 * @return The sign title.
 	 */
 	private boolean getSeller(ConfigurableFactoryContext ctx) {
@@ -65,10 +65,10 @@ public class ShopSignFactory implements ConfigurableFactory {
 
 	/**
 	 * Extract the caption from a context.
-	 * 
+	 *
 	 * @param ctx
 	 *            The configuration context. May provide 'caption'.
-	 * 
+	 *
 	 * @return The sign title.
 	 */
 	private String getCaption(ConfigurableFactoryContext ctx) {
@@ -81,16 +81,16 @@ public class ShopSignFactory implements ConfigurableFactory {
 
 	/**
 	 * Create a shop sign.
-	 * 
+	 *
 	 * @param ctx
 	 *            Configuration context.
-	 * 
+	 *
 	 * @return A ShopSign.
-	 * 
+	 *
 	 * @see ShopSign
 	 */
+	@Override
 	public Object create(final ConfigurableFactoryContext ctx) {
 		return new ShopSign(getShop(ctx), getTitle(ctx), getCaption(ctx), getSeller(ctx));
 	}
-
 }

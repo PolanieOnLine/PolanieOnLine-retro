@@ -1,15 +1,14 @@
 /**
  * Interactive scripts that high level admins can invoke. They contain
  * debuging stuff, raid helpers, and misc functionallity that did not fit
- * into the main code.  
+ * into the main code.
  */
 package games.stendhal.server.script;
 
 
 
-/* $Id: package-info.java,v 1.3 2010/11/29 19:38:45 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *

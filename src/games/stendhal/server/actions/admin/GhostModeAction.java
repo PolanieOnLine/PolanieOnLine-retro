@@ -1,6 +1,5 @@
-/* $Id: GhostModeAction.java,v 1.20 2011/01/08 23:24:49 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -14,6 +13,7 @@ package games.stendhal.server.actions.admin;
 
 import static games.stendhal.common.constants.Actions.GHOSTMODE;
 import static games.stendhal.common.constants.Actions.INVISIBLE;
+
 import games.stendhal.server.actions.CommandCenter;
 import games.stendhal.server.core.engine.GameEvent;
 import games.stendhal.server.core.engine.StendhalRPRuleProcessor;
@@ -27,15 +27,12 @@ import marauroa.server.db.command.DBCommandQueue;
  * changes the ghostmode flag of admins
  */
 public class GhostModeAction extends AdministrationAction {
-
 	public static void register() {
 		CommandCenter.register(GHOSTMODE, new GhostModeAction(), 10);
-
 	}
 
 	@Override
 	public void perform(final Player player, final RPAction action) {
-
 		if (alreadyInRequestedMode(player, action)) {
 			return;
 		}
@@ -49,10 +46,10 @@ public class GhostModeAction extends AdministrationAction {
 		/* Notify database that the player is in Ghost mode */
 		DBCommand command = new SetOnlineStatusCommand(player.getName(), !player.isGhost());
 		DBCommandQueue.get().enqueue(command);
-		
+
 		/* Notify players about admin going into ghost mode. */
 		StendhalRPRuleProcessor.get().notifyOnlineStatus(!player.isGhost(), player);
-		
+
 		player.notifyWorldAboutChanges();
 	}
 

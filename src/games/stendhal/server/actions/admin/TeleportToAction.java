@@ -1,6 +1,5 @@
-/* $Id: TeleportToAction.java,v 1.9 2010/09/19 02:21:43 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -14,6 +13,7 @@ package games.stendhal.server.actions.admin;
 
 import static games.stendhal.common.constants.Actions.TARGET;
 import static games.stendhal.common.constants.Actions.TELEPORTTO;
+
 import games.stendhal.server.actions.CommandCenter;
 import games.stendhal.server.core.engine.GameEvent;
 import games.stendhal.server.core.engine.SingletonRepository;
@@ -23,11 +23,8 @@ import games.stendhal.server.entity.player.Player;
 import marauroa.common.game.RPAction;
 
 public class TeleportToAction extends AdministrationAction {
-
-
-
 	public static void register() {
-		CommandCenter.register(TELEPORTTO, new TeleportToAction(), 6);
+		CommandCenter.register(TELEPORTTO, new TeleportToAction(), 8);
 	}
 
 	@Override
@@ -40,7 +37,7 @@ public class TeleportToAction extends AdministrationAction {
 				teleported = SingletonRepository.getNPCList().get(name);
 				if (teleported == null) {
 
-					final String text = "Wojownik \"" + name + "\" nie został znaleziony";
+					final String text = "Wojownik \"" + name + "\" nie został znaleziony.";
 					player.sendPrivateText(text);
 					logger.debug(text);
 					return;

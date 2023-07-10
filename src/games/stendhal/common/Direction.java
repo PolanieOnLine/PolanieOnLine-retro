@@ -1,4 +1,4 @@
-/* $Id: Direction.java,v 1.21 2012/07/19 18:01:02 lumocra Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2012 - Stendhal                    *
  ***************************************************************************
@@ -155,7 +155,7 @@ public enum Direction {
 	public int get() {
 		return val;
 	}
-	
+
 	/**
 	 * Compares two area and return the direction of area2 towards area1. So if area2 is left of
 	 * area1, it will return Direction.LEFT

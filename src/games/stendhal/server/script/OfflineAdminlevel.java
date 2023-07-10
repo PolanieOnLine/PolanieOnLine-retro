@@ -1,6 +1,5 @@
-/* $Id: OfflineAdminlevel.java,v 1.6 2010/09/19 02:36:26 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,11 +11,10 @@
  ***************************************************************************/
 package games.stendhal.server.script;
 
-import games.stendhal.server.core.engine.GameEvent;
-import games.stendhal.server.entity.player.Player;
-
 import java.util.List;
 
+import games.stendhal.server.core.engine.GameEvent;
+import games.stendhal.server.entity.player.Player;
 import marauroa.common.game.RPObject;
 
 /**
@@ -25,7 +23,6 @@ import marauroa.common.game.RPObject;
  * @author hendrik
  */
 public class OfflineAdminlevel extends AbstractOfflineAction {
-
 	/**
 	 * validates the parameters, sends an error message, if something is wrong with them
 	 *
@@ -36,7 +33,7 @@ public class OfflineAdminlevel extends AbstractOfflineAction {
 	@Override
 	public boolean validateParameters(final Player admin, final List<String> args) {
 		if (args.size() != 2) {
-			admin.sendPrivateText("/script OfflineAdminlevel.class <wojownik> <nowypoziom>");
+			admin.sendPrivateText("/script OfflineAdminlevel.class <gracz> <nowy_poziom>");
 			return false;
 		}
 		return true;

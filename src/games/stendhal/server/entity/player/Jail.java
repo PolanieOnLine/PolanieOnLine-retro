@@ -1,4 +1,4 @@
-/* $Id: Jail.java,v 1.42 2012/12/11 20:26:11 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,21 +12,6 @@
  ***************************************************************************/
 package games.stendhal.server.entity.player;
 
-import games.stendhal.common.Direction;
-import games.stendhal.common.MathHelper;
-import games.stendhal.common.NotificationType;
-import games.stendhal.common.grammar.Grammar;
-import games.stendhal.server.core.config.ZoneConfigurator;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.entity.Outfit;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.core.events.LoginListener;
-import games.stendhal.server.core.events.TurnListener;
-import games.stendhal.server.core.events.ZoneEnterExitListener;
-import games.stendhal.server.entity.RPEntity;
-import games.stendhal.server.entity.mapstuff.office.ArrestWarrant;
-import games.stendhal.server.entity.mapstuff.office.ArrestWarrantList;
-
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.Arrays;
@@ -35,9 +20,23 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import marauroa.common.game.RPObject;
-
 import org.apache.log4j.Logger;
+
+import games.stendhal.common.Direction;
+import games.stendhal.common.MathHelper;
+import games.stendhal.common.NotificationType;
+import games.stendhal.common.grammar.Grammar;
+import games.stendhal.server.core.config.ZoneConfigurator;
+import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.core.events.LoginListener;
+import games.stendhal.server.core.events.TurnListener;
+import games.stendhal.server.core.events.ZoneEnterExitListener;
+import games.stendhal.server.entity.Outfit;
+import games.stendhal.server.entity.RPEntity;
+import games.stendhal.server.entity.mapstuff.office.ArrestWarrant;
+import games.stendhal.server.entity.mapstuff.office.ArrestWarrantList;
+import marauroa.common.game.RPObject;
 
 /**
  * This class is responsible of keeping players who have misbehaved in a special
@@ -47,31 +46,28 @@ import org.apache.log4j.Logger;
  * @author daniel
  */
 public class Jail implements ZoneConfigurator, LoginListener {
-
-	private static final Logger logger = Logger.getLogger(Jail.class);
-	private static final Outfit UNIFORM = new Outfit(null, null, Integer.valueOf(108), null);
-	private static final Outfit UNIFORM1 = new Outfit(null, Integer.valueOf(21), Integer.valueOf(108), Integer.valueOf(7));
-	private static final Outfit UNIFORM2 = new Outfit(null, Integer.valueOf(21), Integer.valueOf(108), Integer.valueOf(2));
-	private static final Outfit MANHORSE1 = new Outfit(null, Integer.valueOf(36), null, Integer.valueOf(26));
-	private static final Outfit MANHORSE2 = new Outfit(null, Integer.valueOf(36), null, Integer.valueOf(32));
-	private static final Outfit MANHORSE3 = new Outfit(null, Integer.valueOf(36), null, Integer.valueOf(33));
-	private static final Outfit MANHORSE4 = new Outfit(null, Integer.valueOf(36), null, Integer.valueOf(34));
-	private static final Outfit MANHORSE5 = new Outfit(null, Integer.valueOf(36), null, Integer.valueOf(37));
-	private static final Outfit WOMANHORSE1 = new Outfit(null, Integer.valueOf(36), null, Integer.valueOf(25));
-	private static final Outfit WOMANHORSE2 = new Outfit(null, Integer.valueOf(36), null, Integer.valueOf(27));
-	private static final Outfit WOMANHORSE3 = new Outfit(null, Integer.valueOf(36), null, Integer.valueOf(28));
-	private static final Outfit WOMANHORSE4 = new Outfit(null, Integer.valueOf(36), null, Integer.valueOf(29));
-	private static final Outfit WOMANHORSE5 = new Outfit(null, Integer.valueOf(36), null, Integer.valueOf(30));
-	private static final Outfit WOMANHORSE6 = new Outfit(null, Integer.valueOf(36), null, Integer.valueOf(31));
-	private static final Outfit WOMANHORSE7= new Outfit(null, Integer.valueOf(36), null, Integer.valueOf(35));
-	private static final Outfit WOMANHORSE8= new Outfit(null, Integer.valueOf(36), null, Integer.valueOf(36));
+	private static final Outfit UNIFORM = new Outfit(null, 998, null, null, null, 998, null);
+	private static final Outfit UNIFORM1 = new Outfit(8, 998, 16, null, null, 998, null);
+	private static final Outfit UNIFORM2 = new Outfit(2, 998, 19, null, null, 998, null);
+	private static final Outfit MANHORSE1 = new Outfit(21, null, null, null, null, null, null);
+	private static final Outfit MANHORSE2 = new Outfit(27, null, null, null, null, null, null);
+	private static final Outfit MANHORSE3 = new Outfit(28, null, null, null, null, null, null);
+	private static final Outfit MANHORSE4 = new Outfit(31, null, null, null, null, null, null);
+	private static final Outfit MANHORSE5 = new Outfit(32, null, null, null, null, null, null);
+	private static final Outfit WOMANHORSE1 = new Outfit(20, null, null, null, null, null, null);
+	private static final Outfit WOMANHORSE2 = new Outfit(22, null, null, null, null, null, null);
+	private static final Outfit WOMANHORSE3 = new Outfit(23, null, null, null, null, null, null);
+	private static final Outfit WOMANHORSE4 = new Outfit(24, null, null, null, null, null, null);
+	private static final Outfit WOMANHORSE5 = new Outfit(25, null, null, null, null, null, null);
+	private static final Outfit WOMANHORSE6 = new Outfit(26, null, null, null, null, null, null);
+	private static final Outfit WOMANHORSE7= new Outfit(29, null, null, null, null, null, null);
+	private static final Outfit WOMANHORSE8= new Outfit(30, null, null, null, null, null, null);
 	static StendhalRPZone jailzone;
 
 	private static final Logger LOGGER = Logger.getLogger(Jail.class);
 	private static final List<Point> cellEntryPoints = Arrays.asList(
-			//new Point(3, 3),
 			new Point(8, 3),
-			// elf cell(13, 3),
+			new Point(13, 3),
 			new Point(18, 3),
 			new Point(23, 3),
 			new Point(28, 3),
@@ -82,9 +78,9 @@ public class Jail implements ZoneConfigurator, LoginListener {
 			new Point(28, 11)
 		);
 
-		private static final Rectangle[] cellBlocks = { 
+		private static final Rectangle[] cellBlocks = {
 			new Rectangle(6, 1, 30, 4),
-			new Rectangle(7, 10, 30, 13)
+			new Rectangle(6, 10, 30, 13)
 		};
 
 	private ArrestWarrantList arrestWarrants;
@@ -229,7 +225,7 @@ public class Jail implements ZoneConfigurator, LoginListener {
 				}
 			}
 		} else {
-			policeman.sendPrivateText("Nie można znaleść celi dla "	+ criminal.getName());
+			policeman.sendPrivateText("Nie można znaleźć celi dla "	+ criminal.getName());
 			LOGGER.error("Could not find a cell for " + criminal.getName());
 		}
 	}
@@ -278,7 +274,7 @@ public class Jail implements ZoneConfigurator, LoginListener {
 
 			final StendhalRPZone exitZone = jailzone;
 
-			inmate.teleport(exitZone, 6, 3, Direction.RIGHT, null);
+			inmate.teleport(exitZone, 8, 7, Direction.LEFT, null);
 			inmate.sendPrivateText(NotificationType.SUPPORT,
 					"Skończyła się twoja kara. Możesz teraz odejść.");
 			putOffUniform(inmate);
@@ -354,16 +350,15 @@ public class Jail implements ZoneConfigurator, LoginListener {
 
 				final long timestamp = arrestWarrant.getTimestamp();
 				player.sendPrivateText(NotificationType.SUPPORT,
-						"Zostałeś aresztowany "
+						"Zostałeś aresztowany"
 					+ " przez " + arrestWarrant.getPoliceOfficer()
 					+ " na " + arrestWarrant.getMinutes()
-					+ " minutę" + " o " + String.format("%tF", timestamp)
-					+ ". Powód: " + arrestWarrant.getReason() + ".");
+					+ " minutę. Powód: " + arrestWarrant.getReason() + ".");
 				LOGGER.info(player.getName() + " logged in who has been jailed "
-						+ " by " + arrestWarrant.getPoliceOfficer()
-						+ " for " + arrestWarrant.getMinutes()
-						+ " " + Grammar.plnoun(arrestWarrant.getMinutes(), "minute") + " on " + String.format("%tF", timestamp)
-						+ ". Reason: " + arrestWarrant.getReason() + ".");
+					+ " by " + arrestWarrant.getPoliceOfficer()
+					+ " for " + arrestWarrant.getMinutes()
+					+ " " + Grammar.plnoun(arrestWarrant.getMinutes(), "minute") + " on " + String.format("%tF", timestamp)
+					+ ". Reason: " + arrestWarrant.getReason() + ".");
 
 				handleEscapeMessages(arrestWarrant);
 				imprison(player, player, arrestWarrant.getMinutes());
@@ -386,7 +381,7 @@ public class Jail implements ZoneConfigurator, LoginListener {
 					player.sendPrivateText(NotificationType.SUPPORT,
 							"Bez względu na to ile czasu "
 							+ "już spędziłeś w więzieniu to twoja kara "
-							+ "odbywa się od nowa, poniważ próbowałeś uciec.");
+							+ "odbywa się od nowa, ponieważ próbowałeś uciec.");
 				} else {
 					// Jail player who was offline at the time /jail was issued.
 					arrestWarrant.setStarted();

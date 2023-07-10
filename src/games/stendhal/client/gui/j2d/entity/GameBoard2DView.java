@@ -1,4 +1,4 @@
-/* $Id: GameBoard2DView.java,v 1.9 2012/11/03 10:44:18 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2012 - Stendhal                    *
  ***************************************************************************
@@ -26,7 +26,7 @@ class GameBoard2DView extends Entity2DView<IEntity> {
 
 	/**
 	 * Build the visual representation of this entity.
-	 * 
+	 *
 	 * @param entity entity for which to build the representation
 	 */
 	@Override
@@ -42,9 +42,9 @@ class GameBoard2DView extends Entity2DView<IEntity> {
 	 * Determines on top of which other entities this entity should be drawn.
 	 * Entities with a high Z index will be drawn on top of ones with a lower Z
 	 * index.
-	 * 
+	 *
 	 * Also, players can only interact with the topmost entity.
-	 * 
+	 *
 	 * @return The drawing index.
 	 */
 	@Override
@@ -52,30 +52,12 @@ class GameBoard2DView extends Entity2DView<IEntity> {
 		return 1000;
 	}
 
-	@Override
-	public int getWidth() {
-		Sprite sprite = getSprite();
-		if (sprite != null) {
-			return sprite.getWidth();
-		}
-		return 0;
-	}
-	
-	@Override
-	public int getHeight() {
-		Sprite sprite = getSprite();
-		if (sprite != null) {
-			return sprite.getHeight();
-		}
-		return 0;
-	}
-
 	/**
 	 * Translate a resource name into it's sprite image path.
-	 * 
+	 *
 	 * @param name
 	 *            The resource name.
-	 * 
+	 *
 	 * @return The full resource name.
 	 */
 	@Override

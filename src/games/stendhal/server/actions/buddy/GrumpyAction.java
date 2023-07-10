@@ -1,6 +1,5 @@
-/* $Id: GrumpyAction.java,v 1.6 2010/09/19 02:21:47 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2013 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -13,22 +12,29 @@
 package games.stendhal.server.actions.buddy;
 
 import static games.stendhal.common.constants.Actions.REASON;
+
 import games.stendhal.server.actions.ActionListener;
 import games.stendhal.server.entity.player.GagManager;
 import games.stendhal.server.entity.player.Jail;
 import games.stendhal.server.entity.player.Player;
 import marauroa.common.game.RPAction;
 
+/**
+ * enables a player to mark himself/herself as grumpy to prevent messages from non-friends.
+ *
+ * @author hendrik
+ */
 public class GrumpyAction implements ActionListener {
 
 	/**
 	 * Handle a Grumpy action.
-	 * 
+	 *
 	 * @param player
 	 *            The player.
 	 * @param action
 	 *            The action.
 	 */
+	@Override
 	public void onAction(final Player player, final RPAction action) {
 		if (Jail.isInJail(player) || GagManager.isGagged(player)) {
 			player.sendPrivateText("Nie możesz zmienić stanu na niedostępny.");

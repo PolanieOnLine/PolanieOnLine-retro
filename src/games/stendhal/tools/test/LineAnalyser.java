@@ -1,4 +1,4 @@
-/* $Id: LineAnalyser.java,v 1.20 2011/11/08 01:49:46 bluelads99 Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -17,13 +17,13 @@ import java.util.List;
 
 /**
  * Analyzes a chat log line.
- * 
+ *
  * @author hendrik
  */
 class LineAnalyser {
 	private final List<String> playerNames = Arrays.asList("hendrikus", "player",
 			"rosie", "gambit", "superkym", "Heman", "jellybean", "jammyjam", "lula", "kymara", "madmetzger",
-			"omerob", "nanometer", "bluelads", "krupi", "pinch", "edi18028", "Legolas", "tomko"); 
+			"omerob", "nanometer", "bluelads", "krupi", "pinch", "silvia");
 
 	private final String line;
 	private String stripped;

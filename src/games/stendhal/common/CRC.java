@@ -1,4 +1,4 @@
-/* $Id: CRC.java,v 1.9 2008/07/13 10:54:01 astridemma Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -19,7 +19,7 @@ public class CRC {
 	/**
 	 * generator polynomial.
 	 */
-	private static final int poly = 0x1021; 
+	private static final int poly = 0x1021;
 	/*
 	 * x16 + x12 + x5 + 1 generator
 	 * polynomial
@@ -50,10 +50,10 @@ public class CRC {
 
 	/**
 	 * Calc CRC with cmp method.
-	 * 
+	 *
 	 * @param b
 	 *            byte array to compute CRC on
-	 * 
+	 *
 	 * @return 16-bit CRC, signed
 	 */
 	public static short cmpCRC(final byte[] b) {

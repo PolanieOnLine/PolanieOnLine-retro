@@ -1,5 +1,7 @@
 package games.stendhal.server.entity.npc.condition;
 
+import java.util.List;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
 import games.stendhal.server.core.config.annotations.Dev.Category;
@@ -8,8 +10,6 @@ import games.stendhal.server.entity.item.GateKey;
 import games.stendhal.server.entity.item.Item;
 import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.List;
 
 /**
  * Checks to see if the player has a gate key that matches the identifier of the
@@ -20,6 +20,7 @@ import java.util.List;
 @Dev(category=Category.IGNORE, label="Key?")
 public class PlayerHasCorrectGateKey implements ChatCondition {
 
+	@Override
 	public boolean fire(Player player, Sentence sentence, Entity raiser) {
 		// entity can't handle it without the identifier of the key
 		if (!(raiser.has("identifier"))) {
@@ -36,5 +37,16 @@ public class PlayerHasCorrectGateKey implements ChatCondition {
 
 		// no matches
 		return false;
+	}
+
+
+	@Override
+	public int hashCode() {
+		return 43801;
+	}
+
+	@Override
+	public boolean equals(final Object obj) {
+		return (obj instanceof PlayerHasCorrectGateKey);
 	}
 }

@@ -17,17 +17,17 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static utilities.SpeakerNPCTestHelper.getReply;
+
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.npc.fsm.Engine;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.ados.tavern.BarMaidNPC;
-
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import utilities.PlayerTestHelper;
 import utilities.QuestHelper;
 import utilities.ZonePlayerAndNPCTestImpl;
@@ -51,12 +51,13 @@ public class FruitsForCoraliaTest extends ZonePlayerAndNPCTestImpl {
 		super(ZONE_NAME, "Coralia");
 	}
 
+	@Override
 	@Before
 	public void setUp() {
 		final StendhalRPZone zone = new StendhalRPZone(ZONE_NAME);
 		new BarMaidNPC().configureZone(zone, null);
 
-		AbstractQuest quest = new FruitsForCoralia();
+		quest = new FruitsForCoralia();
 		quest.addToWorld();
 
 		questSlot = quest.getSlotName();
@@ -73,21 +74,11 @@ public class FruitsForCoraliaTest extends ZonePlayerAndNPCTestImpl {
 		// -----------------------------------------------
 
 
-		// -----------------------------------------------
-
-		// [19:04] Welcome to Stendhal. Need help? http://stendhalgame.org/wiki/AskForHelp - please report problems, suggestions and bugs. Remember to keep your password completely secret, never tell to another friend, player, or admin.
-
-		// -----------------------------------------------
-
-		// [19:04] Synchronized
-
-		// -----------------------------------------------
-
 		en.step(player, "hi");
 
 		// -----------------------------------------------
 
-		assertEquals("Oh hello there, did I just catch you admiring my beautiful #hat?", getReply(npc));
+		assertEquals("Och witam! Czy nie przeszkodziłam czasem w podziwianiu mojego pięknego #kapelusza?", getReply(npc));
 
 		// -----------------------------------------------
 
@@ -95,7 +86,7 @@ public class FruitsForCoraliaTest extends ZonePlayerAndNPCTestImpl {
 
 		// -----------------------------------------------
 
-		assertEquals("It's a shame for you to see it all withered like this, it really needs some fresh #fruits...", getReply(npc));
+		assertEquals("Co za szkoda, że wszystkie uschły. Potrzebuję trochę świeżych #owoców...", getReply(npc));
 
 		// -----------------------------------------------
 
@@ -103,7 +94,7 @@ public class FruitsForCoraliaTest extends ZonePlayerAndNPCTestImpl {
 
 		// -----------------------------------------------
 
-		assertEquals("Would you be kind enough to find me some fresh fruits for my hat? I'd be ever so grateful!", getReply(npc));
+		assertEquals("Czy byłbyś na tyle miły i przyniósłbyś dla mnie trochę świeżych owoców do mojego kapelusza? Byłabym wdzięczna!", getReply(npc));
 
 		// -----------------------------------------------
 
@@ -111,7 +102,7 @@ public class FruitsForCoraliaTest extends ZonePlayerAndNPCTestImpl {
 
 		// -----------------------------------------------
 
-		assertEquals("These exotic hats don't keep themselves you know...", getReply(npc));
+		assertEquals("Ten egzotyczny kapelusz już się nie trzyma. Wiesz...", getReply(npc));
 
 		// -----------------------------------------------
 
@@ -119,7 +110,7 @@ public class FruitsForCoraliaTest extends ZonePlayerAndNPCTestImpl {
 
 		// -----------------------------------------------
 
-		assertEquals("Bye.", getReply(npc));
+		assertEquals("Do widzenia.", getReply(npc));
 
 		// -----------------------------------------------
 
@@ -130,7 +121,7 @@ public class FruitsForCoraliaTest extends ZonePlayerAndNPCTestImpl {
 
 		// -----------------------------------------------
 
-		assertEquals("Oh hello there, did I just catch you admiring my beautiful #hat?", getReply(npc));
+		assertEquals("Och witam! Czy nie przeszkodziłam czasem w podziwianiu mojego pięknego #kapelusza?", getReply(npc));
 
 		// -----------------------------------------------
 
@@ -138,7 +129,7 @@ public class FruitsForCoraliaTest extends ZonePlayerAndNPCTestImpl {
 
 		// -----------------------------------------------
 
-		assertEquals("Are you willing to find me some fresh fruits for my hat yet?", getReply(npc));
+		assertEquals("Czy chcesz znaleźć dla mnie trochę świeżych owoców do mojego kapelusza?", getReply(npc));
 
 		// -----------------------------------------------
 
@@ -146,7 +137,7 @@ public class FruitsForCoraliaTest extends ZonePlayerAndNPCTestImpl {
 
 		// -----------------------------------------------
 
-		assertEquals("That's wonderful! I'd like these fresh fruits: 4 #apples, 5 #bananas, 9 #cherries, 2 #'bunches of grapes', 4 #pears, 2 #pomegranates, and a #watermelon.", getReply(npc));
+		assertEquals("To wspaniale! Chciałabym te świeże owoce: 1 #arbuz, 5 #banany, 2 #granaty, 4 #gruszki, 4 #jabłka, 2 #winogrony, oraz 9 #wisienki.", getReply(npc));
 
 		// -----------------------------------------------
 
@@ -154,7 +145,7 @@ public class FruitsForCoraliaTest extends ZonePlayerAndNPCTestImpl {
 
 		// -----------------------------------------------
 
-		assertEquals("Glowing, radiant apples! The ones I have just now came from somewhere east of Semos.", getReply(npc));
+		assertEquals("Lśniące, błszczące jabłka! Te, które mam pochodzą gdzieś ze wschodniego Semos.", getReply(npc));
 
 		// -----------------------------------------------
 
@@ -162,11 +153,11 @@ public class FruitsForCoraliaTest extends ZonePlayerAndNPCTestImpl {
 
 		// -----------------------------------------------
 
-		assertEquals("Bye.", getReply(npc));
+		assertEquals("Do widzenia.", getReply(npc));
 
 		// -----------------------------------------------
 
-		PlayerTestHelper.equipWithStackableItem(player, "apple", 4);
+		PlayerTestHelper.equipWithStackableItem(player, "jabłko", 4);
 
 		// -----------------------------------------------
 
@@ -174,7 +165,7 @@ public class FruitsForCoraliaTest extends ZonePlayerAndNPCTestImpl {
 
 		// -----------------------------------------------
 
-		assertEquals("Hello again. If you've brought me some fresh fruits for my #hat, I'll happily take them!", getReply(npc));
+		assertEquals("Witaj ponownie. Jeżeli przyniosłeś świeże owoce na mój kapelusz to z radością je wezmę!", getReply(npc));
 
 		// -----------------------------------------------
 
@@ -182,15 +173,15 @@ public class FruitsForCoraliaTest extends ZonePlayerAndNPCTestImpl {
 
 		// -----------------------------------------------
 
-		assertEquals("I'd still like 4 #apples, 5 #bananas, 9 #cherries, 2 #'bunches of grapes', 4 #pears, 2 #pomegranates, and a #watermelon. Have you brought any?", getReply(npc));
+		assertEquals("Wciąż potrzebowałabym 1 #arbuz, 5 #banany, 2 #granaty, 4 #gruszki, 4 #jabłka, 2 #winogrony, oraz 9 #wisienki. Przyniosłeś coś?", getReply(npc));
 
 		// -----------------------------------------------
 
-		en.step(player, "apples");
+		en.step(player, "jabłko");
 
 		// -----------------------------------------------
 
-		assertEquals("Wonderful! Did you bring anything else with you?", getReply(npc));
+		assertEquals("Wspaniale! Czy przyniosłeś coś jeszcze?", getReply(npc));
 
 		// -----------------------------------------------
 
@@ -198,7 +189,7 @@ public class FruitsForCoraliaTest extends ZonePlayerAndNPCTestImpl {
 
 		// -----------------------------------------------
 
-		assertEquals("Oh, that's a shame, do tell me when you find some. I'd still like 5 #bananas, 9 #cherries, 2 #'bunches of grapes', 4 #pears, 2 #pomegranates, and a #watermelon.", getReply(npc));
+		assertEquals("Och co za szkoda, powiedz mi, gdy znajdziesz kilka. Wciąż potrzebuję 1 #arbuz, 5 #banany, 2 #granaty, 4 #gruszki, 2 #winogrony, oraz 9 #wisienki.", getReply(npc));
 
 		// -----------------------------------------------
 
@@ -206,11 +197,11 @@ public class FruitsForCoraliaTest extends ZonePlayerAndNPCTestImpl {
 
 		// -----------------------------------------------
 
-		assertEquals("Bye.", getReply(npc));
+		assertEquals("Do widzenia.", getReply(npc));
 
 		// -----------------------------------------------
 
-		PlayerTestHelper.equipWithStackableItem(player, "cherry", 9);
+		PlayerTestHelper.equipWithStackableItem(player, "wisienka", 9);
 
 		// -----------------------------------------------
 
@@ -218,7 +209,7 @@ public class FruitsForCoraliaTest extends ZonePlayerAndNPCTestImpl {
 
 		// -----------------------------------------------
 
-		assertEquals("Hello again. If you've brought me some fresh fruits for my #hat, I'll happily take them!", getReply(npc));
+		assertEquals("Witaj ponownie. Jeżeli przyniosłeś świeże owoce na mój kapelusz to z radością je wezmę!", getReply(npc));
 
 		// -----------------------------------------------
 
@@ -226,7 +217,7 @@ public class FruitsForCoraliaTest extends ZonePlayerAndNPCTestImpl {
 
 		// -----------------------------------------------
 
-		assertEquals("I'd still like 5 #bananas, 9 #cherries, 2 #'bunches of grapes', 4 #pears, 2 #pomegranates, and a #watermelon. Have you brought any?", getReply(npc));
+		assertEquals("Wciąż potrzebowałabym 1 #arbuz, 5 #banany, 2 #granaty, 4 #gruszki, 2 #winogrony, oraz 9 #wisienki. Przyniosłeś coś?", getReply(npc));
 
 		// -----------------------------------------------
 
@@ -234,38 +225,38 @@ public class FruitsForCoraliaTest extends ZonePlayerAndNPCTestImpl {
 
 		// -----------------------------------------------
 
-		assertEquals("Wonderful, what fresh delights have you brought?", getReply(npc));
+		assertEquals("Cudownie jakie jeszcze świeże przysmaki mi przyniosłeś?", getReply(npc));
 
 		// -----------------------------------------------
 
-		en.step(player, "cherries");
-		
+		en.step(player, "wisienka");
+
 		// -----------------------------------------------
 
-		PlayerTestHelper.equipWithStackableItem(player, "banana", 5);
-		PlayerTestHelper.equipWithStackableItem(player, "grapes", 2);
-		PlayerTestHelper.equipWithStackableItem(player, "pear", 4);
-		PlayerTestHelper.equipWithStackableItem(player, "pomegranate", 2);
-		PlayerTestHelper.equipWithStackableItem(player, "watermelon", 1);
-		
+		PlayerTestHelper.equipWithStackableItem(player, "banan", 5);
+		PlayerTestHelper.equipWithStackableItem(player, "winogrona", 2);
+		PlayerTestHelper.equipWithStackableItem(player, "gruszka", 4);
+		PlayerTestHelper.equipWithStackableItem(player, "granat", 2);
+		PlayerTestHelper.equipWithStackableItem(player, "arbuz", 1);
+
 		final int xp = player.getXP();
 		final double karma = player.getKarma();
-		
-		en.step(player, "bananas");
-		en.step(player, "grapes");
-		en.step(player, "pear");
-		en.step(player, "pomegranate");
-		en.step(player, "watermelon");
+
+		en.step(player, "banan");
+		en.step(player, "winogrona");
+		en.step(player, "gruszka");
+		en.step(player, "granat");
+		en.step(player, "arbuz");
 
 		// -----------------------------------------------
-		
-		assertEquals("My hat has never looked so delightful! Thank you ever so much! Here, take this as a reward.", getReply(npc));
+
+		assertEquals("Mój kapelusz jeszcze nigdy nie wyglądał tak wybornie! Bardzo ci dziękuję! Przyjmij tą nagrodę.", getReply(npc));
 
 		// -----------------------------------------------
-		
+
 		// [19:05] pinch earns 50 experience points.
-		assertTrue(player.isEquipped("crepes suzette"));
-		assertTrue(player.isEquipped("minor potion"));
+		assertTrue(player.isEquipped("naleśniki z polewą czekoladową"));
+		assertTrue(player.isEquipped("mały eliksir"));
 		assertThat(player.getXP(), greaterThan(xp));
 		assertThat(player.getKarma(), greaterThan(karma));
 
@@ -275,7 +266,7 @@ public class FruitsForCoraliaTest extends ZonePlayerAndNPCTestImpl {
 
 		// -----------------------------------------------
 
-		assertEquals("Bye.", getReply(npc));
+		assertEquals("Do widzenia.", getReply(npc));
 
 		// -----------------------------------------------
 
@@ -286,7 +277,7 @@ public class FruitsForCoraliaTest extends ZonePlayerAndNPCTestImpl {
 
 		// -----------------------------------------------
 
-		assertEquals("Oh hello there, did I just catch you admiring my beautiful #hat?", getReply(npc));
+		assertEquals("Och witam! Czy nie przeszkodziłam czasem w podziwianiu mojego pięknego #kapelusza?", getReply(npc));
 
 		// -----------------------------------------------
 
@@ -294,7 +285,7 @@ public class FruitsForCoraliaTest extends ZonePlayerAndNPCTestImpl {
 
 		// -----------------------------------------------
 
-		assertEquals("Doesn't my hat look so fresh? I don't need any new fresh fruits for it yet, but thanks for enquiring!", getReply(npc));
+		assertEquals("Czy mój kapelusz nie wygląda świeżo? Teraz nie potrzebuję świeżych owoców, ale dziękuję za troskę!", getReply(npc));
 
 		// -----------------------------------------------
 
@@ -306,7 +297,7 @@ public class FruitsForCoraliaTest extends ZonePlayerAndNPCTestImpl {
 
 		// -----------------------------------------------
 
-		assertEquals("Bye.", getReply(npc));
+		assertEquals("Do widzenia.", getReply(npc));
 
 		// -----------------------------------------------
 
@@ -317,7 +308,7 @@ public class FruitsForCoraliaTest extends ZonePlayerAndNPCTestImpl {
 
 		// -----------------------------------------------
 
-		assertEquals("Oh hello there, did I just catch you admiring my beautiful #hat?", getReply(npc));
+		assertEquals("Och witam! Czy nie przeszkodziłam czasem w podziwianiu mojego pięknego #kapelusza?", getReply(npc));
 
 		// -----------------------------------------------
 
@@ -327,8 +318,8 @@ public class FruitsForCoraliaTest extends ZonePlayerAndNPCTestImpl {
 
 		player.setQuest(questSlot, "done;0");
 		//player.setQuest(questSlot, 1, "0");	This doesn't seem to work either.
-		
-		
+
+
 		//TODO: correct test (or fix bug in quest ^^)
 		/*
 		assertEquals("I'm sorry to say that the fruits you brought for my hat aren't very fresh anymore.. Would you be kind enough to find me some more?", getReply(npc));
@@ -339,7 +330,7 @@ public class FruitsForCoraliaTest extends ZonePlayerAndNPCTestImpl {
 
 		en.step(player, "bye");
 
-		assertEquals("Bye.", getReply(npc));
+		assertEquals("Do widzenia.", getReply(npc));
 		*/
 	}
 }

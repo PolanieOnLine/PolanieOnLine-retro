@@ -1,4 +1,4 @@
-/* $Id: StackableItem2DView.java,v 1.23 2012/11/25 10:30:42 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -13,6 +13,9 @@
 package games.stendhal.client.gui.j2d.entity;
 
 
+import java.awt.Color;
+import java.awt.Graphics2D;
+
 import games.stendhal.client.entity.StackableItem;
 import games.stendhal.client.gui.j2d.entity.helpers.DrawingHelper;
 import games.stendhal.client.gui.j2d.entity.helpers.HorizontalAlignment;
@@ -20,12 +23,9 @@ import games.stendhal.client.gui.j2d.entity.helpers.VerticalAlignment;
 import games.stendhal.client.sprite.Sprite;
 import games.stendhal.client.sprite.TextSprite;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
-
 /**
  * The 2D view of a stackable item.
- * 
+ *
  * @param <T> stackable item type
  */
 public class StackableItem2DView<T extends StackableItem> extends Item2DView<T> {
@@ -52,19 +52,19 @@ public class StackableItem2DView<T extends StackableItem> extends Item2DView<T> 
 		quantityChanged = false;
 		showQuantity = true;
 	}
-	
+
 	//
 	// StackableItem2DView
 	//
 
 	/**
 	 * Get the appropriate quantity sprite.
-	 * 
-	 * @param entity 
+	 *
+	 * @param entity
 	 * @return A sprite representing the quantity, or <code>null</code> for
 	 *         none.
 	 */
-	protected Sprite getQuantitySprite(T entity) {
+	private Sprite getQuantitySprite(T entity) {
 		int quantity;
 		String label;
 
@@ -85,7 +85,7 @@ public class StackableItem2DView<T extends StackableItem> extends Item2DView<T> 
 
 	/**
 	 * Set whether to show the quantity value.
-	 * 
+	 *
 	 * @param showQuantity
 	 *            Whether to show the quantity.
 	 */
@@ -109,7 +109,7 @@ public class StackableItem2DView<T extends StackableItem> extends Item2DView<T> 
 
 	/**
 	 * Draw quantity sprite. Exact position depends on containment status.
-	 * 
+	 *
 	 * @param g2d graphics
 	 * @param x x coordinate
 	 * @param y y coordinate
@@ -119,10 +119,10 @@ public class StackableItem2DView<T extends StackableItem> extends Item2DView<T> 
 	private void drawQuantity(final Graphics2D g2d, final int x, final int y,
 			final int width, int height) {
 		if (isContained()) {
-				// Right alignment
+			// Right alignment
 			DrawingHelper.drawAlignedSprite(g2d, quantitySprite, HorizontalAlignment.RIGHT, VerticalAlignment.TOP, x, y, width, height);
 		} else {
-				// Center alignment
+			// Center alignment
 			DrawingHelper.drawAlignedSprite(g2d, quantitySprite, HorizontalAlignment.CENTER, VerticalAlignment.TOP, x, y, width, height);
 		}
 	}
@@ -130,7 +130,7 @@ public class StackableItem2DView<T extends StackableItem> extends Item2DView<T> 
 	/**
 	 * Set whether this view is contained, and should render in a compressed
 	 * (it's defined) area without clipping anything important.
-	 * 
+	 *
 	 * @param contained
 	 *            <code>true</code> if contained.
 	 */
@@ -156,21 +156,9 @@ public class StackableItem2DView<T extends StackableItem> extends Item2DView<T> 
 		}
 	}
 
-	//
-	// EntityChangeListener
-	//
-
-	/**
-	 * An entity was changed.
-	 * 
-	 * @param entity
-	 *            The entity that was changed.
-	 * @param property
-	 *            The property identifier.
-	 */
 	@Override
-	public void entityChanged(final T entity, final Object property) {
-		super.entityChanged(entity, property);
+	void entityChanged(final Object property) {
+		super.entityChanged(property);
 
 		if (property == StackableItem.PROP_QUANTITY) {
 			quantityChanged = true;

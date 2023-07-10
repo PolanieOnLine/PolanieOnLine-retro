@@ -1,4 +1,4 @@
-/* $Id: InitialSteps.java,v 1.9 2010/09/19 02:33:27 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -13,6 +13,7 @@
 package games.stendhal.server.maps.quests.mithrilcloak;
 
 import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.NPCList;
@@ -20,14 +21,16 @@ import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.npc.action.DropRecordedItemAction;
 import games.stendhal.server.entity.npc.action.IncreaseXPAction;
 import games.stendhal.server.entity.npc.action.MultipleActions;
+import games.stendhal.server.entity.npc.action.SayRequiredItemAction;
 import games.stendhal.server.entity.npc.action.SetQuestAction;
 import games.stendhal.server.entity.npc.action.SetQuestAndModifyKarmaAction;
 import games.stendhal.server.entity.npc.action.StartRecordingRandomItemCollectionAction;
-import games.stendhal.server.entity.npc.action.SayRequiredItemAction;
 import games.stendhal.server.entity.npc.condition.AndCondition;
 import games.stendhal.server.entity.npc.condition.NotCondition;
 import games.stendhal.server.entity.npc.condition.OrCondition;
+import games.stendhal.server.entity.npc.condition.PlayerHasItemWithHimCondition;
 import games.stendhal.server.entity.npc.condition.PlayerHasRecordedItemWithHimCondition;
+import games.stendhal.server.entity.npc.condition.QuestActiveCondition;
 import games.stendhal.server.entity.npc.condition.QuestCompletedCondition;
 import games.stendhal.server.entity.npc.condition.QuestInStateCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotStartedCondition;
@@ -35,7 +38,6 @@ import games.stendhal.server.entity.npc.condition.QuestStartedCondition;
 import games.stendhal.server.entity.npc.condition.QuestStateStartsWithCondition;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -75,8 +77,8 @@ class InitialSteps {
 			ConversationPhrases.YES_MESSAGES, null,
 			ConversationStates.ATTENDING,
 			null,			
-			new MultipleActions(new SetQuestAndModifyKarmaAction(mithrilcloak.getQuestSlot(), "machine;", 15.0),
-								new StartRecordingRandomItemCollectionAction(mithrilcloak.getQuestSlot(), 1, items, "Dziękuję! Aby naprawić potrzebuję [#item]. będę wdzięczna za Twoją pomoc.")));
+			new MultipleActions(new SetQuestAction(mithrilcloak.getQuestSlot(), "machine;"),
+								new StartRecordingRandomItemCollectionAction(mithrilcloak.getQuestSlot(), 1, items, "Dziękuję! Aby naprawić potrzebuję [#item]. Będę wdzięczna za Twoją pomoc.")));
 		
 		// player said no they didn't want to help
 		npc.add(
@@ -157,7 +159,7 @@ class InitialSteps {
 					new NotCondition(new PlayerHasRecordedItemWithHimCondition(mithrilcloak.getQuestSlot(),1)),
 					ConversationStates.ATTENDING,
 					null,
-					new SayRequiredItemAction(mithrilcloak.getQuestSlot(),1,"Nie posiadasz [the item] Co za szkoda."));
+					new SayRequiredItemAction(mithrilcloak.getQuestSlot(),1,"Nie posiadasz [item] Co za szkoda."));
 						
 
 			// player doesn't have the item to fix machine yet
@@ -166,15 +168,19 @@ class InitialSteps {
 				   null,
 				   ConversationStates.ATTENDING,
 				   null,
-				   new SayRequiredItemAction(mithrilcloak.getQuestSlot(),1,"Dobrze jeżeli jest coś w czym mogłabym pomóc to mów. Nie zapomnij przynieś [the item] następnym razem!"));
+				   new SayRequiredItemAction(mithrilcloak.getQuestSlot(),1,"Dobrze jeżeli jest coś w czym mogłabym pomóc to mów. Nie zapomnij przynieś [item] następnym razem!"));
 
+		   final String startMessage = "Zrobię dla Ciebie niesamowity płaszcz z mithrilu. "
+					+ "Musisz zdobyć tkaninę i narzędzia, których potrzebuję! Na początek przynieś mi kilka jardów "
+					+ mithrilcloak.getFabricName() + ". Ekspertem od tkanin jest czarodziej #Kampusch.";
+		   
 		   //offer cloak
 		   npc.add(ConversationStates.QUEST_2_OFFERED,
 				   ConversationPhrases.YES_MESSAGES,
 				   new QuestCompletedCondition(mithrilcloak.getShieldQuestSlot()),
 				   ConversationStates.ATTENDING,
-				   "Zrobię dla Ciebie niesamowity płaszcz z mithrilu. Musisz zdobyć tkaninę i narzędzia, których potrzebuję! Na początek przynieś mi kilka jardów " + mithrilcloak.getFabricName() + ". Ekspertem od tkanin jest czarodziej #Kampusch.",
-				   new SetQuestAndModifyKarmaAction(mithrilcloak.getQuestSlot(), "need_fabric", 10.0));
+				   startMessage,
+				   new SetQuestAction(mithrilcloak.getQuestSlot(), "need_fabric"));
 					
 
 			// player asks for quest but they haven't completed mithril shield quest
@@ -206,6 +212,80 @@ class InitialSteps {
 
 			// where to find wizard
 			npc.addReply("Kampusch","Ma obsesję na punkcie antyków. Poszukaj go w antykwaricie lub muzeum.");
+
+
+			// resetting quest to earlier state
+
+			// allows player to reset quest state to "need_fabric" in case they are unable to finish
+			final ChatCondition canResetCondition = new AndCondition(
+					new QuestActiveCondition(mithrilcloak.getQuestSlot()),
+					new NotCondition(new OrCondition(
+							new QuestInStateCondition(mithrilcloak.getQuestSlot(), 0, "machine"),
+							new QuestInStateCondition(mithrilcloak.getQuestSlot(), 0, "fixed_machine"),
+							//new QuestInStateCondition(mithrilcloak.getQuestSlot(), 0, "need_fabric"),
+							new QuestInStateCondition(mithrilcloak.getQuestSlot(), 0, "need_mithril_shield"))));
+
+			npc.add(ConversationStates.ATTENDING,
+					ConversationPhrases.HELP_MESSAGES,
+					canResetCondition,
+					ConversationStates.ATTENDING,
+					"Możesz poprosić o #powtórzenie zadania, jeśli utkniesz w zdobywaniu przedmiotów do płaszcza z mithrilu",
+					null);
+
+			// player is unable to finish quest & needs to restart
+			npc.add(ConversationStates.ATTENDING,
+					Arrays.asList("restart", "reset", "powtórzenie", "wznowienie", "powtórka"),
+					canResetCondition,
+					ConversationStates.RESTART_OFFERED,
+					"Jesteś pewien, że chcesz zacząć od nowa?",
+					null);
+
+			// allow player to restart in the cases that they have already had the thread or fabric made but have not finished quest
+			npc.add(ConversationStates.RESTART_OFFERED,
+					ConversationPhrases.YES_MESSAGES,
+					new AndCondition(
+							canResetCondition,
+							new NotCondition(new PlayerHasItemWithHimCondition("przędza jedwabna", 40))),
+					ConversationStates.ATTENDING,
+					startMessage,
+					new SetQuestAction(mithrilcloak.getQuestSlot(), "need_fabric"));
+
+			// player wants to reset & already has silk thread
+			npc.add(ConversationStates.RESTART_OFFERED,
+					ConversationPhrases.YES_MESSAGES,
+					new AndCondition(
+							canResetCondition,
+							new PlayerHasItemWithHimCondition("przędza jedwabna", 40)),
+					ConversationStates.ATTENDING,
+					startMessage,
+					new SetQuestAction(mithrilcloak.getQuestSlot(), "got_thread"));
+
+			// player wants to reset & already has mithril thread
+			npc.add(ConversationStates.RESTART_OFFERED,
+					ConversationPhrases.YES_MESSAGES,
+					new AndCondition(
+							canResetCondition,
+							new PlayerHasItemWithHimCondition("przędza z mithrilu", 40)),
+					ConversationStates.ATTENDING,
+					startMessage,
+					new SetQuestAction(mithrilcloak.getQuestSlot(), "got_mithril_thread"));
+
+			// player wants to reset & already has mithril fabric
+			npc.add(ConversationStates.RESTART_OFFERED,
+					ConversationPhrases.YES_MESSAGES,
+					new AndCondition(
+							canResetCondition,
+							new PlayerHasItemWithHimCondition("przędza z mithrilu")),
+					ConversationStates.ATTENDING,
+					startMessage,
+					new SetQuestAction(mithrilcloak.getQuestSlot(), "got_fabric"));
+
+			npc.add(ConversationStates.RESTART_OFFERED,
+					ConversationPhrases.NO_MESSAGES,
+					canResetCondition,
+					ConversationStates.ATTENDING,
+					"Okej.",
+					null);
 	
 	}
 

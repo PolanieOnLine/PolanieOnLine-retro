@@ -1,4 +1,4 @@
-/* $Id: Stackable.java,v 1.14 2011/05/25 19:38:27 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -14,9 +14,9 @@ package games.stendhal.server.entity.item;
 
 /**
  * this interface tags all items which are stackable.
- * 
+ *
  * @author mtotz
- * @param <T> 
+ * @param <T>
  */
 public interface Stackable<T> {
 

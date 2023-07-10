@@ -1,4 +1,4 @@
-/* $Id: LootableSlot.java,v 1.12 2012/02/26 12:17:09 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -17,7 +17,7 @@ import games.stendhal.server.entity.Entity;
 
 /**
  * A lootable slot of some creature.
- * 
+ *
  * @author hendrik
  */
 public class LootableSlot extends EntitySlot {
@@ -25,7 +25,7 @@ public class LootableSlot extends EntitySlot {
 
 	/**
 	 * creates a new lootable slot.
-	 * 
+	 *
 	 * @param owner
 	 *            owner of this Slot
 	 */
@@ -36,7 +36,7 @@ public class LootableSlot extends EntitySlot {
 
 	@Override
 	public boolean isReachableForTakingThingsOutOfBy(final Entity entity) {
-		setErrorMessage(Grammar.makeUpperCaseWord(((Entity)getOwner()).getDescriptionName(true)) + " jest zbyt daleko.");
+		setErrorMessage(Grammar.makeUpperCaseWord(((Entity)getOwner()).getDescriptionName()) + " jest zbyt daleko.");
 		return entity.nextTo(owner);
 	}
 

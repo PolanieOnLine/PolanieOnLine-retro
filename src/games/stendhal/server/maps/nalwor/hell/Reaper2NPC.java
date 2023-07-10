@@ -1,4 +1,3 @@
-/* $Id: Reaper2NPC.java,v 1.11 2011/05/01 19:50:08 martinfuchs Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -11,6 +10,11 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.maps.nalwor.hell;
+
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import games.stendhal.common.Direction;
 import games.stendhal.common.NotificationType;
@@ -27,20 +31,11 @@ import games.stendhal.server.entity.npc.action.MultipleActions;
 import games.stendhal.server.entity.npc.action.TeleportAction;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 /**
  * Builds the 2nd reaper in hell.
  * @author kymara
  */
 public class Reaper2NPC implements ZoneConfigurator {
-	//
-	// ZoneConfigurator
-	//
-
 	/**
 	 * Configure a zone.
 	 *
@@ -49,20 +44,19 @@ public class Reaper2NPC implements ZoneConfigurator {
 	 * @param attributes
 	 *            Configuration attributes.
 	 */
-	public void configureZone(final StendhalRPZone zone,
-			final Map<String, String> attributes) {
-		buildNPC(zone, attributes);
+	@Override
+	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
+		buildNPC(zone);
 	}
 
-	private void buildNPC(final StendhalRPZone zone, final Map<String, String> attributes) {
-		final SpeakerNPC npc = new SpeakerNPC("repaeR mirG") {
+	private void buildNPC(final StendhalRPZone zone) {
+		SpeakerNPC npc = createNPC("repaeR mirG");
+		npc.setPosition(68, 76);
+		zone.add(npc);
+	}
 
-			@Override
-			protected void createPath() {
-				// doesn't move
-				setPath(null);
-			}
-
+	static SpeakerNPC createNPC(String name) {
+		final SpeakerNPC npc = new SpeakerNPC(name) {
 			@Override
 			protected void createDialog() {
 				addGreeting("#ękdagaz ćaząiwzor zsisum ot ecsjeim ot ćicśupo zsechc ileżeJ");
@@ -71,6 +65,7 @@ public class Reaper2NPC implements ZoneConfigurator {
 				processStep.add(new TeleportAction("int_afterlife", 31, 23, Direction.UP));
 				processStep.add(new DecreaseKarmaAction(100.0));
 				processStep.add(new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 						player.subXP(10000);
 						// wipe riddle slot if player decided they couldnt answer it and would take the karma hit
@@ -89,10 +84,10 @@ public class Reaper2NPC implements ZoneConfigurator {
 				addGoodbye("... ćęimapein w łdezsdo yzcezr kedązrop yratS");
 			}
 		};
+
+		npc.setDescription("Oto repaeR mirG. Jego lustro daje wolność.");
 		npc.setEntityClass("grim_reaper2_npc");
 		npc.setPosition(68, 76);
-		npc.initHP(100);
-		npc.setDescription("Oto repaeR mirG. Jego lustro daje wolność.");
-		zone.add(npc);
+		return npc;
 	}
 }

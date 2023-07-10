@@ -1,6 +1,5 @@
-/* $Id: AbstractAchievementFactory.java,v 1.9 2011/11/17 20:53:35 madmetzger Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2022 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,20 +11,21 @@
  ***************************************************************************/
 package games.stendhal.server.core.rp.achievement.factory;
 
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+
+import games.stendhal.common.constants.Testing;
 import games.stendhal.server.core.rp.achievement.Achievement;
 import games.stendhal.server.core.rp.achievement.Category;
 import games.stendhal.server.entity.npc.ChatCondition;
 
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
 /**
  * Factory class for achievements creation with a fixed category
- *  
+ *
  * @author madmetzger
  */
 public abstract class AbstractAchievementFactory {
-
 	/**
 	 * @return the category the factory should use
 	 */
@@ -33,25 +33,25 @@ public abstract class AbstractAchievementFactory {
 
 	/**
 	 * Creates a collection of achievements
-	 * 
+	 *
 	 * @return the achievments
 	 */
 	public abstract Collection<Achievement> createAchievements();
 
 	/**
-	 * Creates a single achievement 
+	 * Creates a single achievement
 	 * @param identifier
 	 * @param title
 	 * @param description
 	 * @param score
+     * @param active
 	 * @param condition
-	 * @param active
 	 * @return the new Achievement
 	 */
 	protected Achievement createAchievement(String identifier, String title, String description, int score, boolean active, ChatCondition condition) {
-		return new Achievement(identifier, title, getCategory(),  description, score, active, condition);
+		return new Achievement(identifier, title, getCategory(), description, score, active, condition);
 	}
-	
+
 	/**
 	 * Create a list of all known achievement factories
 	 * @return the list of factories
@@ -60,19 +60,37 @@ public abstract class AbstractAchievementFactory {
 		List<AbstractAchievementFactory> list = new LinkedList<AbstractAchievementFactory>();
 		//add new created factories here
 		list.add(new AdosItemQuestAchievementsFactory());
+		list.add(new AgeAchievementFactory());
+		list.add(new DeathmatchAchievementFactory());
 		list.add(new ExperienceAchievementFactory());
+		list.add(new ExperienceDEFAchievementFactory());
+		list.add(new ExperienceATKAchievementFactory());
+		list.add(new ExperienceMININGAchievementFactory());
+		if (Testing.COMBAT) {
+			list.add(new ExperienceRATKAchievementFactory());
+		}
 		list.add(new FightingAchievementFactory());
 		list.add(new FriendAchievementFactory());
 		list.add(new InteriorZoneAchievementFactory());
 		list.add(new ItemAchievementFactory());
+		list.add(new ItemSetsAchievementFactory());
+		list.add(new ItemUpgradesAchievementFactory());
 		list.add(new ObtainAchievementsFactory());
 		list.add(new OutsideZoneAchievementFactory());
+		list.add(new PetsWeightAchievementFactory());
 		list.add(new ProductionAchievementFactory());
 		list.add(new QuestAchievementFactory());
 		list.add(new SemosMonsterQuestAchievementFactory());
 		list.add(new UndergroundZoneAchievementFactory());
 		list.add(new KirdnehItemAchievementFactory());
+		list.add(new KuzniceMonsterQuestAchievementFactory());
+		list.add(new MithrilbourghEnemyArmyAchievementFactory());
+		list.add(new CommerceAchievementFactory());
+		list.add(new KillBlordroughsAchievementFactory());
+		list.add(new ZakopaneItemQuestAchievementsFactory());
+		list.add(new GdanskJewelleryQuestAchievementFactory());
+		list.add(new RebornAchievementFactory());
+		list.add(new CiupagaAchievementFactory());
 		return list;
 	}
-
 }

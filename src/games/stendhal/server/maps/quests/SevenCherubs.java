@@ -1,6 +1,5 @@
-/* $Id: SevenCherubs.java,v 1.70 2011/05/01 19:50:05 martinfuchs Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,7 +11,14 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+
 import games.stendhal.common.Rand;
+import games.stendhal.common.grammar.Grammar;
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPWorld;
@@ -27,19 +33,32 @@ import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import games.stendhal.server.entity.status.PoisonStatus;
 
 /**
- * QUEST: Find the seven cherubs that are all around the world. PARTICIPANTS: -
- * Cherubiel - Gabriel - Ophaniel - Raphael - Uriel - Zophiel - Azazel STEPS: -
- * Find them and they will reward you.
+ * QUEST: Find the seven cherubs that are all around the world.
  *
- * REWARD: -
+ * PARTICIPANTS:
+ * <ul>
+ * <li> Cherubiel </li>
+ * <li> Gabriel </li>
+ * <li> Ophaniel </li>
+ * <li> Raphael </li>
+ * <li> Uriel </li>
+ * <li> Zophiel </li>
+ * <li> Azazel </li>
+ *
+ * STEPS:
+ * <ul>
+ * <li> Find them and they will reward you. </li>
+ * </ul>
+ *
+ * REWARD:
+ * <ul>
+ * <li> 20,000 XP </li>
+ * <li> some karma (35) </li>
+ * <li> either fire sword, golden boots, golden armor, or golden helmet </li>
+ * </ul>
  *
  * REPETITIONS: - Just once.
  */
@@ -47,54 +66,15 @@ public class SevenCherubs extends AbstractQuest {
 	private static final String QUEST_SLOT = "seven_cherubs";
 
 	private final HashMap<String, String> cherubsHistory = new HashMap<String,String>();
-	
+
 	private void fillHistoryMap() {
-		cherubsHistory.put("Cherubiel", "Spotkałem Cherubiel w wiosce Semos.");
-		cherubsHistory.put("Ophaniel",  "Spotkałem Ophaniel nad rzeką Orril.");
-		cherubsHistory.put("Gabriel",   "Spotkałem Gabriel w mieście Nalwor.");
-		cherubsHistory.put("Raphael",   "Spotkałem Raphael pomiędzy rzeką Orril, a mostem do Fado.");
-		cherubsHistory.put("Zophiel",   "Spotkałem Zophiel na górze Semos.");
-		cherubsHistory.put("Azazel",    "Spotkałem Azazel na Ados Rock.");
-		cherubsHistory.put("Uriel",     "Spotkałem Uriel na górze Orril.");		
-	}
-
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
-	
-	@Override
-	public boolean isCompleted(final Player player) {
-		if (!player.hasQuest(QUEST_SLOT)) {
-			return false;
-		}
-		final String npcDoneText = player.getQuest(QUEST_SLOT);
-		final String[] done = npcDoneText.split(";");
-		final int left = 7 - done.length;
-		return left < 0;
-	}
-
-	@Override
-	public List<String> getHistory(final Player player) {
-		final List<String> res = new ArrayList<String>();
-		if (player.hasQuest(QUEST_SLOT)) {
-			final String npcDoneText = player.getQuest(QUEST_SLOT);
-			final String[] done = npcDoneText.split(";");
-			boolean first = true;
-			for (final String cherub : done) {
-				if (!cherub.trim().equals("")) {
-					if (first) {
-						first = false;
-						res.add("Zacząłem szukać siedmiu aniołków");
-					}
-					res.add(cherubsHistory.get(cherub));
-				}
-			}
-			if (isCompleted(player)) {
-				res.add("Zrobione! Znalazłem je wszystkie!");
-			}
-		}
-		return res;
+		cherubsHistory.put("Cherubiel", "Cherubiel przebywał w wiosce Semos.");
+		cherubsHistory.put("Ophaniel",  "Ophaniel przebywał nad rzeką Orril.");
+		cherubsHistory.put("Gabriel",   "Gabriel przebywał w mieście Nalwor.");
+		cherubsHistory.put("Raphael",   "Raphael przebywał pomiędzy rzeką Orril, a mostem do Fado.");
+		cherubsHistory.put("Zophiel",   "Zophiel przebywał na górze Semos.");
+		cherubsHistory.put("Azazel",    "Azazel przebywał na Ados Rock.");
+		cherubsHistory.put("Uriel",     "Uriel przebywał na górze Orril.");
 	}
 
 	static class CherubNPC extends SpeakerNPC {
@@ -124,6 +104,7 @@ public class SevenCherubs extends AbstractQuest {
 				new GreetingMatchesNameCondition(getName()), true,
 				ConversationStates.IDLE, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						if (!player.hasQuest(QUEST_SLOT)) {
 							player.setQuest(QUEST_SLOT, "");
@@ -142,14 +123,14 @@ public class SevenCherubs extends AbstractQuest {
 							if (left > -1) {
 								raiser.say("Poszukaj innych aniołków, aby dostać nagrodę!");
 							} else {
-								raiser.say("Szukałeś i znalazłeś wszystkie aniołki! W nagrodę dostałeś potężny artefakt.");
+								raiser.say(Grammar.genderVerb(player.getGender(), "Szukałeś") + " i " + Grammar.genderVerb(player.getGender(), "znalazłeś") + " wszystkie aniołki! W nagrodę " + Grammar.genderVerb(player.getGender(), "dostałeś") + " potężny artefakt.");
 							}
 						} else {
 							player.setQuest(QUEST_SLOT, npcDoneText + ";"
 									+ raiser.getName());
 
 							player.heal();
-							player.healPoison();
+							player.getStatusList().removeAll(PoisonStatus.class);
 
 							if (left > 0) {
 								raiser.say("Bardzo dobrze! Potrzebujesz znaleźć jeszcze "
@@ -161,7 +142,7 @@ public class SevenCherubs extends AbstractQuest {
 									player.addXP((7 - left + 1) * 200);
 								}
 							} else {
-								raiser.say("Udowodniłeś, że jesteś w stanie nosić ten potężny artefakt!");
+								raiser.say(Grammar.genderVerb(player.getGender(), "Udowodniłeś") + ", że jesteś w stanie nosić ten potężny artefakt!");
 
 								/*
 								 * Proposal by Daniel Herding (mort): once
@@ -188,12 +169,13 @@ public class SevenCherubs extends AbstractQuest {
 								 * it).
 								 *
 								 */
-								final String[] items = { "buty złote", "złota zbroja", "złoty hełm" };
+								final String[] items = { "złote buty", "złota zbroja", "złoty hełm", "miecz ognisty" };
 								final Item item = SingletonRepository.getEntityManager()
 									.getItem(items[Rand.rand(items.length)]);
 								item.setBoundTo(player.getName());
 								player.equipOrPutOnGround(item);
-								player.addXP(2000);
+								player.addXP(20000);
+								player.addKarma(35);
 							}
 						}
 						player.notifyWorldAboutChanges();
@@ -206,7 +188,6 @@ public class SevenCherubs extends AbstractQuest {
 	@Override
 	public void addToWorld() {
 		final StendhalRPWorld world = SingletonRepository.getRPWorld();
-		super.addToWorld();
 		fillHistoryMap();
 		fillQuestInfo(
 				"Siedem Aniołków",
@@ -245,7 +226,46 @@ public class SevenCherubs extends AbstractQuest {
 	}
 
 	@Override
+	public List<String> getHistory(final Player player) {
+		final List<String> res = new ArrayList<String>();
+		if (player.hasQuest(QUEST_SLOT)) {
+			final String npcDoneText = player.getQuest(QUEST_SLOT);
+			final String[] done = npcDoneText.split(";");
+			boolean first = true;
+			for (final String cherub : done) {
+				if (!cherub.trim().equals("")) {
+					if (first) {
+						first = false;
+						res.add(Grammar.genderVerb(player.getGender(), "Zacząłem") + " szukać siedmiu aniołków.");
+					}
+					res.add(cherubsHistory.get(cherub));
+				}
+			}
+			if (isCompleted(player)) {
+				res.add("Zrobione! " + Grammar.genderVerb(player.getGender(), "Znalazłem") + " je wszystkie!");
+			}
+		}
+		return res;
+	}
+
+	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
+	}
+
+	@Override
 	public String getName() {
-		return "SevenCherubs";
+		return "Siedem Aniołków";
+	}
+
+	@Override
+	public boolean isCompleted(final Player player) {
+		if (!player.hasQuest(QUEST_SLOT)) {
+			return false;
+		}
+		final String npcDoneText = player.getQuest(QUEST_SLOT);
+		final String[] done = npcDoneText.split(";");
+		final int left = 7 - done.length;
+		return left < 0;
 	}
 }

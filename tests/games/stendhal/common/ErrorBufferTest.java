@@ -1,4 +1,4 @@
-/* $Id: ErrorBufferTest.java,v 1.3 2010/09/19 02:37:46 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -18,7 +18,7 @@ import org.junit.Test;
 
 /**
  * Test the ErrorBuffer class.
- * 
+ *
  * @author Martin Fuchs
  */
 public class ErrorBufferTest {

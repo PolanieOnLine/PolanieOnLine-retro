@@ -1,4 +1,4 @@
-/* $Id: PlayerActivityEntity.java,v 1.4 2010/10/28 18:54:18 kymara Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -13,13 +13,13 @@
 package games.stendhal.server.entity.mapstuff.useable;
 
 
+import java.lang.ref.WeakReference;
+
 import games.stendhal.common.MathHelper;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.events.TurnListener;
 import games.stendhal.server.entity.RPEntity;
 import games.stendhal.server.entity.player.Player;
-
-import java.lang.ref.WeakReference;
 
 /**
  * An entity that performs some activity for a player. The activity takes some
@@ -39,26 +39,15 @@ public abstract class PlayerActivityEntity extends UseableEntity {
 		setResistance(0);
 	}
 
-	//
-	// PlayerActivityEntity
-	//
-
-	/**
-	 * Returns source name (type of source).
-	 */
-	protected abstract String getName();
-
 	/**
 	 * Process the results of the activity.
-	 * 
+	 *
 	 * @param player
 	 *            The player that performed the activity.
 	 */
 	protected void activityDone(final Player player) {
-		/*
-		 * Verify that the player is still standing next to this, else their
-		 * activity fails.
-		 */
+		// Verify that the player is still standing next to this, else their
+		// activity fails.
 		if (nextTo(player)) {
 			if (isPenalized(player)) {
 				onFinished(player, false);
@@ -66,23 +55,22 @@ public abstract class PlayerActivityEntity extends UseableEntity {
 				onFinished(player, isSuccessful(player));
 			}
 		} else {
-			player.sendPrivateText("Jesteś zbyt daleko od "+this.getName()+
-								   " spróbuj podejść bliżej.");
+			player.sendPrivateText("Jesteś zbyt daleko od "+this.getName()+ ", spróbuj podejść bliżej.");
 			onFinished(player, false);
 		}
 	}
 
 	/**
 	 * Get the time it takes to perform this activity.
-	 * 
+	 *
 	 * @return The time to perform the activity (in seconds).
 	 */
-	protected abstract int getDuration();
+	protected abstract int getDuration(final Player player);
 
 	/**
 	 * Decides if the activity can be done.
 	 * @param player for whom to perform the activity
-	 * 
+	 *
 	 * @return <code>true</code> if can be done
 	 */
 	protected abstract boolean isPrepared(final Player player);
@@ -90,14 +78,14 @@ public abstract class PlayerActivityEntity extends UseableEntity {
 	/**
 	 * Decides if the activity was successful.
 	 * @param player for whom to perform the activity
-	 * 
+	 *
 	 * @return <code>true</code> if successful.
 	 */
 	protected abstract boolean isSuccessful(final Player player);
 
 	/**
 	 * Called when the activity has finished.
-	 * 
+	 *
 	 * @param player
 	 *            The player that did the activity.
 	 * @param successful
@@ -108,7 +96,7 @@ public abstract class PlayerActivityEntity extends UseableEntity {
 
 	/**
 	 * Called when the activity has started.
-	 * 
+	 *
 	 * @param player
 	 *            The player starting the activity.
 	 */
@@ -116,10 +104,10 @@ public abstract class PlayerActivityEntity extends UseableEntity {
 
 	/**
 	 * Check for excessive usage
-	 * 
+	 *
 	 * @param player
 	 *            The player starting the activity.
-	 *            
+	 *
 	 * @return <code>true</code> if the usage was excessive
 	 */
 	protected boolean isPenalized(final Player player) {
@@ -141,12 +129,13 @@ public abstract class PlayerActivityEntity extends UseableEntity {
 
 	/**
 	 * Is called when a player initiates the activity.
-	 * 
+	 *
 	 * @param entity
 	 *            The initiating entity.
-	 * 
+	 *
 	 * @return <code>true</code> if the entity was used.
 	 */
+	@Override
 	public boolean onUsed(final RPEntity entity) {
 
 		if (!(entity instanceof Player)) {
@@ -172,7 +161,7 @@ public abstract class PlayerActivityEntity extends UseableEntity {
 				player.faceToward(this);
 				onStarted(player);
 
-				SingletonRepository.getTurnNotifier().notifyInSeconds(getDuration(), activity);
+				SingletonRepository.getTurnNotifier().notifyInSeconds(getDuration(player), activity);
 			}
 		}
 
@@ -180,8 +169,6 @@ public abstract class PlayerActivityEntity extends UseableEntity {
 		return true;
 	}
 
-	//
-	//
 
 	/**
 	 * An occurrence of activity.
@@ -194,7 +181,7 @@ public abstract class PlayerActivityEntity extends UseableEntity {
 
 		/**
 		 * Create an activity.
-		 * 
+		 *
 		 * @param player
 		 *            The player.
 		 */
@@ -208,7 +195,7 @@ public abstract class PlayerActivityEntity extends UseableEntity {
 
 		/**
 		 * Get the holder entity.
-		 * 
+		 *
 		 * @return The holder entity.
 		 */
 		public PlayerActivityEntity getEntity() {
@@ -217,7 +204,7 @@ public abstract class PlayerActivityEntity extends UseableEntity {
 
 		/**
 		 * Get the player.
-		 * 
+		 *
 		 * @return The player (or <code>null</code> if GC'd).
 		 */
 		public Player getPlayer() {
@@ -230,10 +217,11 @@ public abstract class PlayerActivityEntity extends UseableEntity {
 
 		/**
 		 * This method is called when the turn number is reached.
-		 * 
+		 *
 		 * @param currentTurn
 		 *            The current turn number.
 		 */
+		@Override
 		public void onTurnReached(final int currentTurn) {
 			final Player player = getPlayer();
 

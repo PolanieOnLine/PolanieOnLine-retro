@@ -1,4 +1,4 @@
-/* $Id: PlayerTrade.java,v 1.22 2012/10/11 21:56:28 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -13,21 +13,20 @@
 
 package games.stendhal.server.entity.player;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.common.TradeState;
 import games.stendhal.server.core.engine.ItemLogger;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.entity.item.Item;
 import games.stendhal.server.events.TradeStateChangeEvent;
-
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPSlot;
-
-import org.apache.log4j.Logger;
 
 /**
  * handles player to player trade
@@ -331,7 +330,7 @@ class PlayerTrade {
 	/**
 	 * Move items from a list to any suitable carrying slot of the player,
 	 * merging with existing item stacks, when possible.
-	 * 
+	 *
 	 * @param items item list
 	 * @return <code>true</code> if all the items on the list could be equipped,
 	 * 	<code>false</code> otherwise
@@ -415,7 +414,9 @@ class PlayerTrade {
 		} else {
 			player.addEvent(new TradeStateChangeEvent(partner.getInt("id"), tradeState, partner.getTradeState()));
 			partner.addEvent(new TradeStateChangeEvent(player.getInt("id"), partner.getTradeState(), tradeState));
+			partner.notifyWorldAboutChanges();
 		}
+		player.notifyWorldAboutChanges();
 	}
 
 

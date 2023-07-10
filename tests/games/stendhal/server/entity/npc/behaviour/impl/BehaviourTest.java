@@ -1,4 +1,4 @@
-/* $Id: BehaviourTest.java,v 1.7 2011/05/01 19:50:07 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,16 +12,18 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.behaviour.impl;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.HashSet;
 import java.util.Set;
 
+import org.junit.Test;
+
 import games.stendhal.common.grammar.ItemParserResult;
 import games.stendhal.common.parser.ConversationParser;
 import games.stendhal.common.parser.Sentence;
-
-import org.junit.Test;
 
 public class BehaviourTest {
 

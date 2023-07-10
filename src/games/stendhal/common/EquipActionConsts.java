@@ -1,6 +1,5 @@
-/* $Id: EquipActionConsts.java,v 1.5 2012/09/02 11:40:50 kiheru Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2020 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -18,7 +17,7 @@ package games.stendhal.common;
  */
 public interface EquipActionConsts {
 	String SOURCE_PATH = "source_path";
-	
+
 	// Compatibility object addressing
 	String BASE_ITEM = "baseitem";
 	String BASE_SLOT = "baseslot";
@@ -37,5 +36,9 @@ public interface EquipActionConsts {
 
 	double MAXDISTANCE = 0.25;
 	int MAX_CONTAINED_DEPTH = 25;
+
+	String CLICKED = "clicked";
+
+	String SOURCE_NAME = "source_name";
 
 }

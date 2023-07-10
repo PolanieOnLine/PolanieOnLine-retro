@@ -1,4 +1,4 @@
-/* $Id: Description.java,v 1.1 2010/04/01 20:13:36 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                    (C) Copyright 2003-2010 - Stendhal                   *
  ***************************************************************************
@@ -29,7 +29,7 @@ public class Description extends Sign {
 	public String describe() {
 		final String text = getText();
 		if (text == null) {
-			return "Oto sign bez tekstu";
+			return "Oto znak bez treści";
 		}
 
 		return text;

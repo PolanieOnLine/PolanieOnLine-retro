@@ -1,6 +1,5 @@
-/* $Id: KillGnomesTest.java,v 1.3 2011/08/11 23:05:08 bluelads99 Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2022 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,22 +11,27 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static utilities.SpeakerNPCTestHelper.getReply;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.fsm.Engine;
-import games.stendhal.server.entity.player.Player;
-import games.stendhal.server.maps.semos.plains.MillerNPC;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.entity.npc.SpeakerNPC;
+import games.stendhal.server.entity.npc.behaviour.impl.ProducerBehaviour;
+import games.stendhal.server.entity.npc.fsm.Engine;
+import games.stendhal.server.entity.npc.quest.BuiltQuest;
+import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.maps.semos.plains.MillerNPC;
 import utilities.PlayerTestHelper;
 import utilities.QuestHelper;
 
@@ -37,19 +41,21 @@ import utilities.QuestHelper;
  * @author IschBing, hendrik
  */
 public class KillGnomesTest {
-	private static final String QUEST_VALUE_STARTED = "start;cavalryman gnome,0,1,0,0,gnome,0,1,0,0,infantry gnome,0,1,0,0";
+	private static final String QUEST_VALUE_STARTED = "start;gnom,0,1,0,0,gnom zwiadowca,0,1,0,0,gnom kawalerzysta,0,1,0,0";
 
 	private Player player = null;
 	private SpeakerNPC npc = null;
 	private Engine en = null;
 	private static String questSlot;
 
+	private static String greetings = "Pozdrawiam! Zwiem się Jenny jestem szefową tutejszego młyna. Jeżeli przyniesiesz mi #kłosy zboża to zmielę je dla Ciebie na mąkę. Powiedz tylko #zmiel ilość #mąka.";
+
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		QuestHelper.setUpBeforeClass();
 		final StendhalRPZone zone = new StendhalRPZone("admin_test");
-		new MillerNPC().configureZone(zone, null);	
-		AbstractQuest quest = new KillGnomes();
+		new MillerNPC().configureZone(zone, null);
+		AbstractQuest quest = new BuiltQuest(new KillGnomes().story());
 		questSlot = quest.getSlotName();
 		quest.addToWorld();
 	}
@@ -60,6 +66,12 @@ public class KillGnomesTest {
 		player = PlayerTestHelper.createPlayer("bob");
 		npc = SingletonRepository.getNPCList().get("Jenny");
 		en = npc.getEngine();
+
+		final Map<String, Integer> requiredResources = new TreeMap<String, Integer>();
+		requiredResources.put("ser", 1);
+
+		SingletonRepository.getProducerRegister().configureNPC(
+				"Jenny", new ProducerBehaviour("jenny_test", Arrays.asList("mill"), "mąka", requiredResources, 0), greetings);
 	}
 
 
@@ -71,16 +83,16 @@ public class KillGnomesTest {
 
 		// Ask for the quest
 		en.step(player, "hi");
-		assertEquals("Greetings! I am Jenny, the local miller. If you bring me some #grain, I can #mill it into flour for you.", getReply(npc));
+		assertEquals(greetings, getReply(npc));
 		en.step(player, "task");
-		assertEquals("Some gnomes have been stealing carrots from the farms North of Semos. They need to be taught a lesson, will you help?", getReply(npc));
+		assertEquals("Gnomy kradną marchewki z naszej farmy na północ od Semos. Potrzebują chyba dobrej lekcji. Pomożesz?", getReply(npc));
 
 		// Accept quest
 		en.step(player, "yes");
-		assertEquals("Excellent. You'll find the gnomes camped out, north west of Semos. Make sure you kill some of the ringleaders, too, at least one infantryman and one cavalryman.", getReply(npc));
+		assertEquals("Doskonale. Obozowisko gnomów znajdziesz na północny-zachód od Semos. Upewnij się, że ubiłeś kilku liderów, conajmniej jednego zwiadowcę i jednego kawalerzystę.", getReply(npc));
 		en.step(player, "bye");
-		assertEquals("Bye.", getReply(npc));
-		assertThat(player.getQuest(questSlot), equalTo(QUEST_VALUE_STARTED));
+		assertEquals("Do widzenia.", getReply(npc));
+		assertThat(player.getQuest(questSlot, 0), equalTo("start"));
 	}
 
 
@@ -91,11 +103,11 @@ public class KillGnomesTest {
 	public void returnWithoutCompleting() {
 		player.setQuest(questSlot, QUEST_VALUE_STARTED);
 		en.step(player, "hi");
-		assertEquals("Greetings! I am Jenny, the local miller. If you bring me some #grain, I can #mill it into flour for you.", getReply(npc));
+		assertEquals(greetings, getReply(npc));
 		en.step(player, "done");
-		assertEquals("You need to teach those pesky gnomes a lesson, by killing some as an example! Make sure you get the leaders, too, at least one infantryman and one cavalryman.", getReply(npc));
+		assertEquals("Musisz nauczyć te zuchwałe gnomy lekcji zabijając kilku dla przykładu! Upewnij się, że dostałeś kilku liderów, co najmniej jednego zwiadowcę i jednego kawalerzystę.", getReply(npc));
 		en.step(player, "bye");
-		assertEquals("Bye.", getReply(npc));
+		assertEquals("Do widzenia.", getReply(npc));
 		assertThat(player.getQuest(questSlot), equalTo(QUEST_VALUE_STARTED));
 	}
 
@@ -108,18 +120,16 @@ public class KillGnomesTest {
 		player.setQuest(questSlot, QUEST_VALUE_STARTED);
 
 		// kill gnomes
-		player.setSoloKill("gnome");
-		player.setSoloKill("infantry gnome");
-		player.setSoloKill("cavalryman gnome");
+		player.setSoloKill("gnom");
+		player.setSoloKill("gnom zwiadowca");
+		player.setSoloKill("gnom kawalerzysta");
 
 		// complete quest
 		en.step(player, "hi");
-		assertEquals("Greetings! I am Jenny, the local miller. If you bring me some #grain, I can #mill it into flour for you.", getReply(npc));
-		en.step(player, "done");
-		assertEquals("I see you have killed the gnomes as I asked. I hope they will stay away from the carrots for a while! Please take these potions as a reward.", getReply(npc));
+		assertEquals("Widzę, że ubiłeś gnomy, które okradały farmę. Mam nadzieje, że przez jakiś czas nie będą się zbliżać do marchewek! Proszę weź te mikstury w dowód uznania.", getReply(npc));
 		en.step(player, "bye");
-		assertEquals("Bye.", getReply(npc));
-		assertThat(player.getQuest(questSlot, 0), equalTo("killed"));
+		assertEquals("Do widzenia.", getReply(npc));
+		assertThat(player.getQuest(questSlot, 0), equalTo("done"));
 	}
 
 
@@ -128,18 +138,18 @@ public class KillGnomesTest {
 	 */
 	@Test
 	public void askForQuestAgain() {
-		player.setQuest(questSlot, "killed;" + System.currentTimeMillis());
+		player.setQuest(questSlot, "done;" + System.currentTimeMillis());
 
 		// ask for quest again
 		en.step(player, "hi");
-		assertEquals("Greetings! I am Jenny, the local miller. If you bring me some #grain, I can #mill it into flour for you.", getReply(npc));
+		assertEquals(greetings, getReply(npc));
 		en.step(player, "task");
-		assertEquals("The gnomes haven't made any trouble since you last taught them a lesson.", getReply(npc));
+		assertEquals("Gnomy nie sprawiają problemu od momentu, gdy pokazałeś im czym jest pokora.", getReply(npc));
 
 		// help should still work
 		en.step(player, "help");
-		assertEquals("Do you know the bakery in Semos? I'm proud to say they use my flour. But the wolves ate my delivery boy again recently... they're probably running out.", getReply(npc));
+		assertEquals("Czy znasz piekarnię w Semos? Z dumą mogę powiedzieć, że używają mojej mąki. Ale ostatnio wilki znowu zjadły mojego dostawcę... albo może uciekł... hmm.", getReply(npc));
 		en.step(player, "bye");
-		assertEquals("Bye.", getReply(npc));
+		assertEquals("Do widzenia.", getReply(npc));
 	}
 }

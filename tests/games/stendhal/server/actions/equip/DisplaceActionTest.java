@@ -1,10 +1,16 @@
-// $Id: DisplaceActionTest.java,v 1.13 2012/07/13 06:05:22 nhnb Exp $
+// $Id$
 package games.stendhal.server.actions.equip;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import games.stendhal.common.EquipActionConsts;
 import games.stendhal.common.tiled.LayerDefinition;
 import games.stendhal.server.core.engine.SingletonRepository;
@@ -13,15 +19,8 @@ import games.stendhal.server.entity.Blood;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.item.StackableItem;
 import games.stendhal.server.entity.player.Player;
-
-import java.io.IOException;
-
 import marauroa.common.game.RPAction;
 import marauroa.server.game.db.DatabaseFactory;
-
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import utilities.ZoneAndPlayerTestImpl;
 
 /**
@@ -86,7 +85,7 @@ public class DisplaceActionTest extends ZoneAndPlayerTestImpl {
 		final DisplaceAction action = new DisplaceAction();
 		action.onAction(player, displace);
 		assertEquals(1, player.events().size());
-		assertEquals("You must be next to something you wish to move.", player.events().get(0).get("text"));
+		assertEquals("Musisz stać obok tego jeżeli chcesz to przenieść.", player.events().get(0).get("text"));
 	}
 
 	/**
@@ -98,8 +97,8 @@ public class DisplaceActionTest extends ZoneAndPlayerTestImpl {
 		final Player player = createPlayer("bob");
 		localzone.add(player);
 
-		// first put some seeds on the floor
-		StackableItem item = (StackableItem) SingletonRepository.getEntityManager().getItem("seed");
+		// first put some nasionas on the floor
+		StackableItem item = (StackableItem) SingletonRepository.getEntityManager().getItem("nasionka");
 		item.setQuantity(5);
 		localzone.add(item);
 		StackableItem[] items = localzone.getItemsOnGround().toArray(new StackableItem[0]);
@@ -118,7 +117,7 @@ public class DisplaceActionTest extends ZoneAndPlayerTestImpl {
 
 		final DisplaceAction action = new DisplaceAction();
 		assertTrue(displace.has(EquipActionConsts.BASE_ITEM));
-	
+
 		action.onAction(player, displace);
 		assertEquals(0, player.events().size());
 		items = localzone.getItemsOnGround().toArray(new StackableItem[0]);
@@ -165,8 +164,8 @@ public class DisplaceActionTest extends ZoneAndPlayerTestImpl {
 		final Player player = createPlayer("bob");
 		localzone.add(player);
 
-		// first put some seeds on the floor
-		StackableItem item = (StackableItem) SingletonRepository.getEntityManager().getItem("seed");
+		// first put some nasionas on the floor
+		StackableItem item = (StackableItem) SingletonRepository.getEntityManager().getItem("nasionka");
 		item.setQuantity(5);
 		localzone.add(item);
 		assertEquals(1, localzone.getItemsOnGround().size());
@@ -183,13 +182,13 @@ public class DisplaceActionTest extends ZoneAndPlayerTestImpl {
 
 		new DisplaceAction().onAction(player, displace);
 		assertEquals(1, player.events().size());
-		assertEquals("You cannot throw that far.", player.events().get(0).get("text"));
+		assertEquals("Nie możesz rzucić tak daleko.", player.events().get(0).get("text"));
 		assertEquals(1, localzone.getItemsOnGround().size());
 	}
 
 	/**
 	 * Test for displacing to an occupied place.
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	@Test
 	public void testDisplaceOccupied() throws IOException {
@@ -197,8 +196,8 @@ public class DisplaceActionTest extends ZoneAndPlayerTestImpl {
 		final Player player = createPlayer("bob");
 		localzone.add(player);
 
-		// first put some seeds on the floor
-		StackableItem item = (StackableItem) SingletonRepository.getEntityManager().getItem("seed");
+		// first put some nasionas on the floor
+		StackableItem item = (StackableItem) SingletonRepository.getEntityManager().getItem("nasionka");
 		item.setQuantity(5);
 		localzone.add(item);
 		assertEquals(1, localzone.getItemsOnGround().size());
@@ -221,7 +220,7 @@ public class DisplaceActionTest extends ZoneAndPlayerTestImpl {
 
 		new DisplaceAction().onAction(player, displace);
 		assertEquals(1, player.events().size());
-		assertEquals("There is no space there.", player.events().get(0).get("text"));
+		assertEquals("Nie ma tam miejsca.", player.events().get(0).get("text"));
 		assertEquals(1, localzone.getItemsOnGround().size());
 	}
 
@@ -253,9 +252,9 @@ public class DisplaceActionTest extends ZoneAndPlayerTestImpl {
 		final DisplaceAction action = new DisplaceAction();
 		action.onAction(player, displace);
 		assertEquals(1, player.events().size());
-		assertEquals("You cannot take items which are below other players.", player.events().get(0).get("text"));
+		assertEquals("Nie możesz wziąć przedmiotów, które należą do innych wojowników.", player.events().get(0).get("text"));
 	}
-	
+
 	/**
 	 * Test for displacing bound items below some other player.
 	 */
@@ -287,7 +286,7 @@ public class DisplaceActionTest extends ZoneAndPlayerTestImpl {
 		assertEquals(item.getY(), 0);
 		assertEquals(1, player.events().size());
 		// bound to alice, under alice, bob trying to displace
-		assertEquals("You cannot take items which are below other players.", player.events().get(0).get("text"));
+		assertEquals("Nie możesz wziąć przedmiotów, które należą do innych wojowników.", player.events().get(0).get("text"));
 		player.clearEvents();
 		// bound to bob, under alice, bob trying to displace; should succeed
 		item.setBoundTo("bob");

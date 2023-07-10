@@ -1,4 +1,3 @@
-/* $Id: SwimmerNPC.java,v 1.9 2010/10/31 13:11:11 kymara Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,26 +11,24 @@
  ***************************************************************************/
 package games.stendhal.server.maps.athor.holiday_area;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 public class SwimmerNPC implements ZoneConfigurator  {
-
-	public void configureZone(StendhalRPZone zone,
-			Map<String, String> attributes) {
+	@Override
+	public void configureZone(StendhalRPZone zone, Map<String, String> attributes) {
 		buildNPC(zone);
 	}
 
 	private void buildNPC(StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Enrique") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -39,19 +36,21 @@ public class SwimmerNPC implements ZoneConfigurator  {
 				nodes.add(new Node(67,63));
 				setPath(new FixedPath(nodes, true));
 			}
-			
+
 			@Override
 			public void createDialog() {
 				addGreeting("Nie przeszkadzaj mi. Próbuję pobić rekord!");
 				addQuest("Nie mam zadań dla Ciebie. Jestem zajęty.");
 				addJob("Jestem pływakiem!");
 				addHelp("Spróbuj trampoliny! Zabaw się!");
-				addGoodbye("Dowidzenia!");
+				addGoodbye("Do widzenia!");
 			}
-
 		};
-		npc.setPosition(67, 63);
+
+		npc.setDescription ("Oto Enrique, który pływa dookoła basenu jakby chciał ustanowić rekord.");
 		npc.setEntityClass("swimmer3npc");
-		zone.add(npc);		
+		npc.setGender("M");
+		npc.setPosition(67, 63);
+		zone.add(npc);
 	}
 }

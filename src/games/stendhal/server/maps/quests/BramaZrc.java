@@ -1,6 +1,5 @@
-/* $Id: BramaZrc.java,v 1.50 2011/12/11 01:19:23 Legolas Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -10,15 +9,17 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-// Based on UltimateCollector and HelpMrsYeti.
- 
 package games.stendhal.server.maps.quests;
 
-import games.stendhal.common.MathHelper;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.common.grammar.Grammar;
 import games.stendhal.common.parser.Sentence;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.entity.item.Item;
 import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
@@ -26,71 +27,50 @@ import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.npc.action.DropItemAction;
 import games.stendhal.server.entity.npc.action.EquipItemAction;
-import games.stendhal.server.entity.npc.action.DropRecordedItemAction;
 import games.stendhal.server.entity.npc.action.IncreaseKarmaAction;
 import games.stendhal.server.entity.npc.action.IncreaseXPAction;
 import games.stendhal.server.entity.npc.action.MultipleActions;
 import games.stendhal.server.entity.npc.action.SetQuestAction;
+import games.stendhal.server.entity.npc.action.SetQuestAndModifyKarmaAction;
 import games.stendhal.server.entity.npc.condition.AndCondition;
 import games.stendhal.server.entity.npc.condition.NotCondition;
-import games.stendhal.server.entity.npc.condition.QuestInStateCondition;
-import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
-import games.stendhal.server.entity.npc.action.SetQuestAndModifyKarmaAction;
 import games.stendhal.server.entity.npc.condition.PlayerHasItemWithHimCondition;
-import games.stendhal.server.entity.npc.condition.PlayerHasRecordedItemWithHimCondition;
-import games.stendhal.server.entity.npc.condition.QuestStartedCondition;
-import games.stendhal.server.entity.npc.condition.QuestStateStartsWithCondition;
-import games.stendhal.server.entity.npc.condition.QuestCompletedCondition;
-import games.stendhal.server.entity.npc.condition.QuestNotCompletedCondition;
+import games.stendhal.server.entity.npc.condition.QuestInStateCondition;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.LinkedList;
-
-import org.apache.log4j.Logger;
-
 public class BramaZrc extends AbstractQuest {
-
 	private static final String QUEST_SLOT = "brama_zrc";
+	private final SpeakerNPC npc = npcs.get("Cień");
 
 	private static final String ARMOR_DAGOBERT_QUEST_SLOT = "armor_dagobert";
 
 	private static Logger logger = Logger.getLogger(BramaZrc.class);
 
-
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
-
 	private void step_1() {
-		final SpeakerNPC npc = npcs.get("Cień");
-
 		npc.add(ConversationStates.ATTENDING,
 			ConversationPhrases.QUEST_MESSAGES, null,
 			ConversationStates.QUEST_OFFERED, null,
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 					if (player.isBadBoy()) {
 						raiser.say("Z twej ręki zginął rycerz! Nie masz tu czego szukać, pozbądź się piętna czaszki. A teraz precz mi z oczu!");
 					} else {
 						if (player.isQuestCompleted(ARMOR_DAGOBERT_QUEST_SLOT)) {
-							if (player.getLevel() >= 50) {
-								if (player.hasKilledSolo("czarne smoczysko")) {
+							if (player.getLevel() >= 150) {
+								if (player.hasKilledSolo("zielone smoczysko")) {
 									if (!player.hasQuest(QUEST_SLOT) || "rejected".equals(player.getQuest(QUEST_SLOT))) {
-										raiser.say("Czyżbyś chciał przekroczyć bramy Zakonu Rycerzy Cienia poznać to co nie poznane? Jesteś zainteresowany?");
+										raiser.say("Czyżbyś " + Grammar.genderVerb(player.getGender(), "chciał") + " przekroczyć bramy Zakonu Rycerzy Cienia poznać to co nie poznane? Jesteś zainteresowany?");
 									} else if (player.isQuestCompleted(QUEST_SLOT)) {
 										raiser.say("Och! Ponownie przybyłeś do mnie. Niestety mamy już stałego dostawce żywności i twoja pomoc jest zbędna.");
 										raiser.setCurrentState(ConversationStates.ATTENDING);
 									}
 								} else {
-									npc.say("Rozmawiam tylko z osobami, które wykazały się w walce zabijając samodzielnie czarne smoczysko.");
+									npc.say("Rozmawiam tylko z osobami, które wykazały się w walce zabijając samodzielnie zielone smoczysko.");
 									raiser.setCurrentState(ConversationStates.ATTENDING);
 								}
 							} else {
-								npc.say("Nie jesteś godny aby poznać wiedzę i mądrość Pradawnych. Wróć wtedy gdy twój stan społeczny się zmieni na lepsze. Musisz mieć minimum 50 lvl.");
+								npc.say("Nie jesteś godny aby poznać wiedzę i mądrość Pradawnych. Wróć wtedy gdy twój stan społeczny się zmieni na lepsze. Musisz mieć minimum 150 lvl.");
 								raiser.setCurrentState(ConversationStates.ATTENDING);
 							}
 						} else {
@@ -105,12 +85,11 @@ public class BramaZrc extends AbstractQuest {
 			ConversationPhrases.YES_MESSAGES, null,
 			ConversationStates.ATTENDING, null,
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
-
 					raiser.say("Będę potrzebował kilku #rzeczy do mojego magazynu żywności.");
 					player.setQuest(QUEST_SLOT, "start");
 					player.addKarma(10);
-
 				}
 			});
 
@@ -119,22 +98,16 @@ public class BramaZrc extends AbstractQuest {
 			ConversationStates.IDLE,
 			"Nie to nie.",
 			new SetQuestAndModifyKarmaAction(QUEST_SLOT, "rejected", -10.0));
-
 	}
 
 	private void step_2() {
-		final SpeakerNPC npc = npcs.get("Cień");
-
 		npc.add(ConversationStates.ATTENDING, Arrays.asList("rzeczy", "przedmiotów"),
 				new QuestInStateCondition(QUEST_SLOT, "start"),
 				ConversationStates.ATTENDING, "Mój magazyn jest pusty a rycerze tego zakonu muszą coś jeść. Tu mam #listę potrzebnych artykułów.",
 				new SetQuestAction(QUEST_SLOT, "dostawca"));
-
 	}
 
 	private void step_3() {
-		final SpeakerNPC npc = npcs.get("Cień");
-
 		npc.add(ConversationStates.ATTENDING, Arrays.asList("lista", "listę", "artykuły"),
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT,"dostawca"),
 								 new NotCondition(
@@ -147,16 +120,16 @@ public class BramaZrc extends AbstractQuest {
 												  new PlayerHasItemWithHimCondition("jabłko",25),
 												  new PlayerHasItemWithHimCondition("lody",5),
 												  new PlayerHasItemWithHimCondition("butelka wody",10)))),
-				ConversationStates.ATTENDING, "Potrzebuję:\n" 
-									+ "#'20 steków'\n" 
-									+ "#'30 sera'\n" 
-									+ "#'20 szynki'\n" 
+				ConversationStates.ATTENDING, "Potrzebuję:\n"
+									+ "#'20 steków'\n"
+									+ "#'30 sera'\n"
+									+ "#'20 szynki'\n"
 									+ "#'30 mięsa'\n"
-									+ "#'10 chlebów'\n" 
-									+ "#'7 kanapek'\n" 
-									+ "#'25 jabłek'\n" 
-									+ "#'5 lodów'\n" 
-									+ "#'10 butek wody'\n" 
+									+ "#'10 chlebów'\n"
+									+ "#'7 kanapek'\n"
+									+ "#'25 jabłek'\n"
+									+ "#'5 lodów'\n"
+									+ "#'10 butek wody'\n"
 									+ "Proszę przynieś mi wszystko naraz. Słowo klucz to #'/artykuły/'. Dziękuję!", null);
 
 		final List<ChatAction> cienactions = new LinkedList<ChatAction>();
@@ -170,10 +143,9 @@ public class BramaZrc extends AbstractQuest {
 		cienactions.add(new DropItemAction("lody",5));
 		cienactions.add(new DropItemAction("butelka wody",10));
 		cienactions.add(new EquipItemAction("klucz do bram Zakonu", 1, true));
-		cienactions.add(new IncreaseXPAction(8000));
+		cienactions.add(new IncreaseXPAction(80000));
 		cienactions.add(new IncreaseKarmaAction(100));
 		cienactions.add(new SetQuestAction(QUEST_SLOT, "done"));
-
 
 		npc.add(ConversationStates.ATTENDING, Arrays.asList("lista", "listę", "artykuły"),
 			new AndCondition(new QuestInStateCondition(QUEST_SLOT,"dostawca"),
@@ -187,18 +159,16 @@ public class BramaZrc extends AbstractQuest {
 							 new PlayerHasItemWithHimCondition("lody",5),
 							 new PlayerHasItemWithHimCondition("butelka wody",10)),
 			ConversationStates.ATTENDING, "Wspaniale! Nasza spiżarnia jest teraz pełna. W nagrodę weź ten klucz." +
-										  " Nikt ci nie powiedział, że my musimy jeść aby żyć. Widzę, że nie znasz się jeszcze na duchach i zjawach." +
+										  " Nikt ci nie powiedział, że my musimy jeść, aby żyć. Widzę, że nie znasz się jeszcze na duchach i zjawach." +
 										  " Idź do zamku, aby posiąść wiedzę i mądrość Pradawnych o tym co widzialne i niewidzialne." +
 										  " Bramy do niego od teraz stoją dla ciebie otworem!",
 			new MultipleActions(cienactions));
 	}
 
-
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
-				"Brama ZRC",
+				"Brama Zakonu Rycerzy Cienia",
 				"Cień, strażnik bramy Zakonu Rycerzy Cienia ma dla ciebie zadanie.",
 				true);
 		step_1();
@@ -213,23 +183,23 @@ public class BramaZrc extends AbstractQuest {
 			return res;
 		}
 		final String questState = player.getQuest(QUEST_SLOT);
-		res.add("Spotkałem strażnika bram zakonu ZRC.");
+		res.add(Grammar.genderVerb(player.getGender(), "Spotkałem") + " strażnika bram zakonu ZRC.");
 		res.add("Cień poprosił mnie o uzupełnienie jego magazynów.");
 		if ("rejected".equals(questState)) {
 			res.add("Nie mam ochoty pomagać Cieniowi...");
 			return res;
-		} 
+		}
 		if ("start".equals(questState)) {
 			return res;
-		} 
-		res.add("Cień poprosił abym mu dostarczył: 20 steków, 30 sera, 20 szynki, 30 mięsa, 10 chlebów, 7 kanapek, 25 jabłek, 5 lodów i 10 butelek wody.");
+		}
+		res.add(npc.getName() + " poprosił, abym mu " + Grammar.genderVerb(player.getGender(), "dostarczył") + ": 20 steków, 30 sera, 20 szynki, 30 mięsa, 10 chlebów, 7 kanapek, 25 jabłek, 5 lodów i 10 butelek wody.");
 		if ("dostawca".equals(questState)) {
 			return res;
-		} 
-		res.add("Cień jest szczęśliwy z mojej pomocy. W zamian dostałem klucz do bram zakonu.");
+		}
+		res.add(npc.getName() + " jest szczęśliwy z mojej pomocy. W zamian " + Grammar.genderVerb(player.getGender(), "dostałem") + " klucz do bram zakonu.");
 		if (isCompleted(player)) {
 			return res;
-		} 
+		}
 
 		// if things have gone wrong and the quest state didn't match any of the above, debug a bit:
 		final List<String> debug = new ArrayList<String>();
@@ -239,11 +209,16 @@ public class BramaZrc extends AbstractQuest {
 	}
 
 	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
+	}
+
+	@Override
 	public String getName() {
-		return "BramaZrc";
+		return "Brama Zakonu Rycerzy Cienia";
 	}
 	@Override
 	public String getNPCName() {
-		return "Cień";
+		return npc.getName();
 	}
 }

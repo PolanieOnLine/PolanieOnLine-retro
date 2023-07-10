@@ -1,4 +1,4 @@
-/* $Id: WeddingRing.java,v 1.44 2012/06/11 09:26:03 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -12,8 +12,13 @@
  ***************************************************************************/
 package games.stendhal.server.entity.item;
 
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.common.Direction;
 import games.stendhal.common.NotificationType;
+import games.stendhal.common.grammar.Grammar;
 import games.stendhal.server.core.engine.ItemLogger;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
@@ -22,35 +27,30 @@ import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.RPEntity;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.util.TimeUtil;
-
-import java.util.Map;
-
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPSlot;
 import marauroa.common.game.SlotOwner;
-
-import org.apache.log4j.Logger;
 
 /**
  * A special ring that allows the owner to teleport to his or her spouse. The
  * spouse's name is engraved into the ring. Technically, the name is stored in
  * the item's infostring.
- * 
+ *
  * Wedding rings should always be bound to the owner.
- * 
+ *
  * @author daniel
  */
-public class WeddingRing extends Ring {
-	/** The cooling period of players of same level in seconds */ 
+public class WeddingRing extends Item {
+	/** The cooling period of players of same level in seconds */
 	private static final long MIN_COOLING_PERIOD = 5 * 60;
-	
+
 	private static final String LAST_USE = "amount";
 
 	private static final Logger logger = Logger.getLogger(WeddingRing.class);
 
 	/**
 	 * Creates a new wedding ring.
-	 * 
+	 *
 	 * @param name
 	 * @param clazz
 	 * @param subclass
@@ -64,7 +64,7 @@ public class WeddingRing extends Ring {
 
 	/**
 	 * Copy constructor.
-	 * 
+	 *
 	 * @param item
 	 *            item to copy
 	 */
@@ -74,7 +74,7 @@ public class WeddingRing extends Ring {
 
 	@Override
 	public boolean onUsed(final RPEntity user) {
-		RPObject base = getBaseContainer();
+		final RPObject base = getBaseContainer();
 
 		if ((user instanceof Player) && user.nextTo((Entity) base)) {
 			return teleportToSpouse((Player) user);
@@ -93,17 +93,17 @@ public class WeddingRing extends Ring {
 			return -1;
 		}
 	}
-	
+
 	/**
 	 * Store current system time as the last used
 	 */
 	private void storeLastUsed() {
 		put(LAST_USE, (int) (System.currentTimeMillis() / 1000));
 	}
-	
+
 	/**
 	 * Get the required cooling period for wedding ring use between players
-	 * @param player1 either player using the ring or the spouse 
+	 * @param player1 either player using the ring or the spouse
 	 * @param player2 either player using the ring or the spouse
 	 * @return Required cooling time
 	 */
@@ -111,30 +111,37 @@ public class WeddingRing extends Ring {
 		final int level1 = player1.getLevel();
 		final int level2 = player2.getLevel();
 		final double levelRatio = (Math.max(level1, level2) + 1.0) / (Math.min(level1, level2) + 1.0);
-		
+
 		return (int) (MIN_COOLING_PERIOD * levelRatio * levelRatio);
 	}
 
 	/**
 	 * Teleports the given player to his/her spouse, but only if the spouse is
 	 * also wearing the wedding ring.
-	 * 
+	 *
 	 * @param player
 	 *            The ring's owner.
+	 * @return <code>true</code> if the teleport was successful, otherwise
+	 * 	<code>false</code>
 	 */
 	private boolean teleportToSpouse(final Player player) {
+		// don't allow use if on the ground
+		if (!isContained()) {
+			player.sendPrivateText(Grammar.genderVerb(player.getGender(), "Powinieneś") + " podnieść swoją obrączkę ślubną, by go użyć.");
+			return false;
+		}
+
 		// check if pets and sheep are near
 		if (!player.isZoneChangeAllowed()) {
-			player.sendPrivateText("Powiedziano Tobie, abyś pilnował zwierzątka?");
+			player.sendPrivateText("Powiedziano Tobie, abyś " + Grammar.genderVerb(player.getGender(), "pilnował") + " swoje zwierzątka?");
 			return false;
 		}
 
 		final String spouseName = getInfoString();
 
 		if (spouseName == null) {
-			player.sendPrivateText("Oto obrączka ślubna, która jeszcze nie została wygrawerowana imieniem kochanej osoby.");
-			logger.debug(player.getName()
-					+ "tried to use a wedding ring without a spouse name engraving.");
+			player.sendPrivateText("Oto obrączka ślubna, która jeszcze nie została wygrawerowana imieniem ukochanej osoby.");
+			logger.debug(player.getName() + "tried to use a wedding ring without a spouse name engraving.");
 			return false;
 		}
 
@@ -144,22 +151,23 @@ public class WeddingRing extends Ring {
 			return false;
 		}
 
-		if (spouse.isEquipped("obrączka ślubna")) { 
+		if (spouse.isEquipped("obrączka ślubna")) {
 			// spouse is equipped with ring but could be divorced and
 			// have another
 
 			final Item weddingRing = spouse.getFirstEquipped("obrączka ślubna");
 
-			if (weddingRing.getInfoString() == null) { 
+			if (weddingRing.getInfoString() == null) {
 				// divorced with ring and engaged again
-				player.sendPrivateText("Przepraszam, ale "
-						+ spouseName
-						+ " rozwiódł się z tobą i jest teraz zaręczony z kimś innym.");
+				player.sendPrivateText("Przepraszam, ale " + spouseName + " "
+						+ Grammar.genderVerb(spouse.getGender(), "rozwiódł")
+						+ " się z tobą i jest teraz zaręczony z kimś innym.");
 				return false;
-			} else if (!(weddingRing.getInfoString().equals(player.getName()))) { 
+			} else if (!(weddingRing.getInfoString().equals(player.getName()))) {
 				// divorced and remarried
-				player.sendPrivateText("Przepraszam, ale " + spouseName
-						+ " rozwiódł się z tobą i jest teraz zaręczony z kimś innym.");
+				player.sendPrivateText("Przepraszam, ale " + spouseName + " "
+						+ Grammar.genderVerb(spouse.getGender(), "rozwiódł")
+						+ " się z tobą i jest teraz zaręczony z kimś innym.");
 
 				return false;
 			}
@@ -173,9 +181,11 @@ public class WeddingRing extends Ring {
 
 		final int secondsNeeded = getLastUsed() + getCoolingPeriod(player, spouse) - (int) (System.currentTimeMillis() / 1000);
 		if (secondsNeeded > 0) {
-			player.sendPrivateText("Pierścień jeszcze nie odzyskał w pełni swojej mocy. Myślałeś, że będzie gotowy w ciągu " 
+			player.sendPrivateText("Pierścień jeszcze nie odzyskał w pełni swojej mocy. " 
+					+ Grammar.genderVerb(player.getGender(), "Myślałeś")
+					+ ", że będzie gotowy w ciągu " 
 					+ TimeUtil.approxTimeUntil(secondsNeeded) + ".");
-			
+
 			return false;
 		}
 
@@ -196,8 +206,8 @@ public class WeddingRing extends Ring {
 		final String zoneName = destinationZone.getName();
 		// check if player has visited zone before
 		if (player.getKeyedSlot("!visited", zoneName) == null) {
-			player.sendPrivateText("Domyślam się, że słyszałeś wiele plotek o miejscu docelowym. "
-								+ "Nie możesz dołączyć do " + spouseName + " ponieważ znajduje się w nieznany dla Ciebie miejscu.");
+			player.sendPrivateText(Grammar.genderVerb(player.getGender(), "Słyszałeś") + " wiele plotek o miejscu docelowym. "
+					+ "Nie możesz dołączyć do " + spouseName + " ponieważ znajduje się w nieznany dla Ciebie miejscu.");
 			return false;
 		}
 
@@ -208,7 +218,7 @@ public class WeddingRing extends Ring {
 			storeLastUsed();
 			return true;
 		}
-		
+
 		return false;
 	}
 
@@ -217,13 +227,13 @@ public class WeddingRing extends Ring {
 		final String spouseName = getInfoString();
 
 		if (spouseName != null) {
-			return "Oto obrączka ślubna. Wygrawerowano na nim: \"W imię wiecznej miłości dla "
+			return "Oto §'obrączka ślubna'. Wygrawerowano na nim: \"W imię wiecznej miłości dla "
 					+ spouseName + "\".";
 		} else {
-			return "Oto obrączka ślubna.";
+			return "Oto §'obrączka ślubna'.";
 		}
 	}
-	
+
 	// Check if there are more rings in the slot where this ring was added
 	@Override
 	public void setContainer(final SlotOwner container, final RPSlot slot) {
@@ -231,7 +241,7 @@ public class WeddingRing extends Ring {
 		// only bound rings destroy others
 		if ((slot != null) && (getBoundTo() != null)) {
 			for (final RPObject object : slot) {
-				if ((object instanceof WeddingRing) 
+				if ((object instanceof WeddingRing)
 						&& (!getID().equals(object.getID()))) {
 					final WeddingRing ring = (WeddingRing) object;
 					if (getBoundTo().equals(ring.getBoundTo())) {
@@ -241,23 +251,24 @@ public class WeddingRing extends Ring {
 				}
 			}
 		}
-	
+
 		if (oldRing != null) {
-			// The player is cheating with multiple rings. Explode the 
+			// The player is cheating with multiple rings. Explode the
 			// old ring, and use up the energy of this one
 			destroyRing(container, oldRing, slot);
 			storeLastUsed();
 		}
-		
+
 		super.setContainer(container, slot);
 	}
-	
+
 	/**
 	 * Destroy a wedding ring.
 	 * To be used when a ring is put in a same slot with another.
 	 *
-	 * @param container 
+	 * @param container
 	 * @param ring the ring to be destroyed
+	 * @param slot the slot holding the ring
 	 */
 	private void destroyRing(SlotOwner container, final WeddingRing ring, final RPSlot slot) {
 		// The players need to be told first, while the ring still
@@ -273,20 +284,22 @@ public class WeddingRing extends Ring {
 		ring.removeFromWorld();
 		logger.info("Destroyed a wedding ring: " + ring);
 	}
-	
+
 	/**
 	 * Give a nice message to nearby players when rings get destroyed.
+	 *
+	 * @param ring the ring that got destroyed
 	 */
 	private void informNearbyPlayers(final WeddingRing ring) {
 		try {
 			final Entity container = (Entity) ring.getBaseContainer();
 			final StendhalRPZone zone = getZone();
-			
+
 			if (zone != null) {
 				for (final Player player : zone.getPlayers()) {
 					if (player.nextTo(container)) {
-						player.sendPrivateText(NotificationType.SCENE_SETTING, 
-						"Błyska światło, gdy obrączka ślubna zaczyna się rozpadać w zetknięciu magii.");
+						player.sendPrivateText(NotificationType.SCENE_SETTING,
+						"Błyska światło, gdy obrączka ślubna zaczyna się rozpadać w zetknięciu z magią.");
 					}
 				}
 			}

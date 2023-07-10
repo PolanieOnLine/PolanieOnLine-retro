@@ -1,4 +1,4 @@
-/* $Id: GenerateINI.java,v 1.55.2.1 2012/12/14 23:21:05 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -154,7 +154,7 @@ public class GenerateINI {
 	 * @throws FileNotFoundException in case the file cannot be written
 	 */
 	public static void main(final String[] args) throws FileNotFoundException {
-		gameName = "polskaonline";
+		gameName = "polanieonline";
 
 		/** Write configuration for database */
 		databaseImplementation = getDatabaseImplementation();
@@ -249,8 +249,8 @@ public class GenerateINI {
 		out.println();
 		out.println("# Database information. Edit to match your configuration.");
 		if (databaseSystem.equals("mysql")) {
-			out.println("jdbc_url=jdbc:mysql://" + databaseHost + "/" + databaseName);
-			out.println("jdbc_class=com.mysql.jdbc.Driver");
+			out.println("jdbc_url=jdbc:mysql://" + databaseHost + "/" + databaseName + "?useUnicode=yes&characterEncoding=UTF-8&serverTimezone=Europe/Warsaw");
+			out.println("jdbc_class=com.mysql.cj.jdbc.Driver");
 			out.println("jdbc_user=" + databaseUsername);
 			out.println("jdbc_pwd=" + databasePassword);
 		} else {
@@ -260,7 +260,7 @@ public class GenerateINI {
 			out.println("jdbc_class=org.h2.Driver");
 		}
 		out.println();
-		out.println("# TCP port stendhald will use. ");
+		out.println("# TCP port PolanieOnLine will use. ");
 		out.println("tcp_port=" + tcpPort);
 		out.println();
 		out.println("# World and RP configuration. Don't edit.");
@@ -271,8 +271,8 @@ public class GenerateINI {
 		out.println();
 		out.println("server_typeGame=" + gameName);
 		out.println("server_name=" + gameName + " Marauroa server");
-		out.println("server_version=0.44");
-		out.println("server_contact=https://pol.polskaonline.org/bugzilla/");
+		out.println("server_version=1.38");
+		out.println("server_contact=https://s1.polanieonline.eu/kontakt-gmgags.html");
 		out.println();
 		out.println("# Extensions configured on the server. Enable at will.");
 		out.println("#server_extension=groovy");
@@ -280,10 +280,9 @@ public class GenerateINI {
 		out.println("server_extension=teleportsend");
 		out.println("#groovy=games.stendhal.server.scripting.StendhalGroovyRunner");
 		out.println("#http=games.stendhal.server.extension.StendhalHttpServer");
-		out.println("#magic=games.stendhal.server.extension.MagicExtn");
 		out.println("#stendhal.scripts.namechange.enabled");
 		out.println("teleportsend=games.stendhal.server.extension.TeleportSendExtension");
-		out.println("#http.port=8080");
+		out.println("#http_port=8080");
 		out.println();
 		out.println("statistics_filename=" + statisticsFilename);
 		out.println();

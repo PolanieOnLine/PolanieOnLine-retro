@@ -1,7 +1,7 @@
 /*
  * @(#) src/games/stendhal/server/entity/portal/LevelCheckingPortalFactory.java
  *
- * $Id: LevelCheckingPortalFactory.java,v 1.5 2008/07/12 14:43:59 astridemma Exp $
+ * $Id$
  */
 
 package games.stendhal.server.entity.mapstuff.portal;
@@ -18,7 +18,7 @@ public class LevelCheckingPortalFactory extends AccessCheckingPortalFactory {
 
 	/**
 	 * Extract the maximum player level from a context.
-	 * 
+	 *
 	 * @param ctx
 	 *            The configuration context.
 	 * @return The level.
@@ -31,7 +31,7 @@ public class LevelCheckingPortalFactory extends AccessCheckingPortalFactory {
 
 	/**
 	 * Extract the minimum player level from a context.
-	 * 
+	 *
 	 * @param ctx
 	 *            The configuration context.
 	 * @return The level.
@@ -48,17 +48,17 @@ public class LevelCheckingPortalFactory extends AccessCheckingPortalFactory {
 
 	/**
 	 * Create a level checking portal.
-	 * 
+	 *
 	 * @param ctx
 	 *            Configuration context.
-	 * 
+	 *
 	 * @return A Portal.
-	 * 
+	 *
 	 * @throws IllegalArgumentException
 	 *             If there is a problem with the attributes. The exception
 	 *             message should be a value suitable for meaningful user
 	 *             interpretation.
-	 * 
+	 *
 	 * @see LevelCheckingPortal
 	 */
 	@Override

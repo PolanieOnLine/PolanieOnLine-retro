@@ -1,4 +1,4 @@
-/* $Id: ShowItemListEvent.java,v 1.2 2010/09/19 02:17:47 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -21,8 +21,7 @@ import games.stendhal.client.gui.imageviewer.ItemListImageViewerEvent;
  *
  * @author hendrik
  */
-public class ShowItemListEvent extends Event<Entity> {
-
+class ShowItemListEvent extends Event<Entity> {
 	/**
 	 * executes the event
 	 */
@@ -30,5 +29,4 @@ public class ShowItemListEvent extends Event<Entity> {
 	public void execute() {
 		new ItemListImageViewerEvent(event).view();
 	}
-
 }

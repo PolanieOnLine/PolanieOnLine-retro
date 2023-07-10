@@ -1,4 +1,4 @@
-/* $Id: CreatureTestHelper.java,v 1.2 2010/09/19 01:28:49 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,16 +12,16 @@
  ***************************************************************************/
 package utilities.RPClass;
 
-import utilities.PlayerTestHelper;
-import marauroa.common.game.RPClass;
 import games.stendhal.server.entity.creature.Creature;
+import marauroa.common.game.RPClass;
+import utilities.PlayerTestHelper;
 
 public class CreatureTestHelper {
 
 	public static void generateRPClasses() {
-		
+
 		PlayerTestHelper.generateNPCRPClasses();
-		
+
 		if (!RPClass.hasRPClass("creature")) {
 			Creature.generateRPClass();
 		}

@@ -1,4 +1,4 @@
-/* $Id: DropAction.java,v 1.31 2011/05/15 08:49:43 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -27,14 +27,15 @@ class DropAction implements SlashAction {
 
 	/**
 	 * Execute a chat command.
-	 * 
+	 *
 	 * @param params
 	 *            The formal parameters.
 	 * @param remainder
 	 *            Line content after parameters.
-	 * 
+	 *
 	 * @return <code>true</code> if command was handled.
 	 */
+	@Override
 	public boolean execute(final String[] params, final String remainder) {
 		int quantity;
 		String itemName;
@@ -44,7 +45,7 @@ class DropAction implements SlashAction {
 			try {
 				quantity = Integer.parseInt(params[0]);
 			} catch (final NumberFormatException ex) {
-				ClientSingletonRepository.getUserInterface().addEventLine(new StandardEventLine("Invalid quantity: " + params[0]));
+				ClientSingletonRepository.getUserInterface().addEventLine(new StandardEventLine("Nieprawidłowa ilość: " + params[0]));
 				return true;
 			}
 
@@ -85,18 +86,20 @@ class DropAction implements SlashAction {
 
 	/**
 	 * Get the maximum number of formal parameters.
-	 * 
+	 *
 	 * @return The parameter count.
 	 */
+	@Override
 	public int getMaximumParameters() {
 		return 1;
 	}
 
 	/**
 	 * Get the minimum number of formal parameters.
-	 * 
+	 *
 	 * @return The parameter count.
 	 */
+	@Override
 	public int getMinimumParameters() {
 		return 1;
 	}

@@ -1,6 +1,5 @@
-/* $Id: AttackAction.java,v 1.5 2009/02/25 23:42:54 astridemma Exp $ */
 /***************************************************************************
- *                      (C) Copyright 2003 - Marauroa                      *
+ *                   (C) Copyright 2003-2013 - Marauroa                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -14,18 +13,23 @@ package games.stendhal.server.actions.attack;
 
 import static games.stendhal.common.constants.Actions.ATTACK;
 import static games.stendhal.common.constants.Actions.TARGET;
+
+import games.stendhal.common.NotificationType;
+import games.stendhal.common.grammar.Grammar;
 import games.stendhal.server.actions.ActionListener;
 import games.stendhal.server.actions.CommandCenter;
 import games.stendhal.server.core.rp.StendhalRPAction;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.RPEntity;
+import games.stendhal.server.entity.item.RingOfInvisibility;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.util.EntityHelper;
 import marauroa.common.game.RPAction;
 
+/**
+ * attacks a creature or player
+ */
 public class AttackAction implements ActionListener {
-
-
 
 	/**
 	 * registers the AttackAction with its trigger word "attack".
@@ -36,13 +40,14 @@ public class AttackAction implements ActionListener {
 
 	/**
 	 * performs an attack action, if the TARGET is an RPEntity.
-	 * 
-	 * 
+	 *
+	 *
 	 * @param player
 	 *            the attacker
 	 * @param action
 	 *            the attack Action containing the TARGET's name
 	 */
+	@Override
 	public void onAction(final Player player, final RPAction action) {
 		if (action.has(TARGET)) {
 			// evaluate the target parameter
@@ -50,6 +55,15 @@ public class AttackAction implements ActionListener {
 					action.get(TARGET), player);
 
 			if (entity instanceof RPEntity) {
+				if (RingOfInvisibility.isInvisible(player)) {
+					if (player.getAdminLevel() > 0) {
+						StendhalRPAction.startAttack(player, (RPEntity) entity);
+						return;
+					}
+					RingOfInvisibility.setVisible(player, false);
+					player.sendPrivateText(NotificationType.ERROR, Grammar.genderVerb(player.getGender(), "Rozpocząłeś") + " atak także inne potwory odnalazły ciebie.");
+				}
+
 				StendhalRPAction.startAttack(player, (RPEntity) entity);
 			}
 		}

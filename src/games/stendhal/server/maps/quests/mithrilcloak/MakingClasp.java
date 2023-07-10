@@ -1,4 +1,4 @@
-/* $Id: MakingClasp.java,v 1.8 2011/05/01 19:50:07 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -78,6 +78,7 @@ class MakingClasp {
 			ConversationStates.ATTENDING,
 			null,
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					if (player.isEquipped("sztabka mithrilu")) {
 						player.drop("sztabka mithrilu");
@@ -104,18 +105,19 @@ class MakingClasp {
 			Arrays.asList("clasp", "mithril clasp", "ida", "cloak","brosza", "mithril cloak"),
 			new QuestStateStartsWithCondition(mithrilcloak.getQuestSlot(), "forgingclasp;"),
 			ConversationStates.ATTENDING, null, new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					final String[] tokens = player.getQuest(mithrilcloak.getQuestSlot()).split(";");
 					// minutes -> milliseconds
 					final long delay = REQUIRED_MINUTES_CLASP * MathHelper.MILLISECONDS_IN_ONE_MINUTE;
-					final long timeRemaining = (Long.parseLong(tokens[1]) + delay)
+					final long timeRemaining = Long.parseLong(tokens[1]) + delay
 							- System.currentTimeMillis();
 					if (timeRemaining > 0L) {
 						npc.say("Nie skończyłem jeszcze. Wróć za "
 							+ TimeUtil.approxTimeUntil((int) (timeRemaining / 1000L)) + ".");
 						return;
 					}
-					npc.say("Oto Twója brosza!");
+					npc.say("Oto Twoja brosza!");
 					player.addXP(100);
 					player.addKarma(15);
 					final Item clasp = SingletonRepository.getEntityManager().getItem(

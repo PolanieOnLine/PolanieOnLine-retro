@@ -1,4 +1,4 @@
-/* $Id: MinLengthValidator.java,v 1.3 2010/09/19 02:22:40 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -16,7 +16,7 @@ import marauroa.common.game.Result;
 
 /**
  * validates that the given parameter is provided has a minimum length.
- * 
+ *
  * @author hendrik
  */
 public class MinLengthValidator implements AccountParameterValidator {
@@ -25,7 +25,7 @@ public class MinLengthValidator implements AccountParameterValidator {
 
 	/**
 	 * create a new MinLengthValidator.
-	 * 
+	 *
 	 * @param parameterValue
 	 *            value to validate
 	 * @param minLength
@@ -36,6 +36,7 @@ public class MinLengthValidator implements AccountParameterValidator {
 		this.minLength = minLength;
 	}
 
+	@Override
 	public Result validate() {
 		if (parameterValue.length() < minLength) {
 			return Result.FAILED_STRING_TOO_SHORT;

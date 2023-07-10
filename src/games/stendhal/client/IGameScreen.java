@@ -1,4 +1,4 @@
-/* $Id: IGameScreen.java,v 1.30 2012/04/07 06:58:27 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,12 +12,11 @@
  ***************************************************************************/
 package games.stendhal.client;
 
-import games.stendhal.client.gui.j2d.RemovableSprite;
-import games.stendhal.client.gui.j2d.entity.EntityView;
-
-import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.geom.Point2D;
+
+import games.stendhal.client.gui.j2d.RemovableSprite;
+import games.stendhal.client.gui.j2d.entity.EntityView;
 
 public interface IGameScreen {
 
@@ -31,16 +30,6 @@ public interface IGameScreen {
 	 * Center the view.
 	 */
 	 void center();
-
-	/**
-	 * Sets the world size.
-	 *
-	 * @param width
-	 *            The world width.
-	 * @param height
-	 *            The height width.
-	 */
-	void setMaxWorldSize(double width, double height);
 
 	/**
 	 * Set the offline indication state.
@@ -60,12 +49,6 @@ public interface IGameScreen {
 	 * Removes all the text entities.
 	 */
 	void clearTexts();
-	
-	/**
-	 * Get the graphics buffer context for the sreen
-	 * @return The graphics context
-	 */
-	Graphics getGraphics();
 
 	/**
 	 * Gets an entity view at given coordinates.
@@ -103,23 +86,6 @@ public interface IGameScreen {
 	 * 	not found.
 	 */
 	RemovableSprite getTextAt(int x, int y);
-
-	/**
-	 * Convert world coordinates to screen view coordinates.
-	 *
-	 * This does have some theorical range limits. Assuming a tile size of
-	 * 256x256 pixels (very high def), world coordinates are limited to a little
-	 * over +/-8 million, before the int (31-bit) values returned from this are
-	 * wrapped. So I see no issues, even if absolute world coordinates are used.
-	 *
-	 * @param wx
-	 *            World X coordinate.
-	 * @param wy
-	 *            World Y coordinate.
-	 *
-	 * @return Screen view coordinates (in integer values).
-	 */
-	Point convertWorldToScreenView(double wx, double wy);
 
 	/**
 	 * Convert screen view coordinates to world coordinates.

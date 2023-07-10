@@ -1,4 +1,4 @@
-/* $Id: Market.java,v 1.57 2011/06/09 12:52:07 madmetzger Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +12,13 @@
  ***************************************************************************/
 package games.stendhal.server.entity.trade;
 
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.server.core.engine.GameEvent;
 import games.stendhal.server.core.engine.ItemLogger;
 import games.stendhal.server.core.engine.SingletonRepository;
@@ -20,18 +27,10 @@ import games.stendhal.server.entity.PassiveEntity;
 import games.stendhal.server.entity.item.Item;
 import games.stendhal.server.entity.item.StackableItem;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
 import marauroa.common.game.Definition;
 import marauroa.common.game.RPClass;
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPSlot;
-
-import org.apache.log4j.Logger;
 
 /**
  * A Market handles sales offers of players. Players can place offers or accept
@@ -40,14 +39,14 @@ import org.apache.log4j.Logger;
  * permanently from the market after another period of time. When an offer has
  * been accepted, the offering Player can come and fetch his earnings for that
  * sale.
- * 
+ *
  * @author madmetzger, kiheru
  */
 public class Market extends PassiveEntity {
 	private static Logger logger = Logger.getLogger(Market.class);
-	
+
 	/**
-	 * the RPClass name for the market 
+	 * the RPClass name for the market
 	 */
 	public static final String MARKET_RPCLASS_NAME = "market";
 	/**
@@ -62,7 +61,7 @@ public class Market extends PassiveEntity {
 	 * the name of the slot where the expired offers are stored
 	 */
 	public static final String EXPIRED_OFFERS_SLOT_NAME = "expired_offers";
-	
+
 	/**
 	 * Generate the RPClass for the Market
 	 */
@@ -76,7 +75,7 @@ public class Market extends PassiveEntity {
 
 	/**
 	 * Creates a new Market from an RPObject
-	 * 
+	 *
 	 * @param object
 	 */
 	public Market(final RPObject object) {
@@ -88,24 +87,24 @@ public class Market extends PassiveEntity {
 		// when loaded from the db
 		if (hasSlot(OFFERS_SLOT_NAME)) {
 			removeSlot(OFFERS_SLOT_NAME);
-		} 
+		}
 		addSlot(OFFERS_SLOT_NAME);
-		
+
 		if (hasSlot(EARNINGS_SLOT_NAME)) {
 			removeSlot(EARNINGS_SLOT_NAME);
 		}
 		addSlot(EARNINGS_SLOT_NAME);
-		
+
 		if (hasSlot(EXPIRED_OFFERS_SLOT_NAME)) {
 			removeSlot(EXPIRED_OFFERS_SLOT_NAME);
 		}
 		addSlot(EXPIRED_OFFERS_SLOT_NAME);
-		
+
 		// copy the contents from the old slots
 		if (object.hasSlot(OFFERS_SLOT_NAME)) {
 			for (final RPObject rpo : object.getSlot(OFFERS_SLOT_NAME)) {
 				Offer offer = new Offer(rpo);
-				
+
 				// an offer might have become obsolete, when items are removed
 				if (offer.getItem() == null) {
 					logger.warn("Cannot restore an offer by "
@@ -113,7 +112,7 @@ public class Market extends PassiveEntity {
 							+ " was removed from items.xml");
 					continue;
 				}
-				
+
 				this.getSlot(OFFERS_SLOT_NAME).add(offer);
 			}
 		}
@@ -125,16 +124,16 @@ public class Market extends PassiveEntity {
 		}
 		if (object.hasSlot(EXPIRED_OFFERS_SLOT_NAME)) {
 			for (final RPObject rpo : object.getSlot(EXPIRED_OFFERS_SLOT_NAME)) {
-			 	Offer offer = new Offer(rpo);
-			 	
-			 	// an offer might have become obsolete, when items are removed
+				Offer offer = new Offer(rpo);
+
+				// an offer might have become obsolete, when items are removed
 				if (offer.getItem() == null) {
 					logger.warn("Cannot restore an offer by "
 							+ offer.getOfferer() + " because this item"
 							+ " was removed from items.xml");
 					continue;
 				}
-				
+
 				this.getSlot(EXPIRED_OFFERS_SLOT_NAME).add(offer);
 			}
 		}
@@ -143,7 +142,7 @@ public class Market extends PassiveEntity {
 
 	/**
 	 * Factory method for the market
-	 * 
+	 *
 	 * @return a new Market
 	 */
 	public static Market createShop() {
@@ -169,7 +168,7 @@ public class Market extends PassiveEntity {
 
 	/**
 	 * creates a new offer at the market
-	 * 
+	 *
 	 * @param offerer
 	 *            offering player
 	 * @param item
@@ -185,7 +184,7 @@ public class Market extends PassiveEntity {
 		if (item == null || item.isBound()) {
 			return null;
 		}
-	
+
 		if (item instanceof StackableItem) {
 			if (!offerer.equals(item.getBaseContainer())) {
 				return null;
@@ -197,7 +196,7 @@ public class Market extends PassiveEntity {
 		} else if (!offerer.drop(item)) {
 			return null;
 		}
-		
+
 		Offer offer = new Offer(item, money, offerer);
 		RPSlot slot = this.getSlot(OFFERS_SLOT_NAME);
 		slot.add(offer);
@@ -214,9 +213,11 @@ public class Market extends PassiveEntity {
 	/**
 	 * Completes a trade of an offer by transferring item to accepting player
 	 * and taking the money from him
-	 * 
+	 *
 	 * @param offer
 	 * @param acceptingPlayer
+	 * @return <code>true</code> if the trade was done, <code>false</code> on
+	 * 	failure
 	 */
 	public boolean acceptOffer(final Offer offer, final Player acceptingPlayer) {
 		if (getSlot(OFFERS_SLOT_NAME).has(offer.getID()) && offer.hasItem()) {
@@ -236,32 +237,32 @@ public class Market extends PassiveEntity {
 				if (reward) {
 					applyTradingBonus(acceptingPlayer);
 				}
-				
+
 				// log the item movement
 				String slotName = null;
 				String target = "ground";
 				if (item.getContainerSlot() != null) {
 					slotName = item.getContainerSlot().getName();
 					target = "slot";
-				}			
+				}
 				new ItemLogger()
 						.addLogItemEventCommand(new LogSimpleItemEventCommand(
 								item, acceptingPlayer, "market-to-" + target,
 								item.get("name"), Integer
 										.toString(getQuantity(item)),
 								"accept offer", slotName));
-				
+
 				this.getZone().storeToDatabase();
 				return true;
 			}
 		}
-		
+
 		return false;
 	}
 
 	/**
 	 * rewards player for a successfull trade
-	 * 
+	 *
 	 * @param player
 	 *            the player to reward
 	 */
@@ -271,7 +272,7 @@ public class Market extends PassiveEntity {
 
 	/**
 	 * The earnings for complete trades are paid to the player.
-	 * 
+	 *
 	 * @param earner
 	 *            the player fetching his earnings
 	 * @return the fetched earnings
@@ -284,7 +285,7 @@ public class Market extends PassiveEntity {
 				earningsToRemove.add(earning);
 			}
 		}
-		
+
 		if(!earningsToRemove.isEmpty()) {
 			int summedUpEarnings = 0;
 			//sum up
@@ -300,20 +301,20 @@ public class Market extends PassiveEntity {
 						applyTradingBonus(earner);
 					}
 				}
-		removeEarnings(earningsToRemove);
+				removeEarnings(earningsToRemove);
 			} else {
 				//signal that no earnings were collected at all
 				//a caller can only distinguish if anything was collected
 				earningsToRemove.clear();
 			}
 		}
-		
+
 		return earningsToRemove;
 	}
-	
+
 	/**
 	 * Remove a set of earnings.
-	 * 
+	 *
 	 * @param earningsToRemove
 	 *            The earnings to be removed
 	 */
@@ -323,10 +324,10 @@ public class Market extends PassiveEntity {
 		}
 		this.getZone().storeToDatabase();
 	}
-	
+
 	/**
 	 * counts the number of offers, a player has placed
-	 * 
+	 *
 	 * @param offerer
 	 * @return the number of offers
 	 */
@@ -343,7 +344,7 @@ public class Market extends PassiveEntity {
 
 	/**
 	 * removes an offer from the market and returns the item to the user
-	 * 
+	 *
 	 * @param o
 	 *            the offer to remove
 	 * @param p
@@ -352,33 +353,33 @@ public class Market extends PassiveEntity {
 	public void removeOffer(Offer o, Player p) {
 		Item item = o.getItem();
 		String itemName = item.getName();
-		
+
 		o.getSlot(Offer.OFFER_ITEM_SLOT_NAME).remove(item.getID());
 		p.equipOrPutOnGround(item);
-		
+
 		getSlot(OFFERS_SLOT_NAME).remove(o.getID());
-		
+
 		getExpiredOffers().remove(o);
 		getSlot(EXPIRED_OFFERS_SLOT_NAME).remove(o.getID());
-		
+
 		getZone().storeToDatabase();
-		
+
 		// log the item movement
 		String slotName = null;
 		String target = "ground";
 		if (item.getContainerSlot() != null) {
 			slotName = item.getContainerSlot().getName();
 			target = "slot";
-		}			
+		}
 		new ItemLogger().addLogItemEventCommand(new LogSimpleItemEventCommand(item, p,
 						"market-to-" + target, itemName, Integer
 								.toString(getQuantity(item)), "remove offer",
 						slotName));
 	}
-	
+
 	/**
 	 * expires an offer and removes it from the available offers
-	 * 
+	 *
 	 * @param o
 	 *            the offer to expire
 	 */
@@ -389,10 +390,10 @@ public class Market extends PassiveEntity {
 		String itemname = "null";
 		if (o.hasItem()) {
 			itemname = o.getItem().getName();
-	}
+		}
 		new GameEvent("market", "expire-offer", o.getOfferer(), itemname, o.getPrice().toString()).raise();
 	}
-	
+
 	/**
 	 * @return all currently expired offers in the market
 	 */
@@ -406,12 +407,12 @@ public class Market extends PassiveEntity {
 
 	/**
 	 * removes an expired offer permanently from the market
-	 * 
+	 *
 	 * @param offerToRemove
 	 */
 	public void removeExpiredOffer(Offer offerToRemove) {
 		this.getSlot(EXPIRED_OFFERS_SLOT_NAME).remove(offerToRemove.getID());
-		
+
 		Item item = offerToRemove.getItem();
 		if (item != null) {
 			new ItemLogger().destroy(null, this.getSlot(EXPIRED_OFFERS_SLOT_NAME),
@@ -423,7 +424,7 @@ public class Market extends PassiveEntity {
 
 	/**
 	 * prolongs an offer in the market to make it available again
-	 * 
+	 *
 	 * @param offer
 	 *            the offer to prolong
 	 * @return the prolonged offer
@@ -431,7 +432,7 @@ public class Market extends PassiveEntity {
 	public Offer prolongOffer(Offer offer) {
 		offer.updateTimestamp();
 		if (getSlot(EXPIRED_OFFERS_SLOT_NAME).has(offer.getID())) {
-			// It had expired. Move to active offers slot.  
+			// It had expired. Move to active offers slot.
 			this.getSlot(EXPIRED_OFFERS_SLOT_NAME).remove(offer.getID());
 			RPSlot slot = this.getSlot(OFFERS_SLOT_NAME);
 			slot.add(offer);
@@ -446,7 +447,7 @@ public class Market extends PassiveEntity {
 
 	/**
 	 * Get a list of offers whose timestamp is older than specified.
-	 * 
+	 *
 	 * @param seconds
 	 *            age of offers in seconds
 	 * @return list of offers that are older than the specified time
@@ -458,10 +459,10 @@ public class Market extends PassiveEntity {
 		}
 		return getOlderThan(offers, seconds);
 	}
-	
+
 	/**
 	 * Get a list of expired offers whose timestamp is older than specified.
-	 * 
+	 *
 	 * @param seconds
 	 *            age of offers in seconds
 	 * @return list of expired offers that are older than the specified time
@@ -469,10 +470,10 @@ public class Market extends PassiveEntity {
 	public List<Offer> getExpiredOffersOlderThan(int seconds) {
 		return getOlderThan(getExpiredOffers(), seconds);
 	}
-	
+
 	/**
 	 * Get a list of earnings whose timestamp is older than specified.
-	 * 
+	 *
 	 * @param seconds
 	 *            age of offers in seconds
 	 * @return list of earnings that are older than the specified time
@@ -485,10 +486,10 @@ public class Market extends PassiveEntity {
 		}
 		return getOlderThan(earnings, seconds);
 	}
-	
+
 	/**
 	 * retrieves Dateable objects older than seconds from a given Iterable
-	 * 
+	 *
 	 * @param <T>
 	 * @param set
 	 *            the set to search in
@@ -505,13 +506,13 @@ public class Market extends PassiveEntity {
 				old.add(obj);
 			}
 		}
-		
+
 		return old;
 	}
-	
+
 	/**
 	 * gets the quantity of an item
-	 * 
+	 *
 	 * @param item
 	 * @return the quantity
 	 */
@@ -520,7 +521,7 @@ public class Market extends PassiveEntity {
 		if (item instanceof StackableItem) {
 			quantity = ((StackableItem) item).getQuantity();
 		}
-		
+
 		return quantity;
 	}
 

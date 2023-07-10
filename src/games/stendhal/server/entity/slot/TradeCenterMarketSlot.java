@@ -1,4 +1,4 @@
-/* $Id: TradeCenterMarketSlot.java,v 1.4 2011/01/12 21:58:24 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -17,14 +17,14 @@ import games.stendhal.server.entity.npc.SpeakerNPC;
 
 /**
  * the slot of the trade center in which all the offered items are stored
- * 
+ *
  * @author hendrik
  */
 public class TradeCenterMarketSlot extends EntitySlot {
 
 	/**
 	 * Creates a new TradeCenterMarketSlot.
-	 * 
+	 *
 	 */
 	public TradeCenterMarketSlot() {
 		super();
@@ -32,7 +32,7 @@ public class TradeCenterMarketSlot extends EntitySlot {
 
 	/**
 	 * Creates a new TradeCenterMarketSlot.
-	 * 
+	 *
 	 * @param name
 	 *            name of slot
 	 */

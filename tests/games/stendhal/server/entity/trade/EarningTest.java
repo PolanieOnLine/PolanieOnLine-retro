@@ -1,4 +1,4 @@
-/* $Id: EarningTest.java,v 1.5 2010/09/19 02:39:56 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,14 +12,14 @@
  ***************************************************************************/
 package games.stendhal.server.entity.trade;
 
-import org.junit.Test;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
+import org.junit.Test;
+
 /**
  * test class for earnings entity
- *  
+ *
  * @author madmetzger
  */
 public class EarningTest {
@@ -33,7 +33,7 @@ public class EarningTest {
 		assertThat(e1,is(e2));
 		assertThat(e1.hashCode(), is(e2.hashCode()));
 	}
-	
+
 	@Test
 	public void testSellername() {
 		Earning e1 = new Earning(Integer.valueOf(1),"bob", true);

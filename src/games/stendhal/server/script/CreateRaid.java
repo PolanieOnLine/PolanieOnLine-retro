@@ -1,6 +1,5 @@
-/* $Id: CreateRaid.java,v 1.15 2011/05/03 18:38:22 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,6 +11,11 @@
  ***************************************************************************/
 package games.stendhal.server.script;
 
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.common.Rand;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.scripting.ScriptImpl;
@@ -19,12 +23,7 @@ import games.stendhal.server.entity.creature.Creature;
 import games.stendhal.server.entity.creature.RaidCreature;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.List;
-import java.util.Map;
-
-import org.apache.log4j.Logger;
-
-/** 
+/**
  * Base class for creating small raids of creatures from other lists
  * Picks randomly from the list and summons raid creatures within a radius of the admin.
  */
@@ -32,7 +31,7 @@ public abstract class CreateRaid extends ScriptImpl {
 	private static Logger logger = Logger.getLogger(CreateRaid.class);
 
 	private final int RADIUS = 5;
-	
+
 	protected abstract Map<String, Integer> createArmy();
 
 	@Override
@@ -56,7 +55,7 @@ public abstract class CreateRaid extends ScriptImpl {
 
 				for (int i = 0; i < entry.getValue(); i++) {
 					if(Rand.roll1D6()==1) {
-						sandbox.add(creature, x + games.stendhal.common.Rand.randUniform(-RADIUS, RADIUS), 
+						sandbox.add(creature, x + games.stendhal.common.Rand.randUniform(-RADIUS, RADIUS),
 								              y + games.stendhal.common.Rand.randUniform(-RADIUS, RADIUS));
 					}
 				}

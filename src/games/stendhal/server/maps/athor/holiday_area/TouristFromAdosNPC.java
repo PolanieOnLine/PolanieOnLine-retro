@@ -1,6 +1,5 @@
-/* $Id: TouristFromAdosNPC.java,v 1.9 2010/10/31 11:08:05 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,17 +11,16 @@
  ***************************************************************************/
 package games.stendhal.server.maps.athor.holiday_area;
 
+import java.util.Map;
+
 import games.stendhal.common.Direction;
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 
-import java.util.Map;
-
 public class TouristFromAdosNPC implements ZoneConfigurator  {
-
-	public void configureZone(StendhalRPZone zone,
-			Map<String, String> attributes) {
+	@Override
+	public void configureZone(StendhalRPZone zone, Map<String, String> attributes) {
 		buildNPC(zone);
 	}
 
@@ -35,12 +33,6 @@ public class TouristFromAdosNPC implements ZoneConfigurator  {
 			}
 
 			@Override
-			protected void createPath() {
-				// doesn't move
-				setPath(null);
-			}
-	
-			@Override
 			public void createDialog() {
 				addGreeting("Miło Cię poznać!");
 				addJob("Jestem na wakacjach! Porozmawiajmy o czymś innym!");
@@ -48,12 +40,14 @@ public class TouristFromAdosNPC implements ZoneConfigurator  {
 				addGoodbye("Mam nadzieję, że zobaczymy się później!");
 				// more dialog is defined in the SuntanCreamForZara quest.
 			}
-
 		};
-		npc.setPosition(60, 33);
-		npc.setEntityClass("swimmer8npc");
-		npc.setDirection(Direction.DOWN);
+
 		npc.setDescription("Oto Zara opalająca się na plaży i sądząca, że za bardzo się spiekła.");
-		zone.add(npc);		
+		npc.setEntityClass("swimmer8npc");
+		npc.setGender("F");
+		npc.setPosition(60, 33);
+		npc.setDirection(Direction.DOWN);
+		npc.put("no_shadow", ""); // sunbather laying down
+		zone.add(npc);
 	}
 }

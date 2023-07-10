@@ -1,4 +1,4 @@
-/* $Id: EntityMapTest.java,v 1.8 2010/09/19 02:37:48 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -13,12 +13,13 @@
 package games.stendhal.client.entity.factory;
 
 import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
+
 import games.stendhal.client.entity.Gate;
 import games.stendhal.client.entity.IEntity;
 import games.stendhal.client.entity.Player;
-import games.stendhal.client.entity.UseableEntity;
-
-import org.junit.Test;
+import games.stendhal.client.entity.StatefulEntity;
 
 public class EntityMapTest {
 
@@ -41,7 +42,7 @@ public class EntityMapTest {
 	public final void testGetClassGoldsource() {
 		Class< ? extends IEntity> entClass = EntityMap.getClass("gold_source",
 				null, null);
-		assertEquals(UseableEntity.class, entClass);
+		assertEquals(StatefulEntity.class, entClass);
 		entClass = EntityMap.getClass(null, null, null);
 		assertEquals(null, entClass);
 	}
@@ -53,7 +54,7 @@ public class EntityMapTest {
 	public final void testGetSeed() {
 		Class< ? extends IEntity> entClass = EntityMap.getClass("gold_source",
 				null, null);
-		assertEquals(UseableEntity.class, entClass);
+		assertEquals(StatefulEntity.class, entClass);
 		entClass = EntityMap.getClass(null, null, null);
 		assertEquals(null, entClass);
 	}

@@ -1,4 +1,4 @@
-/* $Id: Patroller.java,v 1.2 2012/04/11 15:09:55 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2012 - Stendhal                    *
  ***************************************************************************
@@ -20,10 +20,10 @@ class Patroller extends StandOnIdle {
 	private int maxX;
 	private int minY;
 	private int maxY;
-	
+
 	/**
 	 * Recalculate limits of the patrolling area.
-	 * 
+	 *
 	 * @param creature
 	 */
 	private void initArea(final Creature creature) {
@@ -47,7 +47,7 @@ class Patroller extends StandOnIdle {
 					creature.setSpeed(creature.getBaseSpeed());
 				}
 				creature.applyMovement();
-				
+
 				/*
 				 * Check if the creature is outside the patrolling area (ie.
 				 * followed or escaped a player).
@@ -80,7 +80,7 @@ class Patroller extends StandOnIdle {
 
 	/**
 	 * Check if next step would move the creature outside the patrolling area.
-	 * 
+	 *
 	 * @param creature
 	 * @param d
 	 * @return <code>true</code> if the creature would leave the area,

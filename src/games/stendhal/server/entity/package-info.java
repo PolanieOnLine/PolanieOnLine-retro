@@ -1,12 +1,12 @@
 /**
- * Entities are all the interactive objects of the gaming world 
+ * Entities are all the interactive objects of the gaming world
  * (including players, NPCs, creatures, items, signs, chests, portals, ...)
  */
 package games.stendhal.server.entity;
 
 
 
-/* $Id: package-info.java,v 1.3 2010/11/29 19:38:37 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************

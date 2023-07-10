@@ -1,12 +1,23 @@
+/***************************************************************************
+ *                   Copyright (C) 2003-2022 - Arianne                     *
+ ***************************************************************************
+ ***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
 package games.stendhal.server.entity.npc.interaction;
+
+import java.util.LinkedList;
 
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-
-import java.util.LinkedList;
-import java.util.Observable;
-import java.util.Observer;
+import games.stendhal.server.util.Observable;
+import games.stendhal.server.util.Observer;
 
 /**
  * class for make one npc follower of other.
@@ -16,7 +27,7 @@ public final class NPCFollowing implements Observer {
 	final private SpeakerNPC follower;
 	final private SpeakerNPC leader;
 	final private Observer finish;
-	
+
 	/**
 	 * constructor
 	 * @param leader - NPC for follow him.
@@ -28,13 +39,14 @@ public final class NPCFollowing implements Observer {
 		this.follower=follower;
 		this.finish=finish;
 	}
-	
+
+	@Override
 	public void update(Observable o, Object arg) {
 		follower.clearPath();
 		follower.pathnotifier.deleteObservers();
 		moveToProperDistance();
 	}
-	
+
 	/**
 	 * return 1/3 of follower's path
 	 * @param path
@@ -63,5 +75,5 @@ public final class NPCFollowing implements Observer {
 			follower.pathnotifier.deleteObservers();
 			finish.update(null, null);
 		}
-	}		
+	}
 }

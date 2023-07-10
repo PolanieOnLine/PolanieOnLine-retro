@@ -1,4 +1,4 @@
-/* $Id: EMailCharacterValidator.java,v 1.1 2011/04/14 20:00:50 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -16,7 +16,7 @@ import marauroa.common.game.Result;
 
 /**
  * validates the character used in the email address.
- * 
+ *
  * @author hendrik
  */
 public class EMailCharacterValidator implements AccountParameterValidator {
@@ -25,7 +25,7 @@ public class EMailCharacterValidator implements AccountParameterValidator {
 
 	/**
 	 * creates a EMailValidator.
-	 * 
+	 *
 	 * @param parameterValue
 	 *            value to validate
 	 */
@@ -33,6 +33,7 @@ public class EMailCharacterValidator implements AccountParameterValidator {
 		this.parameterValue = parameterValue;
 	}
 
+	@Override
 	public Result validate() {
 		// only letters are allowed
 		for (int i = parameterValue.length() - 1; i >= 0; i--) {

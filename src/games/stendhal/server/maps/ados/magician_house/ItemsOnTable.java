@@ -1,4 +1,4 @@
-/* $Id: ItemsOnTable.java,v 1.22 2010/11/27 13:59:23 nylon0700 Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -26,6 +26,7 @@ import java.util.Map;
  * @author hendrik
  */
 public class ItemsOnTable implements ZoneConfigurator {
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildMagicianHouseArea(zone);
 	}
@@ -45,7 +46,7 @@ public class ItemsOnTable implements ZoneConfigurator {
 		// grower for an empty slim bottle (see Koboldish Torcibud quest, respawning time 1h)
 		final PassiveEntityRespawnPoint bottleGrower1 = new PassiveEntityRespawnPoint("wąska butelka", 12000);
 		bottleGrower1.setPosition(10, 5);
-		bottleGrower1.setDescription("Wygląda na miejsce, gdzie można znaleść wąską butelkę.");
+		bottleGrower1.setDescription("Wygląda na miejsce, gdzie można znaleźć wąską butelkę.");
 		zone.add(bottleGrower1);
 
 		bottleGrower1.setToFullGrowth();

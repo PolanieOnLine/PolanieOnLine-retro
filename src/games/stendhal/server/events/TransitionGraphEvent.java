@@ -1,4 +1,4 @@
-/* $Id: TransitionGraphEvent.java,v 1.2 2010/09/19 02:26:08 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,9 +12,9 @@
  ***************************************************************************/
 package games.stendhal.server.events;
 
+import marauroa.common.game.Definition.Type;
 import marauroa.common.game.RPClass;
 import marauroa.common.game.RPEvent;
-import marauroa.common.game.Definition.Type;
 
 /**
  * A graphvis diagram showing the FSM of an NPC
@@ -22,7 +22,7 @@ import marauroa.common.game.Definition.Type;
  * @author hendrik
  */
 public class TransitionGraphEvent extends RPEvent {
-	
+
 	private static final String TRANSITION_GRAPH = "transition_graph";
 	private static final String DATA = "data";
 
@@ -40,7 +40,7 @@ public class TransitionGraphEvent extends RPEvent {
 	 * @param data data to display
 	 */
 	public TransitionGraphEvent(String data) {
-		super(TRANSITION_GRAPH);		
+		super(TRANSITION_GRAPH);
 		put(DATA, data);
 	}
 }

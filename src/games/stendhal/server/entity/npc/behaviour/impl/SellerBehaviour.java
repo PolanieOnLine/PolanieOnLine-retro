@@ -12,18 +12,17 @@
 
 package games.stendhal.server.entity.npc.behaviour.impl;
 
-import games.stendhal.common.grammar.Grammar;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.common.grammar.ItemParserResult;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.item.Item;
 import games.stendhal.server.entity.item.StackableItem;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.log4j.Logger;
 
 /**
  * Represents the behaviour of a NPC who is able to sell items to a player.
@@ -35,7 +34,7 @@ public class SellerBehaviour extends MerchantBehaviour {
 
 	/** the factor extra that player killers pay for items. should be > 1 always */
 	public static final double BAD_BOY_BUYING_PENALTY = 1.5;
-	
+
 	/**
 	 * Creates a new SellerBehaviour with an empty pricelist.
 	 */
@@ -45,7 +44,7 @@ public class SellerBehaviour extends MerchantBehaviour {
 
 	/**
 	 * Creates a new SellerBehaviour with a pricelist.
-	 * 
+	 *
 	 * @param priceList
 	 *            list of item names and their prices
 	 */
@@ -56,7 +55,7 @@ public class SellerBehaviour extends MerchantBehaviour {
 	/**
 	 * Transacts the sale that has been agreed on earlier via setChosenItem()
 	 * and setAmount().
-	 * 
+	 *
 	 * @param seller
 	 *            The NPC who sells
 	 * @param player
@@ -69,7 +68,7 @@ public class SellerBehaviour extends MerchantBehaviour {
 		String chosenItemName = res.getChosenItemName();
 		int amount = res.getAmount();
 
-		final Item item = getAskedItem(chosenItemName);
+		final Item item = getAskedItem(chosenItemName, player);
 		if (item == null) {
 			logger.error("Trying to sell an nonexistent item: " + chosenItemName);
 			return false;
@@ -96,14 +95,11 @@ public class SellerBehaviour extends MerchantBehaviour {
 		if (player.isEquipped("money", price)) {
 			if (player.equipToInventoryOnly(item)) {
 				player.drop("money", price);
-				seller.say("Gratulacje! Oto "
-						+ Grammar.isare(amount) + " twój "
-						+ Grammar.plnoun(amount, chosenItemName) + "!");
-				player.incBoughtForItem(chosenItemName, amount);
+				updatePlayerTransactions(player, seller.getName(), res);
+				seller.say("Gratulacje! Oto twój " + chosenItemName + "!");
 				return true;
 			} else {
-				seller.say("Przepraszam, ale nie możesz wziąść "
-						+ Grammar.plnoun(amount, chosenItemName) + ".");
+				seller.say("Przepraszam, ale nie możesz wziąć " + chosenItemName + ".");
 				return false;
 			}
 		} else {
@@ -112,8 +108,33 @@ public class SellerBehaviour extends MerchantBehaviour {
 		}
 	}
 
-	public Item getAskedItem(final String askedItem) {
+	public Item getAskedItem(final String askedItem, final Player player) {
 		final Item item = SingletonRepository.getEntityManager().getItem(askedItem);
+		if (item != null && item.has("autobind")) {
+			// respect autobind attrubute
+			item.setBoundTo(player.getName());
+		}
+
 		return item;
+	}
+
+	public Item getAskedItem(final String askedItem) {
+		return getAskedItem(askedItem, null);
+	}
+
+	/**
+	 * Updates stored information about Player-NPC commerce transactions.
+	 *
+	 * @param player
+	 *     Player to be updated.
+	 * @param merchant
+	 *     Name of merchant involved in transaction.
+	 * @param res
+	 *     Information about the transaction.
+	 */
+	protected void updatePlayerTransactions(final Player player, final String merchant,
+			final ItemParserResult res) {
+		player.incBoughtForItem(res.getChosenItemName(), res.getAmount());
+		player.incCommerceTransaction(merchant, getCharge(res, player), false);
 	}
 }

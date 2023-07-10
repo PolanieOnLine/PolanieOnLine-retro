@@ -1,7 +1,7 @@
 /*
  * @(#) src/games/stendhal/server/entity/OnePlayerAreaFactory.java
  *
- * $Id: OnePlayerAreaFactory.java,v 1.5 2008/07/12 14:43:56 astridemma Exp $
+ * $Id$
  */
 
 package games.stendhal.server.entity.mapstuff.area;
@@ -19,7 +19,7 @@ public class OnePlayerAreaFactory implements ConfigurableFactory {
 
 	/**
 	 * Extracts the height from context.
-	 * 
+	 *
 	 * @param ctx
 	 *            The configuration context.
 	 * @return The height, 1 if unspecified.
@@ -30,7 +30,7 @@ public class OnePlayerAreaFactory implements ConfigurableFactory {
 
 	/**
 	 * Extracts the width from context.
-	 * 
+	 *
 	 * @param ctx
 	 *            The configuration context.
 	 * @return The width, 1 if unspecified.
@@ -41,14 +41,15 @@ public class OnePlayerAreaFactory implements ConfigurableFactory {
 
 	/**
 	 * Create a damaging area.
-	 * 
+	 *
 	 * @param ctx
 	 *            Configuration context.
-	 * 
+	 *
 	 * @return A OnePlayerArea.
-	 * 
+	 *
 	 * @see OnePlayerArea
 	 */
+	@Override
 	public Object create(final ConfigurableFactoryContext ctx) {
 		return new OnePlayerArea(getWidth(ctx), getHeight(ctx));
 	}

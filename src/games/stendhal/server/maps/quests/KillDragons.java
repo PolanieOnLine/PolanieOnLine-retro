@@ -1,4 +1,3 @@
-/* $Id: KillDragons.java,v 1.22 2012/02/03 21:16:23 Legolas Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,19 +11,25 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
+import games.stendhal.common.grammar.Grammar;
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.entity.item.StackableItem;
 import games.stendhal.server.entity.item.Item;
+import games.stendhal.server.entity.item.StackableItem;
 import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.action.DropItemAction;
-import games.stendhal.server.entity.npc.action.EquipItemAction;
 import games.stendhal.server.entity.npc.action.IncreaseKarmaAction;
-import games.stendhal.server.entity.npc.action.IncreaseXPAction;
 import games.stendhal.server.entity.npc.action.MultipleActions;
 import games.stendhal.server.entity.npc.action.SayTimeRemainingAction;
 import games.stendhal.server.entity.npc.action.SetQuestAction;
@@ -33,7 +38,6 @@ import games.stendhal.server.entity.npc.action.StartRecordingKillsAction;
 import games.stendhal.server.entity.npc.condition.AndCondition;
 import games.stendhal.server.entity.npc.condition.KilledForQuestCondition;
 import games.stendhal.server.entity.npc.condition.NotCondition;
-import games.stendhal.server.entity.npc.condition.OrCondition;
 import games.stendhal.server.entity.npc.condition.PlayerHasItemWithHimCondition;
 import games.stendhal.server.entity.npc.condition.QuestCompletedCondition;
 import games.stendhal.server.entity.npc.condition.QuestInStateCondition;
@@ -41,29 +45,18 @@ import games.stendhal.server.entity.npc.condition.QuestNotStartedCondition;
 import games.stendhal.server.entity.npc.condition.QuestStateStartsWithCondition;
 import games.stendhal.server.entity.npc.condition.TimePassedCondition;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-
+import games.stendhal.server.maps.Region;
 import marauroa.common.Pair;
-import org.apache.log4j.Logger;
 
 public class KillDragons extends AbstractQuest {
 	private static final String QUEST_SLOT = "kill_dragons";
+	private final SpeakerNPC npc = npcs.get("Alicja");
+
 	private static final int DELAY_IN_MINUTES = 60*24;
+
 	private static Logger logger = Logger.getLogger(KillDragons.class);
 
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
-
 	private void step1() {
-		final SpeakerNPC npc = npcs.get("Alicja");
-
 		npc.add(ConversationStates.ATTENDING,
 				ConversationPhrases.QUEST_MESSAGES,
 				new QuestCompletedCondition(QUEST_SLOT),
@@ -100,26 +93,26 @@ public class KillDragons extends AbstractQuest {
 	}
 
 	private void step2() {
-		final SpeakerNPC npc = npcs.get("Alicja");
-
 		//player nie zabil smoka
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, 0, "start"),
 								 new NotCondition(new KilledForQuestCondition(QUEST_SLOT, 1))),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Jeszcze nie zabiłeś samodzielnie zielonego smoka, dlaczego mnie oszukujesz?");
 					}
 				});
 
-		//player zabil smoka ale nie ma potrzebnych resurce	
+		//player zabil smoka ale nie ma potrzebnych resurce
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, 0,"start"),
 								 new KilledForQuestCondition(QUEST_SLOT, 1),
 								 new NotCondition(new PlayerHasItemWithHimCondition("skóra zielonego smoka", 5))),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Nawet jeśli zabiłeś zielonego smoka, na pewno odwiedzi mnie ponownie w koszmarze jeśli nie będę miała amuletu. Proszę, przynieś mi te 5 skór zielonego smoka.");
 					}
@@ -132,6 +125,7 @@ public class KillDragons extends AbstractQuest {
 								 new PlayerHasItemWithHimCondition("skóra zielonego smoka", 5)),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Och, pokonałeś go! Dziękuję! Wróć proszę za 24 godziny, powiem ci, czy talizman zadziałał. Przypomnij mi mówiąc #zielony.");
 						player.drop("skóra zielonego smoka", 5);
@@ -142,7 +136,6 @@ public class KillDragons extends AbstractQuest {
 	}
 
 	private void czas1() {
-		final SpeakerNPC npc = npcs.get("Alicja");
 		final String extraTrigger = "zielony";
 		List<String> questTrigger;
 		questTrigger = new LinkedList<String>(ConversationPhrases.QUEST_MESSAGES);
@@ -181,25 +174,26 @@ public class KillDragons extends AbstractQuest {
 	}
 
 	private void step3() {
-		final SpeakerNPC npc = npcs.get("Alicja");
 		//player nie zabil smoka
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, 0, "szkielet"),
 								 new NotCondition(new KilledForQuestCondition(QUEST_SLOT, 1))),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Jeszcze nie zabiłeś samodzielnie szkielet smoka, dlaczego mnie oszukujesz?");
 					}
 				});
 
-		//player zabil smoka ale nie ma potrzebnych resurce	
+		//player zabil smoka ale nie ma potrzebnych resurce
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, 0,"szkielet"),
 								 new KilledForQuestCondition(QUEST_SLOT, 1),
 								 new NotCondition(new PlayerHasItemWithHimCondition("kość dla psa", 20))),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Nawet jeśli zabiłeś szkielet smoka, na pewno odwiedzi mnie ponownie w koszmarze jeśli nie będę miała amuletu. Proszę, przynieś mi 20 kości dla psa.");
 					}
@@ -211,6 +205,7 @@ public class KillDragons extends AbstractQuest {
 							 new PlayerHasItemWithHimCondition("kość dla psa", 20)),
 			ConversationStates.ATTENDING, null,
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 					raiser.say("Och, pokonałeś go! Dziękuję! Wróć proszę za 24 godziny, powiem ci, czy talizman zadziałał. Przypomnij mi mówiąc #szkielet.");
 					player.drop("kość dla psa", 20);
@@ -221,7 +216,6 @@ public class KillDragons extends AbstractQuest {
 	}
 
 	private void czas2() {
-		final SpeakerNPC npc = npcs.get("Alicja");
 		final String extraTrigger = "szkielet";
 		List<String> questTrigger;
 		questTrigger = new LinkedList<String>(ConversationPhrases.QUEST_MESSAGES);
@@ -236,7 +230,7 @@ public class KillDragons extends AbstractQuest {
 
 		npc.add(ConversationStates.ATTENDING, questTrigger,
 				new AndCondition(new QuestStateStartsWithCondition(QUEST_SLOT, "czas_niebieski"),
-								 // czas minal, dalszy krok 
+								 // czas minal, dalszy krok
 								 new TimePassedCondition(QUEST_SLOT, 1, DELAY_IN_MINUTES)),
 				ConversationStates.ATTENDING,
 				"Talizman zadziałał! Niestety tej nocy przyśnił mi się inny koszmar. #Pomożesz mi?",
@@ -260,25 +254,26 @@ public class KillDragons extends AbstractQuest {
 	}
 
 	private void step4() {
-		final SpeakerNPC npc = npcs.get("Alicja");
 		//player nie zabil smoka
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, 0, "niebieski"),
 								 new NotCondition(new KilledForQuestCondition(QUEST_SLOT, 1))),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Jeszcze nie zabiłeś samodzielnie błękitnego smoka, dlaczego mnie oszukujesz?");
 					}
 				});
 
-		//player zabil smoka ale nie ma potrzebnych resurce	
+		//player zabil smoka ale nie ma potrzebnych resurce
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 			new AndCondition(new QuestInStateCondition(QUEST_SLOT, 0,"niebieski"),
 							 new KilledForQuestCondition(QUEST_SLOT, 1),
 							 new NotCondition(new PlayerHasItemWithHimCondition("skóra niebieskiego smoka", 5))),
 			ConversationStates.ATTENDING, null,
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 					raiser.say("Nawet jeśli zabiłeś błękitnego smoka, na pewno odwiedzi mnie ponownie w koszmarze jeśli nie będę miała amuletu. Proszę, przynieś mi skóry niebieskiego smoka.");
 				}
@@ -291,6 +286,7 @@ public class KillDragons extends AbstractQuest {
 							 new PlayerHasItemWithHimCondition("skóra niebieskiego smoka", 5)),
 			ConversationStates.ATTENDING, null,
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 					raiser.say("Och, pokonałeś go! Dziękuję! Wróć proszę za 24 godziny, powiem ci, czy talizman zadziałał. Przypomnij mi mówiąc #niebieski.");
 					player.drop("skóra niebieskiego smoka", 5);
@@ -301,7 +297,6 @@ public class KillDragons extends AbstractQuest {
 	}
 
 	private void czas3() {
-		final SpeakerNPC npc = npcs.get("Alicja");
 		final String extraTrigger = "niebieski";
 		List<String> questTrigger;
 		questTrigger = new LinkedList<String>(ConversationPhrases.QUEST_MESSAGES);
@@ -341,25 +336,26 @@ public class KillDragons extends AbstractQuest {
 	}
 
 	private void step5() {
-		final SpeakerNPC npc = npcs.get("Alicja");
 		//player nie zabil smoka
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, 0, "zgnily"),
 								 new NotCondition(new KilledForQuestCondition(QUEST_SLOT, 1))),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Jeszcze nie zabiłeś samodzielnie zgniły szkielet smoka, dlaczego mnie oszukujesz?");
 					}
 				});
 
-		//player zabil smoka ale nie ma potrzebnych resurce	
+		//player zabil smoka ale nie ma potrzebnych resurce
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, 0,"zgnily"),
 								 new KilledForQuestCondition(QUEST_SLOT, 1),
 								 new NotCondition(new PlayerHasItemWithHimCondition("kość dla psa", 30))),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Nawet jeśli zabiłeś zgniły szkielet smoka, na pewno odwiedzi mnie ponownie w koszmarze jeśli nie będę miała amuletu. Proszę, przynieś mi kości dla psa.");
 					}
@@ -372,6 +368,7 @@ public class KillDragons extends AbstractQuest {
 								 new PlayerHasItemWithHimCondition("kość dla psa", 30)),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Och, pokonałeś go! Dziękuję! Wróć proszę za 24 godziny, powiem ci, czy talizman zadziałał. Przypomnij mi mówiąc #zgnily.");
 						player.drop("kość dla psa", 30);
@@ -382,7 +379,6 @@ public class KillDragons extends AbstractQuest {
 	}
 
 	private void czas4() {
-		final SpeakerNPC npc = npcs.get("Alicja");
 		final String extraTrigger = "zgnily";
 		List<String> questTrigger;
 		questTrigger = new LinkedList<String>(ConversationPhrases.QUEST_MESSAGES);
@@ -421,13 +417,13 @@ public class KillDragons extends AbstractQuest {
 	}
 
 	private void step6() {
-		final SpeakerNPC npc = npcs.get("Alicja");
 		//player nie zabil smoka
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, 0, "czerwony"),
 								 new NotCondition(new KilledForQuestCondition(QUEST_SLOT, 1))),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Jeszcze nie zabiłeś samodzielnie czerwonego smoka, dlaczego mnie oszukujesz?");
 					}
@@ -440,9 +436,10 @@ public class KillDragons extends AbstractQuest {
 								 new NotCondition(new PlayerHasItemWithHimCondition("skóra czerwonego smoka", 5))),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
-		public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
+					@Override
+					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Nawet jeśli zabiłeś czerwonego smoka, na pewno odwiedzi mnie ponownie w koszmarze jeśli nie będę miała amuletu. Proszę, dostarcz mi skóry czerwonego smoka.");
-				}
+					}
 		});
 		//player wykonal obydwa zlecenia
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
@@ -451,6 +448,7 @@ public class KillDragons extends AbstractQuest {
 								 new PlayerHasItemWithHimCondition("skóra czerwonego smoka", 5)),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Och, pokonałeś go! Dziękuję! Wróć proszę za 24 godziny, powiem ci, czy talizman zadziałał. Przypomnij mi mówiąc #czerwony.");
 						player.drop("skóra czerwonego smoka", 5);
@@ -461,7 +459,6 @@ public class KillDragons extends AbstractQuest {
 	}
 
 	private void czas5() {
-		final SpeakerNPC npc = npcs.get("Alicja");
 		final String extraTrigger = "czerwony";
 		List<String> questTrigger;
 		questTrigger = new LinkedList<String>(ConversationPhrases.QUEST_MESSAGES);
@@ -500,29 +497,31 @@ public class KillDragons extends AbstractQuest {
 	}
 
 	private void step7() {
-		final SpeakerNPC npc = npcs.get("Alicja");
 		//player nie zabil smoka
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, 0, "pustynny"),
 								 new NotCondition(new KilledForQuestCondition(QUEST_SLOT, 1))),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Jeszcze nie zabiłeś samodzielnie pustynnego smoka, dlaczego mnie oszukujesz?");
 					}
 				});
 
-		//player zabil smoka ale nie ma potrzebnych resurce	
+		//player zabil smoka ale nie ma potrzebnych resurce
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, 0,"pustynny"),
 								 new KilledForQuestCondition(QUEST_SLOT, 1),
 								 new NotCondition(new PlayerHasItemWithHimCondition("skóra złotego smoka", 5))),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Nawet jeśli zabiłeś pustynnego smoka, na pewno odwiedzi mnie ponownie w koszmarze jeśli nie będę miała amuletu. Proszę, podrzuć mi skóry złotego smoka.");
 					}
 				});
+
 		//player wykonal obydwa zlecenia
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, 0,"pustynny"),
@@ -530,6 +529,7 @@ public class KillDragons extends AbstractQuest {
 								 new PlayerHasItemWithHimCondition("skóra złotego smoka", 5)),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Och, pokonałeś go! Dziękuję! Wróć proszę za 24 godziny, powiem ci, czy talizman zadziałał. Przypomnij mi mówiąc #pustynny.");
 						player.drop("skóra złotego smoka", 5);
@@ -540,7 +540,6 @@ public class KillDragons extends AbstractQuest {
 	}
 
 	private void czas6() {
-		final SpeakerNPC npc = npcs.get("Alicja");
 		final String extraTrigger = "pustynny";
 		List<String> questTrigger;
 		questTrigger = new LinkedList<String>(ConversationPhrases.QUEST_MESSAGES);
@@ -579,25 +578,26 @@ public class KillDragons extends AbstractQuest {
 	}
 
 	private void step8() {
-		final SpeakerNPC npc = npcs.get("Alicja");
 		//player nie zabil smoka
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, 0, "zloty"),
 								 new NotCondition(new KilledForQuestCondition(QUEST_SLOT, 1))),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Jeszcze nie zabiłeś samodzielnie złotego smoka, dlaczego mnie oszukujesz?");
 					}
 				});
 
-		//player zabil smoka ale nie ma potrzebnych resurce	
+		//player zabil smoka ale nie ma potrzebnych resurce
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, 0,"zloty"),
 								 new KilledForQuestCondition(QUEST_SLOT, 1),
 								 new NotCondition(new PlayerHasItemWithHimCondition("skóra złotego smoka", 5))),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Nawet jeśli zabiłeś złotego smoka, na pewno odwiedzi mnie ponownie w koszmarze jeśli nie będę miała amuletu. Proszę, przynieś mi jeszcze skóry złotego smoka.");
 					}
@@ -610,6 +610,7 @@ public class KillDragons extends AbstractQuest {
 								 new PlayerHasItemWithHimCondition("skóra złotego smoka", 5)),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Och, pokonałeś go! Dziękuję! Wróć proszę za 24 godziny, powiem ci, czy talizman zadziałał. Przypomnij mi mówiąc #zloty.");
 						player.drop("skóra złotego smoka", 5);
@@ -620,7 +621,6 @@ public class KillDragons extends AbstractQuest {
 	}
 
 	private void czas7() {
-		final SpeakerNPC npc = npcs.get("Alicja");
 		final String extraTrigger = "zloty";
 		List<String> questTrigger;
 		questTrigger = new LinkedList<String>(ConversationPhrases.QUEST_MESSAGES);
@@ -643,7 +643,7 @@ public class KillDragons extends AbstractQuest {
 
 		//kogo ma zabic w nastepnym kroku
 		final HashMap<String, Pair<Integer, Integer>> toKill = new HashMap<String, Pair<Integer, Integer>>();
-							toKill.put("smok dwugłowy niebieski", new Pair<Integer, Integer>(1,0));
+							toKill.put("dwugłowy niebieski smok", new Pair<Integer, Integer>(1,0));
 		final List<ChatAction> actions = new LinkedList<ChatAction>();
 							actions.add(new SetQuestAction(QUEST_SLOT, 0, "dwa_niebieski"));
 							actions.add(new StartRecordingKillsAction(QUEST_SLOT, 1, toKill));
@@ -652,32 +652,33 @@ public class KillDragons extends AbstractQuest {
 		npc.add(ConversationStates.ATTENDING, Arrays.asList("pomożesz", "pomozesz", "pomoge"),
 				new QuestInStateCondition(QUEST_SLOT, "dwa_niebieski?"),
 				ConversationStates.ATTENDING,
-				"Och, wspaniale! Tej nocy przyśnił mi się #'/smok dwugłowy niebieski/', proszę odszukaj go i zabij."
+				"Och, wspaniale! Tej nocy przyśnił mi się #'/dwugłowy niebieski smok/', proszę odszukaj go i zabij."
 				+ " Przynieś mi też jego 10 skór niebieskiego smoka. Jeśli włożę je pod poduszkę, będą odstraszały koszmary."
 				+ " Pamiętaj, że musisz zabić go samodzielnie, bo skóry nie będą działały jak talizman!",
 				new MultipleActions(actions));
 	}
 
 	private void step9() {
-		final SpeakerNPC npc = npcs.get("Alicja");
 		//player nie zabil smoka
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, 0, "dwa_niebieski"),
 								 new NotCondition(new KilledForQuestCondition(QUEST_SLOT, 1))),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Jeszcze nie zabiłeś samodzielnie dwugłowego niebieskiego smoka, dlaczego mnie oszukujesz?");
 					}
 				});
 
-		//player zabil smoka ale nie ma potrzebnych resurce	
+		//player zabil smoka ale nie ma potrzebnych resurce
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, 0,"dwa_niebieski"),
 								 new KilledForQuestCondition(QUEST_SLOT, 1),
 								 new NotCondition(new PlayerHasItemWithHimCondition("skóra niebieskiego smoka", 10))),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Nawet jeśli zabiłeś dwugłowego niebieskiego smoka, na pewno odwiedzi mnie ponownie w koszmarze jeśli nie będę miała amuletu. Proszę, dostarcz mi skóry niebieskiego smoka.");
 					}
@@ -690,6 +691,7 @@ public class KillDragons extends AbstractQuest {
 								 new PlayerHasItemWithHimCondition("skóra niebieskiego smoka", 10)),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Och, pokonałeś go! Dziękuję! Wróć proszę za 24 godziny, powiem ci, czy talizman zadziałał. Przypomnij mi mówiąc #dwuglowy #niebieski.");
 						player.drop("skóra niebieskiego smoka", 10);
@@ -700,7 +702,6 @@ public class KillDragons extends AbstractQuest {
 	}
 
 	private void czas8() {
-		final SpeakerNPC npc = npcs.get("Alicja");
 		final String extraTrigger = "dwuglowy niebieski";
 		List<String> questTrigger;
 		questTrigger = new LinkedList<String>(ConversationPhrases.QUEST_MESSAGES);
@@ -739,25 +740,26 @@ public class KillDragons extends AbstractQuest {
 	}
 
 	private void step10() {
-		final SpeakerNPC npc = npcs.get("Alicja");
 		//player nie zabil smoka
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, 0, "dwu_zielony"),
 								 new NotCondition(new KilledForQuestCondition(QUEST_SLOT, 1))),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Jeszcze nie zabiłeś samodzielnie dwugłowego zielonego smoka, dlaczego mnie oszukujesz?");
 					}
 				});
 
-		//player zabil smoka ale nie ma potrzebnych resurce	
+		//player zabil smoka ale nie ma potrzebnych resurce
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, 0,"dwu_zielony"),
 								 new KilledForQuestCondition(QUEST_SLOT, 1),
 								 new NotCondition(new PlayerHasItemWithHimCondition("skóra zielonego smoka", 10))),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Nawet jeśli zabiłeś smoka, na pewno odwiedzi mnie ponownie w koszmarze jeśli nie będę miała amuletu. Proszę, dostarcz mi te skóry zielonego smoka.");
 					}
@@ -770,6 +772,7 @@ public class KillDragons extends AbstractQuest {
 								 new PlayerHasItemWithHimCondition("skóra zielonego smoka", 10)),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Och, pokonałeś go! Dziękuję! Wróć proszę za 24 godziny, powiem ci, czy talizman zadziałał. Przypomnij mi mówiąc #dwuglowy #zielony.");
 						player.drop("skóra zielonego smoka", 10);
@@ -780,7 +783,6 @@ public class KillDragons extends AbstractQuest {
 	}
 
 	private void czas9() {
-		final SpeakerNPC npc = npcs.get("Alicja");
 		final String extraTrigger = "dwuglowy zielony";
 		List<String> questTrigger;
 		questTrigger = new LinkedList<String>(ConversationPhrases.QUEST_MESSAGES);
@@ -819,13 +821,13 @@ public class KillDragons extends AbstractQuest {
 	}
 
 	private void step11() {
-		final SpeakerNPC npc = npcs.get("Alicja");
 		//player nie zabil smoka
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, 0, "arktyczny"),
 								 new NotCondition(new KilledForQuestCondition(QUEST_SLOT, 1))),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Jeszcze nie zabiłeś samodzielnie arktycznego smoka, dlaczego mnie oszukujesz?");
 					}
@@ -838,6 +840,7 @@ public class KillDragons extends AbstractQuest {
 								 new NotCondition(new PlayerHasItemWithHimCondition("kieł smoka", 10))),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Nawet jeśli zabiłeś arktycznego smoka, na pewno odwiedzi mnie ponownie w koszmarze jeśli nie będę miała amuletu. Proszę, przynieś kły smoka.");
 					}
@@ -850,6 +853,7 @@ public class KillDragons extends AbstractQuest {
 								 new PlayerHasItemWithHimCondition("kieł smoka", 10)),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Och, pokonałeś go! Dziękuję! Wróć proszę za 24 godziny, powiem ci, czy talizman zadziałał. Przypomnij mi mówiąc #arktyczny.");
 						player.drop("kieł smoka", 10);
@@ -860,7 +864,6 @@ public class KillDragons extends AbstractQuest {
 	}
 
 	private void czas10() {
-		final SpeakerNPC npc = npcs.get("Alicja");
 		final String extraTrigger = "arktyczny";
 		List<String> questTrigger;
 		questTrigger = new LinkedList<String>(ConversationPhrases.QUEST_MESSAGES);
@@ -899,13 +902,13 @@ public class KillDragons extends AbstractQuest {
 	}
 
 	private void step12() {
-		final SpeakerNPC npc = npcs.get("Alicja");
 		//player nie zabil smoka
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, 0, "dru_czerwony"),
 								 new NotCondition(new KilledForQuestCondition(QUEST_SLOT, 1))),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Jeszcze nie zabiłeś samodzielnie dwugłowego czerwonego smoka, dlaczego mnie oszukujesz?");
 					}
@@ -918,6 +921,7 @@ public class KillDragons extends AbstractQuest {
 								 new NotCondition(new PlayerHasItemWithHimCondition("skóra czerwonego smoka", 10))),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Nawet jeśli zabiłeś smoka, na pewno odwiedzi mnie ponownie w koszmarze jeśli nie będę miała amuletu. Proszę, dostarcz mi te skóry czerwonego smoka, o które prosiłam.");
 					}
@@ -930,6 +934,7 @@ public class KillDragons extends AbstractQuest {
 								 new PlayerHasItemWithHimCondition("skóra czerwonego smoka", 10)),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Och, pokonałeś go! Dziękuję! Wróć proszę za 24 godziny, powiem ci, czy talizman zadziałał. Przypomnij mi mówiąc #dwuglowy #czerwony.");
 						player.drop("skóra czerwonego smoka", 10);
@@ -940,7 +945,6 @@ public class KillDragons extends AbstractQuest {
 	}
 
 	private void czas11() {
-		final SpeakerNPC npc = npcs.get("Alicja");
 		final String extraTrigger = "dwuglowy czerwony";
 		List<String> questTrigger;
 		questTrigger = new LinkedList<String>(ConversationPhrases.QUEST_MESSAGES);
@@ -979,25 +983,26 @@ public class KillDragons extends AbstractQuest {
 	}
 
 	private void step13() {
-		final SpeakerNPC npc = npcs.get("Alicja");
 		//player nie zabil smoka
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, 0, "czarny"),
 								 new NotCondition(new KilledForQuestCondition(QUEST_SLOT, 1))),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Jeszcze nie zabiłeś samodzielnie czarnego smoka, dlaczego mnie oszukujesz?");
 					}
 				});
 
-		//player zabil smoka ale nie ma potrzebnych resurce	
+		//player zabil smoka ale nie ma potrzebnych resurce
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, 0,"czarny"),
 								 new KilledForQuestCondition(QUEST_SLOT, 1),
 								 new NotCondition(new PlayerHasItemWithHimCondition("skóra czarnego smoka", 15))),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Nawet jeśli zabiłeś smoka, na pewno odwiedzi mnie ponownie w koszmarze jeśli nie będę miała amuletu. Proszę, przynieś mi te skóry czarnego smoka.");
 					}
@@ -1010,6 +1015,7 @@ public class KillDragons extends AbstractQuest {
 								 new PlayerHasItemWithHimCondition("skóra czarnego smoka", 15)),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Och, pokonałeś go! Dziękuję! Wróć proszę za 24 godziny, powiem ci, czy talizman zadziałał. Przypomnij mi mówiąc #czarny.");
 						player.drop("skóra czarnego smoka", 15);
@@ -1020,7 +1026,6 @@ public class KillDragons extends AbstractQuest {
 	}
 
 	private void czas12() {
-		final SpeakerNPC npc = npcs.get("Alicja");
 		final String extraTrigger = "czarny";
 		List<String> questTrigger;
 		questTrigger = new LinkedList<String>(ConversationPhrases.QUEST_MESSAGES);
@@ -1059,25 +1064,26 @@ public class KillDragons extends AbstractQuest {
 	}
 
 	private void step14() {
-		final SpeakerNPC npc = npcs.get("Alicja");
 		//player nie zabil smoka
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, 0, "dwuglowy_czarny"),
 								 new NotCondition(new KilledForQuestCondition(QUEST_SLOT, 1))),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Jeszcze nie zabiłeś samodzielnie dwugłowego czarnego smoka, dlaczego mnie oszukujesz?");
 					}
 				});
 
-		//player zabil smoka ale nie ma potrzebnych resurce	
+		//player zabil smoka ale nie ma potrzebnych resurce
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, 0,"dwuglowy_czarny"),
 								 new KilledForQuestCondition(QUEST_SLOT, 1),
 								 new NotCondition(new PlayerHasItemWithHimCondition("skóra czarnego smoka", 25))),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Nawet jeśli zabiłeś smoka, na pewno odwiedzi mnie ponownie w koszmarze jeśli nie będę miała amuletu. Proszę, przynieś dla mnie skóry czarnego smoka.");
 					}
@@ -1090,6 +1096,7 @@ public class KillDragons extends AbstractQuest {
 								 new PlayerHasItemWithHimCondition("skóra czarnego smoka", 25)),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Och, pokonałeś go! Dziękuję! Wróć proszę za 24 godziny, powiem ci, czy talizman zadziałał. Przypomnij mi mówiąc #czarny #dwuglowy.");
 						player.drop("skóra czarnego smoka", 25);
@@ -1100,7 +1107,6 @@ public class KillDragons extends AbstractQuest {
 	}
 
 	private void czas13() {
-		final SpeakerNPC npc = npcs.get("Alicja");
 		final String extraTrigger = "czarny dwuglowy";
 		List<String> questTrigger;
 		questTrigger = new LinkedList<String>(ConversationPhrases.QUEST_MESSAGES);
@@ -1139,25 +1145,26 @@ public class KillDragons extends AbstractQuest {
 	}
 
 	private void step15() {
-		final SpeakerNPC npc = npcs.get("Alicja");
 		//player nie zabil smoka
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, 0, "czar_latajacy"),
 								 new NotCondition(new KilledForQuestCondition(QUEST_SLOT, 1))),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Jeszcze nie zabiłeś samodzielnie latającego czarnego smoka, dlaczego mnie oszukujesz?");
 					}
 				});
 
-		//player zabil smoka ale nie ma potrzebnych resurce	
+		//player zabil smoka ale nie ma potrzebnych resurce
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, 0,"czar_latajacy"),
 								 new KilledForQuestCondition(QUEST_SLOT, 1),
 								 new NotCondition(new PlayerHasItemWithHimCondition("pazur czarnego smoka", 2))),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Nawet jeśli zabiłeś smoka, na pewno odwiedzi mnie ponownie w koszmarze jeśli nie będę miała amuletu. Proszę, dostarcz mi pazury czarnego smoka.");
 					}
@@ -1170,6 +1177,7 @@ public class KillDragons extends AbstractQuest {
 								 new PlayerHasItemWithHimCondition("pazur czarnego smoka", 2)),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Och, pokonałeś go! Dziękuję! Wróć proszę za 24 godziny, powiem ci, czy talizman zadziałał. Przypomnij mi mówiąc #czarny #latajacy."
 						+ " Aha i weź te kilka butelek napoju uzdrawiającego.");
@@ -1185,7 +1193,6 @@ public class KillDragons extends AbstractQuest {
 	}
 
 	private void czas14() {
-		final SpeakerNPC npc = npcs.get("Alicja");
 		final String extraTrigger = "czarny latajacy";
 		List<String> questTrigger;
 		questTrigger = new LinkedList<String>(ConversationPhrases.QUEST_MESSAGES);
@@ -1224,25 +1231,26 @@ public class KillDragons extends AbstractQuest {
 	}
 
 	private void step16() {
-		final SpeakerNPC npc = npcs.get("Alicja");
 		//player nie zabil smoka
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, 0, "latajacy_zloty"),
 								 new NotCondition(new KilledForQuestCondition(QUEST_SLOT, 1))),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Jeszcze nie zabiłeś samodzielnie latającego złotego smoka, dlaczego mnie oszukujesz?");
 					}
 				});
 
-		//player zabil smoka ale nie ma potrzebnych resurce	
+		//player zabil smoka ale nie ma potrzebnych resurce
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, 0,"latajacy_zloty"),
 								 new KilledForQuestCondition(QUEST_SLOT, 1),
 								 new NotCondition(new PlayerHasItemWithHimCondition("pazur złotego smoka"))),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Nawet jeśli zabiłeś smoka, na pewno odwiedzi mnie ponownie w koszmarze jeśli nie będę miała amuletu. Proszę, dostarcz mi pazur złotego smoka.");
 					}
@@ -1255,6 +1263,7 @@ public class KillDragons extends AbstractQuest {
 								 new PlayerHasItemWithHimCondition("pazur złotego smoka")),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Och, pokonałeś go! Dziękuję! Wróć proszę za 24 godziny, powiem ci, czy talizman zadziałał. Przypomnij mi mówiąc #zloty #latajacy. Aha i weź te kilka butelek napoju uzdrawiającego");
 						player.drop("pazur złotego smoka");
@@ -1269,7 +1278,6 @@ public class KillDragons extends AbstractQuest {
 	}
 
 	private void czas15() {
-		final SpeakerNPC npc = npcs.get("Alicja");
 		final String extraTrigger = "zloty latajacy";
 		List<String> questTrigger;
 		questTrigger = new LinkedList<String>(ConversationPhrases.QUEST_MESSAGES);
@@ -1309,25 +1317,26 @@ public class KillDragons extends AbstractQuest {
 	}
 
 	private void step17() {
-		final SpeakerNPC npc = npcs.get("Alicja");
 		//player nie zabil smoka
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, 0, "wawelski"),
 								 new NotCondition(new KilledForQuestCondition(QUEST_SLOT, 1))),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Jeszcze nie zabiłeś samodzielnie smoka wawelskiego, dlaczego mnie oszukujesz?");
 					}
 				});
 
-		//player zabil smoka ale nie ma potrzebnych resurce	
+		//player zabil smoka ale nie ma potrzebnych resurce
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, 0,"wawelski"),
 								 new KilledForQuestCondition(QUEST_SLOT, 1),
 								 new NotCondition(new PlayerHasItemWithHimCondition("pazur zielonego smoka"))),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Nawet jeśli zabiłeś smoka, na pewno odwiedzi mnie ponownie w koszmarze jeśli nie będę miała amuletu. Proszę, przynieś mi pazur zielonego smoka, o który prosiłam.");
 					}
@@ -1340,6 +1349,7 @@ public class KillDragons extends AbstractQuest {
 								 new PlayerHasItemWithHimCondition("pazur zielonego smoka")),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						raiser.say("Talizman zadziałał! Tej nocy nie miałam więcej koszmarów! Weź proszę tą broń. Należała do mojego dziadka, on był wielkim bohaterem. Myślę, że tobie bardziej się przyda.");
 						player.drop("pazur zielonego smoka");
@@ -1354,10 +1364,8 @@ public class KillDragons extends AbstractQuest {
 				});
 	}
 
-
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
 				"Koszmary Alicji",
 				"Alicji śnią się koszmary, w tym celu potrzebuje talizmanu zrobionego ze skór i pazurów smoków.",
@@ -1404,16 +1412,16 @@ public class KillDragons extends AbstractQuest {
 			return res;
 		}
 		final String questState = player.getQuest(QUEST_SLOT);
-		res.add("Spotkałem Alicje w domku Zakopane.");
+		res.add(Grammar.genderVerb(player.getGender(), "Spotkałem") + " Alicje w domku Zakopane.");
 		if ("rejected".equals(questState)) {
 			res.add("Nie mam ochoty na walkę ze smokami.");
 			return res;
 		}
-		res.add("Alicja ma koszmary nocne. Mam zabić zielonego smoka i przynieść 5 skór zielonego smoka."); 
+		res.add("Alicja ma koszmary nocne. Mam zabić zielonego smoka i przynieść 5 skór zielonego smoka.");
 		if ("start".equals(questState)) {
 			return res;
-		} 
-		res.add("Zabiłem zielonego smoka i zaniosłem Alicji jego skóry!");
+		}
+		res.add(Grammar.genderVerb(player.getGender(), "Zabiłem") + " zielonego smoka i " + Grammar.genderVerb(player.getGender(), "zaniosłem") + " Alicji jego skóry!");
 		if (questState.startsWith("czas_szkielet")) {
 			if (new TimePassedCondition(QUEST_SLOT,1,DELAY_IN_MINUTES).fire(player, null, null)) {
 				res.add("Odwiedzę Alicję, aby sprawdzić czy amulet zadziałał. Hasło: zielony.");
@@ -1430,7 +1438,7 @@ public class KillDragons extends AbstractQuest {
 		if ("szkielet".equals(questState)) {
 			return res;
 		}
-		res.add("Zabiłem szkielet smoka i zaniosłem Alicji kości dla psa!");
+		res.add(Grammar.genderVerb(player.getGender(), "Zabiłem") + " szkielet smoka i " + Grammar.genderVerb(player.getGender(), "zaniosłem") + " Alicji kości dla psa!");
 		if (questState.startsWith("czas_niebieski")) {
 			if (new TimePassedCondition(QUEST_SLOT,1,DELAY_IN_MINUTES).fire(player, null, null)) {
 				res.add("Odwiedzę Alicję, aby sprawdzić czy amulet zadziałał. Hasło: szkielet");
@@ -1442,12 +1450,12 @@ public class KillDragons extends AbstractQuest {
 		res.add("Powiedz: pomoge.");
 		if ("niebieski?".equals(questState)) {
 			return res;
-		} 
+		}
 		res.add("Alicja ma dalej koszmary nocne. Tym razem mam zabić błękitnego smoka i przynieść 5 skór niebieskiego smoka.");
 		if ("niebieski".equals(questState)) {
 			return res;
 		}
-		res.add("Zabiłem błękitnego smoka i zaniosłem Alicji skóry niebieskiego smoka!");
+		res.add(Grammar.genderVerb(player.getGender(), "Zabiłem") + " błękitnego smoka i " + Grammar.genderVerb(player.getGender(), "zaniosłem") + " Alicji skóry niebieskiego smoka!");
 		if (questState.startsWith("czas_zgnily")) {
 			if (new TimePassedCondition(QUEST_SLOT,1,DELAY_IN_MINUTES).fire(player, null, null)) {
 				res.add("Odwiedzę Alicję, aby sprawdzić czy amulet zadziałał. Hasło: niebieski.");
@@ -1464,7 +1472,7 @@ public class KillDragons extends AbstractQuest {
 		if ("zgnily".equals(questState)) {
 			return res;
 		}
-		res.add("Zabiłem zgniły szkielet smoka i zaniosłem Alicji jego kości!");
+		res.add(Grammar.genderVerb(player.getGender(), "Zabiłem") + " zgniły szkielet smoka i " + Grammar.genderVerb(player.getGender(), "zaniosłem") + " Alicji jego kości!");
 		if (questState.startsWith("czas_czerwony")) {
 			if (new TimePassedCondition(QUEST_SLOT,1,DELAY_IN_MINUTES).fire(player, null, null)) {
 				res.add("Odwiedzę Alicję, aby sprawdzić czy amulet zadziałał. Hasło: zgnily.");
@@ -1481,7 +1489,7 @@ public class KillDragons extends AbstractQuest {
 		if ("czerwony".equals(questState)) {
 			return res;
 		}
-		res.add("Zabiłem czerwonego smoka i zaniosłem Alicji skóry czerwonego smoka!");
+		res.add(Grammar.genderVerb(player.getGender(), "Zabiłem") + " czerwonego smoka i " + Grammar.genderVerb(player.getGender(), "zaniosłem") + " Alicji skóry czerwonego smoka!");
 		if (questState.startsWith("czas_pustynny")) {
 			if (new TimePassedCondition(QUEST_SLOT,1,DELAY_IN_MINUTES).fire(player, null, null)) {
 				res.add("Odwiedzę Alicję, aby sprawdzić czy amulet zadziałał. Hasło: czerwony.");
@@ -1498,7 +1506,7 @@ public class KillDragons extends AbstractQuest {
 		if ("pustynny".equals(questState)) {
 			return res;
 		}
-		res.add("Zabiłem pustynnego smoka i zaniosłem Alicji skóry złotgo smoka!");
+		res.add(Grammar.genderVerb(player.getGender(), "Zabiłem") + " pustynnego smoka i " + Grammar.genderVerb(player.getGender(), "zaniosłem") + " Alicji skóry złotgo smoka!");
 		if (questState.startsWith("czas_zloty")) {
 			if (new TimePassedCondition(QUEST_SLOT,1,DELAY_IN_MINUTES).fire(player, null, null)) {
 				res.add("Odwiedzę Alicję, aby sprawdzić czy amulet zadziałał. Hasło: pustynny.");
@@ -1515,7 +1523,7 @@ public class KillDragons extends AbstractQuest {
 		if ("zloty".equals(questState)) {
 			return res;
 		}
-		res.add("Zabiłem złotego smoka i zaniosłem Alicji skóry złotego smoka!");
+		res.add(Grammar.genderVerb(player.getGender(), "Zabiłem") + " złotego smoka i " + Grammar.genderVerb(player.getGender(), "zaniosłem") + " Alicji skóry złotego smoka!");
 		if (questState.startsWith("czas_dwa_niebieski")) {
 			if (new TimePassedCondition(QUEST_SLOT,1,DELAY_IN_MINUTES).fire(player, null, null)) {
 				res.add("Odwiedzę Alicję, aby sprawdzić czy amulet zadziałał. Hasło: zloty.");
@@ -1531,8 +1539,8 @@ public class KillDragons extends AbstractQuest {
 		res.add("Alicja ma dalej koszmary nocne. Tym razem mam zabić niebieskiego dwugłowego smoka i przynieść 10 skór niebieskiego smoka.");
 		if ("dwa_niebieski".equals(questState)) {
 			return res;
-		} 
-		res.add("Zabiłem niebieskiego smoka i zaniosłem Alicji skóry!");
+		}
+		res.add(Grammar.genderVerb(player.getGender(), "Zabiłem") + " niebieskiego smoka i " + Grammar.genderVerb(player.getGender(), "zaniosłem") + " Alicji skóry!");
 		if (questState.startsWith("czas_dwu_zielony")) {
 			if (new TimePassedCondition(QUEST_SLOT,1,DELAY_IN_MINUTES).fire(player, null, null)) {
 				res.add("Odwiedzę Alicję, aby sprawdzić czy amulet zadziałał. Hasło: dwuglowy niebieski.");
@@ -1548,8 +1556,8 @@ public class KillDragons extends AbstractQuest {
 		res.add("Alicja ma dalej koszmary nocne. Tym razem mam zabić zielonego dwugłowego smoka i przynieść 10 skór zielonego smoka.");
 		if ("dwu_zielony".equals(questState)) {
 			return res;
-		} 
-		res.add("Zabiłem zielonego dwugłowego smoka i zaniosłem Alicji skóry!");
+		}
+		res.add(Grammar.genderVerb(player.getGender(), "Zabiłem") + " zielonego dwugłowego smoka i " + Grammar.genderVerb(player.getGender(), "zaniosłem") + " Alicji skóry!");
 		if (questState.startsWith("czas_arktyczny")) {
 			if (new TimePassedCondition(QUEST_SLOT,1,DELAY_IN_MINUTES).fire(player, null, null)) {
 				res.add("Odwiedzę Alicję, aby sprawdzić czy amulet zadziałał. Hasło: dwuglowy zielony.");
@@ -1565,8 +1573,8 @@ public class KillDragons extends AbstractQuest {
 		res.add("Alicja ma dalej koszmary nocne. Tym razem mam zabić arktycznego smoka i przynieść 10 kłów smoka.");
 		if ("arktyczny".equals(questState)) {
 			return res;
-		} 
-		res.add("Zabiłem arktycznego smoka i zaniosłem Alicji kły smoka!");
+		}
+		res.add(Grammar.genderVerb(player.getGender(), "Zabiłem") + " arktycznego smoka i " + Grammar.genderVerb(player.getGender(), "zaniosłem") + " Alicji kły smoka!");
 		if (questState.startsWith("czas_dru_czerwony")) {
 			if (new TimePassedCondition(QUEST_SLOT,1,DELAY_IN_MINUTES).fire(player, null, null)) {
 				res.add("Odwiedzę Alicję, aby sprawdzić czy amulet zadziałał. Hasło: arktyczny.");
@@ -1583,7 +1591,7 @@ public class KillDragons extends AbstractQuest {
 		if ("dru_czerwony".equals(questState)) {
 			return res;
 		}
-		res.add("Zabiłem czerwonego dwugłowego smoka i zaniosłem Alicji skóry!");
+		res.add(Grammar.genderVerb(player.getGender(), "Zabiłem") + " czerwonego dwugłowego smoka i " + Grammar.genderVerb(player.getGender(), "zaniosłem") + " Alicji skóry!");
 		if (questState.startsWith("czas_czarny")) {
 			if (new TimePassedCondition(QUEST_SLOT,1,DELAY_IN_MINUTES).fire(player, null, null)) {
 				res.add("Odwiedzę Alicję, aby sprawdzić czy amulet zadziałał. Hasło: dwuglowy czerwony.");
@@ -1600,7 +1608,7 @@ public class KillDragons extends AbstractQuest {
 		if ("czarny".equals(questState)) {
 			return res;
 		}
-		res.add("Zabiłem czarnego smoka i zaniosłem Alicji skóry czarnego smoka!");
+		res.add(Grammar.genderVerb(player.getGender(), "Zabiłem") + " czarnego smoka i " + Grammar.genderVerb(player.getGender(), "zaniosłem") + " Alicji skóry czarnego smoka!");
 		if (questState.startsWith("czas_dwuglowy_czarny")) {
 			if (new TimePassedCondition(QUEST_SLOT,1,DELAY_IN_MINUTES).fire(player, null, null)) {
 				res.add("Odwiedzę Alicję, aby sprawdzić czy amulet zadziałał. Hasło: czarny.");
@@ -1617,7 +1625,7 @@ public class KillDragons extends AbstractQuest {
 		if ("dwuglowy_czarny".equals(questState)) {
 			return res;
 		}
-		res.add("Zabiłem czarnego dwugłowego smoka i zaniosłem Alicji skóry czarnego smoka!");
+		res.add(Grammar.genderVerb(player.getGender(), "Zabiłem") + " czarnego dwugłowego smoka i " + Grammar.genderVerb(player.getGender(), "zaniosłem") + " Alicji skóry czarnego smoka!");
 		if (questState.startsWith("czas_czar_latajacy")) {
 			if (new TimePassedCondition(QUEST_SLOT,1,DELAY_IN_MINUTES).fire(player, null, null)) {
 				res.add("Odwiedzę Alicję, aby sprawdzić czy amulet zadziałał. Hasło: czarny dwuglowy.");
@@ -1634,7 +1642,7 @@ public class KillDragons extends AbstractQuest {
 		if ("czar_latajacy".equals(questState)) {
 			return res;
 		}
-		res.add("Zabiłem czarnego latającego smoka i zaniosłem Alicji pazury!");
+		res.add(Grammar.genderVerb(player.getGender(), "Zabiłem") + " czarnego latającego smoka i " + Grammar.genderVerb(player.getGender(), "zaniosłem") + " Alicji pazury!");
 		if (questState.startsWith("czas_latajacy_zloty")) {
 			if (new TimePassedCondition(QUEST_SLOT,1,DELAY_IN_MINUTES).fire(player, null, null)) {
 				res.add("Odwiedzę Alicję, aby sprawdzić czy amulet zadziałał. Hasło: czarny latajacy.");
@@ -1651,7 +1659,7 @@ public class KillDragons extends AbstractQuest {
 		if ("latajacy_zloty".equals(questState)) {
 			return res;
 		}
-		res.add("Zabiłem złotego latającego smoka i zaniosłem Alicji jego pazur!");
+		res.add(Grammar.genderVerb(player.getGender(), "Zabiłem") + " złotego latającego smoka i " + Grammar.genderVerb(player.getGender(), "zaniosłem") + " Alicji jego pazur!");
 		if (questState.startsWith("czas_wawelski")) {
 			if (new TimePassedCondition(QUEST_SLOT,1,DELAY_IN_MINUTES).fire(player, null, null)) {
 				res.add("Odwiedzę Alicję, aby sprawdzić czy amulet zadziałał. Hasło: zloty latajacy.");
@@ -1668,7 +1676,7 @@ public class KillDragons extends AbstractQuest {
 		if ("wawelski".equals(questState)) {
 			return res;
 		}
-		res.add("Alicja może w końcu spać bez koszmarów. Za pomoc dostałem młot wulkanów, który należał do jej dziadka");
+		res.add("Alicja może w końcu spać bez koszmarów. Za pomoc " + Grammar.genderVerb(player.getGender(), "dostałem") + " młot wulkanów, który należał do jej dziadka");
 		if (isCompleted(player)) {
 			return res;
 		}
@@ -1681,12 +1689,22 @@ public class KillDragons extends AbstractQuest {
 	}
 
 	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
+	}
+
+	@Override
 	public String getName() {
-		return "KillDragons";
+		return "Koszmary Alicji";
 	}
 
 	@Override
 	public String getNPCName() {
-		return "Alicja";
+		return npc.getName();
+	}
+
+	@Override
+	public String getRegion() {
+		return Region.ZAKOPANE_CITY;
 	}
 }

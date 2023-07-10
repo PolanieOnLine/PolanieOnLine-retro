@@ -1,4 +1,4 @@
-/* $Id: ChestSlot.java,v 1.10 2010/09/28 20:32:38 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -17,7 +17,7 @@ import games.stendhal.server.entity.mapstuff.chest.Chest;
 
 /**
  * A slot of a chest which is only accessible, if the chest is open.
- * 
+ *
  * @author hendrik
  */
 public class ChestSlot extends LootableSlot {
@@ -25,7 +25,7 @@ public class ChestSlot extends LootableSlot {
 
 	/**
 	 * Creates a ChestSlot
-	 * 
+	 *
 	 * @param owner
 	 *            Chest owning this slot
 	 */
@@ -37,7 +37,7 @@ public class ChestSlot extends LootableSlot {
 	@Override
 	public boolean isReachableForTakingThingsOutOfBy(final Entity entity) {
 		if (!chest.isOpen()) {
-			setErrorMessage("Ten " + ((Entity)getOwner()).getDescriptionName(true) + " jest teraz otwarty.");
+			setErrorMessage("Ten " + ((Entity)getOwner()).getDescriptionName() + " jest teraz otwarty.");
 			return false;
 		}
 		return super.isReachableForTakingThingsOutOfBy(entity);

@@ -1,20 +1,11 @@
-/*
- * @(#) src/games/stendhal/server/config/zone/PortalSetupXMLReader.java
- *
- * $Id: PortalSetupXMLReader.java,v 1.6 2009/02/25 23:42:53 astridemma Exp $
- */
-
 package games.stendhal.server.core.config.zone;
-
-//
-//
-
-import games.stendhal.server.core.config.XMLUtil;
 
 import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
+
+import games.stendhal.server.core.config.XMLUtil;
 
 /**
  * A portal entity setup xml reader.
@@ -25,13 +16,9 @@ public class PortalSetupXMLReader extends EntitySetupXMLReader {
 	 */
 	private static final Logger logger = Logger.getLogger(PortalSetupXMLReader.class);
 
-	//
-	// PortalSetupXMLReader
-	//
-
 	/**
 	 * Create a portal setup descriptor.
-	 * 
+	 *
 	 * @param element
 	 *            The entity setup XML element.
 	 * @param x
@@ -40,7 +27,7 @@ public class PortalSetupXMLReader extends EntitySetupXMLReader {
 	 *            The Y coordinate.
 	 * @param identifier
 	 *            The portal identifier.
-	 * 
+	 *
 	 * @return A portal setup descriptor.
 	 */
 	protected PortalSetupDescriptor read(final Element element, final int x,
@@ -50,7 +37,7 @@ public class PortalSetupXMLReader extends EntitySetupXMLReader {
 
 	/**
 	 * Read destination information from an XML element.
-	 * 
+	 *
 	 * @param desc
 	 *            The descriptor to load.
 	 * @param element
@@ -93,10 +80,10 @@ public class PortalSetupXMLReader extends EntitySetupXMLReader {
 
 	/**
 	 * Create a setup descriptor from XML data.
-	 * 
+	 *
 	 * @param element
 	 *            The descriptor XML element.
-	 * 
+	 *
 	 * @return A setup descriptor, or <code>null</code> if invalid.
 	 */
 	@Override
@@ -148,6 +135,11 @@ public class PortalSetupXMLReader extends EntitySetupXMLReader {
 			} else {
 				logger.error("Invalid 'replacing' value: " + s);
 			}
+		}
+
+		final Element associated = XMLUtil.getElement(element, "associated");
+		if (associated != null) {
+			desc.setAssociatedZones(associated.getAttribute("zones"));
 		}
 
 		return desc;

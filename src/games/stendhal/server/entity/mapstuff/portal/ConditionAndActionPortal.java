@@ -1,4 +1,4 @@
-/* $Id: ConditionAndActionPortal.java,v 1.4 2011/05/01 19:50:07 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +12,8 @@
  ***************************************************************************/
 package games.stendhal.server.entity.mapstuff.portal;
 
+import org.apache.log4j.Logger;
+
 import games.stendhal.common.parser.ConversationParser;
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.entity.RPEntity;
@@ -19,8 +21,6 @@ import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.player.Player;
-
-import org.apache.log4j.Logger;
 
 public class ConditionAndActionPortal extends AccessCheckingPortal {
 
@@ -54,10 +54,10 @@ public class ConditionAndActionPortal extends AccessCheckingPortal {
 
 	/**
 	 * Determine if this portal can be used.
-	 * 
+	 *
 	 * @param user
 	 *            The user to be checked.
-	 * 
+	 *
 	 * @return <code>true</code> if the user can use the portal.
 	 */
 	@Override
@@ -78,10 +78,10 @@ public class ConditionAndActionPortal extends AccessCheckingPortal {
 				action.fire((Player) user, ConversationParser.parse(user.get("text")), new EventRaiser(this));
 			} else {
 				logger.error("user is no instance of Player but: " + user, new Throwable());
+			}
 		}
-	}
 
 		return res;
 	}
-	
+
 }

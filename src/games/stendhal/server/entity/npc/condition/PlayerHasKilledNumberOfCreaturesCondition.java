@@ -1,4 +1,4 @@
-/* $Id: PlayerHasKilledNumberOfCreaturesCondition.java,v 1.6 2012/09/09 12:33:24 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,18 +12,19 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.condition;
 
-import games.stendhal.common.parser.Sentence;
-import games.stendhal.server.core.config.annotations.Dev;
-import games.stendhal.server.core.config.annotations.Dev.Category;
-import games.stendhal.server.entity.Entity;
-import games.stendhal.server.entity.npc.ChatCondition;
-import games.stendhal.server.entity.player.Player;
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import games.stendhal.common.parser.Sentence;
+import games.stendhal.server.constants.KillType;
+import games.stendhal.server.core.config.annotations.Dev;
+import games.stendhal.server.core.config.annotations.Dev.Category;
+import games.stendhal.server.entity.Entity;
+import games.stendhal.server.entity.npc.ChatCondition;
+import games.stendhal.server.entity.player.Player;
 
 /**
  * Checks if a player has killed the specified creature at least the specified number of times
@@ -37,15 +38,34 @@ public class PlayerHasKilledNumberOfCreaturesCondition implements ChatCondition 
 
 	private final Map<String, Integer> creatures;
 
+	private final KillType killType;
+
 	/**
 	 * Constructor to use condition with only one creature
 	 *
-	 * @param creature
-	 * @param numberOfKills
+	 * @param creature creature
+	 * @param numberOfKills number of kills
 	 */
-	public PlayerHasKilledNumberOfCreaturesCondition (String creature, Integer numberOfKills) {
+	public PlayerHasKilledNumberOfCreaturesCondition(final String creature, final Integer numberOfKills) {
 		creatures = new HashMap<String, Integer>();
 		creatures.put(creature, numberOfKills);
+		killType = KillType.ANY;
+	}
+
+	/**
+	 * Constructor to use condition with only one creature.
+	 *
+	 * @param creature
+	 * 		Creature name.
+	 * @param numberOfKills
+	 * 		Required number of kills.
+	 * @param killType
+	 * 		Required kill type: solo, shared, or either.
+	 */
+	public PlayerHasKilledNumberOfCreaturesCondition(final String creature, final Integer numberOfKills, final KillType killType) {
+		creatures = new HashMap<String, Integer>();
+		creatures.put(creature, numberOfKills);
+		this.killType = killType;
 	}
 
 	/**
@@ -54,9 +74,25 @@ public class PlayerHasKilledNumberOfCreaturesCondition implements ChatCondition 
 	 * @param kills map of creature name to kill and number of that creature to kill
 	 */
 	@Dev
-	public PlayerHasKilledNumberOfCreaturesCondition (Map<String, Integer> kills) {
+	public PlayerHasKilledNumberOfCreaturesCondition(final Map<String, Integer> kills) {
 		creatures = new HashMap<String, Integer>();
 		creatures.putAll(kills);
+		killType = KillType.ANY;
+	}
+
+	/**
+	 * Creates a condition to kill each creature with the name specified in
+	 * the map and the number as value
+	 *
+	 * @param kills
+	 * 		Map of creature name to kill and number of that creature to kill.
+	 * @param killType
+	 * 		Required kill type: solo, shared, or either.
+	 */
+	public PlayerHasKilledNumberOfCreaturesCondition(final Map<String, Integer> kills, final KillType killType) {
+		creatures = new HashMap<String, Integer>();
+		creatures.putAll(kills);
+		this.killType = killType;
 	}
 
 	/**
@@ -65,24 +101,70 @@ public class PlayerHasKilledNumberOfCreaturesCondition implements ChatCondition 
 	 * @param number the desired number
 	 * @param creatureNames the names of the creatures to kill
 	 */
-	public PlayerHasKilledNumberOfCreaturesCondition (Integer number, String... creatureNames) {
+	public PlayerHasKilledNumberOfCreaturesCondition(final Integer number, final String... creatureNames) {
 		creatures = new HashMap<String, Integer>();
 		List<String> names = Arrays.asList(creatureNames);
 		for (String name : names) {
 			creatures.put(name, number);
 		}
+		killType = KillType.ANY;
 	}
 
+	/**
+	 * Constructor to use when you want to let kill the same number of each
+	 * specified creature.
+	 *
+	 * @param number
+	 * 		Required number of kills.
+	 * @param killType
+	 * 		Required kill type: solo, shared, or either.
+	 * @param creatureNames
+	 * 		The names of the creatures to kill.
+	 */
+	public PlayerHasKilledNumberOfCreaturesCondition(final Integer number, final KillType killType, final String... creatureNames) {
+		creatures = new HashMap<String, Integer>();
+		List<String> names = Arrays.asList(creatureNames);
+		for (String name : names) {
+			creatures.put(name, number);
+		}
+		this.killType = killType;
+	}
+
+	@Override
 	public boolean fire(Player player, Sentence sentence, Entity npc) {
 		for (Entry<String, Integer> entry : creatures.entrySet()) {
-			int actualSharedKills = player.getSharedKill(entry.getKey());
-			int actualSoloKills = player.getSoloKill(entry.getKey());
-			int actualKills = actualSharedKills + actualSoloKills;
-			if (entry.getValue().intValue() > actualKills) {
-				return false;
+			final int soloKills = player.getSoloKill(entry.getKey());
+			final int sharedKills = player.getSharedKill(entry.getKey());
+
+			if (killType.solo()) {
+				if (entry.getValue().intValue() > soloKills) {
+					return false;
+				}
+			} else if (killType.shared()) {
+				if (entry.getValue().intValue() > sharedKills) {
+					return false;
+				}
+			} else {
+				if (entry.getValue().intValue() > (soloKills + sharedKills)) {
+					return false;
+				}
 			}
 		}
+
 		return true;
 	}
 
+	@Override
+	public int hashCode() {
+		return 43913 * (creatures.hashCode() + killType.hashCode());
+	}
+
+	@Override
+	public boolean equals(final Object obj) {
+		if (!(obj instanceof PlayerHasKilledNumberOfCreaturesCondition)) {
+			return false;
+		}
+		PlayerHasKilledNumberOfCreaturesCondition other = (PlayerHasKilledNumberOfCreaturesCondition) obj;
+		return creatures.equals(other.creatures) && killType.equals(other.killType);
+	}
 }

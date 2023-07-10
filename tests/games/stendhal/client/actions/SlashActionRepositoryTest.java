@@ -1,6 +1,5 @@
-/* $Id: SlashActionRepositoryTest.java,v 1.7 2010/11/25 21:01:07 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2015 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,8 +11,8 @@
  ***************************************************************************/
 package games.stendhal.client.actions;
 
-import static org.junit.Assert.*;
-import static org.junit.matchers.StringContains.containsString;
+import static org.hamcrest.core.StringContains.containsString;
+import static org.junit.Assert.assertThat;
 
 import org.junit.BeforeClass;
 import org.junit.Test;

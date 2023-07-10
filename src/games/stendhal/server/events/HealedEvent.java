@@ -1,4 +1,4 @@
-/* $Id: HealedEvent.java,v 1.4 2010/09/19 02:26:08 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,10 +12,10 @@
  ***************************************************************************/
 package games.stendhal.server.events;
 
-import marauroa.common.game.RPClass;
-import marauroa.common.game.RPEvent;
 import marauroa.common.game.Definition.DefinitionClass;
 import marauroa.common.game.Definition.Type;
+import marauroa.common.game.RPClass;
+import marauroa.common.game.RPEvent;
 
 /**
  * A healed event.
@@ -40,7 +40,7 @@ public class HealedEvent extends RPEvent {
 	 * @param amount amount of hp healed
 	 */
 	public HealedEvent(final int amount) {
-		super(RPCLASS_NAME);		
+		super(RPCLASS_NAME);
 		put(AMOUNT, amount);
 	}
 }

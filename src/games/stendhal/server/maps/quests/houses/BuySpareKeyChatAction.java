@@ -1,4 +1,4 @@
-/* $Id: BuySpareKeyChatAction.java,v 1.4 2011/05/01 19:50:06 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -22,7 +22,7 @@ import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.player.Player;
 
-/** The sale of a spare key has been agreed, player meets conditions, 
+/** The sale of a spare key has been agreed, player meets conditions,
  * here is the action to simply sell it. */
 final class BuySpareKeyChatAction extends HouseChatAction implements ChatAction {
 
@@ -31,6 +31,7 @@ final class BuySpareKeyChatAction extends HouseChatAction implements ChatAction 
 		super(questslot);
 	}
 
+	@Override
 	public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 		if (player.isEquipped("money", HouseChatAction.COST_OF_SPARE_KEY)) {
 
@@ -45,7 +46,7 @@ final class BuySpareKeyChatAction extends HouseChatAction implements ChatAction 
 				raiser.say("Przepraszam, ale stało się coś złego. Jest mi bardzo przykro.");
 				return;
 			}
-			
+
 			final int locknumber = houseportal.getLockNumber();
 			final String doorId = houseportal.getDoorId();
 			((HouseKey) key).setup(doorId, locknumber, player.getName());

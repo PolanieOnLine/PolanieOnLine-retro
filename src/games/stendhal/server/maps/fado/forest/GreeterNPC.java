@@ -1,6 +1,5 @@
-/* $Id: GreeterNPC.java,v 1.19 2011/06/27 16:07:57 madmetzger Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,20 +11,20 @@
  ***************************************************************************/
 package games.stendhal.server.maps.fado.forest;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
-import games.stendhal.server.entity.npc.ShopList;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.npc.behaviour.adder.SellerAdder;
 import games.stendhal.server.entity.npc.behaviour.impl.SellerBehaviour;
-
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import games.stendhal.server.entity.npc.shop.ShopsList;
 
 /**
  * Builds a Greeter NPC.
@@ -33,7 +32,7 @@ import java.util.Map;
  * @author kymara
  */
 public class GreeterNPC implements ZoneConfigurator {
-	private final ShopList shops = SingletonRepository.getShopList();
+	private final ShopsList shops = SingletonRepository.getShopsList();
 
 	/**
 	 * Configure a zone.
@@ -41,13 +40,13 @@ public class GreeterNPC implements ZoneConfigurator {
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildNPC(zone);
 	}
 
 	private void buildNPC(final StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Orchiwald") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -72,7 +71,6 @@ public class GreeterNPC implements ZoneConfigurator {
 				addReply(Arrays.asList("kamienie", "stones"), "Posiadają właściwości mistyczne. Lubimy być w pobliżu nich, gdy zmienia się pora roku.");
 				addHelp("Mógłbym sprzedać Ci zaczarowane zwoje, abyś mógł wrócić do Fado. Mam dojście do tanich zwojów.");
 				new SellerAdder().addSeller(this, new SellerBehaviour(shops.get("fadoscrolls")) {
-
 					@Override
 					public int getUnitPrice(final String item) {
 						// Player gets 20 % rebate
@@ -80,14 +78,14 @@ public class GreeterNPC implements ZoneConfigurator {
 					}
 				});
 				addQuest("Hojna oferta, ale niczego nie potrzebuję dziękuję.");
-				addGoodbye("Dowidzenia.");
+				addGoodbye("Do widzenia.");
 			}
 		};
 
-		npc.setDescription("Oto Orchiwald albino elf.");
+		npc.setDescription("Oto Orchiwald. Strasznie wyblakły elf.");
 		npc.setEntityClass("albinoelf2npc");
+		npc.setGender("M");
 		npc.setPosition(3, 12);
-		npc.initHP(100);
 		zone.add(npc);
 	}
 }

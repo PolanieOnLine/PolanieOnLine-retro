@@ -1,4 +1,4 @@
-/* $Id: AlterAction.java,v 1.8 2010/09/19 02:17:50 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -22,14 +22,15 @@ class AlterAction implements SlashAction {
 
 	/**
 	 * Executes a chat command.
-	 * 
+	 *
 	 * @param params
 	 *            The formal parameters.
 	 * @param remainder
 	 *            Line content after parameters.
-	 * 
+	 *
 	 * @return <code>true</code> if was handled.
 	 */
+	@Override
 	public boolean execute(final String[] params, final String remainder) {
 		if (hasInvalidArguments(params, remainder)) {
 			return false;
@@ -48,7 +49,7 @@ class AlterAction implements SlashAction {
 
 	/**
 	 * Checks whether the arguments passed are valid for execution.
-	 * 
+	 *
 	 * @param params to be evaluated
 	 * @param remainder to be evaluated
 	 * @return true if <code>params</code>.length too short or remainder is <code>null</code>
@@ -59,18 +60,20 @@ class AlterAction implements SlashAction {
 
 	/**
 	 * Gets the maximum number of formal parameters.
-	 * 
+	 *
 	 * @return The parameter count.
 	 */
+	@Override
 	public int getMaximumParameters() {
 		return 3;
 	}
 
 	/**
 	 * Gets the minimum number of formal parameters.
-	 * 
+	 *
 	 * @return The parameter count.
 	 */
+	@Override
 	public int getMinimumParameters() {
 		return 3;
 	}

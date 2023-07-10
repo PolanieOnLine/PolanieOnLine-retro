@@ -1,6 +1,5 @@
-/* $Id: ZoneStatistics.java,v 1.3 2010/09/19 02:36:26 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,16 +11,15 @@
  ***************************************************************************/
 package games.stendhal.server.script;
 
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.engine.StendhalRPWorld;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.scripting.ScriptImpl;
 import games.stendhal.server.entity.mapstuff.spawner.CreatureRespawnPoint;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.util.ObjectCounter;
-
-import java.util.List;
-import java.util.Map;
-
 import marauroa.common.game.IRPZone;
 
 /**
@@ -51,7 +49,7 @@ public class ZoneStatistics extends ScriptImpl {
 			sum = sum + entry.getValue() * entry.getKey();
 		}
 		int area = getNonCollisionArea(zone); // zone.getWidth() * zone.getHeight();
-		
+
 		System.out.print(zone.getName() + "\t");
 		System.out.print((sum * FACTOR / area) + "\t\t");
 		System.out.print(sum + "\t");

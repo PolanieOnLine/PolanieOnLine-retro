@@ -1,4 +1,4 @@
-/* $Id: TileSetDefinitionTest.java,v 1.1 2012/07/13 06:05:22 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -20,11 +20,11 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
-import marauroa.common.net.InputSerializer;
-import marauroa.common.net.OutputSerializer;
-
 import org.junit.Before;
 import org.junit.Test;
+
+import marauroa.common.net.InputSerializer;
+import marauroa.common.net.OutputSerializer;
 
 public class TileSetDefinitionTest {
 	private StendhalMapStructure map;
@@ -32,25 +32,23 @@ public class TileSetDefinitionTest {
 	@Before
 	public void setUp() {
 		map = new StendhalMapStructure(64, 64);
-		TileSetDefinition set = new TileSetDefinition("name1", 1);
-		set.setSource("source1");
+		TileSetDefinition set = new TileSetDefinition("name1", "source1", 1);
 		map.addTileset(set);
 
-		set = new TileSetDefinition("name2", 10);
-		set.setSource("source2");
+		set = new TileSetDefinition("name2", "source2", 10);
 		map.addTileset(set);
 
-		set = new TileSetDefinition("name3", 55);
-		set.setSource("source3");
+		set = new TileSetDefinition("name3", "source3", 55);
 		map.addTileset(set);
 
-		set = new TileSetDefinition("name4", 100);
-		set.setSource("source4");
+		set = new TileSetDefinition("name4", "source4", 100);
 		map.addTileset(set);
 	}
 
 	/**
 	 * Tests for serialization.
+	 *
+	 * @throws IOException
 	 */
 	@Test
 	public void testSerialization() throws IOException { //, ClassNotFoundException
@@ -74,8 +72,7 @@ public class TileSetDefinitionTest {
 		final List<TileSetDefinition> serializedTilesets = new LinkedList<TileSetDefinition>();
 
 		for (int i = 0; i < amount; i++) {
-			serializedTilesets.add((TileSetDefinition) in.readObject(new TileSetDefinition(
-					null, 0)));
+			serializedTilesets.add((TileSetDefinition) in.readObject(new TileSetDefinition(null, null, 0)));
 		}
 
 		assertEquals(tilesets, serializedTilesets);

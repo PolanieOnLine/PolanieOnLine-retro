@@ -1,4 +1,4 @@
-/* $Id: AttackStrategy.java,v 1.3 2012/06/26 17:48:44 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -31,7 +31,7 @@ public interface AttackStrategy extends PositioningStrategy, TargetSelectionStra
 
 	/**
 	 * Can the specified creature do an attack against a specified target?
-	 * 
+	 *
 	 * @param attacker creature doing the attack
 	 * @param target potential target
 	 *
@@ -48,8 +48,8 @@ public interface AttackStrategy extends PositioningStrategy, TargetSelectionStra
 
 	/**
 	 * Get the maximum range of the attacking creature.
-	 * 
-	 * @return maximum range 
+	 *
+	 * @return maximum range
 	 */
 	public int getRange();
 }

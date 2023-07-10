@@ -21,6 +21,7 @@ import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
+import games.stendhal.server.entity.CollisionAction;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 
 /**
@@ -31,20 +32,19 @@ import games.stendhal.server.entity.npc.SpeakerNPC;
  * @author omero
  */
 public class SickleingHalfelfNPC implements ZoneConfigurator {
-
 	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(StendhalRPZone zone, Map<String, String> attributes) {
 		buildNPC(zone);
 	}
 
 	private void buildNPC(StendhalRPZone zone) {
-		SpeakerNPC npc = new SpeakerNPC("Eheneumniranin") {
-
+		final SpeakerNPC npc = new SpeakerNPC("Eheneumniranin") {
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -56,27 +56,25 @@ public class SickleingHalfelfNPC implements ZoneConfigurator {
 				nodes.add(new Node(85, 107));
 				nodes.add(new Node(75, 107));
 				nodes.add(new Node(75, 96));
-
 				setPath(new FixedPath(nodes, true));
 			}
 
 			@Override
 			public void createDialog() {
-				addGreeting("Salve straniero...");
+				addGreeting("Witaj nieznajomy...");
 				addJob("Aby zebrać snop zboża moim #sierpem przed zabraniem go do młyna muszę... Jak się tutaj dostałem?... Gdybym mógł sobie przypomnieć...");
 				addHelp("Ha! Jakie nie warte i nie zasługujące jest pytanie o ujawnienie... Kim jestem?... Mgła przyćmiła moje myśli...");
 				addOffer("Oh?! Ponieważ miałem coś cennego chciałbym zaproponować spojrzenie prawdzie...");
-				addQuest("Ehh... Nie jestwem gotowy obarczać cię moimi problemami... Ale wpadaj do mnie od czasu do czasu, a może, któregoś dnia coś będę miał dla Ciebie i będę potrzebował twojej pomocy...");
 				addReply(Arrays.asList("sickle", "sierp", "sierpem"),"Użyteczne narzedzie rolnika tak jak kosa. Powinieneś zapytać jakiegoś kowala czy nie oferuje ostrych sierpów.");
-				addGoodbye("In bocca al lupo...");
+				addGoodbye("Powodzenia...");
 			}
-	
 		};
 
-		npc.setEntityClass("sickleinghalfelfnpc");
-		npc.setPosition(76,97);
-		npc.initHP(100);
 		npc.setDescription("Oto Eheneumniranin pół elf... Stracił pamięć i wygląda na zagubionego.");
+		npc.setEntityClass("sickleinghalfelfnpc");
+		npc.setGender("M");
+		npc.setPosition(76,97);
+		npc.setCollisionAction(CollisionAction.REVERSE); // So does not block straw carts
 		zone.add(npc);
 	}
 }

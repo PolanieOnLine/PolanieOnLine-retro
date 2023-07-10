@@ -1,5 +1,5 @@
 /***************************************************************************
- *                   (C) Copyright 2012 Faiumoni e. V.                     *
+ *                 (C) Copyright 2012-2022 Faiumoni e. V.                  *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,9 +29,9 @@ import org.apache.log4j.Logger;
 
 /**
  * loads data
- * 
+ *
  * @author hendrik
- * 
+ *
  */
 public class DataLoader {
 	private static Logger logger = Logger.getLogger(DataLoader.class);
@@ -42,20 +43,20 @@ public class DataLoader {
 	 * Finds the resource with the given name. A resource is some data (images,
 	 * audio, text, etc) that can be accessed by class code in a way that is
 	 * independent of the location of the code.
-	 * 
+	 *
 	 * <p>
 	 * The name of a resource is a '<tt>/</tt>'-separated path name that
 	 * identifies the resource.
-	 * 
+	 *
 	 * @param name
 	 *            The resource name
-	 * 
+	 *
 	 * @return A <tt>URL</tt> object for reading the resource, or <tt>null</tt>
 	 *         if the resource could not be found or the invoker doesn't have
 	 *         adequate privileges to get the resource.
 	 */
 	public static URL getResource(String name) {
-		String slashlessName = stripLeadingSlash(name);
+		String slashlessName = normalizeFilenames(name);
 		File file = contentFilenameMapping.get(slashlessName);
 		if (file != null) {
 			try {
@@ -69,22 +70,22 @@ public class DataLoader {
 
 	/**
 	 * Returns an input stream for reading the specified resource.
-	 * 
+	 *
 	 * <p>
 	 * The search order is described in the documentation for
 	 * {@link #getResource(String)}.
 	 * </p>
-	 * 
+	 *
 	 * @param name
 	 *            The resource name
-	 * 
+	 *
 	 * @return An input stream for reading the resource, or <tt>null</tt> if the
 	 *         resource could not be found
-	 * 
+	 *
 	 * @since 1.1
 	 */
 	public static InputStream getResourceAsStream(String name) {
-		String slashlessName = stripLeadingSlash(name);
+		String slashlessName = normalizeFilenames(name);
 		ZipFile file = contentZipFilesMapping.get(slashlessName);
 		if (file != null) {
 			ZipEntry entry = file.getEntry(slashlessName);
@@ -98,12 +99,13 @@ public class DataLoader {
 	}
 
 	/**
-	 * removes a leading slash
+	 * removes a leading slash and normalize parent references
 	 *
 	 * @param name filename with or without leading slash
 	 * @return filename without leading slash
 	 */
-	private static String stripLeadingSlash(String name) {
+	static String normalizeFilenames(String name) {
+		name = Paths.get(name).normalize().toString().replace('\\', '/');
 		if (name.length() < 1 || name.charAt(0) != '/') {
 			return name;
 		}
@@ -131,7 +133,7 @@ public class DataLoader {
 			while (entries.hasMoreElements()) {
 				ZipEntry entry = entries.nextElement();
 				if (!entry.isDirectory()) {
-					String name = stripLeadingSlash(entry.getName());
+					String name = normalizeFilenames(entry.getName());
 					contentFilenameMapping.put(name, file);
 					contentZipFilesMapping.put(name, zipFile);
 				}

@@ -1,6 +1,5 @@
-/* $Id: NameAction.java,v 1.6 2010/09/19 02:21:44 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,14 +11,13 @@
  ***************************************************************************/
 package games.stendhal.server.actions.pet;
 
+import java.util.List;
+
 import games.stendhal.server.actions.ActionListener;
 import games.stendhal.server.actions.CommandCenter;
 import games.stendhal.server.core.engine.GameEvent;
 import games.stendhal.server.entity.creature.DomesticAnimal;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.List;
-
 import marauroa.common.game.RPAction;
 
 /**
@@ -37,9 +35,10 @@ public class NameAction implements ActionListener {
 
 	/**
 	 * Handle the /name action.
-	 * @param player 
-	 * @param action 
+	 * @param player
+	 * @param action
 	 */
+	@Override
 	public void onAction(final Player player, final RPAction action) {
 		String curName = action.get("target");
 		String newName = action.get("args");
@@ -59,12 +58,12 @@ public class NameAction implements ActionListener {
 			do {
 				animal = player.searchAnimal(curName, false);
 				if (animal != null) {
-						// remove quotes, if present
-						if ((newName.charAt(0) == '\'') && (newName.charAt(newName.length() - 1) == '\'')) {
-							newName = newName.substring(1, newName.length() - 1);
-						}
+					// remove quotes, if present
+					if ((newName.charAt(0) == '\'') && (newName.charAt(newName.length() - 1) == '\'')) {
+						newName = newName.substring(1, newName.length() - 1);
+					}
 
-						newName = newName.trim();
+					newName = newName.trim();
 
 					// check only if the pet is actually named newName, rather than just recognises it
 					if (player.searchAnimal(newName, true) != null) {
@@ -79,16 +78,16 @@ public class NameAction implements ActionListener {
 
 							if (oldName != null) {
 								player.sendPrivateText("Zmieniłeś imię z '" + oldName + "' na '" + newName
-											+ "'");
+										+ "'");
 
-							} else {
-								player.sendPrivateText("Gratulacje. Twoje zwierzątko " + curName + " zwie się teraz '"
-										+ newName + "'.");
-							}
-							new GameEvent(player.getName(), "name", animal.getRPClass().getName(), newName).raise();
+						} else {
+							player.sendPrivateText("Gratulacje. Twoje zwierzątko " + curName + " zwie się teraz '"
+									+ newName + "'.");
 						}
-					} else {
-						player.sendPrivateText("Nie podałeś imienia.");
+						new GameEvent(player.getName(), "name", animal.getRPClass().getName(), newName).raise();
+					}
+				} else {
+					player.sendPrivateText("Nie podałeś imienia.");
 					}
 				} else {
 					// see if we can move the word separator one space to the

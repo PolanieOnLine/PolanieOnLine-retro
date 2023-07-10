@@ -1,7 +1,7 @@
 /*
  * @(#) src/games/stendhal/server/entity/portal/KeyedPortal.java
  *
- * $Id: KeyedPortal.java,v 1.4 2008/07/12 14:43:59 astridemma Exp $
+ * $Id$
  */
 
 package games.stendhal.server.entity.mapstuff.portal;
@@ -29,7 +29,7 @@ public class KeyedPortal extends AccessCheckingPortal {
 
 	/**
 	 * Creates a new keyed portal.
-	 * 
+	 *
 	 * @param key
 	 *            The name of the required key.
 	 */
@@ -39,7 +39,7 @@ public class KeyedPortal extends AccessCheckingPortal {
 
 	/**
 	 * Creates a new keyed portal.
-	 * 
+	 *
 	 * @param key
 	 *            The name of the required key.
 	 * @param quantity
@@ -51,7 +51,7 @@ public class KeyedPortal extends AccessCheckingPortal {
 
 	/**
 	 * Creates a new keyed portal.
-	 * 
+	 *
 	 * @param key
 	 *            The name of the required key.
 	 * @param quantity
@@ -72,10 +72,10 @@ public class KeyedPortal extends AccessCheckingPortal {
 
 	/**
 	 * Determine if this portal can be used.
-	 * 
+	 *
 	 * @param user
 	 *            The user to be checked.
-	 * 
+	 *
 	 * @return <code>true</code> if the user can use the portal.
 	 */
 	@Override

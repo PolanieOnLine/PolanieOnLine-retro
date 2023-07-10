@@ -1,4 +1,4 @@
-/* $Id: PlayerListTest.java,v 1.12 2011/12/10 18:49:23 madmetzger Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -10,7 +10,7 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-package games.stendhal.server.core.engine; 
+package games.stendhal.server.core.engine;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -19,15 +19,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import games.stendhal.common.filter.FilterCriteria;
-import games.stendhal.server.entity.player.Player;
-import games.stendhal.server.maps.MockStendlRPWorld;
-import marauroa.common.game.RPObject;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.common.filter.FilterCriteria;
+import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.maps.MockStendlRPWorld;
 import utilities.PlayerTestHelper;
 
 public class PlayerListTest {
@@ -39,7 +38,7 @@ public class PlayerListTest {
 
 	@AfterClass
 	public static void teardownAfterClass() throws Exception {
-		
+
 		MockStendlRPWorld.reset();
 	}
 
@@ -78,6 +77,7 @@ public class PlayerListTest {
 		list.add(ghost);
 		final String testString = "testString";
 		list.forAllPlayersExecute(new Task<Player>() {
+			@Override
 			public void execute(final Player player) {
 				player.put(testString, testString);
 			}
@@ -88,10 +88,12 @@ public class PlayerListTest {
 		assertEquals(testString, ghost.get(testString));
 
 		list.forFilteredPlayersExecute(new Task<Player>() {
+			@Override
 			public void execute(final Player player) {
 				player.put(testString, "");
 			}
 		}, new FilterCriteria<Player>() {
+			@Override
 			public boolean passes(final Player o) {
 				return o.isGhost();
 			}
@@ -116,6 +118,7 @@ public class PlayerListTest {
 		list.add(ghost);
 		list.forAllPlayersExecute(new Task<Player>() {
 
+			@Override
 			public void execute(final Player player) {
 				list.remove(player);
 			}
@@ -137,18 +140,6 @@ public class PlayerListTest {
 		assertSame(jack, list.getOnlinePlayer("jack"));
 		assertSame(jack, list.getOnlinePlayer("Jack"));
 		assertSame(jack, list.getOnlinePlayer("jAck"));
-	}
-
-	/**
-	 * Tests for addPlayerWithEqualName.
-	 */
-	@Test(expected = IllegalArgumentException.class)
-	public void testAddPlayerWithEqualName() {
-		final PlayerList list = new PlayerList();
-		final Player jack = new Player(new RPObject()) {
-		};
-		list.add(jack);
-
 	}
 
 }

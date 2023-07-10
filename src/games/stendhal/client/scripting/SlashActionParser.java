@@ -1,4 +1,4 @@
-/* $Id: SlashActionParser.java,v 1.14 2010/09/19 02:19:59 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,35 +12,35 @@
  ***************************************************************************/
 package games.stendhal.client.scripting;
 
+import java.text.CharacterIterator;
+
 import games.stendhal.client.actions.SlashActionRepository;
 import games.stendhal.common.CommandlineParser;
-
-import java.text.CharacterIterator;
 
 /**
  * Command line parser for the Stendhal client The parser recognizes the
  * registered slash action commands and handles string quoting.
- * 
+ *
  * @author Martin Fuchs
  */
-public class SlashActionParser extends CommandlineParser {
+class SlashActionParser extends CommandlineParser {
 
-	SlashActionParser(final String text) {
+	private SlashActionParser(final String text) {
 		super(text);
 	}
 
 	/**
 	 * Extract slash command from the command line start.
 	 *
-	 * @return the parsed SlashActionCommand 
+	 * @return the parsed SlashActionCommand
 	 */
-	protected SlashActionCommand extractCommand() {
+	private SlashActionCommand extractCommand() {
 		final SlashActionCommand command = new SlashActionCommand();
 
 		char ch = ci.current();
 
 		if (ch == CharacterIterator.DONE) {
-			command.setError("Brakuje slasha w poleceniu");
+			command.setError("Missing slash command");
 			return command;
 		}
 
@@ -48,7 +48,7 @@ public class SlashActionParser extends CommandlineParser {
 		 * Must be non-space after slash
 		 */
 		if (Character.isWhitespace(ch)) {
-			command.setError("Niespodziewany odstęp po znaku slash");
+			command.setError("Unexpected space after slash character");
 			return command;
 		}
 
@@ -84,12 +84,12 @@ public class SlashActionParser extends CommandlineParser {
 	 * Parse the given slash command. The text is supposed not to include the
 	 * slash character but to start directly after the slash on the client
 	 * command line.
-	 * 
+	 *
 	 * @param text
 	 *            the client command line
 	 * @return SlashActionCommand object
 	 */
-	public static SlashActionCommand parse(final String text) {
+	static SlashActionCommand parse(final String text) {
 		/*
 		 * Parse command
 		 */
@@ -171,7 +171,7 @@ public class SlashActionParser extends CommandlineParser {
 				 * Incomplete parameters?
 				 */
 				if (i < minimum) {
-					command.setError("Brakuje parametru w poleceniu '" + command.getName() + "'");
+					command.setError("Zabrakło parametru dla komendy '" + command.getName() + "'.");
 					return false;
 				}
 
@@ -189,6 +189,6 @@ public class SlashActionParser extends CommandlineParser {
 		}
 
 		return true;
-    }
+	}
 
 }

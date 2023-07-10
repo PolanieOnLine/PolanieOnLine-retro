@@ -1,4 +1,4 @@
-/* $Id: StackableItem.java,v 1.47 2011/05/25 21:20:58 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -12,16 +12,16 @@
  ***************************************************************************/
 package games.stendhal.server.entity.item;
 
-import games.stendhal.server.core.engine.SingletonRepository;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Map;
 
-import marauroa.common.game.RPObject;
-
 import org.apache.log4j.Logger;
+
+import games.stendhal.server.core.engine.SingletonRepository;
+import marauroa.common.game.RPObject;
+import marauroa.server.game.rp.DebugInterface;
 
 public class StackableItem extends Item implements Stackable<StackableItem> {
 
@@ -30,19 +30,20 @@ public class StackableItem extends Item implements Stackable<StackableItem> {
 
 	private static Logger logger = Logger.getLogger(StackableItem.class);
 
-	private static final String[] IMPORTANT_ATTRIBUTES = new String[] { "infostring", 
+	private static final String[] IMPORTANT_ATTRIBUTES = new String[] { "infostring",
 			"bound",
 			"persistent", "undroppableondeath", "amount", "frequency",
 			"regen", "atk", "range" };
-	
+
 	private static final String[] ATTRIBUTES_TO_COPY_ON_SPLIT = initializeAttributeNamesToCopy();
 
 	private static String[] initializeAttributeNamesToCopy() {
 		Collection<String> attsToCopy = new LinkedList<String>(Arrays.asList(IMPORTANT_ATTRIBUTES));
 		attsToCopy.add("description");
+		attsToCopy.add("dest");
 		return attsToCopy.toArray(new String[attsToCopy.size()]);
 	}
-	
+
 	public StackableItem(final String name, final String clazz, final String subclass,
 			final Map<String, String> attributes) {
 		super(name, clazz, subclass, attributes);
@@ -51,7 +52,7 @@ public class StackableItem extends Item implements Stackable<StackableItem> {
 
 	/**
 	 * Copy constructor.
-	 * 
+	 *
 	 * @param item
 	 *            item to copy
 	 */
@@ -78,6 +79,7 @@ public class StackableItem extends Item implements Stackable<StackableItem> {
 		return quantity;
 	}
 
+	@Override
 	public void setQuantity(final int amount) {
 		if (amount <= 0) {
 			logger.error("Trying to set invalid quantity: " + amount,
@@ -91,7 +93,7 @@ public class StackableItem extends Item implements Stackable<StackableItem> {
 
 	/**
 	 * Reduces Item's amount by amount.
-	 * 
+	 *
 	 * @param amount of reduction, negative numbers will be ignored.
 	 * @return remaining amount
 	 */
@@ -104,12 +106,14 @@ public class StackableItem extends Item implements Stackable<StackableItem> {
 		return getQuantity();
 	}
 
+	@Override
 	public int add(final StackableItem other) {
 		if (this.isStackable(other)) {
 			setQuantity(other.getQuantity() + getQuantity());
 			// set flag to false to prevent abuse by adding to a stackable in a corpse
 			// leading to a too high number awarded when looting
 			this.setFromCorpse(false);
+			DebugInterface.get().onRPObjectInteraction(this, other);
 		}
 		return getQuantity();
 	}
@@ -130,7 +134,7 @@ public class StackableItem extends Item implements Stackable<StackableItem> {
 					newItem.put(attribute, get(attribute));
 				}
 			}
-			
+
 			sub(amountToSplitOff);
 
 			if (getQuantity() > 0) {
@@ -165,6 +169,7 @@ public class StackableItem extends Item implements Stackable<StackableItem> {
 		splitOff(1);
 	}
 
+	@Override
 	public boolean isStackable(final StackableItem onTop) {
 		if (this == onTop) {
 			return false;
@@ -175,7 +180,7 @@ public class StackableItem extends Item implements Stackable<StackableItem> {
 			return false;
 		}
 
-		
+
 		for (final String iAtt : IMPORTANT_ATTRIBUTES) {
 			if (has(iAtt)) {
 				if (!onTop.has(iAtt) || !get(iAtt).equals(onTop.get(iAtt))) {
@@ -188,10 +193,12 @@ public class StackableItem extends Item implements Stackable<StackableItem> {
 		return true;
 	}
 
+	@Override
 	public int getCapacity() {
 		return capacity;
 	}
 
+	@Override
 	public void setCapacity(int capacity) {
 		this.capacity = capacity;
 	}

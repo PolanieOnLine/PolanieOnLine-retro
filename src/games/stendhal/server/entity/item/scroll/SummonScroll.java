@@ -1,5 +1,4 @@
-/* $Id: SummonScroll.java,v 1.29 2011/03/23 19:21:45 kymara Exp $
- /***************************************************************************
+/***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
  ***************************************************************************
@@ -12,13 +11,7 @@
  ***************************************************************************/
 package games.stendhal.server.entity.item.scroll;
 
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.core.rp.StendhalRPAction;
-import games.stendhal.server.core.rule.EntityManager;
-import games.stendhal.server.entity.creature.AttackableCreature;
-import games.stendhal.server.entity.creature.Creature;
-import games.stendhal.server.entity.player.Player;
+import static games.stendhal.server.maps.ados.wall.Deathmatch.playerInArena;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,18 +21,25 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.core.rp.StendhalRPAction;
+import games.stendhal.server.core.rule.EntityManager;
+import games.stendhal.server.entity.creature.AttackableCreature;
+import games.stendhal.server.entity.creature.Creature;
+import games.stendhal.server.entity.player.Player;
+
 /**
  * Represents a creature summon scroll.
  */
 public class SummonScroll extends Scroll {
-
 	private static final int MAX_ZONE_NPCS = 50;
 
 	private static final Logger logger = Logger.getLogger(SummonScroll.class);
 
 	/**
 	 * Creates a new summon scroll.
-	 * 
+	 *
 	 * @param name
 	 * @param clazz
 	 * @param subclass
@@ -52,7 +52,7 @@ public class SummonScroll extends Scroll {
 
 	/**
 	 * Copy constructor.
-	 * 
+	 *
 	 * @param item
 	 *            item to copy
 	 */
@@ -62,7 +62,7 @@ public class SummonScroll extends Scroll {
 
 	/**
 	 * Is invoked when a summon scroll is used.
-	 * 
+	 *
 	 * @param player
 	 *            The player who used the scroll
 	 * @return true iff summoning was successful
@@ -71,7 +71,7 @@ public class SummonScroll extends Scroll {
 	protected boolean useScroll(final Player player) {
 		final StendhalRPZone zone = player.getZone();
 
-		if (zone.isInProtectionArea(player)) {
+		if (zone.isInProtectionArea(player) && !playerInArena(player)) {
 			player.sendPrivateText("Aura ochronna w tym obszarze blokuje działanie zwoju!");
 			return false;
 		}
@@ -100,7 +100,7 @@ public class SummonScroll extends Scroll {
 			final int magiclevel = 4;
 			final List<Creature> possibleCreatures = new ArrayList<Creature>();
 			for (final Creature creature : creatures) {
-				if (creature.getLevel() <= magiclevel && !creature.isRare() && !creature.get("class").equals("pol/niesmiertelne") && !creature.get("name").equals("motylek")) {
+				if (creature.getLevel() <= magiclevel && !creature.isAbnormal()) {
 					possibleCreatures.add(creature);
 				}
 			}
@@ -126,7 +126,7 @@ public class SummonScroll extends Scroll {
 			profiles.remove("stupid coward");
 			creature.setAIProfiles(profiles);
 		}
-	
+
 		StendhalRPAction.placeat(zone, creature, x, y);
 
 		creature.init();
@@ -136,7 +136,7 @@ public class SummonScroll extends Scroll {
 
 		return true;
 	}
-	
+
 	@Override
 	public String describe() {
 		String text = super.describe();

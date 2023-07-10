@@ -1,4 +1,4 @@
-/* $Id: Path.java,v 1.9 2010/08/29 22:29:18 yoriy Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -12,15 +12,15 @@
  ***************************************************************************/
 package games.stendhal.server.core.pathfinder;
 
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.entity.Entity;
-import games.stendhal.server.entity.GuidedEntity;
-
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.entity.Entity;
+import games.stendhal.server.entity.GuidedEntity;
 
 public abstract class Path {
 
@@ -28,20 +28,23 @@ public abstract class Path {
 	private static final Logger logger = Logger.getLogger(Path.class);
 
 	/**
-	 * Get a reasonable maximum path lenght to search
-	 * 
-	 * @param entity moving Entity
-	 * @param x destination x
-	 * @param y destination y
+	 * Get a reasonable maximum path length to search
+	 *
+	 * @param entity
+	 *        moving Entity
+	 * @param x
+	 *        destination x
+	 * @param y
+	 *        destination y
 	 * @return distance
 	 */
 	private static int defaultMaximumDistance(final Entity entity, final int x, final int y) {
 		/*
-		 * Pathfinding can be expensive for long distances, 
+		 * Pathfinding can be expensive for long distances,
 		 * so don't allow arbitrary length searches.
 		 */
 		int manhattan = Math.abs(x - entity.getX()) + Math.abs(y - entity.getY());
-		return Math.max(2 * manhattan, 40);
+		return Math.max(4 * manhattan, 80);
 	}
 
 	//
@@ -50,14 +53,14 @@ public abstract class Path {
 
 	/**
 	 * Finds a path for the Entity <code>entity</code>.
-	 * 
+	 *
 	 * @param entity
 	 *            the Entity
-	 * @param ex 
+	 * @param ex
 	 *            destination x
 	 * @param ey
 	 *            destination y
-	 *             
+	 *
 	 * @return a list with the path nodes or an empty list if no path is found
 	 */
 	public static List<Node> searchPath(final Entity entity, final int ex, final int ey) {
@@ -67,7 +70,7 @@ public abstract class Path {
 
 	/**
 	 * Finds a path for the Entity <code>entity</code>.
-	 * 
+	 *
 	 * @param entity
 	 *            the Entity
 	 * @param x
@@ -88,7 +91,7 @@ public abstract class Path {
 
 	/**
 	 * Finds a path for the Entity <code>entity</code>.
-	 * 
+	 *
 	 * @param sourceEntity
 	 *            the Entity
 	 * @param zone
@@ -101,7 +104,7 @@ public abstract class Path {
 	 *            the destination area
 	 * @param maxDistance
 	 *            the maximum distance (air line) a possible path may be
-	 * @param withEntities 
+	 * @param withEntities
 	 * @return a list with the path nodes or an empty list if no path is found
 	 */
 	public static List<Node> searchPath(final Entity sourceEntity,
@@ -121,7 +124,7 @@ public abstract class Path {
 
 		final List<Node> resultPath = pathfinder.getPath();
 		if (logger.isDebugEnabled()
-				&& (pathfinder.getStatus() == EntityPathfinder.PATH_NOT_FOUND)) {
+				&& (pathfinder.getStatus() == Pathfinder.PATH_NOT_FOUND)) {
 			logger.debug("Pathfinding aborted: " + zone.getID() + " "
 					+ sourceEntity.getTitle() + " (" + x + ", " + y + ") "
 					+ destination + " Pathfinding time: "
@@ -130,17 +133,17 @@ public abstract class Path {
 
 		return resultPath;
 	}
-	
+
 	/**
 	 * Find an one tile wide path. Entities on the map are ignored.
-	 * 
+	 *
 	 * @param zone zone to search
-	 * @param startX x coordinate of the starting point 
+	 * @param startX x coordinate of the starting point
 	 * @param startY y coordinate of the starting point
 	 * @param destX x coordinate of the destination
 	 * @param destY y coordinate of the destination
 	 * @param maxDistance maximum search distance
-	 * 
+	 *
 	 * @return found path, or an empty list if no path was found
 	 */
 	public static List<Node> searchPath(final StendhalRPZone zone, final int startX, final int startY, final int destX,
@@ -152,7 +155,7 @@ public abstract class Path {
 	/**
 	 * Finds a path for the Entity <code>entity</code> to the other Entity
 	 * <code>dest</code>.
-	 * 
+	 *
 	 * @param entity
 	 *            the Entity (also start point)
 	 * @param dest
@@ -164,12 +167,12 @@ public abstract class Path {
 	public static List<Node> searchPath(final Entity entity, final Entity dest,
 			final double maxDistance) {
 		/*
-		 * Choose destination area so that the result corresponds to 
+		 * Choose destination area so that the result corresponds to
 		 * any part of the entities being next to each other
 		 */
-		final Rectangle2D area = new Rectangle((int) (dest.getX() - entity.getWidth()), 
+		final Rectangle2D area = new Rectangle((int) (dest.getX() - entity.getWidth()),
 				(int) (dest.getY() - entity.getHeight()),
-				(int) (dest.getWidth() + entity.getWidth() + 1), 
+				(int) (dest.getWidth() + entity.getWidth() + 1),
 				(int) (dest.getHeight() + entity.getHeight() + 1));
 
 		return searchPath(entity, entity.getX(), entity.getY(), area, maxDistance);
@@ -178,7 +181,7 @@ public abstract class Path {
 	/**
 	 * Follow the current path (if any) by pointing the direction toward the
 	 * next destination point.
-	 * 
+	 *
 	 * @param entity
 	 *            The entity to point.
 	 * @return true if done with path

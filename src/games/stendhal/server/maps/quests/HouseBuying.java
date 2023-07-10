@@ -1,6 +1,5 @@
-/* $Id: HouseBuying.java,v 1.63 2011/11/13 17:13:16 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -28,31 +27,30 @@ public class HouseBuying extends AbstractQuest {
 
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
-
 		quest = new HouseBuyingMain();
 		quest.addToWorld();
-		
+
 		fillQuestInfo(
 				"Kupno Domu",
-				"Mieszkania można kupić w całej Faiumoni i ziemiach Polan.",
+				"Mieszkania można kupić w całej Faiumoni i na ziemiach Polan.",
 				false);
 	}
-	
+
+	@Override
 	public LinkedList<String> getHistory(final Player player) {
 		return quest.getHistory(player);
 	}
-	
+
 	@Override
 	public String getName() {
-		return "HouseBuying";
+		return "Kupno Domu";
 	}
-	
+
 	@Override
 	public int getMinLevel() {
 		return 50;
 	}
-	
+
 	@Override
 	public boolean isCompleted(final Player player) {
 		return quest.isCompleted(player);

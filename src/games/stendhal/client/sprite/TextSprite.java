@@ -1,4 +1,4 @@
-/* $Id: TextSprite.java,v 1.7 2012/07/16 16:15:17 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -17,26 +17,27 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
 import java.awt.Image;
-import java.awt.Transparency;
 import java.awt.font.LineMetrics;
 import java.awt.image.BufferedImage;
+
+import games.stendhal.client.gui.TransparencyMode;
 
 /**
  * Outlined text representation of a string.
  */
 public class TextSprite extends ImageSprite {
-	// needed only because there's no other reliable way to calculate 
+	// needed only because there's no other reliable way to calculate
 	// string widths other than having a Graphics object
-	private static final Graphics graphics = (new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB)).getGraphics(); 
-	
-	protected TextSprite(Image image) {
+	private static final Graphics graphics = (new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB)).getGraphics();
+
+	private TextSprite(Image image) {
 		super(image);
 	}
-	
+
 	/**
 	 * Create a new <code>TextSprite</code>
-	 * 
-	 * @param text The text to be rendered 
+	 *
+	 * @param text The text to be rendered
 	 * @param textColor Color of the text
 	 * @return TextSprite with the wanted text
 	 */
@@ -45,18 +46,18 @@ public class TextSprite extends ImageSprite {
 		FontMetrics metrics = graphics.getFontMetrics();
 		LineMetrics lm = metrics.getLineMetrics(text, graphics);
 		final Image image = gc.createCompatibleImage(metrics.stringWidth(text)
-				+ 2, Math.round(lm.getHeight()) + 2, Transparency.BITMASK);
+				+ 2, Math.round(lm.getHeight()) + 2, TransparencyMode.TRANSPARENCY);
 
 		drawOutlineString(image, textColor, text, 1, Math.round(lm.getAscent()));
 
 		return new TextSprite(image);
 	}
-	
+
 	/**
 	 * Draw a text string (like <em>Graphics</em><code>.drawString()</code>)
 	 * only with an outline border. The area drawn extends 1 pixel out on all
 	 * side from what would normal be drawn by drawString().
-	 * 
+	 *
 	 * @param image image to draw to
 	 * @param textColor The text color.
 	 * @param text The text to draw.
@@ -79,7 +80,7 @@ public class TextSprite extends ImageSprite {
 		}
 		drawOutlineString(image, textColor, outlineColor, text, x, y);
 	}
-	
+
 	/**
 	 * Draw a text string (like <em>Graphics</em><code>.drawString()</code>)
 	 * only with an outline border. The area drawn extends 1 pixel out on all
@@ -103,7 +104,7 @@ public class TextSprite extends ImageSprite {
 			final int y) {
 		Graphics g = image.getGraphics();
 		g.setColor(outlineColor);
-		
+
 		// The same text will be drawn eight times to create a border
 		// note that this is not a good solution, but re-using the image
 		// to draw it again doesn't work on Mac OSX

@@ -1,4 +1,4 @@
-/* $Id: MockParentClass.java,v 1.4 2010/09/19 02:38:47 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -19,9 +19,9 @@ package games.stendhal.server.core.reflectiondebugger;
  */
 public class MockParentClass {
 	public String parentPublicString = "text";
-	
+
 	// this class is used by reflection
 	@SuppressWarnings("unused")
 	private int parentPrivateInt = 1;
-	
+
 }

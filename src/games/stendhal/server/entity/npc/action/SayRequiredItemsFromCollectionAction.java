@@ -1,4 +1,3 @@
-/* $Id: SayRequiredItemsFromCollectionAction.java,v 1.7 2012/09/09 12:19:56 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +11,13 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.action;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.common.grammar.Grammar;
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
@@ -22,13 +28,6 @@ import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.util.ItemCollection;
 import games.stendhal.server.util.StringUtils;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.apache.log4j.Logger;
-
 /**
  * States the name of the items missing from a quest slot with items like item=amount;item2=amount2;item3=amount3
  *
@@ -36,10 +35,12 @@ import org.apache.log4j.Logger;
  */
 @Dev(category=Category.ITEMS_OWNED, label="\"...\"")
 public class SayRequiredItemsFromCollectionAction implements ChatAction {
-	private static Logger logger = Logger.getLogger(DropRecordedItemAction.class);
+	private static Logger logger = Logger.getLogger(SayRequiredItemsFromCollectionAction.class);
 
 	private final String questname;
 	private final String message;
+	private final int index;
+	private final boolean commaString;
 
 	/**
 	 * Creates a new SayRequiredItemssFromCollectionAction.
@@ -50,10 +51,49 @@ public class SayRequiredItemsFromCollectionAction implements ChatAction {
 	 *            message with substitution [items] for the list of items
 	 */
 	public SayRequiredItemsFromCollectionAction(final String questname, final String message) {
-		this.questname = questname;
-		this.message = message;
+		this.questname = checkNotNull(questname);
+		this.index = 0;
+		this.message = checkNotNull(message);
+		this.commaString = false;
 	}
 
+	/**
+	 * Creates a new SayRequiredItemssFromCollectionAction.
+	 *
+	 * @param questname
+	 *            name of quest-slot to check
+	 * @param index index of sub state
+	 * @param message
+	 *            message with substitution [items] for the list of items
+	 */
+	public SayRequiredItemsFromCollectionAction(final String questname, final int index, final String message) {
+		this.questname = checkNotNull(questname);
+		this.index = index;
+		this.message = checkNotNull(message);
+		this.commaString = false;
+	}
+
+	/*
+	 * Hack to get items from quest state index using comma-separated string.
+	 */
+	public SayRequiredItemsFromCollectionAction(final String questname, final String message, final boolean commaString) {
+		this.questname = questname;
+		this.index = 0;
+		this.message = checkNotNull(message);
+		this.commaString = commaString;
+	}
+
+	/*
+	 * Hack to get items from quest state index using comma-separated string.
+	 */
+	public SayRequiredItemsFromCollectionAction(final String questname, final int index, final String message, final boolean commaString) {
+		this.questname = questname;
+		this.index = index;
+		this.message = checkNotNull(message);
+		this.commaString = commaString;
+	}
+
+	@Override
 	public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 		if (!player.hasQuest(questname)) {
 			logger.error(player.getName() + " does not have quest " + questname);
@@ -75,7 +115,12 @@ public class SayRequiredItemsFromCollectionAction implements ChatAction {
 	private ItemCollection getMissingItems(final Player player) {
 		final ItemCollection missingItems = new ItemCollection();
 
-		missingItems.addFromQuestStateString(player.getQuest(questname));
+		// Hack to get items from quest state index using comma-separated string.
+		if (!commaString) {
+			missingItems.addFromQuestStateString(player.getQuest(questname), index);
+		} else {
+			missingItems.addFromString(player.getQuest(questname, index));
+		}
 
 		return missingItems;
 	}
@@ -85,16 +130,20 @@ public class SayRequiredItemsFromCollectionAction implements ChatAction {
 		return "SayRequiredItemsFromCollectionAction <" + questname +  "\"," + message + ">";
 	}
 
-
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 5393 * (questname.hashCode() + 5407 * (message.hashCode() + 5413 * index));
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				SayRequiredItemsFromCollectionAction.class);
+		if (!(obj instanceof SayRequiredItemsFromCollectionAction)) {
+			return false;
+		}
+		SayRequiredItemsFromCollectionAction other = (SayRequiredItemsFromCollectionAction) obj;
+		return (index == other.index)
+			&& questname.equals(other.questname)
+			&& message.equals(other.message);
 	}
 
 }

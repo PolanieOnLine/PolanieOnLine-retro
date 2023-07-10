@@ -1,6 +1,5 @@
-/* $Id: Log4J.java,v 1.2 2010/09/19 02:36:26 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -21,7 +20,7 @@ import games.stendhal.server.core.scripting.ScriptImpl;
 import games.stendhal.server.entity.player.Player;
 /**
  * Script to change log level of certain loggers at runtime
- * 
+ *
  * Parameters:
  * 1. full qualified class name where the logger is used
  * 2. log level as defined by log4j
@@ -33,13 +32,13 @@ import games.stendhal.server.entity.player.Player;
  *    - OFF
  *    - TRACE
  *    - ALL
- *    
+ *
  * For log level names see also the log4j documentation
- *  
+ *
  * @author madmetzger
  */
 public class Log4J extends ScriptImpl {
-	
+
 	@Override
 	public void execute(Player admin, List<String> args) {
 		super.execute(admin, args);

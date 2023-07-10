@@ -1,4 +1,3 @@
-/* $Id: DeathmatchState.java,v 1.22 2010/12/03 20:09:35 martinfuchs Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -20,14 +19,11 @@ import java.util.Date;
  * @author hendrik
  */
 public class DeathmatchState {
-
 	private DeathmatchLifecycle lifecycleState = null;
 
 	private int level;
-
 	private long date;
-
-        private int points;
+	private int points;
 
 	protected DeathmatchState() {
 		// hide constructor
@@ -88,11 +84,9 @@ public class DeathmatchState {
 		this.level = level;
 	}
 
-
 	void increaseQuestlevel() {
 		this.level++;
 	}
-
 
 	/**
 	 * Gets the DM points earned in this DM
@@ -102,7 +96,6 @@ public class DeathmatchState {
 	int getPoints() {
 		return points;
 	}
-
 
 	/**
 	 * Adds some DM points.

@@ -1,6 +1,5 @@
-/* $Id: StopAction.java,v 1.5 2010/02/07 17:01:29 nhnb Exp $ */
 /***************************************************************************
- *                      (C) Copyright 2003 - Marauroa                      *
+ *                   (C) Copyright 2003-2013 - Marauroa                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -13,22 +12,27 @@
 package games.stendhal.server.actions.attack;
 
 import static games.stendhal.common.constants.Actions.ATTACK;
+
 import games.stendhal.server.actions.ActionListener;
 import games.stendhal.server.actions.CommandCenter;
 import games.stendhal.server.entity.player.Player;
 import marauroa.common.game.RPAction;
 
+/**
+ * stops attacking another creature or player
+ */
 public class StopAction implements ActionListener {
 
-
-
+	/**
+	 * register action
+	 */
 	public static void register() {
 		CommandCenter.register("stop", new StopAction());
 	}
 
+	@Override
 	public void onAction(final Player player, final RPAction action) {
-
-		player.stop();
+		player.requestStop();
 
 		if (action.has(ATTACK)) {
 			player.stopAttack();

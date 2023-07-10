@@ -1,4 +1,4 @@
-/* $Id: PublicTextEvent.java,v 1.2 2010/09/19 02:17:47 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -14,20 +14,21 @@ package games.stendhal.client.events;
 
 import games.stendhal.client.entity.RPEntity;
 
-
 /**
  * public chat and creature (text) noise.
  *
  * @author hendrik
  */
-public class PublicTextEvent extends Event<RPEntity> {
-
+class PublicTextEvent extends Event<RPEntity> {
 	/**
 	 * executes the event
 	 */
 	@Override
 	public void execute() {
-		entity.onTalk(event.get("text"));
+		if (event.has("range")) {
+			entity.onTalk(event.get("text"), event.getInt("range"));
+		} else {
+			entity.onTalk(event.get("text"));
+		}
 	}
-
 }

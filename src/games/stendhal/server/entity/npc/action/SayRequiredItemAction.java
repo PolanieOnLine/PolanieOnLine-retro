@@ -1,4 +1,4 @@
-/* $Id: SayRequiredItemAction.java,v 1.12 2012/09/09 12:19:56 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +12,13 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.action;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.common.grammar.Grammar;
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
@@ -20,13 +27,6 @@ import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.util.StringUtils;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.apache.log4j.Logger;
 
 /**
  * States the name of the item, with formatting/grammar rules, stored in the quest slot
@@ -38,7 +38,7 @@ import org.apache.log4j.Logger;
  */
 @Dev(category=Category.ITEMS_OWNED, label="\"...\"")
 public class SayRequiredItemAction implements ChatAction {
-	private static Logger logger = Logger.getLogger(DropRecordedItemAction.class);
+	private static Logger logger = Logger.getLogger(SayRequiredItemAction.class);
 
 	private final String questname;
 	private final String message;
@@ -56,9 +56,9 @@ public class SayRequiredItemAction implements ChatAction {
 	 */
 	@Dev
 	public SayRequiredItemAction(final String questname, @Dev(defaultValue="1") final int index, final String message) {
-		this.questname = questname;
+		this.questname = checkNotNull(questname);
 		this.index = index;
-		this.message = message;
+		this.message = checkNotNull(message);
 	}
 	/**
 	 * Creates a new SayRequiredItemAction.
@@ -69,11 +69,12 @@ public class SayRequiredItemAction implements ChatAction {
 	 * 		      message with substitution defined for item: [item], [#item], or [the item]
 	 */
 	public SayRequiredItemAction(final String questname, final String message) {
-		this.questname = questname;
-		this.message = message;
+		this.questname = checkNotNull(questname);
+		this.message = checkNotNull(message);
 		this.index = -1;
 	}
 
+	@Override
 	public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 		if (!player.hasQuest(questname)) {
 			logger.error(player.getName() + " does not have quest " + questname);
@@ -83,7 +84,7 @@ public class SayRequiredItemAction implements ChatAction {
 			int amount = player.getRequiredItemQuantity(questname, index);
 
 			Map<String, String> substitutes = new HashMap<String, String>();
-			substitutes.put("item", Grammar.quantityplnoun(amount, itemname, "a"));
+			substitutes.put("item", Grammar.quantityplnoun(amount, itemname));
 			substitutes.put("#item", Grammar.quantityplnounWithHash(amount, itemname));
 			substitutes.put("the item", "the " + Grammar.plnoun(amount, itemname));
 
@@ -96,16 +97,20 @@ public class SayRequiredItemAction implements ChatAction {
 		return "SayRequiredItemAction <" + questname +  "\"," + index + ",\"" + message + ">";
 	}
 
-
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 5393 * (questname.hashCode() + 5407 * (message.hashCode() + 5413 * index));
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				SayRequiredItemAction.class);
+		if (!(obj instanceof SayRequiredItemAction)) {
+			return false;
+		}
+		SayRequiredItemAction other = (SayRequiredItemAction) obj;
+		return (index == other.index)
+			&& questname.equals(other.questname)
+			&& message.equals(other.message);
 	}
 
 }

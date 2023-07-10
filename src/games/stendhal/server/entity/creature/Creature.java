@@ -1,4 +1,3 @@
-/* $Id: Creature.java,v 1.240 2012/07/10 20:38:22 kiheru Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2012 - Stendhal                    *
  ***************************************************************************
@@ -12,11 +11,21 @@
  ***************************************************************************/
 package games.stendhal.server.entity.creature;
 
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.common.Level;
 import games.stendhal.common.Rand;
 import games.stendhal.common.constants.Nature;
-import games.stendhal.common.grammar.Grammar;
-import games.stendhal.server.core.engine.GameEvent;
+import games.stendhal.common.constants.Occasion;
+import games.stendhal.common.constants.SoundLayer;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPRuleProcessor;
 import games.stendhal.server.core.engine.StendhalRPZone;
@@ -25,6 +34,7 @@ import games.stendhal.server.core.pathfinder.Node;
 import games.stendhal.server.core.pathfinder.Path;
 import games.stendhal.server.core.rule.EntityManager;
 import games.stendhal.server.entity.Entity;
+import games.stendhal.server.entity.Killer;
 import games.stendhal.server.entity.RPEntity;
 import games.stendhal.server.entity.Registrator;
 import games.stendhal.server.entity.creature.impl.DropItem;
@@ -35,34 +45,27 @@ import games.stendhal.server.entity.creature.impl.heal.HealerBehavior;
 import games.stendhal.server.entity.creature.impl.heal.HealerBehaviourFactory;
 import games.stendhal.server.entity.creature.impl.idle.IdleBehaviour;
 import games.stendhal.server.entity.creature.impl.idle.IdleBehaviourFactory;
-import games.stendhal.server.entity.creature.impl.poison.Attacker;
-import games.stendhal.server.entity.creature.impl.poison.PoisonerFactory;
 import games.stendhal.server.entity.item.Corpse;
 import games.stendhal.server.entity.item.Item;
+import games.stendhal.server.entity.item.OrcDisguise;
 import games.stendhal.server.entity.item.StackableItem;
 import games.stendhal.server.entity.mapstuff.spawner.CreatureRespawnPoint;
 import games.stendhal.server.entity.npc.NPC;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.entity.slot.EntitySlot;
+import games.stendhal.server.entity.status.BloodAttackerFactory;
+import games.stendhal.server.entity.status.PoisonAttackerFactory;
+import games.stendhal.server.entity.status.StatusAttacker;
+import games.stendhal.server.entity.status.StatusAttackerFactory;
+import games.stendhal.server.events.SoundEvent;
 import games.stendhal.server.util.CounterMap;
-
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Observer;
-
+import games.stendhal.server.util.Observer;
 import marauroa.common.game.Definition;
+import marauroa.common.game.Definition.Type;
 import marauroa.common.game.RPClass;
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPSlot;
 import marauroa.common.game.SyntaxException;
-import marauroa.common.game.Definition.Type;
-
-import org.apache.log4j.Logger;
 
 /**
  * Server-side representation of a creature.
@@ -88,7 +91,7 @@ public class Creature extends NPC {
 
 	private AttackStrategy strategy;
 
-	
+
 	/**
 	 * This list of item names this creature may drop Note; per default this list
 	 * is shared with all creatures of that class.
@@ -101,14 +104,22 @@ public class Creature extends NPC {
 	 */
 	protected List<Item> dropItemInstances;
 
+	/** Sound played on death */
+	private String deathSound;
+
+	// A looped sound to be played while creature is moving
+	private String movementSound;
+	private SoundEvent movementSoundEvent;
+
 	/**
 	 * List of things this creature should say.
 	 */
 	protected LinkedHashMap<String, LinkedList<String>> noises;
 
 	boolean isRespawned;
-	
+
 	private String corpseName;
+	private String harmlessCorpseName;
 	private int corpseWidth = 1;
 	private int corpseHeight = 1;
 
@@ -117,27 +128,22 @@ public class Creature extends NPC {
 	/** Respawn time in turns */
 	private int respawnTime;
 
-	private int resistance;
-
-	private int visibility;
-
 	private Map<String, String> aiProfiles;
-	private Attacker poisoner; 
-	private IdleBehaviour idler; 
-	
+	private IdleBehaviour idler;
+
 	private int targetX;
 
 	private int targetY;
-	
+
 	private final int attackTurn = Rand.rand(5);
 
-	private boolean isIdle; 
+	private boolean isIdle;
 
 	/** The type of the damage this creature does */
 	private Nature damageType = Nature.CUT;
 	/** The type of the damage this creature does in ranged attacks */
 	private Nature rangedDamageType = Nature.CUT;
-	
+
 	/** Susceptibilities to various damage types this creature has */
 	private Map<Nature, Double> susceptibilities;
 
@@ -164,12 +170,12 @@ public class Creature extends NPC {
 		dropsItems = new ArrayList<DropItem>();
 		dropItemInstances = new ArrayList<Item>();
 		setAIProfiles(new HashMap<String, String>());
-		
+
 		susceptibilities = new EnumMap<Nature, Double>(Nature.class);
 
 		// set the default movement range
 		setMovementRange(20);
-		
+
 		updateModifiedAttributes();
 	}
 
@@ -183,8 +189,9 @@ public class Creature extends NPC {
 
 		this.baseSpeed = copy.baseSpeed;
 		setSize((int) copy.getWidth(), (int) copy.getHeight());
-		
-		setCorpse(copy.getCorpseName(), copy.getCorpseWidth(), copy.getCorpseHeight());
+
+		setCorpse(copy.getCorpseName(), copy.getHarmlessCorpseName(), copy.getCorpseWidth(), copy.getCorpseHeight());
+		setBlood(copy.getBloodClass());
 
 		/**
 		 * Creatures created with this function will share their dropsItems with
@@ -196,10 +203,15 @@ public class Creature extends NPC {
 		}
 		// this.dropItemInstances is ignored;
 
-		this.setAIProfiles(copy.getAIProfiles());
+		this.setAIProfiles(copy.getAIProfiles(), false);
+		this.statusAttackers = copy.statusAttackers;
 		this.noises = copy.noises;
 
-		this.respawnTime = copy.respawnTime;
+		if (Occasion.MOREXP || Occasion.SECOND_WORLD) {
+			this.respawnTime = (int) ((copy.respawnTime)*0.8);
+		} else {
+			this.respawnTime = copy.respawnTime;
+		}
 		susceptibilities = copy.susceptibilities;
 		setDamageTypes(copy.damageType, copy.rangedDamageType);
 
@@ -207,27 +219,56 @@ public class Creature extends NPC {
 		setEntitySubclass(copy.get("subclass"));
 
 		setDescription(copy.getDescription());
-		setAtk(copy.getAtk());
-		setDef(copy.getDef());
-		setXP(copy.getXP());
-		initHP(copy.getBaseHP());
+		if (Occasion.SECOND_WORLD) {
+			setAtk((int) (copy.getAtk() * 1.05));
+			setRatk((int) (copy.getRatk() * 1.05));
+			setDef((int) (copy.getDef() * 1.05));
+			initHP((int) (copy.getBaseHP() * 1.2));
+		} else {
+			setAtk(copy.getAtk());
+			setRatk(copy.getRatk());
+			setDef(copy.getDef());
+			initHP(copy.getBaseHP());
+		}
+		if (Occasion.MOREXP) {
+			setXP((int) (copy.getXP() * 1.5));
+		} else if (Occasion.SECOND_WORLD) {
+			setXP((int) (copy.getXP() * 1.75));
+		} else {
+			setXP(copy.getXP());
+		}
 		setName(copy.getName());
 
 		setLevel(copy.getLevel());
-		if (copy.getResistance() == 0) {
-			setResistance(100);
-		} else {
-			setResistance(copy.getResistance());
+		setSounds(copy.getSounds());
+		setDeathSound(copy.deathSound);
+		setMovementSound(copy.movementSound);
+
+		setResistance(copy.getResistance());
+		setVisibility(copy.getVisibility());
+
+		if (this.aiProfiles.containsKey("active_idle")) {
+			put("active_idle", "");
+		}
+		if (this.aiProfiles.containsKey("flying")) {
+			put("flying", "");
 		}
 
-		if (copy.getVisibility() == 0) {
-			setVisibility(100);
-		} else {
-			setVisibility(copy.getVisibility());
+		if (this.aiProfiles.containsKey("immortal")) {
+			put("unnamed", "");
+			put("no_hpbar", "");
+			put("no_shadow", "");
+			put("immortal", "");
 		}
 
 		for (RPSlot slot : copy.slots()) {
 			this.addSlot((RPSlot) slot.clone());
+		}
+
+		if (copy.has("no_shadow")) {
+			setShadowStyle(null);
+		} else if (copy.has("shadow_style")) {
+			setShadowStyle(copy.get("shadow_style"));
 		}
 
 		update();
@@ -238,7 +279,6 @@ public class Creature extends NPC {
 					+ this);
 		}
 	}
-
 
 	/**
 	 * creates a new creature without properties. These must be set in the
@@ -252,7 +292,7 @@ public class Creature extends NPC {
 		dropsItems = new ArrayList<DropItem>();
 		dropItemInstances = new ArrayList<Item>();
 		setAIProfiles(new HashMap<String, String>());
-		
+
 		susceptibilities = new EnumMap<Nature, Double>(Nature.class);
 		updateModifiedAttributes();
 	}
@@ -263,36 +303,44 @@ public class Creature extends NPC {
 	 * Creatures created with this function will share their dropItems with any
 	 * other creature of that kind. If you want individual dropItems, use
 	 * clearDropItemList first!
-	 * 
+	 *
 	 * @param clazz
-	 *            The creature's class, e.g. "golem"
+	 * 		The creature's class, e.g. "golem".
 	 * @param subclass
-	 *            The creature's subclass, e.g. "wooden_golem"
+	 * 		The creature's subclass, e.g. "wooden_golem".
 	 * @param name
-	 *            Typically the same as clazz, except for NPCs
+	 * 		Typically the same as clazz, except for NPCs.
 	 * @param hp
-	 *            The creature's maximum health points
-	 * @param attack
-	 *            The creature's attack strength
-	 * @param defense
-	 *            The creature's attack strength
+	 * 		The creature's maximum health points.
+	 * @param atk
+	 * 		The creature's attack strength.
+	 * @param ratk
+	 * 		The creature's ranged attack strength.
+	 * @param def
+	 * 		The creature's attack strength.
 	 * @param level
-	 *            The creature's level
+	 * 		The creature's level.
 	 * @param xp
-	 *            The creature's experience
+	 * 		The creature's experience.
 	 * @param width
-	 *            The creature's width, in squares
+	 * 		The creature's width, in squares.
 	 * @param height
-	 *            The creature's height, in squares
+	 * 		The creature's height, in squares.
 	 * @param baseSpeed
+	 * 		The normal speed at which the creature moves.
 	 * @param dropItems
+	 * 		List of items that the creature drops on death.
 	 * @param aiProfiles
-	 * @param noises
-	 * @param respawnTime in turns
+	 * 		Creature's behaviours.
+	 * @param noises.
+	 * 		Sound effects used by the client when player is near creature.
+	 * @param respawnTime
+	 * 		How often creature respawns, in turns.
 	 * @param description
+	 * 		String description displayed when player examines creature.
 	 */
 	public Creature(final String clazz, final String subclass, final String name, final int hp,
-			final int attack, final int defense, final int level, final int xp, final int width, final int height,
+			final int atk, final int ratk, final int def, final int level, final int xp, final int width, final int height,
 			final double baseSpeed, final int resistance, final int visibility, final List<DropItem> dropItems,
 			final Map<String, String> aiProfiles, final LinkedHashMap<String, LinkedList<String>> noises,
 			final int respawnTime, final String description) {
@@ -319,24 +367,17 @@ public class Creature extends NPC {
 		put("x", 0);
 		put("y", 0);
 		setDescription(description);
-		setAtk(attack);
-		setDef(defense);
+		setAtk(atk);
+		setRatk(ratk);
+		setDef(def);
 		setXP(xp);
 		setBaseHP(hp);
 		setHP(hp);
 
 		setLevel(level);
-		if(resistance == 0) {
-			setResistance(100);
-		} else {
-			setResistance(resistance);
-		}
 
-		if(visibility == 0) {
-			setVisibility(100);
-		} else {
-			setVisibility(visibility);
-		}
+		setResistance(resistance);
+		setVisibility(visibility);
 
 		if (Level.getLevel(xp) != level) {
 			LOGGER.debug("Wrong level for xp [" + name + "]: " + xp + " -> "
@@ -361,72 +402,93 @@ public class Creature extends NPC {
 	}
 
 	/**
+	 * Sets the sound played at creature's death
+	 *
+	 * @param sound Name of sound
+	 */
+	@Override
+	public final void setDeathSound(String sound) {
+	    if (deathSound == null) {
+	        deathSound = sound;
+	    }
+	    super.setDeathSound(deathSound);
+	}
+
+	/**
+	 * Set looped sound to be played while creature is walking
+	 * @param sound sound effect file name
+	 */
+	public final void setMovementSound(String sound) {
+	    this.movementSound = sound;
+	}
+
+	/**
 	 * Override noises for changes.
-	 * 
+	 *
 	 * @param creatureNoises noises to be used instead of the defaults for the
-	 * 	creature 
+	 * 	creature
 	 */
 	public void setNoises(final LinkedHashMap<String, LinkedList<String>> creatureNoises){
 		noises.clear();
 		noises.putAll(creatureNoises);
-	}	
-	   
+	}
+
 	/**
-	 * sets new observer 
+	 * sets new observer
 	 * @param observer
 	 * 				- observer, which will get info about creature death.
 	 */
 	public void registerObjectsForNotification(final Observer observer) {
 		if(observer!=null) {
-			   registrator.setObserver(observer);		   
-		} 	   
+			   registrator.setObserver(observer);
+		}
 	}
-	   
+
 	/**
-	 * sets new observer 
+	 * sets new observer
 	 * @param observers
 	 * 				- observers, which will get info about creature death.
 	 */
 	public void registerObjectsForNotification(final List<Observer> observers) {
 		for(Observer observer : observers) {
 			if(observer!=null) {
-				   registrator.setObserver(observer);		   
-			}		   
-		} 	   
+				   registrator.setObserver(observer);
+			}
+		}
 	}
-	 
+
 	/**
-	 * unset observer 
+	 * unset observer
 	 * @param observer
 	 * 				- observer to remove.
 	 */
 	public void unregisterObjectsForNotification(final Observer observer) {
 		if(observer!=null) {
-			   registrator.removeObserver(observer);		   
-		} 	   
+			   registrator.removeObserver(observer);
+		}
 	}
-	   
+
 	/**
-	 * unset observer 
+	 * unset observer
 	 * @param observers
 	 * 				- observers to remove.
 	 */
 	public void unregisterObjectsForNotification(final List<Observer> observers) {
 		for(Observer observer : observers) {
 			if(observer!=null) {
-				    registrator.removeObserver(observer);		   
-			}		   
-		} 	   
+				    registrator.removeObserver(observer);
+			}
+		}
 	}
-	   
+
 	/**
-	 * Will notify observers when event will occurred (death). 
+	 * Will notify observers when event will occurred (death).
 	 */
 	public void notifyRegisteredObjects() {
 	     registrator.setChanges();
 	     registrator.notifyObservers(circumstances);
 	}
-	   
+
 	public boolean isSpawned() {
 		return isRespawned;
 	}
@@ -438,7 +500,7 @@ public class Creature extends NPC {
 	public int getAttackTurn() {
 		return attackTurn;
 	}
-	
+
 	public boolean isAttackTurn(final int turn) {
 		return ((turn + attackTurn) % getAttackRate() == 0);
 	}
@@ -456,16 +518,50 @@ public class Creature extends NPC {
 		}
 	}
 
+	/**
+	 * sets  the aiProfile of this creature
+	 *
+	 * @param aiProfiles aiProfile
+	 */
+	public final void setAIProfiles(final Map<String, String> aiProfiles) {
+		this.setAIProfiles(aiProfiles, true);
+	}
 
-	public void setAIProfiles(final Map<String, String> aiProfiles) {
+	private void setAIProfiles(final Map<String, String> aiProfiles, boolean initStatusAttacker) {
 		this.aiProfiles = aiProfiles;
 		setHealer(aiProfiles.get("heal"));
 		setAttackStrategy(aiProfiles);
-		poisoner = PoisonerFactory.get(aiProfiles.get("poisonous"));
+		if (initStatusAttacker) {
+			StatusAttacker poisoner = PoisonAttackerFactory.get(aiProfiles.get("poisonous"));
+			if (poisoner != null) {
+				this.addStatusAttacker(poisoner);
+			}
+
+			StatusAttacker injured = BloodAttackerFactory.get(aiProfiles.get("injured"));
+			if (injured != null) {
+				this.addStatusAttacker(injured);
+			}
+
+			String statusAttackerProfiles = aiProfiles.get("status_attackers");
+			if (statusAttackerProfiles != null) {
+    			String[] statusAttackers = statusAttackerProfiles.split(";");
+    			int statusCount = statusAttackers.length;
+    			for (int index = 0; index < statusCount; index++) {
+    			    StatusAttacker statusAttacker = StatusAttackerFactory.get(statusAttackers[index]);
+    			    if (statusAttacker != null) {
+    			        this.addStatusAttacker(statusAttacker);
+    			    }
+    			}
+			}
+		}
 		idler = IdleBehaviourFactory.get(aiProfiles);
-		
 	}
 
+	/**
+	 * gets the aiProfile of this creature
+	 *
+	 * @return aiProfile
+	 */
 	public Map<String, String> getAIProfiles() {
 		return aiProfiles;
 	}
@@ -483,31 +579,40 @@ public class Creature extends NPC {
 	public CreatureRespawnPoint getRespawnPoint() {
 		return point;
 	}
-	
+
 	/**
 	 * Get the respawn time of the creature.
-	 * 
+	 *
 	 * @return respawn time in turns
 	 */
 	public int getRespawnTime() {
 		return respawnTime;
 	}
-	
-	public void setCorpse(final String name, final int width, final int height) {
+
+	public final void setCorpse(final String name, final String harmless, final int width, final int height) {
 		corpseName = name;
+		harmlessCorpseName = harmless;
+		corpseWidth = width;
+		corpseHeight = height;
 		if (corpseName == null) {
 			LOGGER.error(getName() + " has null corpse name.");
 			/*
-			 * Should not happen, but a null corpse would result 
+			 * Should not happen, but a null corpse would result
 			 * in an unkillable creature, so set it to something
-			 * workable. 
-			 */ 
+			 * workable.
+			 */
 			corpseName = "animal";
 		}
-		corpseWidth = width;
-		corpseHeight = height;
+		if (harmlessCorpseName == null) {
+			// Set default harmless corpse to "bag.png"
+			if (corpseWidth > 1 && corpseHeight > 1) {
+				harmlessCorpseName = "bag_2x2";
+			} else {
+				harmlessCorpseName = "bag";
+			}
+		}
 	}
-	
+
 	@Override
 	public String getCorpseName() {
 		if (corpseName == null) {
@@ -515,12 +620,20 @@ public class Creature extends NPC {
 		}
 		return corpseName;
 	}
-	
+
+	@Override
+	public String getHarmlessCorpseName() {
+		if (harmlessCorpseName == null) {
+			return "bag";
+		}
+		return harmlessCorpseName;
+	}
+
 	@Override
 	public int getCorpseWidth() {
 		return corpseWidth;
 	}
-	
+
 	@Override
 	public int getCorpseHeight() {
 		return corpseHeight;
@@ -529,7 +642,7 @@ public class Creature extends NPC {
 	/**
 	 * clears the list of predefined dropItems and creates an empty list
 	 * specific to this creature.
-	 * 
+	 *
 	 */
 	public void clearDropItemList() {
 		dropsItems = new ArrayList<DropItem>();
@@ -541,10 +654,10 @@ public class Creature extends NPC {
 	 * clearDropItemList hasn't been called first, this will change all
 	 * creatures of this kind.
 	 *
-	 * @param name 
-	 * @param probability 
-	 * @param min 
-	 * @param max 
+	 * @param name
+	 * @param probability
+	 * @param min
+	 * @param max
 	 */
 	public void addDropItem(final String name, final double probability, final int min, final int max) {
 		dropsItems.add(new DropItem(name, probability, min, max));
@@ -555,9 +668,9 @@ public class Creature extends NPC {
 	 * clearDropItemList hasn't been called first, this will change all
 	 * creatures of this kind.
 	 *
-	 * @param name 
-	 * @param probability 
-	 * @param amount 
+	 * @param name
+	 * @param probability
+	 * @param amount
 	 */
 	public void addDropItem(final String name, final double probability, final int amount) {
 		dropsItems.add(new DropItem(name, probability, amount));
@@ -566,7 +679,7 @@ public class Creature extends NPC {
 	/**
 	 * adds a specific item to the List of Items that will be dropped on dead
 	 * with 100 % probability. this is always for that specific creature only.
-	 * 
+	 *
 	 * @param item
 	 */
 	public void addDropItem(final Item item) {
@@ -582,12 +695,12 @@ public class Creature extends NPC {
 	}
 
 	@Override
-	public void onDead(final Entity killer, final boolean remove) {
+	public void onDead(final Killer killer, final boolean remove) {
 		if (killer instanceof RPEntity) {
 			circumstances = new CircumstancesOfDeath((RPEntity)killer, this, this.getZone());
 		}
 
-	    notifyRegisteredObjects();
+		notifyRegisteredObjects();
 
 		if (this.point != null) {
 			this.point.notifyDead(this);
@@ -601,16 +714,17 @@ public class Creature extends NPC {
 		for (final Item item : dropItemInstances) {
 			item.setFromCorpse(true);
 			corpse.add(item);
-			if (corpse.isFull()) {
+			if (corpse.isFull(isBoss())) {
 				break;
 			}
 		}
 
 		for (final Item item : createDroppedItems(SingletonRepository.getEntityManager())) {
-			corpse.add(item);
-			item.setFromCorpse(true);
-			if (corpse.isFull()) {
-				break;
+			if (!corpse.isFull(isBoss())) {
+				corpse.add(item);
+				item.setFromCorpse(true);
+			} else {
+				LOGGER.debug("Cannot add item to full corpse: " + item.getName());
 			}
 		}
 	}
@@ -618,11 +732,11 @@ public class Creature extends NPC {
 
 	/**
 	 * Returns a list of enemies. One of it will be attacked.
-	 * 
+	 *
 	 * @return list of enemies
 	 */
 	public List<RPEntity> getEnemyList() {
-		if (getAIProfiles().keySet().contains("offensive")) {
+		if (getAIProfiles().containsKey("offensive")) {
 			return getZone().getPlayerAndFriends();
 		} else {
 			return getAttackingRPEntities();
@@ -631,7 +745,7 @@ public class Creature extends NPC {
 
 	/**
 	 * Returns the nearest enemy, which is reachable or otherwise attackable.
-	 * 
+	 *
 	 * @param range
 	 *            attack radius
 	 * @return chosen enemy or null if no enemy was found.
@@ -650,6 +764,11 @@ public class Creature extends NPC {
 				continue;
 			}
 
+			if ((OrcDisguise.isEquipped(enemy) && OrcDisguise.canIgnoreEnemy(this.getName()))
+					&& !enemy.isAttacking()) {
+				continue;
+			}
+
 			if (enemy.isInvisibleToCreatures()) {
 				continue;
 			}
@@ -663,7 +782,7 @@ public class Creature extends NPC {
 		// now choose the nearest enemy for which there is a path, or is
 		// attackable otherwise
 		RPEntity chosen = null;
-		while ((chosen == null) && (distances.size() > 0)) {
+		while ((chosen == null) && !distances.isEmpty()) {
 			double shortestDistance = Double.MAX_VALUE;
 			for (final Map.Entry<RPEntity, Double> enemy : distances.entrySet()) {
 				final double distance = enemy.getValue();
@@ -675,7 +794,7 @@ public class Creature extends NPC {
 
 			if (shortestDistance >= 1) {
 				final List<Node> path = Path.searchPath(this, chosen, getMovementRange());
-				if ((path == null) || (path.size() == 0) && !strategy.canAttackNow(this, chosen)) {
+				if ((path == null) || path.isEmpty() && !strategy.canAttackNow(this, chosen)) {
 					distances.remove(chosen);
 					chosen = null;
 				} else {
@@ -693,7 +812,7 @@ public class Creature extends NPC {
 		final int y = getY();
 
 		List<RPEntity> enemyList = getEnemyList();
-		if (enemyList.size() == 0) {
+		if (enemyList.isEmpty()) {
 			final StendhalRPZone zone = getZone();
 			enemyList = zone.getPlayerAndFriends();
 		}
@@ -721,28 +840,40 @@ public class Creature extends NPC {
 	}
 
 	/**
-	 * Check if the creature has a rare profile, and thus should not appear in DeathMatch,
-	 * or the daily quest.
-	 * 
-	 * @return true if the creature is rare, false otherwise
+	 * Check if the entity is a "boss". Bosses have higher capacity corpses.
 	 */
-	public boolean isRare() {
-		return getAIProfiles().keySet().contains("rare");
+	public boolean isBoss() {
+		return aiProfiles.containsKey("boss");
 	}
 
 	/**
-	 *  poisons attack target with the behavior in Poisoner.
-	 * 
-	 * 
-	 * @throws NullPointerException if attack target is null
+	 * Check if the creature has a rare profile, and thus should not appear in DeathMatch,
+	 * or the daily quest.
+	 *
+	 * @return true if the creature is rare, false otherwise
 	 */
-	public void tryToPoison() {
-		
-		final RPEntity entity = getAttackTarget();
-		if (poisoner.attack(entity)) {
-			new GameEvent(getName(), "trucizna", entity.getName()).raise();
-			entity.sendPrivateText("Zostałeś zatruty przez " + Grammar.a_noun(getName()));
-		}
+	public boolean isRare() {
+		return getAIProfiles().containsKey("rare");
+	}
+
+	/**
+	 * Checks if the creature has "abnormal" or "rare" profile.
+	 *
+	 * @return
+	 * 		<code>true</code> if creature is abnormal or rare.
+	 */
+	public boolean isAbnormal() {
+		return getAIProfiles().containsKey("abnormal") || isRare() || isImmortal();
+	}
+
+	/**
+	 * Checks if the creature has "immortal" profile.
+	 *
+	 * @return
+	 * 		<code>true</code> if creature is immortal, false otherwise.
+	 */
+	public boolean isImmortal() {
+		return getAIProfiles().containsKey("immortal");
 	}
 
 	public void equip(final List<EquipItem> items) {
@@ -775,13 +906,26 @@ public class Creature extends NPC {
 					continue;
 				}
 
+				final int quantity;
 				if (dropped.min == dropped.max) {
-					list.add(item);
+					quantity = dropped.min;
 				} else {
+					quantity = Rand.randUniform(dropped.max, dropped.min);
+				}
+
+				if (item instanceof StackableItem) {
 					final StackableItem stackItem = (StackableItem) item;
-					stackItem.setQuantity(Rand.rand(dropped.max - dropped.min)
-							+ dropped.min);
+					stackItem.setQuantity(quantity);
 					list.add(stackItem);
+				} else {
+					for (int count = 0; count < quantity; count++) {
+						if (count == 0) {
+							list.add(item);
+						} else {
+							// additional items must be new instances
+							list.add(new Item(item));
+						}
+					}
 				}
 			}
 		}
@@ -799,7 +943,7 @@ public class Creature extends NPC {
 
 	/**
 	 * returns the value of an ai profile.
-	 * 
+	 *
 	 * @param key
 	 *            as defined in creatures.xml
 	 * @return value or null if undefined
@@ -824,11 +968,11 @@ public class Creature extends NPC {
 				this.applyMovement();
 				if (strategy.canAttackNow(this)) {
 					strategy.attack(this);
-					this.makeNoiseChance(100, "fight");					
-		        } else {
-		        	// can't attack and trying to find better position
-		        	// treat it as creature follows player.
-		        	this.makeNoiseChance(100, "follow");
+					this.makeNoiseChance(100, "fight");
+				} else {
+					// can't attack and trying to find better position
+					// treat it as creature follows player.
+					this.makeNoiseChance(100, "follow");
 				}
 			} else {
 				this.stopAttack();
@@ -836,11 +980,17 @@ public class Creature extends NPC {
 				if (strategy.hasValidTarget(this)) {
 					this.setBusy();
 					// this event duration usually is only one turn
-					this.makeNoiseChance(100, "target");
+					this.makeNoiseChance(50, "target");
 				} else {
 				 	this.setIdle();
-					this.makeNoiseChance(120, "idle");	
+					this.makeNoiseChance(100, "idle");
 				}
+			}
+			maybeMakeSound();
+
+			// FIXME: Play a looped sound for walking creatrue
+			if (movementSound != null && movementSoundEvent == null) {
+				loopMovementSound();
 			}
 			this.notifyWorldAboutChanges();
 		} else {
@@ -871,8 +1021,8 @@ public class Creature extends NPC {
 			say(noises.get(state).get(pos));
 		}
 	}
-	
-	
+
+
 	/**
 	 * wrapper around makeNoise to simplify a code
 	 * @param prob - 1/chance of make noise
@@ -884,11 +1034,38 @@ public class Creature extends NPC {
 		}
 	}
 
+	/**
+	 * Generates a looped sound for creature
+	 *
+	 * FIXME: doesn't play sound
+	 */
+	private void loopMovementSound() {
+	    movementSoundEvent = new SoundEvent(movementSound, SOUND_RADIUS, 100, SoundLayer.CREATURE_NOISE);
+	    this.addEvent(movementSoundEvent);
+	    this.notifyWorldAboutChanges();
+	}
+
+	/**
+	 * Stops the looped sound
+	 */
+	public void stopMovementSound() {
+		movementSoundEvent = null;
+	}
+
+	/**
+	 *
+	 * @return
+	 * 		true if looped sound is currently playing
+	 */
+	public boolean isPlayingMovementSound() {
+		return (movementSoundEvent != null);
+	}
+
 	public boolean hasTargetMoved() {
 		if ((targetX != getAttackTarget().getX()) || (targetY != getAttackTarget().getY())) {
 			targetX = getAttackTarget().getX();
 			targetY = getAttackTarget().getY();
-				
+
 			return true;
 		}
 		return false;
@@ -900,12 +1077,12 @@ public class Creature extends NPC {
 			clearPath();
 			stopAttack();
 			stop();
-		
+
 		} else {
 			idler.perform(this);
-			
+
 		}
-	
+
 	}
 
 	public void setBusy() {
@@ -914,16 +1091,16 @@ public class Creature extends NPC {
 
 	/**
 	 * Set the fighting strategy used by the creature.
-	 * 
-	 * @param aiProfiles AI profiles to be used when deciding the strategy 
+	 *
+	 * @param aiProfiles AI profiles to be used when deciding the strategy
 	 */
 	public void setAttackStrategy(final Map<String, String> aiProfiles) {
 		strategy = AttackStrategyFactory.get(aiProfiles);
 	}
-		
+
 	/**
 	 * Get the fighting strategy used by the creature.
-	 * 
+	 *
 	 * @return strategy
 	 */
 	public AttackStrategy getAttackStrategy() {
@@ -940,9 +1117,15 @@ public class Creature extends NPC {
 		// personal atk values
 		return 5f;
 	}
-	
+
+	@Override
+	public float getItemRatk() {
+		// Just doing the same as getItemAtk().
+		return getItemAtk();
+	}
+
 	// *** Damage type code ***
-	
+
 	/**
 	 * Set the susceptibility mapping of a creature. The mapping is <em>not</em>
 	 * copied.
@@ -951,23 +1134,23 @@ public class Creature extends NPC {
 	public void setSusceptibilities(Map<Nature, Double> susceptibilities) {
 		this.susceptibilities = susceptibilities;
 	}
-	
+
 	@Override
 	protected double getSusceptibility(Nature type) {
 		Double d = susceptibilities.get(type);
-		
+
 		if (d != null) {
 			return d.doubleValue();
 		}
-		
+
 		return 1.0;
 	}
-	
+
 	@Override
 	protected Nature getDamageType() {
 		return damageType;
 	}
-	
+
 	@Override
 	protected Nature getRangedDamageType() {
 		return rangedDamageType;
@@ -975,12 +1158,12 @@ public class Creature extends NPC {
 
 	/**
 	 * Set the damage natures the creature inflicts.
-	 * 
+	 *
 	 * @param type Damage nature.
 	 * @param rangedType Damage nature for ranged attacks, or <code>null</code>
 	 * 	if the creature uses the same type as for the melee.
 	 */
-	public void setDamageTypes(Nature type, Nature rangedType) {
+	public final void setDamageTypes(Nature type, Nature rangedType) {
 		damageType = type;
 		if (rangedType != null) {
 			rangedDamageType = rangedType;
@@ -1025,7 +1208,7 @@ public class Creature extends NPC {
 
 		// which player did hurt us most
 		Entity entity = damageReceived.getHighestCountedObject();
-		if ((entity != null) && (entity instanceof Player)) {
+		if (entity instanceof Player) {
 			if (getZone() == entity.getZone()) {
 				return ((Player) entity).getName();
 			}
@@ -1033,7 +1216,7 @@ public class Creature extends NPC {
 
 		// which player did we attack last?
 		RPEntity target = getAttackTarget();
-		if ((target != null) && (target instanceof Player)) {
+		if (target instanceof Player) {
 			if (getZone() == target.getZone()) {
 				return target.getName();
 			}

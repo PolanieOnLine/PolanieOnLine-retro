@@ -1,4 +1,3 @@
-/* $Id: OfferHandler.java,v 1.2 2010/09/19 02:35:25 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -19,23 +18,23 @@ import games.stendhal.server.entity.trade.Offer;
 
 public abstract class OfferHandler {
 	private Offer offer;
-	
+
 	public abstract void add(SpeakerNPC npc);
-	
+
 	protected void setOffer(Offer offer) {
 		this.offer = offer;
 	}
-	
+
 	protected Offer getOffer() {
 		return offer;
 	}
-	
+
 	protected int getQuantity(Item item) {
 		int quantity = 1;
 		if (item instanceof StackableItem) {
 			quantity = ((StackableItem) item).getQuantity();
 		}
-		
+
 		return quantity;
 	}
 }

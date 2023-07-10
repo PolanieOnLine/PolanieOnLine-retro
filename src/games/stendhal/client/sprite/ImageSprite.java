@@ -1,4 +1,4 @@
-/* $Id: ImageSprite.java,v 1.22 2011/12/02 21:44:53 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -17,28 +17,30 @@ import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsEnvironment;
 import java.awt.Image;
-import java.awt.Transparency;
+import java.awt.image.BufferedImage;
+
+import games.stendhal.client.gui.TransparencyMode;
 
 /**
  * A sprite to be displayed on the screen. Note that a sprite contains no state
  * information, i.e. its just the image and not the location. This allows us to
  * use a single sprite in lots of different places without having to store
  * multiple copies of the image.
- * 
+ *
  * @author Kevin Glass
  */
 public class ImageSprite implements Sprite {
 	/** The image to be drawn for this sprite. */
-	protected Image image;
+	private final Image image;
 
 	/**
 	 * The identifier reference.
 	 */
-	protected Object reference;
+	private final Object reference;
 
 	/**
 	 * Create a new sprite based on an image.
-	 * 
+	 *
 	 * @param image
 	 *            The image that is this sprite
 	 */
@@ -48,7 +50,7 @@ public class ImageSprite implements Sprite {
 
 	/**
 	 * Create a new sprite based on an image.
-	 * 
+	 *
 	 * @param image
 	 *            The image that is this sprite.
 	 * @param reference
@@ -61,7 +63,7 @@ public class ImageSprite implements Sprite {
 
 	/**
 	 * Create an image sprite from another sprite.
-	 * 
+	 *
 	 * @param sprite
 	 *            The source sprite.
 	 */
@@ -71,17 +73,17 @@ public class ImageSprite implements Sprite {
 
 	/**
 	 * Create a copy of another sprite.
-	 * 
+	 *
 	 * @param sprite
 	 *            The source sprite.
 	 * @param reference
 	 *            The sprite reference, or null.
 	 */
-	public ImageSprite(final Sprite sprite, final Object reference) {
+	private ImageSprite(final Sprite sprite, final Object reference) {
 		this.reference = reference;
 
 		image = getGC().createCompatibleImage(sprite.getWidth(),
-				sprite.getHeight(), Transparency.BITMASK);
+				sprite.getHeight(), TransparencyMode.TRANSPARENCY);
 
 		sprite.draw(image.getGraphics(), 0, 0);
 	}
@@ -96,7 +98,7 @@ public class ImageSprite implements Sprite {
 
 	/**
 	 * Get the graphics context of the underlying image.
-	 * 
+	 *
 	 * @return The graphics context.
 	 */
 	public Graphics getGraphics() {
@@ -109,7 +111,7 @@ public class ImageSprite implements Sprite {
 	/**
 	 * Create a sub-region of this sprite. <strong>NOTE: This does not use
 	 * caching.</strong>
-	 * 
+	 *
 	 * @param x
 	 *            The starting X coordinate.
 	 * @param y
@@ -120,11 +122,12 @@ public class ImageSprite implements Sprite {
 	 *            The region height.
 	 * @param ref
 	 *            The sprite reference.
-	 * 
+	 *
 	 * @return A new sprite.
 	 */
-	public Sprite createRegion(final int x, final int y, final int width,
-			final int height, final Object ref) {
+	@Override
+	public Sprite createRegion(final int x, final int y, int width,
+			int height, final Object ref) {
 		final int iwidth = getWidth();
 		final int iheight = getHeight();
 
@@ -133,8 +136,10 @@ public class ImageSprite implements Sprite {
 			 * Outside of image (nothing to draw)
 			 */
 			return new EmptySprite(width, height, ref);
-
 		}
+		// Exclude regions outside the original image
+		width = Math.min(width, iwidth);
+		height = Math.min(height, iheight);
 
 		/*
 		 * Full copy method (the memory hog)
@@ -142,7 +147,7 @@ public class ImageSprite implements Sprite {
 		final GraphicsConfiguration gc = getGC();
 
 		final Image imageTemp = gc.createCompatibleImage(width, height,
-				Transparency.BITMASK);
+				TransparencyMode.TRANSPARENCY);
 
 		draw(imageTemp.getGraphics(), 0, 0, x, y, width, height);
 
@@ -151,7 +156,7 @@ public class ImageSprite implements Sprite {
 
 	/**
 	 * Draw the sprite onto the graphics context provided.
-	 * 
+	 *
 	 * @param g
 	 *            The graphics context on which to draw the sprite
 	 * @param x
@@ -159,13 +164,14 @@ public class ImageSprite implements Sprite {
 	 * @param y
 	 *            The y location at which to draw the sprite
 	 */
+	@Override
 	public void draw(final Graphics g, final int x, final int y) {
 		g.drawImage(image, x, y, null);
 	}
 
 	/**
 	 * Draws the image.
-	 * 
+	 *
 	 * @param g
 	 *            the graphics context where to draw to
 	 * @param destx
@@ -181,6 +187,7 @@ public class ImageSprite implements Sprite {
 	 * @param h
 	 *            the height
 	 */
+	@Override
 	public void draw(final Graphics g, final int destx, final int desty, final int x, final int y, final int w,
 			final int h) {
 		g.drawImage(image, destx, desty, destx + w, desty + h, x, y, x + w, y
@@ -189,9 +196,10 @@ public class ImageSprite implements Sprite {
 
 	/**
 	 * Get the height of the drawn sprite.
-	 * 
+	 *
 	 * @return The height in pixels of this sprite
 	 */
+	@Override
 	public int getHeight() {
 		return image.getHeight(null);
 	}
@@ -200,20 +208,55 @@ public class ImageSprite implements Sprite {
 	 * Get the sprite reference. This identifier is an externally opaque object
 	 * that implements equals() and hashCode() to uniquely/repeatably reference
 	 * a keyed sprite.
-	 * 
+	 *
 	 * @return The reference identifier, or <code>null</code> if not
 	 *         referencable.
 	 */
+	@Override
 	public Object getReference() {
 		return reference;
 	}
 
 	/**
 	 * Get the width of the drawn sprite.
-	 * 
+	 *
 	 * @return The width in pixels of this sprite
 	 */
+	@Override
 	public int getWidth() {
 		return image.getWidth(null);
+	}
+
+	@Override
+	public boolean isConstant() {
+		return true;
+	}
+
+	/**
+	 * Retrieves a single frame from the image.
+	 *
+	 * @param xIndex
+	 * 		Horizontal index.
+	 * @param yIndex
+	 * 		Vertical index.
+	 * @return
+	 * 		Cropped Sprite.
+	 */
+	public Sprite getFrame(final int xIndex, final int yIndex) {
+		final BufferedImage orig = (BufferedImage) image;
+
+		final int w = getWidth() / 3;
+		final int h = getHeight() / 4;
+		final int x = w * xIndex;
+		final int y = h * yIndex;
+
+		return new ImageSprite(orig.getSubimage(x, y, w, h));
+	}
+
+	/**
+	 * Retrieves the java.awt.Image instance.
+	 */
+	public Image getImage() {
+		return image;
 	}
 }

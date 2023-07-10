@@ -1,4 +1,3 @@
-/* $Id: RemoveOfferHandler.java,v 1.10 2011/05/01 19:50:07 martinfuchs Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +11,7 @@
  ***************************************************************************/
 package games.stendhal.server.maps.semos.tavern.market;
 
+import java.util.Arrays;
 import java.util.Map;
 
 import games.stendhal.common.grammar.Grammar;
@@ -25,20 +25,19 @@ import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.entity.trade.Market;
 import games.stendhal.server.entity.trade.Offer;
 
-import java.util.Arrays;
-
 public class RemoveOfferHandler extends OfferHandler {
 	@Override
 	public void add(SpeakerNPC npc) {
-		npc.add(ConversationStates.ATTENDING, Arrays.asList("remove", "usuń"), null, ConversationStates.ATTENDING, null, 
+		npc.add(ConversationStates.ATTENDING, Arrays.asList("remove", "usuń"), null, ConversationStates.ATTENDING, null,
 				new RemoveOfferChatAction());
-		npc.add(ConversationStates.QUESTION_1, ConversationPhrases.YES_MESSAGES, 
+		npc.add(ConversationStates.QUESTION_1, ConversationPhrases.YES_MESSAGES,
 				ConversationStates.ATTENDING, null, new ConfirmRemoveOfferChatAction());
-		npc.add(ConversationStates.QUESTION_1, ConversationPhrases.NO_MESSAGES, null, 
+		npc.add(ConversationStates.QUESTION_1, ConversationPhrases.NO_MESSAGES, null,
 				ConversationStates.ATTENDING, "Jak jeszcze mogę ci pomóc?", null);
 	}
 
 	protected class RemoveOfferChatAction extends KnownOffersChatAction {
+		@Override
 		public void fire(Player player, Sentence sentence, EventRaiser npc) {
 			if (sentence.hasError()) {
 				npc.say("Niestety, nie rozumiem Ciebie. "
@@ -86,15 +85,16 @@ public class RemoveOfferHandler extends OfferHandler {
 			}
 		}
 	}
-	
+
 	protected class ConfirmRemoveOfferChatAction implements ChatAction {
+		@Override
 		public void fire(Player player, Sentence sentence, EventRaiser npc) {
 			removeOffer(player, npc);
 			// Changed the status, or it has been changed by expiration. Obsolete the offers
 			((MarketManagerNPC) npc.getEntity()).getOfferMap().clear();
 		}
 	}
-	
+
 	private void removeOffer(Player player, EventRaiser npc) {
 		Offer offer = getOffer();
 		Market m = TradeCenterZoneConfigurator.getShopFromZone(player.getZone());

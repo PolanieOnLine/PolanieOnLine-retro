@@ -1,6 +1,5 @@
-/* $Id: HerbsForCarmen.java,v 1.21 2011/11/13 17:13:16 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -11,6 +10,11 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 import games.stendhal.common.grammar.Grammar;
 import games.stendhal.server.entity.npc.ChatAction;
@@ -36,85 +40,60 @@ import games.stendhal.server.entity.npc.condition.QuestInStateCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotStartedCondition;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.Region;
+import games.stendhal.server.maps.semos.city.HealerNPC;
 import games.stendhal.server.util.ItemCollection;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import games.stendhal.server.util.ResetSpeakerNPC;
 
 /**
  * QUEST: Herbs For Carmen
- * 
+ *
  * PARTICIPANTS:
  * <ul>
  * <li>Carmen (the healer in Semos)</li>
  * </ul>
- * 
+ *
  * STEPS:
  * <ul>
  * <li>Carmen introduces herself and asks for some items to help her heal people.</li>
  * <li>You collect the items.</li>
  * <li>Carmen sees yours items, asks for them then thanks you.</li>
  * </ul>
- * 
+ *
  * REWARD:
  * <ul>
- * <li>50 XP</li>
+ * <li>500 XP</li>
  * <li>2 antidote</li>
- * <li>Karma: 10</li>
+ * <li>Karma: 15</li>
  * </ul>
- * 
+ *
  * REPETITIONS:
  * <ul>
  * <li>None</li>
  * </ul>
  */
 public class HerbsForCarmen extends AbstractQuest {
-
 	public static final String QUEST_SLOT = "herbs_for_carmen";
+	private final SpeakerNPC npc = npcs.get("Carmen");
 
 	/**
 	 * required items for the quest.
 	 */
 	protected static final String NEEDED_ITEMS = "arandula=5;borowik=1;jabłko=3;polano=2;pieczarka=1";
 
-	@Override
-	public List<String> getHistory(final Player player) {
-		final List<String> res = new ArrayList<String>();
-		if (!player.hasQuest(QUEST_SLOT)) {
-			return res;
-		}
-		res.add("Carmen poprosiła mnie o zebranie składników, aby pomóc jej nadal leczyć innych.");
-		final String questState = player.getQuest(QUEST_SLOT);
-		if ("rejected".equals(questState)) {
-			res.add("Nie chcę, pomóc Carmen. Myślę, że ona znajdzie kogoś, kto jej pomoże.");
-		} else if (!"done".equals(questState)) {
-			final ItemCollection missingItems = new ItemCollection();
-			missingItems.addFromQuestStateString(questState);
-			res.add("Wciąż muszę przynieść Carmen " + Grammar.enumerateCollection(missingItems.toStringList()) + ".");
-		} else {
-			res.add("Pomogłem Carmen i ona może teraz dalej uzdrawiać.");
-		}
-		return res;
-	}
-
 	private void prepareRequestingStep() {
-		final SpeakerNPC npc = npcs.get("Carmen");
-
-		npc.add(ConversationStates.ATTENDING, 
-				ConversationPhrases.QUEST_MESSAGES,
+		npc.add(ConversationStates.ATTENDING,
+			ConversationPhrases.QUEST_MESSAGES,
 			new AndCondition(
 					new LevelGreaterThanCondition(2),
 					new QuestNotStartedCondition(QUEST_SLOT),
 					new NotCondition(new QuestInStateCondition(QUEST_SLOT,"rejected"))),
-			ConversationStates.QUESTION_1, 
+			ConversationStates.QUESTION_1,
 			"Hej ty! Tak, do ciebie mówię! Znasz mnie?", null);
 
-		npc.add(ConversationStates.ATTENDING, 
+		npc.add(ConversationStates.ATTENDING,
 			ConversationPhrases.QUEST_MESSAGES,
 			new QuestInStateCondition(QUEST_SLOT,"rejected"),
-			ConversationStates.QUEST_OFFERED, 
+			ConversationStates.QUEST_OFFERED,
 			"Hej, chcesz mi jakoś pomóc?", null);
 
 		npc.add(
@@ -160,7 +139,7 @@ public class HerbsForCarmen extends AbstractQuest {
 
 		npc.add(
 			ConversationStates.ATTENDING,
-			"jabłko",
+			Arrays.asList("apples", "jabłko"),
 			null,
 			ConversationStates.ATTENDING,
 			"Jabłka mają wiele witamin. Rosną na wschód od Semos, ale ich pełen talerz jest także w Matinternecie.",
@@ -168,7 +147,7 @@ public class HerbsForCarmen extends AbstractQuest {
 
 		npc.add(
 			ConversationStates.ATTENDING,
-			"polano",
+			Arrays.asList("wood", "polano"),
 			null,
 			ConversationStates.ATTENDING,
 			"Drzewo to świetny materiał. Można go wykorzystać na wiele sposobów. Znajdź drzewo w lesie i je zetnij.",
@@ -176,7 +155,7 @@ public class HerbsForCarmen extends AbstractQuest {
 
 		npc.add(
 			ConversationStates.ATTENDING,
-			Arrays.asList("pieczarka", "borowik"),
+			Arrays.asList("button mushroom", "porcini", "pieczarka", "borowik"),
 			null,
 			ConversationStates.ATTENDING,
 			"Na własne oczy widziałam całe polany grzybów w Zakopanem.",
@@ -188,44 +167,40 @@ public class HerbsForCarmen extends AbstractQuest {
 			null,
 			ConversationStates.ATTENDING,
 			"Na północ od Semos, niedaleko młodniaka rośnie ponoć zioło arandula. Oto rycina, na której zobaczysz jak wygląda.",
-			new ExamineChatAction("arandula.png", "Carmen's drawing", "Arandula"));
-
+			new ExamineChatAction("arandula.png", "Rysunek Carmen", "Arandula"));
 	}
 
 	private void prepareBringingStep() {
-		final SpeakerNPC npc = npcs.get("Carmen");
-	
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new GreetingMatchesNameCondition(npc.getName()),
 						new QuestActiveCondition(QUEST_SLOT)),
 				ConversationStates.ATTENDING,
-				"Witaj ponownie. Czy przyniosłeś mi zapasy ziół leczniczych?",
+				"Witaj ponownie. Mogę cię #uleczyć, lub jeśli przyniosłeś mi #składniki, z radością je wezmę!",
 				null);
 
 		/* player asks what exactly is missing (says ingredients) */
-		npc.add(ConversationStates.ATTENDING, "zapasy", null,
+		npc.add(ConversationStates.ATTENDING, Arrays.asList("zapasy", "yes", "tak"), null,
 				ConversationStates.QUESTION_2, null,
-				new SayRequiredItemsFromCollectionAction(QUEST_SLOT, "Potrzebuję [items]. Czy masz coś ze sobą?"));
+				new SayRequiredItemsFromCollectionAction(QUEST_SLOT, "Potrzebuję [items]. Masz coś ze sobą?"));
 
-		npc.add(ConversationStates.ATTENDING, 
+		npc.add(ConversationStates.ATTENDING,
 				ConversationPhrases.QUEST_MESSAGES,
 				new QuestActiveCondition(QUEST_SLOT),
-			ConversationStates.QUESTION_2, 
-			null, new SayRequiredItemsFromCollectionAction(QUEST_SLOT, "Potrzebuję [items]. Czy masz to?"));		
+				ConversationStates.QUESTION_2,
+				null, new SayRequiredItemsFromCollectionAction(QUEST_SLOT, "Potrzebuję [items]. Przyniosłeś coś?"));		
 
 		/* player says he has a required item with him (says yes) */
 		npc.add(ConversationStates.QUESTION_2,
 				ConversationPhrases.YES_MESSAGES, null,
-				ConversationStates.QUESTION_2, "Dobrze, a co jeszcze masz?",
+				ConversationStates.QUESTION_2, "Świetnie! Co przyniosłeś?",
 				null);
 
 		ChatAction completeAction = new  MultipleActions(
 				new SetQuestAction(QUEST_SLOT, "done"),
-				new SayTextAction("Wspaniale! Znów mogę leczyć czcigodnych wojowników bez opłat! Dziękuję. Przyjmij ode mnie podarek za swoją pracę."),
-				new IncreaseXPAction(50),
-				new IncreaseKarmaAction(5),
-				new EquipItemAction("mały eliksir", 5)
-				);
+				new SayTextAction("Cudownie! Będę mogła wrócić do leczenia czcigodnych wojowników bez opłat! Dziękuję. Przyjmij ode mnie podarek za swoją pracę."),
+				new IncreaseXPAction(500),
+				new IncreaseKarmaAction(15),
+				new EquipItemAction("mały eliksir", 5));
 
 		/* add triggers for the item names */
 		final ItemCollection items = new ItemCollection();
@@ -243,14 +218,14 @@ public class HerbsForCarmen extends AbstractQuest {
 			}
 			// also allow to understand the misspelled "porcinis"
 			if (itemName.equals("borowik")) {
-				sl.add("borowik");
+				sl.add("porcinis");
 			}
 
 			npc.add(ConversationStates.QUESTION_2, sl, null,
 					ConversationStates.QUESTION_2, null,
 					new CollectRequestedItemsAction(
 							itemName, QUEST_SLOT,
-							"Dobra, masz coś jeszcze?"," " +
+							"Dobrze, a masz coś jeszcze?"," " +
 							Grammar.quantityplnoun(entry.getValue(), itemName) + " już przyniosłeś dla mnie, ale dziękuję i tak.",
 							completeAction, ConversationStates.ATTENDING));
 		}
@@ -259,7 +234,7 @@ public class HerbsForCarmen extends AbstractQuest {
 		npc.add(ConversationStates.ATTENDING, ConversationPhrases.NO_MESSAGES,
 				new QuestActiveCondition(QUEST_SLOT),
 				ConversationStates.ATTENDING,
-				"Dobrze i daj mi znać jeśli mogę ci kiedyś #pomóc..", 
+				"Dobrze, po prostu daj mi znać, jeśli będę mogła #pomóc Ci w jakiś sposób.", 
 				null);
 
 		/* player says he didn't bring any items to different question */
@@ -267,20 +242,19 @@ public class HerbsForCarmen extends AbstractQuest {
 				ConversationPhrases.NO_MESSAGES,
 				new QuestActiveCondition(QUEST_SLOT),
 				ConversationStates.ATTENDING,
-				"Ok, i daj mi znać jeśli mogę #pomóc w czymkolwiek innym.", null);
+				"Ok, daj znać jeśli mogę #pomóc w czymś innym.", null);
 
-    /* says quest and quest can't be started nor is active*/
-		npc.add(ConversationStates.ATTENDING, 
+		/* says quest and quest can't be started nor is active*/
+		npc.add(ConversationStates.ATTENDING,
 				ConversationPhrases.QUEST_MESSAGES,
 				null,
-			    ConversationStates.ATTENDING, 
+				ConversationStates.ATTENDING,
 			    "Nic nie potrzebuję teraz, dziękuję.",
 			    null);
 	}
-	
+
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
 				"Zioła dla Carmen",
 				"Semosiański uzdrowiciel Carmen szuka składników do zrobienia eliksirów i innych użytecznych medykamentów. Czy możesz przynieść jej zioła, które potrzebuje?",
@@ -290,25 +264,45 @@ public class HerbsForCarmen extends AbstractQuest {
 	}
 
 	@Override
+	public boolean removeFromWorld() {
+		return ResetSpeakerNPC.reload(new HealerNPC(), getNPCName());
+	}
+
+	@Override
+	public List<String> getHistory(final Player player) {
+		final List<String> res = new ArrayList<String>();
+		if (!player.hasQuest(QUEST_SLOT)) {
+			return res;
+		}
+		res.add("Carmen poprosiła mnie o zebranie składników, aby pomóc jej nadal leczyć innych.");
+		final String questState = player.getQuest(QUEST_SLOT);
+		if ("rejected".equals(questState)) {
+			res.add("Nie chcę, pomóc Carmen. Myślę, że ona znajdzie kogoś, kto jej pomoże.");
+		} else if (!"done".equals(questState)) {
+			final ItemCollection missingItems = new ItemCollection();
+			missingItems.addFromQuestStateString(questState);
+			res.add("Wciąż muszę przynieść Carmen " + Grammar.enumerateCollection(missingItems.toStringList()) + ".");
+		} else {
+			res.add(Grammar.genderVerb(player.getGender(), "Pomogłem") + " Carmen i ona może teraz dalej uzdrawiać.");
+		}
+		return res;
+	}
+
+	@Override
 	public String getSlotName() {
 		return QUEST_SLOT;
 	}
 
 	@Override
 	public String getName() {
-		return "HerbsForCarmen";
+		return "Zioła dla Carmen";
 	}
 
-	public String getTitle() {
-		
-		return "Herbs for Carmen";
-	}
-	
 	@Override
 	public int getMinLevel() {
 		return 3;
 	}
-	
+
 	@Override
 	public String getRegion() {
 		return Region.SEMOS_CITY;
@@ -316,6 +310,6 @@ public class HerbsForCarmen extends AbstractQuest {
 
 	@Override
 	public String getNPCName() {
-		return "Carmen";
+		return npc.getName();
 	}
 }

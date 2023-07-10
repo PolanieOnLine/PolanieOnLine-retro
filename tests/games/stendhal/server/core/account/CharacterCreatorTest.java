@@ -1,4 +1,4 @@
-/* $Id: CharacterCreatorTest.java,v 1.19 2010/11/25 22:46:42 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -16,15 +16,14 @@ import static org.junit.Assert.assertEquals;
 
 import java.sql.SQLException;
 
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import marauroa.common.Log4J;
 import marauroa.common.game.Result;
 import marauroa.server.db.DBTransaction;
 import marauroa.server.db.TransactionPool;
 import marauroa.server.game.db.DatabaseFactory;
-
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import utilities.PlayerTestHelper;
 import utilities.RPClass.ItemTestHelper;
 
@@ -40,6 +39,7 @@ public class CharacterCreatorTest {
 
 	/**
 	 * Tests for create.
+	 * @throws SQLException
 	 */
 	@Test
 	public void testCreate() throws SQLException {

@@ -1,4 +1,4 @@
-/* $Id: RaidCreature.java,v 1.10 2012/06/26 17:49:50 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -21,14 +21,14 @@ import games.stendhal.server.entity.item.RaidCreatureCorpse;
 /**
  * A Raid creature is a creature that doesn't make players killed by it to lose
  * any XP, ATK or DEF.
- * 
+ *
  * @author miguel
- * 
+ *
  */
 public class RaidCreature extends Creature {
 	/**
 	 * RaidCreature.
-	 * 
+	 *
 	 * @param copy
 	 *            creature to wrap
 	 */
@@ -36,7 +36,7 @@ public class RaidCreature extends Creature {
 		super(copy);
 		removeAttackWeakestProfile();
 	}
-		
+
 	/**
 	 * Pity newbies taking part in raids.
 	 */
@@ -60,7 +60,7 @@ public class RaidCreature extends Creature {
 	public Creature getNewInstance() {
 		return new RaidCreature(this);
 	}
-	
+
 	@Override
 	protected Corpse makeCorpse(String killer) {
 		// use a faster rotting corpse as raids get quite messy

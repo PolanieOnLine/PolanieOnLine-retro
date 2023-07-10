@@ -1,4 +1,4 @@
-/* $Id: Basket.java,v 1.21 2011/04/07 11:35:04 bluelads99 Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,16 +12,15 @@
  ***************************************************************************/
 package games.stendhal.server.entity.item;
 
+import java.util.Map;
+
 import games.stendhal.common.Rand;
-import games.stendhal.common.grammar.Grammar;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.Map;
-
 /**
  * a basket which can be unwrapped.
- * 
+ *
  * @author kymara
  */
 public class Basket extends Box {
@@ -31,7 +30,7 @@ public class Basket extends Box {
 
 	/**
 	 * Creates a new Basket.
-	 * 
+	 *
 	 * @param name
 	 * @param clazz
 	 * @param subclass
@@ -44,7 +43,7 @@ public class Basket extends Box {
 
 	/**
 	 * Copy constructor.
-	 * 
+	 *
 	 * @param item
 	 *            item to copy
 	 */
@@ -63,7 +62,7 @@ public class Basket extends Box {
 			item.setBoundTo(player.getName());
 		}
 		player.sendPrivateText("Gratulacje otrzymałeś "
-				+ Grammar.a_noun(itemName));
+				+ itemName + "!");
 		player.equipOrPutOnGround(item);
 		player.notifyWorldAboutChanges();
 		return true;

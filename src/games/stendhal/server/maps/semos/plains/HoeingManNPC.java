@@ -1,6 +1,5 @@
-/* $Id: HoeingManNPC.java,v 1.3 2010/11/30 22:52:00 nylon0700 Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2019 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -24,50 +23,47 @@ import games.stendhal.server.core.pathfinder.Node;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 
 /**
- * A man hoeing the farm ground
- * 
+ * Provides a Hoeing Man, hoeing farm ground north of Semos,
+ * near Jenny's Mill
+ *
+ * @author omero
  */
 public class HoeingManNPC implements ZoneConfigurator {
-
-	/**
-	 * Configure a zone.
-	 *
-	 * @param	zone		The zone to be configured.
-	 * @param	attributes	Configuration attributes.
-	 */
+	@Override
 	public void configureZone(StendhalRPZone zone, Map<String, String> attributes) {
 		buildNPC(zone);
 	}
 
-	private void buildNPC(StendhalRPZone zone) {
-		SpeakerNPC npc = new SpeakerNPC("Jingo Radish") {
-
+	private SpeakerNPC buildNPC(final StendhalRPZone zone) {
+		final SpeakerNPC npc = new SpeakerNPC("Jingo Radish") {
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
 				nodes.add(new Node(48, 62));
 				nodes.add(new Node(43, 76));
 				nodes.add(new Node(43, 62));
-
 				setPath(new FixedPath(nodes, true));
 			}
 
 			@Override
 			public void createDialog() {
 				addGreeting("Co za spotkanie, drogi wędrowcze!");
-				addJob("Widzisz? Ciągle pozbywam się chwastów przy pomocy #motyki, lecz one odrastają za każdym razem...");
+				addJob("Oto? Ciągle pozbywam się chwastów przy pomocy #motyki, lecz one odrastają za każdym razem...");
 				addHelp("Nie spiesz się! Przejdź się po okolicy. Na północy znajduje się młyn, na wschodzie zaś - tereny rolnicze. Przyjemna i bogata wieś, gdzie można zacząć polowanie na jedzenie!");
 				addReply(Arrays.asList("hoe", "motyka"),
-                    "Oh cóż nie ma nic specjalnego w mojej motyce... Jeżeli potrzebujesz dobrego narzędzia rolniczego jak kosa to odwiedź kowala w pobliskim miaście Semos!");
+	                    "Oh cóż nie ma nic specjalnego w mojej motyce... Jeżeli potrzebujesz dobrego narzędzia rolniczego jak #kosa to odwiedź kowala w pobliskim miaście Semos!");
+				addReply(Arrays.asList("scythe", "kosa"),
+	                    "Ach cóż... Jeżeli potrzebujesz dobrego narzędzia rolniczego jak #kosa to odwiedź kowala w pobliskim miaście Semos!");
 				addGoodbye("Żegnaj! Może Twoja droga będzie wolna od chwastów.");
 			}
-	
 		};
-		npc.setEntityClass("hoeingmannpc");
-		npc.setDescription("Widzisz człowieka z motyką, który zajęty jest odchwaszczaniem.");
-		npc.setPosition(48,62);
-		npc.initHP(100);
-		zone.add(npc);
-	}
 
+		npc.setDescription("Oto Jingo Radish. Człowiek z motyką, który zajęty jest odchwaszczaniem...");
+		npc.setEntityClass("hoeingmannpc");
+		npc.setGender("M");
+		npc.setPosition(48,62);
+		zone.add(npc);
+
+		return npc;
+	}
 }

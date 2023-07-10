@@ -1,4 +1,4 @@
-/* $Id: PlayerTest.java,v 1.36 2012/06/06 15:29:18 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -18,28 +18,28 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.number.IsCloseTo.closeTo;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import games.stendhal.common.KeyedSlotUtil;
-import games.stendhal.common.constants.Nature;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.entity.Entity;
-import games.stendhal.server.entity.Outfit;
-import games.stendhal.server.entity.item.Item;
-import games.stendhal.server.maps.MockStendhalRPRuleProcessor;
-import games.stendhal.server.maps.MockStendlRPWorld;
 
 import java.util.HashMap;
-
-import marauroa.common.game.RPObject;
-import marauroa.server.game.db.DatabaseFactory;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.common.KeyedSlotUtil;
+import games.stendhal.common.constants.Nature;
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.entity.Entity;
+import games.stendhal.server.entity.Outfit;
+import games.stendhal.server.entity.item.Item;
+import games.stendhal.server.entity.status.StatusType;
+import games.stendhal.server.maps.MockStendhalRPRuleProcessor;
+import games.stendhal.server.maps.MockStendlRPWorld;
+import marauroa.common.game.RPObject;
+import marauroa.server.game.db.DatabaseFactory;
 import utilities.PlayerTestHelper;
 
 public class PlayerTest {
@@ -47,7 +47,7 @@ public class PlayerTest {
 	private Player player;
 	private Player killer;
 	private StendhalRPZone zone;
-	
+
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		new DatabaseFactory().initializeDatabase();
@@ -64,7 +64,7 @@ public class PlayerTest {
 		zone = new StendhalRPZone("the zone where the corpse shall be slain");
 		player = PlayerTestHelper.createPlayer(playername);
 		zone.add(player);
-		killer = PlayerTestHelper.createPlayer("killer");	
+		killer = PlayerTestHelper.createPlayer("killer");
 	}
 
 	/**
@@ -112,22 +112,17 @@ public class PlayerTest {
 	/**
 	 * Tests for onAdded.
 	 */
-	@SuppressWarnings("null")
 	@Test
 	public void testOnAdded() {
 		player.onAdded(new StendhalRPZone("playertest"));
 		RPObject object = KeyedSlotUtil.getKeyedSlotObject(player, "!visited");
-		if (object == null) {
-			fail("slot not found");
-		}
+		assertNotNull("slot not found", object);
 		assertTrue(object.has("playertest"));
 		assertThat(player.get("visibility"), is("100"));
 		player.onAdded(new StendhalRPZone(PlayerDieer.DEFAULT_DEAD_AREA));
-		object = KeyedSlotUtil.getKeyedSlotObject(player, "!visited");
-		if (object == null) {
-			fail("slot not found");
 
-		}
+		object = KeyedSlotUtil.getKeyedSlotObject(player, "!visited");
+		assertNotNull("slot not found", object);
 		assertTrue(object.has(PlayerDieer.DEFAULT_DEAD_AREA));
 		assertThat(player.get("visibility"), is("50"));
 		player.onRemoved(new StendhalRPZone(PlayerDieer.DEFAULT_DEAD_AREA));
@@ -139,45 +134,51 @@ public class PlayerTest {
 	 */
 	@Test
 	public void testDescribe() {
+		player.setGender("M");
+
 		final int hours = player.getAge() / 60;
 		final int minutes = player.getAge() % 60;
-		final String time = hours + " hours and " + minutes + " minutes";
-		assertThat(player.describe(), is("You see " + player.getTitle() + ".\n" + player.getTitle() + " is level "
-				+ player.getLevel() + " and has been playing " + time + "."));
+		final String time = "Wiek " + hours + " godzinę i " + minutes + " minutę";
+		assertThat(player.describe(), is("Oto parobek " + player.getTitle() + ".\n" + player.getTitle() + " posiada poziom "
+				+ player.getLevel() + ". " + time + "."));
 	}
-	
+
 	/**
 	 * Tests for describeOfPlayerWithAwayMessage.
 	 */
 	@Test
 	public void testDescribeOfPlayerWithAwayMessage() {
+		player.setGender("M");
+
 		final int hours = player.getAge() / 60;
 		final int minutes = player.getAge() % 60;
-		final String time = hours + " hours and " + minutes + " minutes";
+		final String time = "Wiek " + hours + " godzinę i " + minutes + " minutę";
 		player.setAwayMessage("I am away.");
 		String description = player.describe();
-		String expectedDescription = "You see " + player.getTitle() + ".\n"
-				+ player.getTitle() + " is level " + player.getLevel()
-				+ " and has been playing " + time + "."
-				+ "\nplayer is away and has left a message: "
+		String expectedDescription = "Oto parobek " + player.getTitle() + ".\n"
+				+ player.getTitle() + " posiada poziom " + player.getLevel()
+				+ ". " + time + ".\n"
+				+ player.getTitle() + " nie ma go teraz, ale zostawił wiadomość: "
 				+ player.getAwayMessage();
 		assertThat(description, is(expectedDescription));
 	}
-	
+
 	/**
 	 * Tests for describeOfPlayerWithGrumpyMessage.
 	 */
 	@Test
 	public void testDescribeOfPlayerWithGrumpyMessage() {
+		player.setGender("M");
+
 		final int hours = player.getAge() / 60;
 		final int minutes = player.getAge() % 60;
-		final String time = hours + " hours and " + minutes + " minutes";
+		final String time = "Wiek " + hours + " godzinę i " + minutes + " minutę";
 		player.setGrumpyMessage("I am grumpy.");
 		String description = player.describe();
-		String expectedDescription = "You see " + player.getTitle() + ".\n"
-				+ player.getTitle() + " is level " + player.getLevel()
-				+ " and has been playing " + time + "."
-				+ "\nplayer is grumpy and has left a message: "
+		String expectedDescription = "Oto parobek " + player.getTitle() + ".\n"
+				+ player.getTitle() + " posiada poziom " + player.getLevel()
+				+ ". " + time + ".\n"
+				+ player.getTitle() + " ukrywa się i zostawił wiadomość: "
 				+ player.getGrumpyMessage();
 		assertThat(description, is(expectedDescription));
 	}
@@ -187,22 +188,24 @@ public class PlayerTest {
 	 */
 	@Test
 	public void testDescribeOfPlayerWithAwayAndGrumpyMessage() {
+		player.setGender("M");
+
 		final int hours = player.getAge() / 60;
 		final int minutes = player.getAge() % 60;
-		final String time = hours + " hours and " + minutes + " minutes";
+		final String time = "Wiek " + hours + " godzinę i " + minutes + " minutę";
 		player.setAwayMessage("I am away.");
 		player.setGrumpyMessage("I am grumpy.");
 		String description = player.describe();
-		String expectedDescription = "You see " + player.getTitle() + ".\n"
-				+ player.getTitle() + " is level " + player.getLevel()
-				+ " and has been playing " + time + "."
-				+ "\nplayer is away and has left a message: "
-				+ player.getAwayMessage()
-				+ "\nplayer is grumpy and has left a message: "
+		String expectedDescription = "Oto parobek " + player.getTitle() + ".\n"
+				+ player.getTitle() + " posiada poziom " + player.getLevel()
+				+ ". " + time + ".\n"
+				+ player.getTitle() + " nie ma go teraz, ale zostawił wiadomość: "
+				+ player.getAwayMessage() + "\n"
+				+ player.getTitle() + " ukrywa się i zostawił wiadomość: "
 				+ player.getGrumpyMessage();
 		assertThat(description, is(expectedDescription));
 	}
-	
+
 	/**
 	 * Tests for isGhost.
 	 */
@@ -251,26 +254,26 @@ public class PlayerTest {
 	@Test
 	public void testSetImmune() {
 		Player bob = PlayerTestHelper.createPlayer("bob");
-		assertFalse(bob.isImmune());
-		bob.setImmune();
-		assertTrue(bob.isImmune());
+		assertFalse(bob.getStatusList().isImmune(StatusType.POISONED));
+		bob.getStatusList().setImmune(StatusType.POISONED);
+		assertTrue(bob.getStatusList().isImmune(StatusType.POISONED));
 	}
 
-	
+
 	/**
 	 * Tests for removeImmunity.
 	 */
 	@Test
 	public void testRemoveImmunity() {
 		Player bob = PlayerTestHelper.createPlayer("bob");
-		assertFalse(bob.isImmune());
-		bob.setImmune();
-		assertTrue(bob.isImmune());
-		bob.removeImmunity();
-		assertFalse(bob.isImmune());
-		
+		assertFalse(bob.getStatusList().isImmune(StatusType.POISONED));
+		bob.getStatusList().setImmune(StatusType.POISONED);
+		assertTrue(bob.getStatusList().isImmune(StatusType.POISONED));
+		bob.getStatusList().removeImmunity(StatusType.POISONED);
+		assertFalse(bob.getStatusList().isImmune(StatusType.POISONED));
+
 	}
-	
+
 	/**
 	 * Tests for isBadBoy.
 	 */
@@ -283,7 +286,7 @@ public class PlayerTest {
 		assertTrue(killer.isBadBoy());
 		assertFalse(player.isBadBoy());
 	}
-	
+
 	/**
 	 * Tests for rehabilitate.
 	 */
@@ -300,7 +303,7 @@ public class PlayerTest {
 		assertFalse(killer.isBadBoy());
 
 	}
-	
+
 	/**
 	 * Tests for getWidth.
 	 */
@@ -309,14 +312,14 @@ public class PlayerTest {
 		Player bob = PlayerTestHelper.createPlayer("bob");
 		assertThat(bob.getWidth(), is(1.0));
 		assertThat(bob.get("width"), is("1"));
-		
+
 		assertThat(bob.getHeight(), is(1.0));
 		assertThat(bob.get("height"), is("1"));
-		
+
 		Player george = Player.createZeroLevelPlayer("george2", null);
 		assertThat(george.getWidth(), is(1.0));
 		assertThat(george.get("width"), is("1"));
-		
+
 		assertThat(george.getHeight(), is(1.0));
 		assertThat(george.get("height"), is("1"));
 	}
@@ -367,7 +370,7 @@ public class PlayerTest {
 		assertThat(player.getQuest("testquest3", 2), nullValue());
 
 	}
-	
+
 	/**
 	 * Test that the damage done by a player is of right type.
 	 */
@@ -389,7 +392,7 @@ public class PlayerTest {
 			assertThat("Damage type should be got from the weapon", player.getDamageType(), is(type));
 		}
 	}
-	
+
 	/**
 	 * Test that players susceptibility is calculated correctly
 	 */
@@ -399,16 +402,16 @@ public class PlayerTest {
 		for (Nature type : Nature.values()) {
 			assertThat("Default susceptibility", player.getSusceptibility(type), closeTo(1.0, 0.00001));
 		}
-		
+
 		Item armor = new Item("rainbow armor", "armor", "subclass",
 				new HashMap<String, String>());
 		player.equip("armor", armor);
 		HashMap<Nature, Double> armorMap = new HashMap<Nature, Double>();
 		armor.setSusceptibilities(armorMap);
-		
+
 		for (Nature type : Nature.values()) {
 			armorMap.put(type, 0.42);
-			for (Nature type2 : Nature.values()) { 
+			for (Nature type2 : Nature.values()) {
 				if (type == type2) {
 					assertThat(player.getSusceptibility(type2), closeTo(0.42, 0.00001));
 				} else {
@@ -417,14 +420,14 @@ public class PlayerTest {
 			}
 			armorMap.remove(type);
 		}
-		
+
 		Item legs = new Item("rainbow legs", "legs", "subclass",
 				new HashMap<String, String>());
 		player.equip("legs", legs);
 		HashMap<Nature, Double> legsMap = new HashMap<Nature, Double>();
 		legs.setSusceptibilities(legsMap);
 		legsMap.put(Nature.ICE, 0.5);
-		
+
 		for (Nature type : Nature.values()) {
 			armorMap.put(type, 0.42);
 			for (Nature type2 : Nature.values()) {
@@ -441,55 +444,55 @@ public class PlayerTest {
 					// only the ice effect, if any
 					expected = ice;
 				}
-		
+
 				assertThat("Susceptibility to " + type2, player.getSusceptibility(type2), closeTo(expected, 0.00001));
 			}
 			armorMap.remove(type);
 		}
 	}
-	
+
 	/**
 	 * Test setting and restoring an outfit
 	 */
 	@Test
 	public void testSetAndRestoreOutfit() {
 		Player player = PlayerTestHelper.createPlayer("test dummy");
-		
+
 		// no original outfit
 		assertThat(player.returnToOriginalOutfit(), is(false));
-		
+
 		// plain outfit change
-		player.setOutfit(new Outfit(0xfeedbeef));
+		player.setOutfit(new Outfit(Integer.toString(0xfeedbeef)));
 		assertThat(player.getOutfit().getCode(), is(0xfeedbeef));
 		player.put("outfit_colors", "dress", 42);
 		assertThat(player.getInt("outfit_colors", "dress"), is(42));
 		// A temporary outfit should stash the colors
-		player.setOutfit(new Outfit(0xf00f), true);
-		assertThat(player.getOutfit().getCode(), is(0xf00f));
+		player.setOutfit(new Outfit(Integer.toString(0xf00f)), true);
+		assertThat(player.getOutfit().getCode(), is(0xf00f)); // old outfit parts are mapped to new ones, so code changes
 		// cleared the old...
 		assertThat(player.get("outfit_colors", "dress"), is(nullValue()));
 		// ...and put it in store
 		assertThat(player.getInt("outfit_colors", "dress_orig"), is(42));
-		
+
 		assertThat(player.returnToOriginalOutfit(), is(true));
 		assertThat(player.getOutfit().getCode(), is(0xfeedbeef));
 		assertThat(player.getInt("outfit_colors", "dress"), is(42));
 		assertThat(player.get("outfit_colors", "dress_orig"), is(nullValue()));
-		
-		player.setOutfit(new Outfit(0xf00f), true);
+
+		player.setOutfit(new Outfit(Integer.toString(0xf00f)), true);
 		assertThat(player.getInt("outfit_colors", "dress_orig"), is(42));
 		player.setOutfit(new Outfit());
 		// regular outfit change should not use stored colors
 		assertThat(player.get("outfit_colors", "dress"), is(nullValue()));
 	}
-	
+
 	/**
 	 * Test comparing client version to a known constant
 	 */
 	@Test
 	public void testClientVersion() {
 		Player player = PlayerTestHelper.createPlayer("test dummy");
-		
+
 		player.setClientVersion("0.42");
 		assertThat(player.isClientNewerThan("0.41"), is(true));
 		assertThat(player.isClientNewerThan("0.41.5"), is(true));
@@ -499,7 +502,7 @@ public class PlayerTest {
 		assertThat(player.isClientNewerThan("1.0"), is(false));
 		assertThat(player.isClientNewerThan("1.53"), is(false));
 		assertThat(player.isClientNewerThan("0.53.1"), is(false));
-		
+
 		// a bit future proofing
 		player.setClientVersion("0.99");
 		assertThat(player.isClientNewerThan("0.100"), is(false));
@@ -508,7 +511,7 @@ public class PlayerTest {
 		assertThat(player.isClientNewerThan("1.1"), is(false));
 		assertThat(player.isClientNewerThan("0.99"), is(true));
 	}
-	
+
 	@Test
 	public void testMagicSkill() throws Exception {
 		Player player = PlayerTestHelper.createPlayer("harry");

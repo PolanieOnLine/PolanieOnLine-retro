@@ -1,6 +1,5 @@
-/* $Id: SeamstressNPC.java,v 1.24 2012/08/23 20:05:44 yoriy Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,25 +11,23 @@
  ***************************************************************************/
 package games.stendhal.server.maps.ados.sewingroom;
 
-import games.stendhal.server.core.config.ZoneConfigurator;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.core.pathfinder.FixedPath;
-import games.stendhal.server.core.pathfinder.Node;
-import games.stendhal.server.entity.npc.ShopList;
-import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.behaviour.adder.BuyerAdder;
-import games.stendhal.server.entity.npc.behaviour.impl.BuyerBehaviour;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-/*
+import games.stendhal.server.core.config.ZoneConfigurator;
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.core.pathfinder.FixedPath;
+import games.stendhal.server.core.pathfinder.Node;
+import games.stendhal.server.entity.npc.CloneManager;
+import games.stendhal.server.entity.npc.SpeakerNPC;
+
+/**
  * Ados City, house with a woman who makes sails for the ships
  */
 public class SeamstressNPC implements ZoneConfigurator {
-	private final ShopList shops = SingletonRepository.getShopList();
+	// clone to be used in twilight zone
+	private static SpeakerNPC clone;
 
 	/**
 	 * Configure a zone.
@@ -38,13 +35,13 @@ public class SeamstressNPC implements ZoneConfigurator {
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildSeamstress(zone);
 	}
 
 	private void buildSeamstress(final StendhalRPZone zone) {
 		final SpeakerNPC seamstress = new SpeakerNPC("Ida") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -60,16 +57,28 @@ public class SeamstressNPC implements ZoneConfigurator {
 				addGreeting("Witaj.");
 				addJob("Jestem szwaczką. Produkuję żagle dla statków takich jak prom do Athor.");
 				addHelp("Jeżeli chcesz się dostać promem na wyspę Athor to wyjdź z miasta i kieruj się na południe, a tam znajdziesz przystań.");
-				new BuyerAdder().addBuyer(this, new BuyerBehaviour(shops.get("buycloaks")), false);
 				addOffer("Skupuję płaszcze, ponieważ nie mamy materiałów na żagle. Za lepszy materiał płacę więcej. W moim notatniku na stole znajduje się cennik.");
-				addGoodbye("Dowidzenia i dziękuję za wstąpienie.");
+				addGoodbye("Do widzenia i dziękuję za wstąpienie.");
 			}
 		};
 
+		seamstress.setDescription("Oto Ida, jest znaną szwaczką w przemyśle stoczniowym. Ale może też tobie pomóc.");
 		seamstress.setEntityClass("woman_002_npc");
+		seamstress.setGender("F");
 		seamstress.setPosition(7, 7);
-		seamstress.initHP(100);
-		seamstress.setDescription("Ida jest znaną szwaczką w przemyśle stoczniowym. Ale może tobie też może pomóc.");
 		zone.add(seamstress);
+
+		// initialize clone to be placed in twilight zone
+		clone = CloneManager.get().clone(seamstress, "twilight_ida");
+	}
+
+	/**
+	 * Retrieves the cloned instance.
+	 *
+	 * @return
+	 * 		SpeakerNPC
+	 */
+	public static SpeakerNPC getClone() {
+		return clone;
 	}
 }

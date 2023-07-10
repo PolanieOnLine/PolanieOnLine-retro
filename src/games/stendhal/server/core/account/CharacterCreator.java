@@ -1,4 +1,4 @@
-/* $Id: CharacterCreator.java,v 1.23 2010/09/19 02:22:40 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +12,8 @@
  ***************************************************************************/
 package games.stendhal.server.core.account;
 
+import org.apache.log4j.Logger;
+
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.player.Player;
 import marauroa.common.game.CharacterResult;
@@ -21,8 +23,6 @@ import marauroa.server.db.DBTransaction;
 import marauroa.server.db.TransactionPool;
 import marauroa.server.game.db.CharacterDAO;
 import marauroa.server.game.db.DAORegister;
-
-import org.apache.log4j.Logger;
 
 /**
  * Creates a new character as requested by a client.
@@ -37,7 +37,7 @@ public class CharacterCreator {
 
 	/**
 	 * create a CharacterCreator.
-	 * 
+	 *
 	 * @param username
 	 *            name of the user
 	 * @param character
@@ -54,21 +54,21 @@ public class CharacterCreator {
 
 	private void setupValidatorsForCharacter() {
 		validators.add(new NotEmptyValidator(character));
-		validators.add(new MinLengthValidator(character, 4));
+		validators.add(new MinLengthValidator(character, 2));
 		validators.add(new MaxLengthValidator(character, 20));
 
 		validators.add(new NPCNameValidator(character));
 		validators.add(new CreatureNameValidator(character));
-		
+
 		validators.add(new NameCharacterValidator(character));
 		validators.add(new ReservedSubStringValidator(character));
-		
+
 		validators.add(new IsNotOtherAccountNameValidator(character, username));
 	}
 
 	/**
 	 * tries to create this character.
-	 * 
+	 *
 	 * @return CharacterResult
 	 */
 	public CharacterResult create() {
@@ -90,14 +90,12 @@ public class CharacterCreator {
 			}
 
 			final Player object = Player.createZeroLevelPlayer(character, template);
-				// monitor new account names
-			final String text = "Administrator: Została utworzona nowa postać zwana " + character + ".";
-	
+
+			// monitor new account names
+			final String text = "Administrator: Została utworzona nowa postać zwana " + character + " (należąca do " + username + ").";
 			SingletonRepository.getRuleProcessor().sendMessageToSupporters(text);
 
-			/*
-			 * Finally we add it to database.
-			 */
+			// Finally we add it to database.
 			characterDAO.addCharacter(trans, username, character, object);
 			transactionPool.commit(trans);
 
@@ -108,5 +106,5 @@ public class CharacterCreator {
 			return new CharacterResult(Result.FAILED_EXCEPTION, character, template);
 		}
 	}
-	
+
 }

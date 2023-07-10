@@ -1,4 +1,4 @@
-/* $Id: TurnNotifier.java,v 1.17 2011/06/28 21:30:32 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,9 +12,6 @@
  ***************************************************************************/
 package games.stendhal.server.core.events;
 
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.core.engine.StendhalRPWorld;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -25,17 +22,18 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 
+import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.core.engine.StendhalRPWorld;
+
 /**
  * Other classes can register here to be notified at some time in the future.
- * 
+ *
  * @author hendrik, daniel
  */
 public final class TurnNotifier {
-
 	private static Logger logger = Logger.getLogger(TurnNotifier.class);
-
-	/** The Singleton instance. */
-	private static final TurnNotifier INSTANCE = new TurnNotifier();
+	/** The singleton instance. */
+	private static TurnNotifier instance;
 
 	private int currentTurn = -1;
 
@@ -46,25 +44,32 @@ public final class TurnNotifier {
 	 */
 	private final Map<Integer, Set<TurnListener>> register = new HashMap<Integer, Set<TurnListener>>();
 
-	/** Used for multi-threading synchronization. * */
+	/** Used for multi-threading synchronization. */
 	private final Object sync = new Object();
 
+	/**
+	 * Return the TurnNotifier instance.
+	 *
+	 * @return TurnNotifier the Singleton instance
+	 */
+	public static TurnNotifier get() {
+		if (instance == null) {
+			instance = new TurnNotifier();
+		}
+
+		return instance;
+	}
+
+	/**
+	 * Hidden singleton constructor.
+	 */
 	private TurnNotifier() {
 		// singleton
 	}
 
 	/**
-	 * Return the TurnNotifier instance.
-	 * 
-	 * @return TurnNotifier the Singleton instance
-	 */
-	public static TurnNotifier get() {
-		return INSTANCE;
-	}
-
-	/**
 	 * This method is invoked by StendhalRPRuleProcessor.endTurn().
-	 * 
+	 *
 	 * @param currentTurn
 	 *            currentTurn
 	 */
@@ -98,7 +103,7 @@ public final class TurnNotifier {
 
 		if (set != null) {
 			for (final TurnListener turnListener : set) {
-				
+
 				try {
 					turnListener.onTurnReached(currentTurn);
 				} catch (final RuntimeException e) {
@@ -110,7 +115,7 @@ public final class TurnNotifier {
 
 	/**
 	 * Notifies the <i>turnListener</i> in <i>diff</i> turns.
-	 * 
+	 *
 	 * @param diff
 	 *            the number of turns to wait before notifying
 	 * @param turnListener
@@ -123,7 +128,7 @@ public final class TurnNotifier {
 
 	/**
 	 * Notifies the <i>turnListener</i> in <i>sec</i> seconds.
-	 * 
+	 *
 	 * @param sec
 	 *            the number of seconds to wait before notifying
 	 * @param turnListener
@@ -136,7 +141,7 @@ public final class TurnNotifier {
 
 	/**
 	 * Notifies the <i>turnListener</i> at turn number <i>turn</i>.
-	 * 
+	 *
 	 * @param turn
 	 *            the number of the turn
 	 * @param turnListener
@@ -184,7 +189,7 @@ public final class TurnNotifier {
 	/**
 	 * Forgets all registered notification entries for the given TurnListener
 	 * where the entry's message equals the given one.
-	 * 
+	 *
 	 * @param turnListener
 	 */
 
@@ -208,7 +213,7 @@ public final class TurnNotifier {
 	/**
 	 * Finds out how many turns will pass until the given TurnListener will be
 	 * notified with the given message.
-	 * 
+	 *
 	 * @param turnListener
 	 * @return the number of remaining turns, or -1 if the given TurnListener
 	 *         will not be notified with the given message.
@@ -239,7 +244,7 @@ public final class TurnNotifier {
 	/**
 	 * Finds out how many seconds will pass until the given TurnListener will be
 	 * notified with the given message.
-	 * 
+	 *
 	 * @param turnListener
 	 * @return the number of remaining seconds, or -1 if the given TurnListener
 	 *         will not be notified with the given message.
@@ -253,7 +258,7 @@ public final class TurnNotifier {
 	/**
 	 * Returns the list of events. Note this is only for debugging the
 	 * TurnNotifier
-	 * 
+	 *
 	 * @return eventList
 	 */
 	public Map<Integer, Set<TurnListener>> getEventListForDebugging() {
@@ -262,7 +267,7 @@ public final class TurnNotifier {
 
 	/**
 	 * Returns the current turn. Note this is only for debugging TurnNotifier
-	 * 
+	 *
 	 * @return current turn
 	 */
 	public int getCurrentTurnForDebugging() {

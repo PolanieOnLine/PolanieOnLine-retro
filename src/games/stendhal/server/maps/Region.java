@@ -21,6 +21,8 @@ public final class Region {
 	public static final String ADOS_SURROUNDS = "Okolice Ados";
 	public static final String AMAZON_ISLAND = "Wyspa Amazon";
 	public static final String ATHOR_ISLAND = "Wyspa Athor";
+	public static final String ATLANTIS = "Atlantyda";
+	public static final String DENIRAN = "Deniran";
 	public static final String SEMOS_CITY = "Miasto Semos";
 	public static final String SEMOS_SURROUNDS = "Okolice Semos";
 	public static final String SEMOS_MINES = "Kopalnie Semos";
@@ -36,8 +38,16 @@ public final class Region {
 	public static final String ORRIL_DUNGEONS = "Podziemia Or'ril";
 	public static final String ORRIL_MINES = "Kopalnie Or'ril";
 	public static final String HELL = "Piekło";
+	public static final String DRAGON_LANDS = "Kraina Smoków";
 	public static final String KRAKOW_CITY = "Miasto Kraków";
 	public static final String ZAKOPANE_CITY = "Miasto Zakopane";
+	public static final String GDANSK_CITY = "Miasto Gdańsk";
+	public static final String TATRY_MOUNTAIN = "Pasmo górskie Tatry";
+	public static final String WIELICZKA = "Wieliczka";
+	public static final String WARSZAWA = "Warszawa";
+	public static final String KOSCIELISKO = "Dolina Kościeliska";
+	public static final String DESERT = "Pustynia";
+
 	private Region() {
 		// hide constructor
 	}

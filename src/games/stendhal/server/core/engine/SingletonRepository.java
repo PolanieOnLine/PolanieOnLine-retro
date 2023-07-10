@@ -1,6 +1,5 @@
-/* $Id: SingletonRepository.java,v 1.26 2012/08/23 20:48:57 yoriy Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,44 +11,71 @@
  ***************************************************************************/
 package games.stendhal.server.core.engine;
 
+import games.stendhal.server.core.config.ShopsXMLLoader;
 import games.stendhal.server.core.events.LoginNotifier;
+import games.stendhal.server.core.events.LogoutNotifier;
 import games.stendhal.server.core.events.TurnNotifier;
 import games.stendhal.server.core.rp.StendhalQuestSystem;
 import games.stendhal.server.core.rp.achievement.AchievementNotifier;
-import games.stendhal.server.core.rp.economy.StendhalEconomy;
 import games.stendhal.server.core.rp.group.GroupManager;
+import games.stendhal.server.core.rp.pvp.PlayerVsPlayerChallengeManager;
 import games.stendhal.server.core.rule.EntityManager;
 import games.stendhal.server.core.rule.defaultruleset.DefaultEntityManager;
+import games.stendhal.server.entity.npc.CloneManager;
 import games.stendhal.server.entity.npc.NPCList;
-import games.stendhal.server.entity.npc.ShopList;
 import games.stendhal.server.entity.npc.behaviour.journal.MerchantsRegister;
 import games.stendhal.server.entity.npc.behaviour.journal.ProducerRegister;
 import games.stendhal.server.entity.npc.behaviour.journal.ServicersRegister;
+import games.stendhal.server.entity.npc.shop.OutfitShopsList;
+import games.stendhal.server.entity.npc.shop.ShopsList;
 import games.stendhal.server.entity.player.GagManager;
 import games.stendhal.server.entity.player.Jail;
 import games.stendhal.server.entity.slot.BankAccessorManager;
 import games.stendhal.server.maps.athor.ship.AthorFerry;
-import games.stendhal.server.maps.pol.krakow.ship.KrakowFerry;
+import games.stendhal.server.maps.gdansk.ship.GdanskFerry;
+import games.stendhal.server.maps.krakow.ship.KrakowFerry;
+import games.stendhal.server.maps.pirate_island.ship.PirateFerry;
 import marauroa.server.db.TransactionPool;
-
 
 /**
  * Takes an instance of every 'singleton' created and provides setters and getters.
  * <p>
- * 
- * 
- * It is not meant to be a high sophisticated class.
- * 
- * Just one step into getting rid of the singleton hell;
- * 
- * @author astridEmma
  *
+ * It is not meant to be a high sophisticated class.
+ *
+ * Just one step into getting rid of the singleton hell;
+ *
+ * @author astridEmma
  */
 public class SingletonRepository {
-	
+	/** The singleton instance. */
+	private static SingletonRepository instance;
+
 	private static EntityManager entityManager;
 	private static Jail jailInstance;
 	private static GroupManager groupManager;
+	private static PlayerVsPlayerChallengeManager challengeManager;
+
+	/**
+	 * Singleton access method.
+	 *
+	 * @return
+	 *     The static instance.
+	 */
+	public static SingletonRepository get() {
+		if (instance == null) {
+			instance = new SingletonRepository();
+		}
+
+		return instance;
+	}
+
+	/**
+	 * Hidden singleton constructor.
+	 */
+	private SingletonRepository() {
+		// singleton
+	}
 
 	/**
 	 * @return the actual StendhalRPRuleProcessor instance
@@ -87,19 +113,26 @@ public class SingletonRepository {
 	}
 
 	/**
+	 * @return the actual LogoutNotifier instance
+	 */
+	public static LogoutNotifier getLogoutNotifier() {
+		return LogoutNotifier.get();
+	}
+
+	/**
 	 * @return the actual Jail instance
 	 */
 	public static Jail getJail() {
 		return jailInstance;
 	}
-	
+
 	/**
 	 * Sets the Jail instance
 	 * @param jail
 	 */
 	public static void setJail(final Jail jail) {
 		jailInstance = jail;
-		
+
 	}
 
 	/**
@@ -115,18 +148,18 @@ public class SingletonRepository {
 	public static StendhalQuestSystem getStendhalQuestSystem() {
 		return StendhalQuestSystem.get();
 	}
-	
+
 	/**
 	 * @return the actual ProducerRegister instance
 	 */
 	public static ProducerRegister getProducerRegister() {
 		return ProducerRegister.get();
 	}
-	
+
 	public static MerchantsRegister getMerchantsRegister() {
 		return MerchantsRegister.get();
 	}
-	
+
 	public static ServicersRegister getServicersRegister() {
 		return ServicersRegister.get();
 	}
@@ -139,10 +172,14 @@ public class SingletonRepository {
 	}
 
 	/**
-	 * @return the actual ShopList instance
+	 * @return the actual ShopsList instance
 	 */
-	public static ShopList getShopList() {
-		return ShopList.get();
+	public static ShopsList getShopsList() {
+		return ShopsList.get();
+	}
+
+	public static OutfitShopsList getOutfitShopsList() {
+		return OutfitShopsList.get();
 	}
 
 	/**
@@ -164,6 +201,20 @@ public class SingletonRepository {
 	 */
 	public static KrakowFerry getKrakowFerry() {
 		return KrakowFerry.get();
+	}
+
+	/**
+	 * @return the GdanskFerry instance
+	 */
+	public static GdanskFerry getGdanskFerry() {
+		return GdanskFerry.get();
+	}
+	
+	/**
+	 * @return the PirateFerry instance
+	 */
+	public static PirateFerry getPirateFerry() {
+		return PirateFerry.get();
 	}
 
 	/**
@@ -194,24 +245,51 @@ public class SingletonRepository {
 		}
 		return groupManager;
 	}
-	
+
 	/**
-	 * gets the StendhalEconomy
-	 * 
-	 * @return the stendhal economy
+	 * gets the PlayerVsPlayerChallengeManager
+	 *
+	 * @return PlayerVsPlayerChallengeManager
 	 */
-	public static StendhalEconomy getEconomy() {
-		return StendhalEconomy.get();
+	public static PlayerVsPlayerChallengeManager getChallengeManager() {
+		if (challengeManager == null) {
+			challengeManager = PlayerVsPlayerChallengeManager.create();
+		}
+		return challengeManager;
 	}
 
 	/**
-	 * Sets a new EntityManager 
+	 * Sets a new EntityManager
 	 * @param entityManager
 	 */
 	static void setEntityManager(final EntityManager entityManager) {
 		SingletonRepository.entityManager = entityManager;
 	}
 
-	
+	/**
+	 * Retrieves the CachedActionManager.
+	 *
+	 * @return
+	 *     CachedActionManager instance.
+	 */
+	public static CachedActionManager getCachedActionManager() {
+		return CachedActionManager.get();
+	}
 
+	/**
+	 * Retrieves the CloneManager.
+	 *
+	 * @return
+	 *     CloneManager instance.
+	 */
+	public static CloneManager getCloneManager() {
+		return CloneManager.get();
+	}
+
+	/**
+	 * Retrieves XML loader for NPC shops.
+	 */
+	public static ShopsXMLLoader getShopsXMLLoader() {
+		return ShopsXMLLoader.get();
+	}
 }

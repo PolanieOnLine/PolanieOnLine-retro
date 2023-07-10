@@ -1,10 +1,13 @@
-// $Id: DropActionTest.java,v 1.2 2012/09/01 18:27:09 kiheru Exp $
+// $Id$
 package games.stendhal.server.actions.equip;
 
 import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
 import java.util.List;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import games.stendhal.common.EquipActionConsts;
 import games.stendhal.server.core.engine.SingletonRepository;
@@ -13,10 +16,6 @@ import games.stendhal.server.entity.item.Item;
 import games.stendhal.server.entity.player.Player;
 import marauroa.common.game.RPAction;
 import marauroa.common.game.RPObject;
-
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import utilities.PlayerTestHelper;
 import utilities.ZoneAndPlayerTestImpl;
 
@@ -53,12 +52,12 @@ public class DropActionTest extends ZoneAndPlayerTestImpl {
 		final Player player = PlayerTestHelper.createPlayer("bob");
 		localzone.add(player);
 
-		Item item = SingletonRepository.getEntityManager().getItem("dice");
-		player.equip(item, 1);
+		Item item = SingletonRepository.getEntityManager().getItem("kości do gry");
+		player.equipToInventoryOnly(item);
 
 		assertEquals(0, localzone.getItemsOnGround().size());
 
-		item = player.getFirstEquipped("dice");
+		item = player.getFirstEquipped("kości do gry");
 		RPObject parent = item.getContainer();
 		RPAction action = new RPAction();
 		action.put("type", "drop");
@@ -74,7 +73,7 @@ public class DropActionTest extends ZoneAndPlayerTestImpl {
 		assertEquals(1, items.length);
 		assertEquals(0, items[0].getX());
 		assertEquals(1, items[0].getY());
-		
+
 		// Same using item paths
 		localzone.remove(item);
 		player.equip("bag", item);

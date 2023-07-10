@@ -1,4 +1,4 @@
-/* $Id: NineSwitchesGame.java,v 1.12 2011/10/10 16:52:09 bluelads99 Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -37,9 +37,8 @@ public class NineSwitchesGame implements LoadableContent {
 	private NineSwitchesGameBoard board;
 	private SpeakerNPC npc;
 
-	// 1 min at 300 ms/turn
-	private static final int CHAT_TIMEOUT = 200;
-	
+	private static final int CHAT_TIMEOUT = 60;
+
 	private void addBoard() {
 		board = new NineSwitchesGameBoard(zone, 94, 106);
 	}
@@ -56,7 +55,7 @@ public class NineSwitchesGame implements LoadableContent {
 			protected void createDialog() {
 				addGreeting("Cześć. Witam w naszej małej grze dziewięć przycisków. Twoim zadaniem jest skierowanie wszystkich strzałekw prawo."
 						+ " Łatwe? Cóż jest pewien #haczyk.");
-				addReply(Arrays.asList("catch", "haczyk"), 
+				addReply(Arrays.asList("catch", "haczyk"),
 						" Każdy przycisk jest połączony z sąsiednim, który je zmieni. Masz jedną minutę na rozwiązanie zagadki."
 						+ " Czy chcesz #zagrać?.");
 				addJob("Jestem mistrzem tej gry.");
@@ -67,12 +66,13 @@ public class NineSwitchesGame implements LoadableContent {
 						"Powodzenia.",
 						new PlayAction(board));
 			}
-			
+
+			@Override
 			protected void onGoodbye(RPEntity player) {
 				setDirection(Direction.DOWN);
 			}
 		};
-		npc.setEntityClass("gamesupervisornpc"); 
+		npc.setEntityClass("gamesupervisornpc");
 		npc.setPlayerChatTimeout(CHAT_TIMEOUT);
 		npc.setPosition(98, 104);
 		npc.setDescription("Oto Maltos. Nie jesteś ciekawy jego uczesania?");
@@ -95,6 +95,7 @@ public class NineSwitchesGame implements LoadableContent {
 			this.board = board;
 		}
 
+		@Override
 		public void fire(Player player, Sentence sentence, EventRaiser npc) {
 			if (board.getPlayerName() != null) {
 				npc.say("Przykro mi " + player.getName() + ", ale już ktoś gra. Poczekaj na swoją kolej.");
@@ -104,6 +105,7 @@ public class NineSwitchesGame implements LoadableContent {
 		}
 	}
 
+	@Override
 	public void addToWorld() {
 		zone = SingletonRepository.getRPWorld().getZone("0_semos_mountain_n2");
 
@@ -118,6 +120,7 @@ public class NineSwitchesGame implements LoadableContent {
 	 *
 	 * @return <code>true</code>
 	 */
+	@Override
 	public boolean removeFromWorld() {
 		NPCList.get().remove("Paul Sheriff");
 		zone.remove(npc);

@@ -1,4 +1,4 @@
-/* $Id: ItemTestHelper.java,v 1.4 2010/09/19 01:28:49 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,9 +12,9 @@
  ***************************************************************************/
 package utilities.RPClass;
 
-import marauroa.common.game.RPClass;
 import games.stendhal.server.entity.item.Item;
 import games.stendhal.server.entity.item.StackableItem;
+import marauroa.common.game.RPClass;
 
 public class ItemTestHelper {
 
@@ -27,7 +27,7 @@ public class ItemTestHelper {
 		ItemTestHelper.generateRPClasses();
 		return new Item(name, "itemclass", "subclass", null);
 	}
-	
+
 	public static Item createItem(final String name, final int quantity) {
 		ItemTestHelper.generateRPClasses();
 		final StackableItem item = new StackableItem(name, "itemclass", "subclass", null);

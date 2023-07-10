@@ -18,9 +18,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import marauroa.common.io.UnicodeSupportingInputStreamReader;
-
 import org.apache.log4j.Logger;
+
+import marauroa.common.io.UnicodeSupportingInputStreamReader;
 
 /**
  * translation
@@ -38,7 +38,7 @@ public class Translate {
 	 * loads the language files
 	 */
 	public static void init() {
-		init("es");
+		init("pl");
 	}
 
 	/**
@@ -83,7 +83,7 @@ public class Translate {
 	 * @param text text to translate
 	 * @return translated text
 	 */
-	public static String _(String text) {
+	public static String getText(String text) {
 		String language = threadLocal.get();
 		String res = null;
 		Map<String, String> map = texts.get(language);

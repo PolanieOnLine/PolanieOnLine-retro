@@ -1,4 +1,4 @@
-/* $Id: SendPrivateMessageAction.java,v 1.5 2012/09/09 12:19:56 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +12,10 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.action;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import com.google.common.base.Objects;
+
 import games.stendhal.common.NotificationType;
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
@@ -19,9 +23,6 @@ import games.stendhal.server.core.config.annotations.Dev.Category;
 import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.player.Player;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Sends the message as a private text
@@ -39,7 +40,7 @@ public class SendPrivateMessageAction implements ChatAction {
 	 * @param text text to send
 	 */
 	public SendPrivateMessageAction(String text) {
-		this.text = text;
+		this.text = checkNotNull(text);
 		if(text.startsWith("Administrator #")) {
 			this.type = NotificationType.TELLALL;
 		} else {
@@ -56,10 +57,11 @@ public class SendPrivateMessageAction implements ChatAction {
 	 */
 	@Dev
 	public SendPrivateMessageAction(@Dev(defaultValue="SERVER") final NotificationType type, final String text) {
-		this.text = text;
+		this.text = checkNotNull(text);
 		this.type = type;
 	}
 
+	@Override
 	public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 		player.sendPrivateText(type, text);
 	}
@@ -72,12 +74,16 @@ public class SendPrivateMessageAction implements ChatAction {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 5449 * (text.hashCode() + 5471 * (type == null ? 0 : type.hashCode()));
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				SendPrivateMessageAction.class);
+		if (!(obj instanceof SendPrivateMessageAction)) {
+			return false;
+		}
+		SendPrivateMessageAction other = (SendPrivateMessageAction) obj;
+		return text.equals(other.text)
+			&& Objects.equal(type, other.type);
 	}
 }

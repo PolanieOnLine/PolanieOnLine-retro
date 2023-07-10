@@ -1,6 +1,5 @@
-/* $Id: PriestessNPC.java,v 1.17 2010/11/09 21:10:00 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,20 +11,17 @@
  ***************************************************************************/
 package games.stendhal.server.maps.magic.shrine;
 
-import games.stendhal.server.core.config.ZoneConfigurator;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.core.pathfinder.FixedPath;
-import games.stendhal.server.core.pathfinder.Node;
-import games.stendhal.server.entity.npc.ShopList;
-import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.action.SayTextWithPlayerNameAction;
-import games.stendhal.server.entity.npc.behaviour.adder.SellerAdder;
-import games.stendhal.server.entity.npc.behaviour.impl.SellerBehaviour;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import games.stendhal.server.core.config.ZoneConfigurator;
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.core.pathfinder.FixedPath;
+import games.stendhal.server.core.pathfinder.Node;
+import games.stendhal.server.entity.CollisionAction;
+import games.stendhal.server.entity.npc.SpeakerNPC;
+import games.stendhal.server.entity.npc.action.SayTextAction;
 
 /**
  * Builds a priestess NPC.
@@ -34,21 +30,19 @@ import java.util.Map;
  * @author kymara
  */
 public class PriestessNPC implements ZoneConfigurator {
-	private final ShopList shops = SingletonRepository.getShopList();
-
 	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildNPC(zone);
 	}
 
 	private void buildNPC(final StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Kendra Mattori") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -61,18 +55,18 @@ public class PriestessNPC implements ZoneConfigurator {
 
 			@Override
 			protected void createDialog() {
-			    addGreeting(null, new SayTextWithPlayerNameAction("Witaj [name]."));
+			    addGreeting(null, new SayTextAction("Witaj [name]."));
 			    addJob("Jako kapłanka mogę #zaoferować Ci mikstury.");
 				addHelp("Moja siostra Salva ma dar uzdrawiania. Wyszła na spacer koło akweduktu. Powinieneś ją znaleźć o ile jej potrzebujesz.");
-				new SellerAdder().addSeller(this, new SellerBehaviour(shops.get("superhealing")), true);
-				addGoodbye("Dowidzenia.");
+				addGoodbye("Do widzenia.");
 			}
 		};
 
-		npc.setDescription("Oto piękna kobieta, ukrywająca się pod owinięta tkaniną.");
+		npc.setDescription("Oto piękna kobieta Kendra Mattori, ukrywająca się pod owinięta tkaniną.");
 		npc.setEntityClass("cloakedwoman2npc");
+		npc.setGender("F");
 		npc.setPosition(9, 10);
-		npc.initHP(100);
+		npc.setCollisionAction(CollisionAction.STOP);
 		zone.add(npc);
 	}
 }

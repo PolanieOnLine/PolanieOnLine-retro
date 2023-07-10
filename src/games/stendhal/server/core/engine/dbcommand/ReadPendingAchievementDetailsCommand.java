@@ -1,4 +1,4 @@
-/* $Id: ReadPendingAchievementDetailsCommand.java,v 1.2 2011/02/25 07:46:44 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2011 - Stendhal                    *
  ***************************************************************************
@@ -12,14 +12,13 @@
  ***************************************************************************/
 package games.stendhal.server.core.engine.dbcommand;
 
-import games.stendhal.server.core.engine.db.PendingAchievementDAO;
-import games.stendhal.server.entity.player.Player;
-
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
+import games.stendhal.server.core.engine.db.PendingAchievementDAO;
+import games.stendhal.server.entity.player.Player;
 import marauroa.server.db.DBTransaction;
 import marauroa.server.db.command.AbstractDBCommand;
 import marauroa.server.game.db.DAORegister;
@@ -27,10 +26,10 @@ import marauroa.server.game.db.DAORegister;
 /**
  * Reads details for pending or partially gained achievements from a table
  *
- * @author kymara 
+ * @author kymara
  */
 public class ReadPendingAchievementDetailsCommand extends AbstractDBCommand {
-	
+
 	private final Player player;
 	private Map<String, Map<String, Integer>> details = new HashMap<String, Map<String, Integer>>();
 
@@ -50,11 +49,11 @@ public class ReadPendingAchievementDetailsCommand extends AbstractDBCommand {
 	public Map<String, Map<String, Integer>> getDetails() {
 		return details;
 	}
-	
+
 	public Map<String, Integer> getDetails(String identifier) {
 		return details.get(identifier);
 	}
-	
+
 	public Player getPlayer() {
 		return player;
 	}

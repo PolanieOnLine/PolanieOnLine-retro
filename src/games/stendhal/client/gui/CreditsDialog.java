@@ -11,8 +11,6 @@
  ***************************************************************************/
 package games.stendhal.client.gui;
 
-import games.stendhal.client.sprite.DataLoader;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
@@ -37,57 +35,50 @@ import javax.swing.JPanel;
 
 import org.apache.log4j.Logger;
 
+import games.stendhal.client.sprite.DataLoader;
+
 /**
  * Displays a credits dialog box.
  */
-public class CreditsDialog extends JDialog {
-
-	private static final long serialVersionUID = 4312205320503928411L;
-
-	private static final Logger logger = Logger.getLogger(CreditsDialog.class);
-
+class CreditsDialog extends JDialog {
+	/** Logger instance. */
+	private static final Logger LOGGER = Logger.getLogger(CreditsDialog.class);
+	/** Scrolling panel. */
 	private ScrollerPanel sp;
-
-	private final JPanel buttonPane = new JPanel();
-
+	/** Close button. */
 	private final JButton closeButton = new JButton("Zamknij");
-
-	private final Color backgroundColor = Color.white;
-
-	private final Font textFont = new Font("SansSerif", Font.BOLD, 12);
-
-	private final Color textColor = new Color(85, 85, 85);
 
 	/**
 	 * Creates a new credits dialog.
-	 * 
+	 *
 	 * @param owner
 	 *            owner window
 	 */
-	public CreditsDialog(final Frame owner) {
+	CreditsDialog(final Frame owner) {
 		super(owner, true);
 		initGUI(owner);
-		logger.debug("about dialog initialized");
+		LOGGER.debug("about dialog initialized");
 		eventHandling();
-		logger.debug("about dialog event handling ready");
+		LOGGER.debug("about dialog event handling ready");
 
-		this.setTitle("Wyróżnieni przez PolskaOnLine");
+		this.setTitle("Wyróżnieni przez PolanieOnLine");
 		// required on Compiz
-		this.pack(); 
-		if (owner != null) {
-			Dimension size = owner.getSize();
-			size.width -= 50;
-			size.height -= 50;
-			setSize(size);
-			setLocationRelativeTo(owner);
-		} else {
-			this.setLocationByPlatform(true);
-			this.setSize(600, 420);
-		}
+		this.pack();
+
+		Dimension size = owner.getSize();
+		size.width -= 50;
+		size.height -= 50;
+		setSize(size);
+		setLocationRelativeTo(owner);
 		WindowUtils.closeOnEscape(this);
 		this.setVisible(true);
 	}
 
+	/**
+	 * Create the GUI.
+	 *
+	 * @param owner parent window
+	 */
 	private void initGUI(final Frame owner) {
 		this.addWindowListener(new WindowAdapter() {
 			@Override
@@ -101,15 +92,21 @@ public class CreditsDialog extends JDialog {
 		if (content instanceof JComponent) {
 			((JComponent) content).setBorder(null);
 		}
+		// Colors
+		Color backgroundColor = Color.white;
+		Color textColor = new Color(85, 85, 85);
+
 		content.setLayout(new BorderLayout());
 		content.setBackground(backgroundColor);
 
 		// read the credits from an external file because code format gets it
 		// unreadable if inlined
 		final List<String> creditsList = readCredits();
+		Font textFont = new Font("SansSerif", Font.BOLD, 12);
 		sp = new ScrollerPanel(creditsList, textFont, 0, textColor,
 				backgroundColor, 20);
 
+		JPanel buttonPane = new JPanel();
 		buttonPane.add(closeButton);
 
 		content.add(sp, BorderLayout.CENTER);
@@ -118,7 +115,7 @@ public class CreditsDialog extends JDialog {
 
 	/**
 	 * Reads the credits from credits.text.
-	 * 
+	 *
 	 * @return list of lines
 	 */
 	private List<String> readCredits() {
@@ -137,7 +134,7 @@ public class CreditsDialog extends JDialog {
 				br.close();
 			}
 		} catch (final IOException e) {
-			res.add(0, "nie znaleziono pliku credits.txt");
+			res.add(0, "credits.txt not found");
 		}
 		return res;
 	}
@@ -147,14 +144,13 @@ public class CreditsDialog extends JDialog {
 	 */
 	private void eventHandling() {
 		this.addWindowListener(new WindowAdapter() {
-
 			@Override
 			public void windowClosing(final WindowEvent e) {
 				exit();
 			}
 		});
 		closeButton.addActionListener(new ActionListener() {
-
+			@Override
 			public void actionPerformed(final ActionEvent e) {
 				exit();
 			}
@@ -164,14 +160,13 @@ public class CreditsDialog extends JDialog {
 	/**
 	 * Exits Credits Dialog.
 	 */
-	protected void exit() {
+	private void exit() {
 		sp.stop();
 		this.setVisible(false);
 		if (getOwner() != null) {
 			getOwner().setEnabled(true);
 		}
 		this.dispose();
-		logger.debug("about dialog closed");
+		LOGGER.debug("about dialog closed");
 	}
-
 }

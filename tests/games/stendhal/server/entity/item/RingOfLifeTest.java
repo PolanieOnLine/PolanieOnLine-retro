@@ -1,4 +1,4 @@
-/* $Id: RingOfLifeTest.java,v 1.7 2010/09/19 02:39:48 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -14,13 +14,12 @@ package games.stendhal.server.entity.item;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import games.stendhal.server.maps.MockStendlRPWorld;
-
-import marauroa.common.Log4J;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.server.maps.MockStendlRPWorld;
+import marauroa.common.Log4J;
 import utilities.RPClass.ItemTestHelper;
 
 public class RingOfLifeTest {
@@ -29,7 +28,7 @@ public class RingOfLifeTest {
 		Log4J.init();
 		MockStendlRPWorld.get();
 		ItemTestHelper.generateRPClasses();
-		
+
 	}
 	/**
 	 * Tests for describe.
@@ -38,12 +37,11 @@ public class RingOfLifeTest {
 	public void testDescribe() {
 		final RingOfLife ring = new RingOfLife();
 		assertThat(ring.isBroken(), is(false));
-		assertThat(ring.describe(), is("You see an emerald ring, known as the ring of life. Wear it, and you risk less from death."));
-		
+		assertThat(ring.describe(), is("Oto §'pierścień szmaragdowy'. Noś go, a uchroni Cię przed konsekwencjami związanymi ze śmiercią."));
+
 		ring.damage();
 		assertThat(ring.isBroken(), is(true));
-		assertThat(ring.describe(), is("You see an emerald ring, known as the ring of life. The gleam is lost from the stone and it has no powers."));
-		
+		assertThat(ring.describe(), is("Oto §'pierścień szmaragdowy'. Kamień stracił blask i nie posiada mocy."));
 	}
 
 	/**
@@ -53,16 +51,14 @@ public class RingOfLifeTest {
 	public void testOnUsed() {
 		final RingOfLife ring = new RingOfLife();
 		assertThat(ring.isBroken(), is(false));
-		assertThat(ring.describe(), is("You see an emerald ring, known as the ring of life. Wear it, and you risk less from death."));
-		
+		assertThat(ring.describe(), is("Oto §'pierścień szmaragdowy'. Noś go, a uchroni Cię przed konsekwencjami związanymi ze śmiercią."));
+
 		ring.onUsed(null);
 		assertThat(ring.isBroken(), is(false));
-		assertThat(ring.describe(), is("You see an emerald ring, known as the ring of life. Wear it, and you risk less from death."));
-		
-
+		assertThat(ring.describe(), is("Oto §'pierścień szmaragdowy'. Noś go, a uchroni Cię przed konsekwencjami związanymi ze śmiercią."));
 	}
 
-	
+
 
 	/**
 	 * Tests for repair.
@@ -71,15 +67,15 @@ public class RingOfLifeTest {
 	public void testRepair() {
 		final RingOfLife ring = new RingOfLife();
 		assertThat(ring.isBroken(), is(false));
-		assertThat(ring.describe(), is("You see an emerald ring, known as the ring of life. Wear it, and you risk less from death."));
-		
+		assertThat(ring.describe(), is("Oto §'pierścień szmaragdowy'. Noś go, a uchroni Cię przed konsekwencjami związanymi ze śmiercią."));
+
 		ring.damage();
 		assertThat(ring.isBroken(), is(true));
-		assertThat(ring.describe(), is("You see an emerald ring, known as the ring of life. The gleam is lost from the stone and it has no powers."));
-	
+		assertThat(ring.describe(), is("Oto §'pierścień szmaragdowy'. Kamień stracił blask i nie posiada mocy."));
+
 		ring.repair();
 		assertThat(ring.isBroken(), is(false));
-		assertThat(ring.describe(), is("You see an emerald ring, known as the ring of life. Wear it, and you risk less from death."));
+		assertThat(ring.describe(), is("Oto §'pierścień szmaragdowy'. Noś go, a uchroni Cię przed konsekwencjami związanymi ze śmiercią."));
 	}
 
 }

@@ -1,4 +1,4 @@
-/* $Id: UpdatePropertiesWriter.java,v 1.14 2011/07/06 21:17:56 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -107,7 +107,7 @@ public class UpdatePropertiesWriter {
 		ps.println("# new version after update to calculate multiple updates in a row");
 		writeKeysWithPrefix("version.destination.");
 	}
-	
+
 	private void init() {
 		ps.println("# files to download on first install");
 		writeKeysWithPrefix("init.");

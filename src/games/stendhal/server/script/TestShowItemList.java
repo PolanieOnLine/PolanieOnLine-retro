@@ -1,6 +1,5 @@
-/* $Id: TestShowItemList.java,v 1.6 2010/09/19 02:36:26 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,23 +11,25 @@
  ***************************************************************************/
 package games.stendhal.server.script;
 
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.core.scripting.ScriptImpl;
-import games.stendhal.server.entity.item.Item;
-import games.stendhal.server.entity.npc.ShopList;
-import games.stendhal.server.entity.player.Player;
-import games.stendhal.server.events.ShowItemListEvent;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import games.stendhal.common.NotificationType;
+import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.core.scripting.ScriptImpl;
+import games.stendhal.server.entity.item.Item;
+import games.stendhal.server.entity.item.ItemInformation;
+import games.stendhal.server.entity.npc.shop.ShopsList;
+import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.events.ShowItemListEvent;
 
 /**
  * Creates a portable NPC who gives ALL players powerful items, increases their
  * level and makes them admins. This is used on test-systems only. Therefore it
  * is disabled in default install and you have to use this parameter:
  * -Dstendhal.testserver=junk as a vm argument.
- * 
+ *
  * As admin uses /script AdminMaker.class to summon her right next to him/her.
  * Please unload it with /script -unload AdminMaker.class
  */
@@ -46,17 +47,25 @@ public class TestShowItemList extends ScriptImpl {
 			itemList.add(prepareItem("skórzana zbroja", -100));
 			itemList.add(prepareItem("miecz lodowy", -10000));
 		} else {
-			ShopList shops = SingletonRepository.getShopList();
-			Map<String, Integer> items = shops.get(args.get(0));
+			final String shopName = args.get(0);
+			ShopsList shops = SingletonRepository.getShopsList();
+			Map<String, Integer> items = shops.get(shopName);
+
+			if (items == null) {
+				admin.sendPrivateText(NotificationType.ERROR, "Nie znaleziono sklepu \"" + shopName + "\"");
+				return;
+			}
+
 			for (Map.Entry<String, Integer> entry : items.entrySet()) {
 				itemList.add(prepareItem(entry.getKey(), Integer.valueOf(entry.getValue())));
 			}
 		}
 
-		ShowItemListEvent event = new ShowItemListEvent("Sklep Aramyk", 
-				"Porozmawiaj z Aramykiem, aby #kupić lub #sprzedać przedmioty.", 
+		ShowItemListEvent event = new ShowItemListEvent("Sklep Aramyk",
+				"Porozmawiaj z Aramykiem, aby kupić lub sprzedać przedmioty.",
 				itemList);
 		admin.addEvent(event);
+		admin.notifyWorldAboutChanges();
 	}
 
 	/**
@@ -67,8 +76,11 @@ public class TestShowItemList extends ScriptImpl {
 	 * @return Item
 	 */
 	private Item prepareItem(String name, int price) {
-		Item item = SingletonRepository.getEntityManager().getItem(name);
+		Item prototype = SingletonRepository.getEntityManager().getItem(name);
+		Item item = new ItemInformation(prototype);
 		item.put("price", -price);
+		item.put("description_info", item.describe());
+		// compatibility with 0.85 clients
 		item.put("description", item.describe());
 		return item;
 	}

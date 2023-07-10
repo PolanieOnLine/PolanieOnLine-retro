@@ -1,4 +1,4 @@
-/* $Id: ItemTools.java,v 1.3 2010/09/19 02:20:44 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -23,8 +23,8 @@ public class ItemTools {
      * Replace underscores in the given String by spaces.
      * This is used to replace underscore characters in compound item and creature names
      * after loading data from the database.
-     * 
-     * @param name
+     *
+     * @param name name of item
      * @return transformed String if name contained an underscore,
      * 			or unchanged String object
      * 			or null if name was null

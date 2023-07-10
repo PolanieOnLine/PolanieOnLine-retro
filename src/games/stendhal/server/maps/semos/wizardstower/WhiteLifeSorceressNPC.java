@@ -1,4 +1,3 @@
-/* $Id: WhiteLifeSorceressNPC.java,v 1.6 2010/09/19 02:35:23 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,15 +11,15 @@
  ***************************************************************************/
 package games.stendhal.server.maps.semos.wizardstower;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Elana, the life wizard of the Wizards Tower
@@ -28,14 +27,13 @@ import java.util.Map;
  * see games.stendhal.server.maps.quests.WizardElanaPlainQuest
  */
 public class WhiteLifeSorceressNPC implements ZoneConfigurator {
-
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildElana(zone);
 	}
 
 	private void buildElana(final StendhalRPZone zone) {
 		final SpeakerNPC elana = new SpeakerNPC("Elana") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -78,14 +76,13 @@ public class WhiteLifeSorceressNPC implements ZoneConfigurator {
 				addQuest("Magia kiedyś opanuje świat. Narazie to dopiero jej początki... Ale jestem przez to strasznie zjęta. Na dodatek muszę dbać o białych magów z #Lavitae. Gdy będę potrzebować pomocy, odezwę się w sprawie zadania.");
 				addReply("Lavitae", "Lavitae to szkoła białej magii. Jest niedaleko, znajduje się w pobliżu Ados.");
 				addGoodbye("Żegnaj!");
-
 			} //remaining behaviour defined in maps.quests.WizardElanaPlainQuest
 		};
 
-		elana.setDescription("Widzisz Elanę, białą wróżkę życia.");
+		elana.setDescription("Oto Elana, biała wróżka życia.");
 		elana.setEntityClass("whitesorceressnpc");
+		elana.setGender("F");
 		elana.setPosition(40, 18);
-		elana.initHP(100);
 		zone.add(elana);
 	}
 }

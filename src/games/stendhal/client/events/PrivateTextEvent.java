@@ -1,4 +1,4 @@
-/* $Id: PrivateTextEvent.java,v 1.2 2010/09/19 02:17:47 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -14,14 +14,12 @@ package games.stendhal.client.events;
 
 import games.stendhal.client.entity.RPEntity;
 
-
 /**
  * Private chat
  *
  * @author hendrik
  */
-public class PrivateTextEvent extends Event<RPEntity> {
-
+class PrivateTextEvent extends Event<RPEntity> {
 	/**
 	 * executes the event
 	 */
@@ -29,5 +27,4 @@ public class PrivateTextEvent extends Event<RPEntity> {
 	public void execute() {
 		entity.onPrivateListen(event.get("texttype"), event.get("text"));
 	}
-
 }

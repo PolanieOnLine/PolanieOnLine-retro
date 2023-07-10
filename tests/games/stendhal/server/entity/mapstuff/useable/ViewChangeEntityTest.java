@@ -13,6 +13,10 @@
 package games.stendhal.server.entity.mapstuff.useable;
 
 import static org.junit.Assert.assertEquals;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import games.stendhal.common.constants.Events;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.entity.player.Player;
@@ -20,10 +24,6 @@ import games.stendhal.server.maps.MockStendhalRPRuleProcessor;
 import games.stendhal.server.maps.MockStendlRPWorld;
 import marauroa.common.Log4J;
 import marauroa.common.game.RPEvent;
-
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import utilities.PlayerTestHelper;
 
 
@@ -37,18 +37,18 @@ public class ViewChangeEntityTest {
 		MockStendhalRPRuleProcessor.get();
 		MockStendlRPWorld.get();
 	}
-	
+
 	/**
 	 * Test description string.
 	 */
 	@Test
 	public void testDescribe() {
 		ViewChangeEntity entity = new ViewChangeEntity(42, 99);
-		
-		assertEquals("Description", "You see a scrying orb. A note on it says \"Using costs 5 money. Stay still and concentrate while viewing\".",
+
+		assertEquals("Description", "Oto wróżąca kula. Zapisane jest \"Użycie kosztuje 5 money. Stój w spokoju i skoncentruj się podczas oglądania\".",
 				entity.describe());
 	}
-	
+
 	/**
 	 * Test trying to use the entity from too far away.
 	 */
@@ -60,14 +60,14 @@ public class ViewChangeEntityTest {
 		StendhalRPZone zone = new StendhalRPZone("testzone");
 		zone.add(entity);
 		zone.add(player);
-		
+
 		entity.onUsed(player);
 		assertEquals(player.events().size(), 1);
 		RPEvent event = player.events().get(0);
 		assertEquals("Correct event type", Events.PRIVATE_TEXT, event.getName());
-		assertEquals("You cannot reach that from here.", event.get("text"));
+		assertEquals("Nie możesz stąd dosięgnąć.", event.get("text"));
 	}
-	
+
 	/**
 	 * Test trying to use the orb without having completed the required quest.
 	 */
@@ -79,9 +79,9 @@ public class ViewChangeEntityTest {
 		assertEquals(player.events().size(), 1);
 		RPEvent event = player.events().get(0);
 		assertEquals("Correct event type", Events.PRIVATE_TEXT, event.getName());
-		assertEquals("You don't know how to use the strange device.", event.get("text"));
+		assertEquals("Nie wiesz jak obsłużyć to dziwne urządzenie.", event.get("text"));
 	}
-	
+
 	/**
 	 * Test using the orb with close enough, and with the quest done, but
 	 * without any money.
@@ -95,9 +95,9 @@ public class ViewChangeEntityTest {
 		assertEquals(player.events().size(), 1);
 		RPEvent event = player.events().get(0);
 		assertEquals("Correct event type", Events.PRIVATE_TEXT, event.getName());
-		assertEquals("You do not have enough money.", event.get("text"));
+		assertEquals("Nie posiadasz wystarczająco dużo money.", event.get("text"));
 	}
-	
+
 	/**
 	 * Test getting the view change event when all the usage conditions are met.
 	 */

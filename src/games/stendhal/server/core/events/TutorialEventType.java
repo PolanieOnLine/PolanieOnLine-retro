@@ -1,4 +1,4 @@
-/* $Id: TutorialEventType.java,v 1.29 2012/08/06 21:20:20 kymara Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -14,16 +14,16 @@ package games.stendhal.server.core.events;
 
 /**
  * Event types used in the tutorial.
- * 
+ *
  * @author hendrik
  */
 public enum TutorialEventType {
 
 	FIRST_LOGIN(
-			"Witaj w PolskaOnLine. Możesz się poruszać używając klawiszy strzałek na klawiaturze lub klikając myszką."),
+			"Witaj w PolanieOnLine. Możesz się poruszać używając klawiszy strzałek na klawiaturze lub klikając myszką."),
 	FIRST_MOVE(
 			"Możesz porozmawiać z Pietrkiem mówiąc \"cześć\"."),
-	RETURN_HOME(
+	RETURN_GUARDHOUSE(
 			"Porozmawiaj ponownie z Pietrkiem mówiąc \"cześć\"."),
 	VISIT_SEMOS_CITY(
 			"Możesz dostać mapę Semos od Monogenes. Zacznij od powiedzenia \"cześć\" lub możesz pójść trochę bardziej na południe, aby powalczyć z potworami w podziemiach."),
@@ -32,7 +32,7 @@ public enum TutorialEventType {
 	VISIT_SEMOS_DUNGEON_2(
 			"Ostrożnie. Jeżeli będziesz dalej się zagłębiał to spotkasz coraz silniejsze potwory. Możesz uciec z powrotem do Semos, aby Carmen wyleczyła twoje rany."),
 	VISIT_SEMOS_TAVERN(
-			"Możesz handlować z NPC-ami mówiąc \"cześć\", a później pytając o jego ofertę \"oferta\". Jeżeli chciałbyś coś kupić np flaszę to powiedz \"kupię flasza\"."),
+			"Możesz handlować z NPC-ami mówiąc \"cześć\", a później pytając o jego ofertę \"oferta\". Jeżeli chciałbyś coś kupić np butelkę to powiedz \"kupię butelka\"."),
 	VISIT_SEMOS_PLAINS(
 			"Regularne jedzenie jest kluczem do odzyskania swojego zdrowia. Jeżeli posiadasz małe zapasy jedzenia to odwiedź farmę, która znajduje się na północny-wschód stąd."),
 	FIRST_ATTACKED(
@@ -43,6 +43,8 @@ public enum TutorialEventType {
 			"Zostałeś oznaczony czerwoną czaszką ponieważ zabiłeś wojownika. Możesz spotkać osoby, które będą Cię obserwować. W celu usunięcia tego porozmawiaj z Io Flotto w świątyni w Semos."),
 	FIRST_POISONED(
 			"Zostałeś właśnie zatruty. Jeżeli nie wypiłeś trucizny to oznacza, że zostałeś zatruty przez potwora, który cię atakuje. Szybko zabij potwora ponieważ przy zatruciu twoje PZ z biegiem czasu maleje."),
+	FIRST_BLEEDING(
+			"Zostałeś mocno zraniony przez potwora, który cię atakuje. Musisz się go szybko pozbyć, ponieważ przez te rany się powoli wykrwawiasz. Wypij magiczny eliksir zdrowia lub udaj się do uzdrowicieli, aby zagoić rozległe rany."),
 	FIRST_PLAYER(
 			"Czy zauważyłeś postacie z nazwą w kolorze białym? Oznaczają one innych wojowników."),
 	FIRST_DEATH(
@@ -60,12 +62,14 @@ public enum TutorialEventType {
 	TIMED_OUTFIT(
 			"Podoba się Tobie swój własny wygląd? Jeżeli nie to możesz go zmienić. Naciśnij na sobie prawy przycisk myszy i wybierz \"Ustaw wygląd\", aby poeksperymentować z nowymi fryzurami, twarzami, ubraniami i ciałem."),
 	TIMED_RULES(
-			"Dziękujemy zostanie z nami. Ze względu, że grasz już dość długo to ważne, abyś przeczytał regulamin. Wpisz #/rules a otworzy się przeglądarka z regulaminem.");
+			"Dziękujemy zostanie z nami. Ze względu, że grasz już dość długo to ważne, abyś przeczytał regulamin. Wpisz #/rules a otworzy się przeglądarka z regulaminem."),
+	NEW_RELEASE(
+			"Witamy Cię serdecznie w nowej wersji PolanieOnLine! Sporo zmieniło się od ostatniego Twojego zalogowania do gry!");
 	private String message;
 
 	/**
 	 * Creates a new TutorialEventType.
-	 * 
+	 *
 	 * @param message
 	 *            human readable message
 	 */
@@ -75,7 +79,7 @@ public enum TutorialEventType {
 
 	/**
 	 * Gets the descriptive message.
-	 * 
+	 *
 	 * @return message
 	 */
 	String getMessage() {

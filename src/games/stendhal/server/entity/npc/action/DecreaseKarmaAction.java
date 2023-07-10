@@ -1,4 +1,4 @@
-/* $Id: DecreaseKarmaAction.java,v 1.15 2012/09/09 12:19:56 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -37,6 +37,7 @@ public class DecreaseKarmaAction implements ChatAction {
 		this.karmaDiff = karmaDiff;
 	}
 
+	@Override
 	public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 		player.addKarma(-1 * karmaDiff);
 	}
@@ -58,19 +59,10 @@ public class DecreaseKarmaAction implements ChatAction {
 
 	@Override
 	public boolean equals(final Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
+		if (!(obj instanceof DecreaseKarmaAction)) {
 			return false;
 		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		final DecreaseKarmaAction other = (DecreaseKarmaAction) obj;
-		if (Double.doubleToLongBits(karmaDiff) != Double.doubleToLongBits(other.karmaDiff)) {
-			return false;
-		}
-		return true;
+		DecreaseKarmaAction other = (DecreaseKarmaAction) obj;
+		return (Double.doubleToLongBits(karmaDiff) == Double.doubleToLongBits(other.karmaDiff));
 	}
 }

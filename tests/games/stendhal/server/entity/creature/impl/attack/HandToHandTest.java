@@ -1,4 +1,4 @@
-/* $Id: HandToHandTest.java,v 1.3 2012/01/11 18:44:04 madmetzger Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -21,6 +21,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.entity.RPEntity;
@@ -30,37 +34,34 @@ import games.stendhal.server.maps.MockStendhalRPRuleProcessor;
 import games.stendhal.server.maps.MockStendlRPWorld;
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPObject.ID;
-
-import org.junit.After;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import utilities.PlayerTestHelper;
 import utilities.RPClass.CreatureTestHelper;
 
+/**
+ * Tests for HandToHand
+ */
 public class HandToHandTest {
 
+	/**
+	 * initialisation
+	 */
 	@BeforeClass
-	public static void setUpbeforeClass() throws Exception {
+	public static void setUpbeforeClass() {
 		MockStendlRPWorld.get();
 		CreatureTestHelper.generateRPClasses();
 	}
 
-	@After
-	public void tearDown() throws Exception {
-	}
 
 	/**
 	 * Tests for attack.
 	 */
 	@Test
-	public void testAttack() throws Exception {
+	public void testAttack() {
 		MockStendhalRPRuleProcessor.get();
 		final HandToHand hth = new HandToHand();
 		final Creature creature = createMock(Creature.class);
 		expect(creature.isAttackTurn(0)).andReturn(true);
 		expect(creature.attack()).andReturn(true);
-		creature.tryToPoison();
 		replay(creature);
 		hth.attack(creature);
 		verify(creature);
@@ -70,7 +71,7 @@ public class HandToHandTest {
 	 * Tests for notAttackTurnAttack.
 	 */
 	@Test
-	public void testNotAttackTurnAttack() throws Exception {
+	public void testNotAttackTurnAttack() {
 		MockStendhalRPRuleProcessor.get();
 		final HandToHand hth = new HandToHand();
 		final Creature creature = createMock(Creature.class);
@@ -92,12 +93,12 @@ public class HandToHandTest {
 
 			@Override
 			protected void dropItemsOn(final Corpse corpse) {
-
+				// empty
 			}
 
 			@Override
 			public void logic() {
-
+				// empty
 			}
 		};
 		victim.put("id", 1);
@@ -258,12 +259,12 @@ public class HandToHandTest {
 
 			@Override
 			protected void dropItemsOn(final Corpse corpse) {
-
+				// empty
 			}
 
 			@Override
 			public void logic() {
-
+				// empty
 			}
 		};
 		victim.put("id", 1);
@@ -293,7 +294,7 @@ public class HandToHandTest {
 	 * Tests for findNewtarget.
 	 */
 	@Test
-	public void testFindNewtarget() throws Exception {
+	public void testFindNewtarget() {
 		MockStendhalRPRuleProcessor.get();
 		final HandToHand hth = new HandToHand();
 		final Creature lonesomeCreature = new Creature();

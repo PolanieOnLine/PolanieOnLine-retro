@@ -1,4 +1,4 @@
-/* $Id: SeedTest.java,v 1.5 2010/11/17 22:57:34 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -14,19 +14,18 @@ package games.stendhal.server.entity.item;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.entity.Entity;
-import games.stendhal.server.entity.mapstuff.spawner.FlowerGrower;
-import games.stendhal.server.entity.player.Player;
-import games.stendhal.server.maps.MockStendlRPWorld;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.entity.Entity;
+import games.stendhal.server.entity.mapstuff.area.Allotment;
+import games.stendhal.server.entity.mapstuff.spawner.FlowerGrower;
+import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.maps.MockStendlRPWorld;
 import utilities.PlayerTestHelper;
 import utilities.RPClass.GrowingPassiveEntityRespawnPointTestHelper;
 
@@ -37,18 +36,20 @@ public class SeedTest {
 		GrowingPassiveEntityRespawnPointTestHelper.generateRPClasses();
 	}
 
-
-
 	/**
 	 * Tests for execute.
 	 */
 	@Test
 	public void testExecute() {
-		final Seed seed = (Seed) SingletonRepository.getEntityManager().getItem("seed");
+		final Seed seed = (Seed) SingletonRepository.getEntityManager().getItem("nasionka");
 		final Player player = PlayerTestHelper.createPlayer("bob");
 		assertNotNull(player);
 		final StendhalRPZone zone = new StendhalRPZone("zone");
 		SingletonRepository.getRPWorld().addRPZone(zone);
+		final Allotment all = new Allotment();
+		all.setPosition(1, 0);
+		all.setSize(20, 20);
+		zone.add(all);
 		zone.add(player);
 
 		assertNotNull(seed);
@@ -57,27 +58,36 @@ public class SeedTest {
 
 		assertTrue(seed.onUsed(player));
 
-		assertNotNull(player.getZone().getEntityAt(1, 0));
-		assertTrue(player.getZone().getEntityAt(1, 0) instanceof FlowerGrower);
-
+		FlowerGrower grower = null;
+		for (final Entity ent: player.getZone().getEntitiesAt(1, 0)) {
+			if (ent instanceof FlowerGrower) {
+				grower = (FlowerGrower) ent;
+				break;
+			}
+		}
+		assertNotNull(grower);
 	}
-	
+
 
 	/**
 	 * Tests for executeSeedInBag.
 	 */
 	@Test
 	public void testExecuteSeedInBag() {
-		final Seed seed = (Seed) SingletonRepository.getEntityManager().getItem("seed");
+		final Seed seed = (Seed) SingletonRepository.getEntityManager().getItem("nasionka");
 		final Player player = PlayerTestHelper.createPlayer("bob");
 		assertNotNull(player);
 		final StendhalRPZone zone = new StendhalRPZone("zone");
 		SingletonRepository.getRPWorld().addRPZone(zone);
+		final Allotment all = new Allotment();
+		all.setPosition(0, 0);
+		all.setSize(20, 20);
+		zone.add(all);
 		zone.add(player);
-		
+
 		assertNotNull(seed);
 		player.equip("bag", seed);
-		
+
 		assertFalse(seed.onUsed(player));
 	}
 
@@ -86,11 +96,15 @@ public class SeedTest {
 	 */
 	@Test
 	public void testExecuteNonameSeed() {
-		final Seed seed = (Seed) SingletonRepository.getEntityManager().getItem("seed");
+		final Seed seed = (Seed) SingletonRepository.getEntityManager().getItem("nasionka");
 		final Player player = PlayerTestHelper.createPlayer("bob");
 		assertNotNull(player);
 		final StendhalRPZone zone = new StendhalRPZone("zone");
 		SingletonRepository.getRPWorld().addRPZone(zone);
+		final Allotment all = new Allotment();
+		all.setPosition(0, 0);
+		all.setSize(20, 20);
+		zone.add(all);
 		zone.add(player);
 
 		assertNotNull(seed);
@@ -99,21 +113,21 @@ public class SeedTest {
 
 		assertTrue(seed.onUsed(player));
 
-		final Entity entity = player.getZone().getEntityAt(1, 0);
-		assertNotNull(entity);
-		if (entity instanceof FlowerGrower) {
-			final FlowerGrower flg = (FlowerGrower) entity;
-			flg.setToFullGrowth();
-			flg.onUsed(player);
-			assertNull(player.getZone().getEntityAt(1, 0));
-			assertTrue(player.isEquipped("lilia"));
-		} else {
-			fail("seed produced non flowergrower");
+		FlowerGrower flg = null;
+		for (final Entity ent: player.getZone().getEntitiesAt(1, 0)) {
+			if (ent instanceof FlowerGrower) {
+				flg = (FlowerGrower) ent;
+				break;
+			}
 		}
-		
 
+		assertNotNull(flg);
+		flg.setToFullGrowth();
+		flg.onUsed(player);
+		assertFalse(player.getZone().getEntitiesAt(1, 0).contains(flg));
+		assertTrue(player.isEquipped("lilia"));
 	}
-	
+
 	/**
 	 * Tests for executeDaisiesSeed.
 	 */
@@ -123,27 +137,32 @@ public class SeedTest {
 		assertNotNull(player);
 		final StendhalRPZone zone = new StendhalRPZone("zone");
 		SingletonRepository.getRPWorld().addRPZone(zone);
+		final Allotment all = new Allotment();
+		all.setPosition(0, 0);
+		all.setSize(20, 20);
+		zone.add(all);
 		zone.add(player);
 
-		final Seed seed = (Seed) SingletonRepository.getEntityManager().getItem("seed");
+		final Seed seed = (Seed) SingletonRepository.getEntityManager().getItem("nasionka");
 		assertNotNull(seed);
-		seed.setInfoString("daisies");
+		seed.setInfoString("stokrotki");
 		zone.add(seed);
 		seed.setPosition(1, 0);
 
 		assertTrue(seed.onUsed(player));
 
-		final Entity entity = player.getZone().getEntityAt(1, 0);
-		assertNotNull(entity);
-		if (entity instanceof FlowerGrower) {
-			final FlowerGrower flg = (FlowerGrower) entity;
-			flg.setToFullGrowth();
-			flg.onUsed(player);
-			assertNull(player.getZone().getEntityAt(1, 0));
-			assertTrue("player has daisies", player.isEquipped("daisies"));
-		} else {
-			fail("seed produced non flowergrower");
+		FlowerGrower flg = null;
+		for (final Entity ent: player.getZone().getEntitiesAt(1, 0)) {
+			if (ent instanceof FlowerGrower) {
+				flg = (FlowerGrower) ent;
+				break;
+			}
 		}
-		
+
+		assertNotNull(flg);
+		flg.setToFullGrowth();
+		flg.onUsed(player);
+		assertFalse(player.getZone().getEntitiesAt(1, 0).contains(flg));
+		assertTrue("player has stokrotki", player.isEquipped("stokrotki"));
 	}
 }

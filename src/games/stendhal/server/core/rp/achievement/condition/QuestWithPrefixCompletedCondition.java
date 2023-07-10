@@ -1,4 +1,4 @@
-/* $Id: QuestWithPrefixCompletedCondition.java,v 1.1 2011/08/02 22:15:58 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,15 +12,14 @@
  ***************************************************************************/
 package games.stendhal.server.core.rp.achievement.condition;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.List;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.List;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Was a quest with this prefix completed?
@@ -31,14 +30,15 @@ public class QuestWithPrefixCompletedCondition implements ChatCondition {
 
 	/**
 	 * Creates a new QuestWithPrefixCompletedCondition.
-	 * 
+	 *
 	 * @param questname
 	 *            name of quest-slot
 	 */
 	public QuestWithPrefixCompletedCondition(final String questname) {
-		this.questname = questname;
+		this.questname = checkNotNull(questname);
 	}
 
+	@Override
 	public boolean fire(final Player player, final Sentence sentence, final Entity entity) {
 		List<String> quests = player.getQuests();
 		for (String quest : quests) {
@@ -58,12 +58,14 @@ public class QuestWithPrefixCompletedCondition implements ChatCondition {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 47 * questname.hashCode();
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				QuestWithPrefixCompletedCondition.class);
+		if (!(obj instanceof QuestWithPrefixCompletedCondition)) {
+			return false;
+		}
+		return questname.equals(((QuestWithPrefixCompletedCondition) obj).questname);
 	}
 }

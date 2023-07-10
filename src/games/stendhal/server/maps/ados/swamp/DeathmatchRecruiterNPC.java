@@ -1,4 +1,3 @@
-/* $Id: DeathmatchRecruiterNPC.java,v 1.26 2010/11/06 12:05:12 mkvii Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +11,11 @@
  ***************************************************************************/
 package games.stendhal.server.maps.ados.swamp;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
@@ -19,30 +23,23 @@ import games.stendhal.server.core.pathfinder.Node;
 import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 /**
  * Entrance to Deathmatch.
  */
 public class DeathmatchRecruiterNPC implements ZoneConfigurator {
-
 	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildDeathmatchRecruiter(zone);
 	}
 
 	private void buildDeathmatchRecruiter(final StendhalRPZone zone) {
-
 		final SpeakerNPC npc = new SpeakerNPC("Thonatus") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> path = new LinkedList<Node>();
@@ -85,16 +82,16 @@ public class DeathmatchRecruiterNPC implements ZoneConfigurator {
 				addOffer("Opowiem Ci o #deathmatchu w Ados.");
 				add(ConversationStates.ATTENDING, Arrays.asList("deathmatch", "deathmatchu"), null, ConversationStates.ATTENDING,
 				        "Wiele groźnych potworów będzie Cię atakować na arenie deathmatcha. Jest tylko dla prawdziwych #bohaterów.", null);
-				// response to 'heroes' is defined in maps.quests.AdosDeathmatch 
+				// response to 'heroes' is defined in maps.quests.AdosDeathmatch
 				// because we need here to know about who is in the deathmatch. The teleport action is done there also.
 				addGoodbye("Mam nadzieje, że spodoba się Tobie #Deathmatch w Ados!");
 			}
 		};
 
-		npc.setEntityClass("youngsoldiernpc");
-		npc.setPosition(15, 26);
-		npc.initHP(100);
 		npc.setDescription("Oto Thonatus, rekrutuje na Deathmatch w Ados. Masz szczęście, że go tak szybko znalazłeś..");
+		npc.setEntityClass("youngsoldiernpc");
+		npc.setGender("M");
+		npc.setPosition(15, 26);
 		zone.add(npc);
 	}
 }

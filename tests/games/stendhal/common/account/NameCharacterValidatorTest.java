@@ -1,4 +1,4 @@
-/* $Id: NameCharacterValidatorTest.java,v 1.6 2010/09/19 02:37:56 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,10 +12,10 @@
  ***************************************************************************/
 package games.stendhal.common.account;
 
-import games.stendhal.server.core.account.NameCharacterValidator;
-
 import org.junit.Assert;
 import org.junit.Test;
+
+import games.stendhal.server.core.account.NameCharacterValidator;
 
 
 public class NameCharacterValidatorTest {
@@ -26,7 +26,7 @@ public class NameCharacterValidatorTest {
 	@Test
 	public void testSpecialCharcter() {
 		final NameCharacterValidator validator = new NameCharacterValidator("asdf_");
-		Assert.assertNotNull(validator.validate());
+		Assert.assertNull(validator.validate());
 	}
 
 	/**

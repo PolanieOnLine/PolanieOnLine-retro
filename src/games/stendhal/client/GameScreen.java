@@ -1,6 +1,5 @@
-/* $Id: GameScreen.java,v 1.220 2012/11/19 16:37:35 kiheru Exp $ */
 /***************************************************************************
- *                      (C) Copyright 2003 - Marauroa                      *
+ *                   (C) Copyright 2003-2023 - Marauroa                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,23 +11,11 @@
  ***************************************************************************/
 package games.stendhal.client;
 
-import games.stendhal.client.entity.Corpse;
-import games.stendhal.client.entity.IEntity;
-import games.stendhal.client.entity.Item;
-import games.stendhal.client.gui.DropTarget;
-import games.stendhal.client.gui.GroundContainer;
-import games.stendhal.client.gui.j2d.AchievementBoxFactory;
-import games.stendhal.client.gui.j2d.RemovableSprite;
-import games.stendhal.client.gui.j2d.entity.Entity2DView;
-import games.stendhal.client.gui.j2d.entity.EntityView;
-import games.stendhal.client.gui.spellcasting.SpellCastingGroundContainerMouseState;
-import games.stendhal.client.sprite.Sprite;
-import games.stendhal.client.sprite.SpriteStore;
-
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
@@ -36,8 +23,11 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
+import java.awt.image.VolatileImage;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -46,25 +36,40 @@ import java.util.Map;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 
+import org.apache.log4j.Logger;
+
+import games.stendhal.client.entity.Corpse;
+import games.stendhal.client.entity.Entity;
+import games.stendhal.client.entity.IEntity;
+import games.stendhal.client.entity.Item;
+import games.stendhal.client.gui.DropTarget;
+import games.stendhal.client.gui.EffectLayer;
+import games.stendhal.client.gui.GroundContainer;
+import games.stendhal.client.gui.j2d.AchievementBoxFactory;
+import games.stendhal.client.gui.j2d.RemovableSprite;
+import games.stendhal.client.gui.j2d.entity.Entity2DView;
+import games.stendhal.client.gui.j2d.entity.EntityView;
+import games.stendhal.client.gui.spellcasting.SpellCastingGroundContainerMouseState;
+import games.stendhal.client.sprite.Sprite;
+import games.stendhal.client.sprite.SpriteStore;
+import games.stendhal.common.MathHelper;
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPSlot;
-
-import org.apache.log4j.Logger;
 
 /**
  * The game screen. This manages and renders the visual elements of the game.
  */
-public class GameScreen extends JComponent implements IGameScreen, DropTarget,
+public final class GameScreen extends JComponent implements IGameScreen, DropTarget,
 	GameObjects.GameObjectListener, StendhalClient.ZoneChangeListener {
 	/**
 	 * serial version uid.
 	 */
 	private static final long serialVersionUID = -4070406295913030925L;
 
-	private static Logger logger = Logger.getLogger(GameScreen.class);
+	private static final Logger logger = Logger.getLogger(GameScreen.class);
 
 	/** Map KeyEvents to a number, i.e. to determine position in spells slot based on pressed key **/
-	private static final Map<Integer, Integer> keyEventMapping = new HashMap<Integer, Integer>();
+	private static final Map<Integer, Integer> keyEventMapping = new HashMap<>();
 	static {
 		keyEventMapping.put(KeyEvent.VK_1, Integer.valueOf(1));
 		keyEventMapping.put(KeyEvent.VK_2, Integer.valueOf(2));
@@ -92,53 +97,32 @@ public class GameScreen extends JComponent implements IGameScreen, DropTarget,
 	 * indicator icon.
 	 */
 	private static final int OFFLINE_MARGIN = 10;
-	
-	private static final Sprite offlineIcon;
 
-	/** the singleton instance. */
-	private static GameScreen screen;
+	private static final Sprite offlineIcon;
 
 	/**
 	 * Static game layers.
 	 */
-	private StaticGameLayers gameLayers;
-	
+	private final StaticGameLayers gameLayers;
+	private static final Collection<EffectLayer> globalEffects = new LinkedList<>();
+
 	/** Entity views container. */
 	private final EntityViewManager viewManager = new EntityViewManager();
-
-	/** Actual width of the world in world units. */
-	private int ww;
-	/** Actual height of the world in world units. */
-	private int wh;
 
 	/**
 	 * The ground layer.
 	 */
 	private final GroundContainer ground;
 
-	
-
-	/**
-	 * The text bubbles.
-	 */
-	private final List<RemovableSprite> texts;
-
 	/**
 	 * Text boxes that are anchored to the screen coordinates.
 	 */
 	private final List<RemovableSprite> staticSprites;
 
-	/**
-	 * The text bubbles to remove.
-	 */
-	private final List<RemovableSprite> textsToRemove;
-
-	
-	
 	private boolean offline;
 
 	/**
-	 * Off line indicator counter. 
+	 * Off line indicator counter.
 	 */
 	private int blinkOffline;
 
@@ -167,47 +151,75 @@ public class GameScreen extends JComponent implements IGameScreen, DropTarget,
 	private int dvy;
 
 	/**
-	 * The current screen view X.
-	 */
-	private int svx;
-
-	/**
-	 * The current screen view Y.
-	 */
-	private int svy;
-
-	/**
 	 * Current panning speed.
 	 */
 	private int speed;
 
 	/**
-	 * Scaling factor of the screen.
+	 * Flag for telling if the screen should be scaled if it's not of the
+	 * default size.
 	 */
-	private double scale = 1.0;
 	private boolean useScaling = true;
+	/**
+	 * A flag for telling if the screen is being actually scaled. Used for
+	 * detecting if the ground layers will need triple buffering.
+	 */
+	private boolean useTripleBuffer;
+	/**
+	 * Buffer for drawing the ground layers when the screen is scaled.
+	 */
+	private VolatileImage buffer;
 
 	static {
 		offlineIcon = SpriteStore.get().getSprite("data/gui/offline.png");
 	}
 
 	private AchievementBoxFactory achievementBoxFactory;
-	
+
+	/** the singleton instance. */
+	private static GameScreen screen;
+
+	/**
+	 * Retrieves the singleton instance.
+	 *
+	 * @param client
+	 *     The client.
+	 * @return
+	 *     The GameScreen object.
+	 */
+	public static GameScreen get(final StendhalClient client) {
+		if (screen == null) {
+			screen = new GameScreen(client);
+		}
+
+		return screen;
+	}
+
+	/**
+	 * Retrieves the singleton instance.
+	 *
+	 * @return
+	 *     The GameScreen object.
+	 */
+	public static GameScreen get() {
+		return screen;
+	}
+
 	/**
 	 * Create a game screen.
 	 *
 	 * @param client
 	 *            The client.
 	 */
-	public GameScreen(final StendhalClient client) {
-		setSize(stendhal.getScreenSize());
+	private GameScreen(final StendhalClient client) {
+		setSize(stendhal.getDisplaySize());
 		addComponentListener(new ComponentAdapter() {
 			@Override
 			public void componentResized(ComponentEvent e) {
 				onResized();
 			}
 		});
-		
+
 		gameLayers = client.getStaticGameLayers();
 
 		sw = getWidth();
@@ -215,17 +227,17 @@ public class GameScreen extends JComponent implements IGameScreen, DropTarget,
 
 		x = 0;
 		y = 0;
-		svx = -sw / 2;
-		svy = -sh / 2;
+		GameScreenSpriteHelper.setScreenViewX(-sw / 2);
+		GameScreenSpriteHelper.setScreenViewY(-sh / 2);
 		dvx = 0;
 		dvy = 0;
 
 		speed = 0;
 
 		// Drawing is done in EDT
-		texts = Collections.synchronizedList(new LinkedList<RemovableSprite>());
-		textsToRemove = Collections.synchronizedList(new LinkedList<RemovableSprite>());
+		GameScreenSpriteHelper.setTexts(Collections.synchronizedList(new LinkedList<RemovableSprite>()));
 		staticSprites = Collections.synchronizedList(new LinkedList<RemovableSprite>());
+		GameScreenSpriteHelper.setEmojis(Collections.synchronizedList(new LinkedList<RemovableSprite>()));
 
 		// create ground
 		ground = new GroundContainer(client, this, this);
@@ -246,29 +258,38 @@ public class GameScreen extends JComponent implements IGameScreen, DropTarget,
 	/**
 	 * The canvas can be resized using a split pane, or with window size changes
 	 * if screen scaling is used. This is for adjusting the internal parameters
-	 * for the change. 
+	 * for the change.
 	 */
 	private void onResized() {
-		Dimension screenSize = stendhal.getScreenSize();
+		Dimension screenSize = stendhal.getDisplaySize();
 		sw = getWidth();
 		sh = getHeight();
 		if (useScaling) {
 			double xScale = sw / screenSize.getWidth();
 			double yScale = sh / screenSize.getHeight();
 			// Scale by the dimension that needs more scaling
-			scale = Math.max(xScale, yScale);
+			final double scale = Math.max(xScale, yScale);
+			GameScreenSpriteHelper.setScale(scale);
+			if (Math.abs(scale - 1.0) > 0.0001) {
+				useTripleBuffer = true;
+			} else {
+				useTripleBuffer = false;
+				buffer = null;
+			}
 		} else {
 			sw = Math.min(sw, screenSize.width);
 			sh = Math.min(sh, screenSize.height);
+			useTripleBuffer = false;
+			buffer = null;
 		}
 		// Reset the view so that the player is in the center
 		calculateView(x, y);
 		center();
 	}
-	
+
 	/**
 	 * Set whether the screen should be drawn scaled, or in native resolution.
-	 *  
+	 *
 	 * @param useScaling if <code>true</code> the screen will scale the view
 	 * 	will be scaled to fit the screen size, otherwise it will be drawn using
 	 * 	the native resolution.
@@ -276,17 +297,19 @@ public class GameScreen extends JComponent implements IGameScreen, DropTarget,
 	public void setUseScaling(boolean useScaling) {
 		this.useScaling = useScaling;
 		if (!useScaling) {
-			scale = 1.0;
+			GameScreenSpriteHelper.setScale(1.0);
+			useTripleBuffer = false;
+			buffer = null;
 		} else {
 			onResized();
 		}
 	}
-	
+
 	/**
 	 * Check if the screen uses scaling. Note that if the native resolution
 	 * is in use, the screen size <b>must not</b> be allowed to grow larger than
 	 * <code>standhal.getScreenSize()</code>.
-	 * 
+	 *
 	 * @return <code>true</code> if the graphics are scaled to the screen size,
 	 * 	<code>false</code> if the native resolution is used
 	 */
@@ -304,34 +327,24 @@ public class GameScreen extends JComponent implements IGameScreen, DropTarget,
 		GameScreen.screen = screen;
 	}
 
-	/** @return the GameScreen object. */
-	public static GameScreen get() {
-		return screen;
-	}
-
 	/** @return screen width in world units. */
 	private int getViewWidth() {
-		return (int) Math.ceil(sw / (SIZE_UNIT_PIXELS * scale));
+		return (int) Math.ceil(sw / (SIZE_UNIT_PIXELS * GameScreenSpriteHelper.getScale()));
 	}
 
 	/** @return screen height in world units .*/
 	private int getViewHeight() {
-		return (int) Math.ceil(sh / (SIZE_UNIT_PIXELS * scale));
+		return (int) Math.ceil(sh / (SIZE_UNIT_PIXELS * GameScreenSpriteHelper.getScale()));
 	}
-	
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see games.stendhal.client.IGameScreen#nextFrame()
-	 */
+
 	@Override
 	public void nextFrame() {
 		adjustView();
 	}
-	
+
 	/**
 	 * Get the achievement box factory.
-	 * 
+	 *
 	 * @return factory
 	 */
 	private AchievementBoxFactory getAchievementFactory() {
@@ -341,36 +354,30 @@ public class GameScreen extends JComponent implements IGameScreen, DropTarget,
 		return achievementBoxFactory;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see games.stendhal.client.IGameScreen#addEntity(games.stendhal.client.entity.Entity)
-	 */
 	@Override
 	public void addEntity(final IEntity entity) {
 		EntityView<IEntity> view = viewManager.addEntity(entity);
 		if (view != null) {
 			if (view instanceof Entity2DView) {
 				final Entity2DView<?> inspectable = (Entity2DView<?>) view;
-				
+
 				inspectable.setInspector(ground);
 			}
 			if (entity.isUser()) {
-				SwingUtilities.invokeLater(new Runnable() {
-					@Override
-					public void run() {
-						center();
-					}
-				});
+				SwingUtilities.invokeLater(this::center);
 			}
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Add a map wide visual effect.
 	 *
-	 * @see games.stendhal.client.IGameScreen#removeEntity(games.stendhal.client.entity.Entity)
+	 * @param effect effect renderer
 	 */
+	public void addEffect(final EffectLayer effect) {
+		SwingUtilities.invokeLater(() -> globalEffects.add(effect));
+	}
+
 	@Override
 	public void removeEntity(final IEntity entity) {
 		viewManager.removeEntity(entity);
@@ -387,8 +394,10 @@ public class GameScreen extends JComponent implements IGameScreen, DropTarget,
 			return;
 		}
 
-		final int sx = convertWorldXToScaledScreen(x) - getScreenViewX() + SIZE_UNIT_PIXELS / 2;
-		final int sy = convertWorldYToScaledScreen(y) - getScreenViewY() + SIZE_UNIT_PIXELS / 2;
+		final int sx = GameScreenSpriteHelper.convertWorldXToScaledScreen(x)
+			- GameScreenSpriteHelper.getScreenViewX() + SIZE_UNIT_PIXELS / 2;
+		final int sy = GameScreenSpriteHelper.convertWorldYToScaledScreen(y)
+			- GameScreenSpriteHelper.getScreenViewY() + SIZE_UNIT_PIXELS / 2;
 
 		if ((sx < 0) || (sx >= sw) || (sy < -SIZE_UNIT_PIXELS) || (sy > sh)) {
 			/*
@@ -410,31 +419,36 @@ public class GameScreen extends JComponent implements IGameScreen, DropTarget,
 				int dx = speed * dvx / scalediv;
 				int dy = speed * dvy / scalediv;
 
-				/*
-				 * Don't overshoot. Don't stall.
-				 */
-				if (dvx < 0) {
-					dx = Math.max(Math.min(-1, dx), dvx);
-				} else if (dvx > 0) {
-					dx = Math.min(Math.max(1, dx), dvx);
-				}
-
-				if (dvy < 0) {
-					dy = Math.max(Math.min(-1, dy), dvy);
-				} else if (dvy > 0) {
-					dy = Math.min(Math.max(1, dy), dvy);
-				}
+				dx = limitMoveDelta(dx, dvx);
+				dy = limitMoveDelta(dy, dvy);
 
 				/*
 				 * Adjust view
 				 */
-				svx += dx;
+				GameScreenSpriteHelper.setScreenViewX(GameScreenSpriteHelper.getScreenViewX() + dx);
 				dvx -= dx;
 
-				svy += dy;
+				GameScreenSpriteHelper.setScreenViewY(GameScreenSpriteHelper.getScreenViewY() + dy);
 				dvy -= dy;
 			}
 		}
+	}
+
+	/**
+	 * Adjust screen movement so that it does not stall, and that it does not
+	 * overshoot the target.
+	 *
+	 * @param moveDelta suggested movement of the screen
+	 * @param viewDelta distance from the target
+	 * @return moveDelta adjusted to sane range
+	 */
+	private int limitMoveDelta(int moveDelta, int viewDelta) {
+		if (viewDelta < 0) {
+			moveDelta = MathHelper.clamp(moveDelta, viewDelta, -1);
+		} else if (viewDelta > 0) {
+			moveDelta = MathHelper.clamp(moveDelta, 1, viewDelta);
+		}
+		return moveDelta;
 	}
 
 	/**
@@ -464,11 +478,13 @@ public class GameScreen extends JComponent implements IGameScreen, DropTarget,
 	/**
 	 * Updates the target position of the view center.
 	 * Prefer top left if the map is smaller than the screen.
-	 * 
+	 *
 	 * @param x preferred x of center, if the map is large enough
 	 * @param y preferred y of center, if the map is large enough
 	 */
 	private void calculateView(int x, int y) {
+		final double scale = GameScreenSpriteHelper.getScale();
+
 		// Coordinates for a screen centered on player
 		int cvx = (int) ((x * SIZE_UNIT_PIXELS) + (SIZE_UNIT_PIXELS / 2) - (sw / 2) / scale);
 		int cvy = (int) ((y * SIZE_UNIT_PIXELS) + (SIZE_UNIT_PIXELS / 2) - (sh / 2) / scale);
@@ -476,40 +492,32 @@ public class GameScreen extends JComponent implements IGameScreen, DropTarget,
 		/*
 		 * Keep the world within the screen view
 		 */
-		final int maxX = (int) (ww * SIZE_UNIT_PIXELS - sw / scale);
-		cvx = Math.min(cvx, maxX);
-		cvx = Math.max(cvx, 0);
-		
-		final int maxY = (int) (wh * SIZE_UNIT_PIXELS - sh / scale);
-		cvy = Math.min(cvy, maxY);
-		cvy = Math.max(cvy, 0);
-		
+		final int maxX = (int) (GameScreenSpriteHelper.getWorldWidth() * SIZE_UNIT_PIXELS - sw / scale);
+		cvx = MathHelper.clamp(cvx, 0, maxX);
+
+		final int maxY = (int) (GameScreenSpriteHelper.getWorldHeight() * SIZE_UNIT_PIXELS - sh / scale);
+		cvy = MathHelper.clamp(cvy, 0, maxY);
+
 		// Differences from center
-		dvx = cvx - svx;
-		dvy = cvy - svy;
+		dvx = cvx - GameScreenSpriteHelper.getScreenViewX();
+		dvy = cvy - GameScreenSpriteHelper.getScreenViewY();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see games.stendhal.client.IGameScreen#center()
-	 */
 	@Override
 	public void center() {
-		svx += dvx;
-		svy += dvy;
+		GameScreenSpriteHelper.setScreenViewX(GameScreenSpriteHelper.getScreenViewX() + dvx);
+		GameScreenSpriteHelper.setScreenViewY(GameScreenSpriteHelper.getScreenViewY() + dvy);
 
 		dvx = 0;
 		dvy = 0;
-
 		speed = 0;
-	}	
+	}
 
 	@Override
 	public void paintImmediately(int x, int y, int w, int h) {
 		/*
 		 * Try to keep the old screen while the user is switching maps.
-		 * 
+		 *
 		 * NOTE: Relies on the repaint() requests to eventually come to this,
 		 * so if swing internals change some time in the future, a new solution
 		 * may be needed.
@@ -522,59 +530,88 @@ public class GameScreen extends JComponent implements IGameScreen, DropTarget,
 			}
 		}
 	}
-	
+
 	@Override
 	public void paintComponent(final Graphics g) {
-		viewManager.sort();
+		g.setColor(Color.BLACK);
+		g.fillRect(0, 0, getWidth(), getHeight());
+		if (StendhalClient.get().isInTransfer()) {
+			/*
+			 * A hack to prevent proper drawing during zone change when the draw
+			 * request comes from paintChildren() of the parent. Those are not
+			 * caught by the paintImmediately() wrapper. Prevents entity view
+			 * images from being initialized before zone coloring is ready.
+			 */
+			return;
+		}
+
 		Graphics2D g2d = (Graphics2D) g;
 
-		// Draw the GameLayers from bottom to top, relies on exact naming of the
-		// layers
-		final String set = gameLayers.getAreaName();
-		
-		// An adjusted graphics object so that the drawn objects do not need to
-		// know about converting the position to screen
 		Graphics2D graphics = (Graphics2D) g2d.create();
 		if (graphics.getClipBounds() == null) {
 			graphics.setClip(0, 0, getWidth(), getHeight());
 		}
-		if (useScaling) {
+		Rectangle clip = graphics.getClipBounds();
+		boolean fullRedraw = (clip.width == sw && clip.height == sh);
+
+		int xAdjust = -GameScreenSpriteHelper.getScreenViewX();
+		int yAdjust = -GameScreenSpriteHelper.getScreenViewY();
+
+		if (useTripleBuffer) {
+			/*
+			 * Do the scaling in one pass to avoid artifacts at tile borders.
+			 */
+			final double scale = GameScreenSpriteHelper.getScale();
 			graphics.scale(scale, scale);
+			graphics.translate(xAdjust, yAdjust);
 			graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+			int width = stendhal.getDisplaySize().width;
+			int height = stendhal.getDisplaySize().height;
+			do {
+				GraphicsConfiguration gc = getGraphicsConfiguration();
+				if ((buffer == null) || (buffer.validate(gc) == VolatileImage.IMAGE_INCOMPATIBLE)) {
+					buffer = createVolatileImage(width, height);
+				}
+				Graphics2D gr = buffer.createGraphics();
+				gr.setColor(Color.BLACK);
+				gr.fillRect(0, 0, width, height);
+				gr.setClip(0, 0, width, height);
+				renderScene(gr, xAdjust, yAdjust, fullRedraw);
+				graphics.drawImage(buffer, -xAdjust, -yAdjust, null);
+				gr.dispose();
+			} while (buffer.contentsLost());
+		} else {
+			renderScene(graphics, xAdjust, yAdjust, fullRedraw);
 		}
 
-		int xAdjust = -getScreenViewX();
-		int yAdjust = -getScreenViewY();
-		graphics.translate(xAdjust, yAdjust);
-		// End of the world (map falls short of the view)?
-		if (xAdjust > 0) {
-			g2d.setColor(Color.BLACK);
-			g2d.fillRect(0, 0, xAdjust, sh);
-		}
-		
-		if (yAdjust > 0) {
-			g2d.setColor(Color.BLACK);
-			g2d.fillRect(0, 0, sw, yAdjust);
-		}
-		
-		int tmpY = yAdjust + convertWorldToPixelUnits(wh);
-		if (tmpY < sh) {
-			g2d.setColor(Color.BLACK);
-			g2d.fillRect(0, tmpY, sw, sh);
-		}
-		
-		int tmpX = yAdjust + convertWorldToPixelUnits(ww);
-		if (tmpX < sw) {
-			g2d.setColor(Color.BLACK);
-			g2d.fillRect(tmpX, 0, sw, sh);
-		}
-		
-		int startTileX = Math.max(0, (int) getViewX());
-		int startTileY = Math.max(0, (int) getViewY());
-		
+		// Don't scale text to keep it readable
+		drawText(g2d);
+		drawEmojis(g2d);
+
+		paintOffLineIfNeeded(g2d);
+		graphics.dispose();
+	}
+
+	/**
+	 * Render the scalable parts of the screen.
+	 *
+	 * @param g graphics
+	 * @param xAdjust x coordinate offset
+	 * @param yAdjust y coordinate offset
+	 * @param fullRedraw <code>true</code> if this is called for a full game
+	 * 	screen redraw
+	 */
+	private void renderScene(Graphics2D g, int xAdjust, int yAdjust, boolean fullRedraw) {
+		// Adjust the graphics object so that the drawn objects do not need to
+		// know about converting the position to screen
+		g.translate(xAdjust, yAdjust);
+
 		// Restrict the drawn area by the clip bounds. Smaller than gamescreen
 		// draw requests can come for example from dragging items
-		Rectangle clip = graphics.getClipBounds();
+		int startTileX = Math.max(0, (int) getViewX());
+		int startTileY = Math.max(0, (int) getViewY());
+
+		Rectangle clip = g.getClipBounds();
 		startTileX = Math.max(startTileX, clip.x / IGameScreen.SIZE_UNIT_PIXELS);
 		startTileY = Math.max(startTileY, clip.y / IGameScreen.SIZE_UNIT_PIXELS);
 		int layerWidth = getViewWidth();
@@ -582,31 +619,39 @@ public class GameScreen extends JComponent implements IGameScreen, DropTarget,
 		// +2 is needed to ensure the drawn area is covered by the tiles
 		layerWidth = Math.min(layerWidth, clip.width / IGameScreen.SIZE_UNIT_PIXELS) + 2;
 		layerHeight = Math.min(layerHeight, clip.height / IGameScreen.SIZE_UNIT_PIXELS) + 2;
-		
-		gameLayers.drawLayers(graphics, set, "floor_bundle", startTileX, 
+
+		viewManager.prepareViews(clip, fullRedraw);
+
+		final String set = gameLayers.getAreaName();
+		gameLayers.drawLayers(g, set, "floor_bundle", startTileX,
 				startTileY, layerWidth, layerHeight, "blend_ground", "0_floor",
 				"1_terrain", "2_object");
-		
-		viewManager.draw(graphics);
 
-		gameLayers.drawLayers(graphics, set, "roof_bundle", startTileX,
+		viewManager.draw(g);
+
+		gameLayers.drawLayers(g, set, "roof_bundle", startTileX,
 				startTileY, layerWidth, layerHeight, "blend_roof", "3_roof",
 				"4_roof_add");
-		
+		gameLayers.drawWeather(g, startTileX, startTileY, layerWidth, layerHeight);
+
 		// Draw the top portion screen entities (such as HP/title bars).
-		viewManager.drawTop(graphics);
-		
-		// Don't scale text to keep it readable
-		drawText(g2d);
-
-		paintOffLineIfNeeded(g2d);
-
-		graphics.dispose();
+		viewManager.drawTop(g);
+		// Effects get drawn even above title bars, so that darkening and such work
+		// as expected
+		Iterator<EffectLayer> it = globalEffects.iterator();
+		while (it.hasNext()) {
+			EffectLayer eff = it.next();
+			if (!eff.isExpired()) {
+				eff.draw(g, startTileX, startTileY, layerWidth, layerHeight);
+			} else {
+				it.remove();
+			}
+		}
 	}
-	
+
 	/**
 	 * Draw the offline indicator, blinking, if the client is offline.
-	 * 
+	 *
 	 * @param g graphics
 	 */
 	private void paintOffLineIfNeeded(Graphics g) {
@@ -628,40 +673,56 @@ public class GameScreen extends JComponent implements IGameScreen, DropTarget,
 
 	/**
 	 * Draw the screen text bubbles.
-	 * 
+	 *
 	 * @param g2d destination graphics
 	 */
 	private void drawText(final Graphics2D g2d) {
-		texts.removeAll(textsToRemove);
-		staticSprites.removeAll(textsToRemove);
-		textsToRemove.clear();
-
 		/*
 		 * Text objects know their original placement relative to the screen,
-		 * not to the map. Pass them a shifted coordinate system. 
+		 * not to the map. Pass them a shifted coordinate system.
 		 */
-		g2d.translate(-getScreenViewX(), -getScreenViewY());
-		
+		g2d.translate(-GameScreenSpriteHelper.getScreenViewX(), -GameScreenSpriteHelper.getScreenViewY());
+
+		final List<RemovableSprite> texts = GameScreenSpriteHelper.getTexts();
 		synchronized (texts) {
-			for (final RemovableSprite text : texts) {
+			Iterator<RemovableSprite> it = texts.iterator();
+			while (it.hasNext()) {
+				RemovableSprite text = it.next();
 				if (!text.shouldBeRemoved()) {
 					text.draw(g2d);
 				} else {
-					removeText(text);
+					it.remove();
 				}
 			}
 		}
-		
+
 		// Restore the coordinates
-		g2d.translate(getScreenViewX(), getScreenViewY());
+		g2d.translate(GameScreenSpriteHelper.getScreenViewX(), GameScreenSpriteHelper.getScreenViewY());
 		// These are anchored to the screen, so they can use the usual proper
 		// coordinates.
 		synchronized (staticSprites) {
-			for (final RemovableSprite text : staticSprites) {
+			Iterator<RemovableSprite> it = staticSprites.iterator();
+			while (it.hasNext()) {
+				RemovableSprite text = it.next();
 				if (!text.shouldBeRemoved()) {
 					text.draw(g2d);
 				} else {
-					removeText(text);
+					it.remove();
+				}
+			}
+		}
+	}
+
+	private void drawEmojis(final Graphics2D g2d) {
+		final List<RemovableSprite> emojis = GameScreenSpriteHelper.getEmojis();
+		synchronized (emojis) {
+			Iterator<RemovableSprite> it = emojis.iterator();
+			while (it.hasNext()) {
+				RemovableSprite emoji = it.next();
+				if (!emoji.shouldBeRemoved()) {
+					emoji.drawEmoji(g2d);
+				} else {
+					it.remove();
 				}
 			}
 		}
@@ -673,7 +734,7 @@ public class GameScreen extends JComponent implements IGameScreen, DropTarget,
 	 * @return The X coordinate of the left side.
 	 */
 	private double getViewX() {
-		return (double) getScreenViewX() / SIZE_UNIT_PIXELS;
+		return (double) GameScreenSpriteHelper.getScreenViewX() / SIZE_UNIT_PIXELS;
 	}
 
 	/**
@@ -682,27 +743,22 @@ public class GameScreen extends JComponent implements IGameScreen, DropTarget,
 	 * @return The Y coordinate of the left side.
 	 */
 	private double getViewY() {
-		return (double) getScreenViewY() / SIZE_UNIT_PIXELS;
+		return (double) GameScreenSpriteHelper.getScreenViewY() / SIZE_UNIT_PIXELS;
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Sets the world size.
 	 *
-	 * @see games.stendhal.client.IGameScreen#setMaxWorldSize(double, double)
+	 * @param width The world width.
+	 * @param height The height width.
 	 */
-	@Override
-	public void setMaxWorldSize(final double width, final double height) {
-		ww = (int) width;
-		wh = (int) height;
+	private void setMaxWorldSize(final double width, final double height) {
+		GameScreenSpriteHelper.setWorldWidth((int) width);
+		GameScreenSpriteHelper.setWorldHeight((int) height);
 		calculateView(x, y);
 		center();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see games.stendhal.client.IGameScreen#setOffline(boolean)
-	 */
 	@Override
 	public void setOffline(final boolean offline) {
 		this.offline = offline;
@@ -711,102 +767,59 @@ public class GameScreen extends JComponent implements IGameScreen, DropTarget,
 	/**
 	 * Adds a text bubble at a give position.
 	 *
-	 * @param sprite 
-	 * @param x x coordinate
-	 * @param y y coordinate
-	 * @param textLength length of the text in characters
+	 * @param sprite
+	 * @param x
+	 *     X coordinate.
+	 * @param y
+	 *     Y coordinate.
+	 * @param textLength
+	 *     Length of the text in characters.
 	 */
 	public void addTextBox(Sprite sprite, double x, double y, int textLength) {
-		int sx = convertWorldXToScaledScreen(x);
-		int sy = convertWorldYToScaledScreen(y);
-			// Point alignment: left, bottom
-			sy -= sprite.getHeight();
+		int sx = GameScreenSpriteHelper.convertWorldXToScaledScreen(x);
+		int sy = GameScreenSpriteHelper.convertWorldYToScaledScreen(y);
+		// Point alignment: left, bottom
+		sy -= sprite.getHeight();
 
-		sx = keepSpriteOnMapX(sprite, sx);
-		sy = keepSpriteOnMapY(sprite, sy);
+		sx = GameScreenSpriteHelper.keepSpriteOnMapX(sprite, sx);
+		sy = GameScreenSpriteHelper.keepSpriteOnMapY(sprite, sy);
+		sy = GameScreenSpriteHelper.findFreeTextBoxPosition(sprite, sx, sy);
 
-		/*
-		 * Adjust the position of boxes placed at the same point to make it
-		 * clear for the player there are more than one.
-		 */
-		boolean found = true;
-		int tries = 0;
-
-		while (found) {
-			found = false;
-
-			synchronized (texts) {
-				for (final RemovableSprite item : texts) {
-					if ((item.getX() == sx) && (item.getY() == sy)) {
-						found = true;
-						sy += SIZE_UNIT_PIXELS / 2;
-						sy = keepSpriteOnMapY(sprite, sy);
-						break;
-					}
-				}
-			}
-			
-			tries++;
-			// give up, if no location found in a reasonable amount of tries
-			if (tries > 20) {
-				break;
-			}
-		}
-
-		texts.add(new RemovableSprite(sprite, sx, sy, Math.max(
-				RemovableSprite.STANDARD_PERSISTENCE_TIME, textLength
-						* RemovableSprite.STANDARD_PERSISTENCE_TIME / 50)));
+		GameScreenSpriteHelper.addText(new RemovableSprite(sprite, sx, sy,
+			Math.max(
+				RemovableSprite.STANDARD_PERSISTENCE_TIME,
+				textLength * RemovableSprite.STANDARD_PERSISTENCE_TIME / 50)));
 	}
 
 	/**
-	 * Try to keep a sprite on the map. Adjust the Y coordinate.
-	 * 
-	 * @param sprite sprite to keep on the map
-	 * @param sy suggested Y coordinate on screen
-	 * @return new Y coordinate
-	 */
-	private int keepSpriteOnMapY(Sprite sprite, int sy) {
-		sy = Math.max(sy, 0);
-		/*
-		 * Allow placing beyond the map, but only if the area is on the screen.
-		 * Do not try to adjust the coordinates if the world size is not known
-		 * yet (as in immediately after a zone change)
-		 */
-		if (wh != 0) {
-			sy = Math.min(sy, Math.max(getHeight() + svy,
-					convertWorldYToScaledScreen(wh)) - sprite.getHeight());
-		}
-		return sy;
-	}
-
-	/**
-	 * Try to keep a sprite on the map. Adjust the X coordinate.
-	 * 
-	 * @param sprite sprite to keep on the map
-	 * @param sx suggested X coordinate on screen
-	 * @return new X coordinate
-	 */
-	private int keepSpriteOnMapX(Sprite sprite, int sx) {
-		sx = Math.max(sx, 0);
-		/*
-		 * Allow placing beyond the map, but only if the area is on the screen.
-		 * Do not try to adjust the coordinates if the world size is not known
-		 * yet (as in immediately after a zone change)
-		 */
-		if (ww != 0) {
-			sx = Math.min(sx, Math.max(getWidth() + svx, convertWorldXToScaledScreen(ww)) - sprite.getWidth());
-		}
-		return sx;
-	}
-
-	/*
-	 * (non-Javadoc)
+	 * Adds a text bubble that follows an entity.
 	 *
-	 * @see games.stendhal.client.IGameScreen#removeText(games.stendhal.client.gui.j2d.Text)
+	 * @param sprite
+	 * @param entity
+	 *     Entity to follow.
+	 * @param textLength
+	 *     Length of the text in characters.
 	 */
+	public void addTextBox(final Sprite sprite, final Entity entity, final int textLength) {
+		GameScreenSpriteHelper.addText(new RemovableSprite(sprite, entity,
+			Math.max(
+				RemovableSprite.STANDARD_PERSISTENCE_TIME,
+				textLength * RemovableSprite.STANDARD_PERSISTENCE_TIME / 50)));
+	}
+
 	@Override
 	public void removeText(final RemovableSprite entity) {
-		textsToRemove.add(entity);
+		GameScreenSpriteHelper.removeText(entity);
+		staticSprites.remove(entity);
+	}
+
+	public void addEmoji(final Sprite emoji, final Entity entity) {
+		GameScreenSpriteHelper.addEmoji(new RemovableSprite(emoji, entity,
+				RemovableSprite.STANDARD_PERSISTENCE_TIME));
+	}
+
+	public void removeEmoji(final RemovableSprite entity) {
+		GameScreenSpriteHelper.removeEmoji(entity);
 	}
 
 	/**
@@ -814,59 +827,36 @@ public class GameScreen extends JComponent implements IGameScreen, DropTarget,
 	 */
 	private void removeAllObjects() {
 		logger.debug("CLEANING screen object list");
-		texts.clear();
-		textsToRemove.clear();
+		GameScreenSpriteHelper.clearTexts();
+		GameScreenSpriteHelper.clearEmojis();
 		// staticSprites contents are not zone specific, so don't clear those
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see games.stendhal.client.IGameScreen#clearTexts()
-	 */
 	@Override
 	public void clearTexts() {
-		synchronized (texts) {
-			for (final RemovableSprite text : texts) {
-				textsToRemove.add(text);
-			}
-		}
-		synchronized (staticSprites) {
-			for (final RemovableSprite text : staticSprites) {
-				textsToRemove.add(text);
-			}
-		}
+		GameScreenSpriteHelper.clearTexts();
+		staticSprites.clear();
+		clearEmojis();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see games.stendhal.client.IGameScreen#getEntityViewAt(double, double)
-	 */
+	public void clearEmojis() {
+		GameScreenSpriteHelper.clearEmojis();
+	}
+
 	@Override
 	public EntityView<?> getEntityViewAt(final double x, final double y) {
-		final int sx = convertWorldToPixelUnits(x);
-		final int sy = convertWorldToPixelUnits(y);
+		final int sx = GameScreenSpriteHelper.convertWorldToPixelUnits(x);
+		final int sy = GameScreenSpriteHelper.convertWorldToPixelUnits(y);
 		return viewManager.getEntityViewAt(x, y, sx, sy);
-				}
+	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see games.stendhal.client.IGameScreen#getMovableEntityViewAt(double,
-	 *      double)
-	 */
 	@Override
 	public EntityView<?> getMovableEntityViewAt(final double x, final double y) {
-		final int sx = convertWorldToPixelUnits(x);
-		final int sy = convertWorldToPixelUnits(y);
+		final int sx = GameScreenSpriteHelper.convertWorldToPixelUnits(x);
+		final int sy = GameScreenSpriteHelper.convertWorldToPixelUnits(y);
 		return viewManager.getMovableEntityViewAt(x, y, sx, sy);
-					}
+	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see games.stendhal.client.IGameScreen#getTextAt(int, int)
-	 */
 	@Override
 	public RemovableSprite getTextAt(final int x, final int y) {
 		// staticTexts are drawn on top of the others; those in the end of the
@@ -883,8 +873,9 @@ public class GameScreen extends JComponent implements IGameScreen, DropTarget,
 			}
 		}
 		// map pixel coordinates
-		final int tx = x + svx;
-		final int ty = y + svy;
+		final int tx = x + GameScreenSpriteHelper.getScreenViewX();
+		final int ty = y + GameScreenSpriteHelper.getScreenViewY();
+		final List<RemovableSprite> texts = GameScreenSpriteHelper.getTexts();
 		synchronized (texts) {
 			final ListIterator<RemovableSprite> it = texts.listIterator(texts.size());
 
@@ -900,123 +891,18 @@ public class GameScreen extends JComponent implements IGameScreen, DropTarget,
 		return null;
 	}
 
-	/**
-	 * Convert world X coordinate to screen view coordinate.
-	 *
-	 * @param wx
-	 *            World X coordinate.
-	 *
-	 * @return Screen X coordinate (in integer value).
-	 */
-	private int convertWorldXToScreenView(final double wx) {
-		return convertWorldToPixelUnits(wx) - svx;
-	}
-
-	/**
-	 * Convert world Y coordinate to screen view coordinate.
-	 *
-	 * @param wy
-	 *            World Y coordinate.
-	 *
-	 * @return Screen Y coordinate (in integer value).
-	 */
-	private int convertWorldYToScreenView(final double wy) {
-		return convertWorldToPixelUnits(wy) - svy;
-	}
-	
-	/**
-	 * Convert a world x coordinate to <em>raw</em> (native resolution)
-	 * screen x coordinate.
-	 * 
-	 * @param x world x coordinate
-	 * @return pixel x coordinate on the screen
-	 */
-	private int convertWorldXToScaledScreen(double x) {
-		return (int) (convertWorldToPixelUnits(x - svx / (double) SIZE_UNIT_PIXELS) * scale) + svx;
-	}
-	
-	/**
-	 * Convert a world y coordinate to <em>raw</em> (native resolution)
-	 * screen y coordinate.
-	 * 
-	 * @param y world y coordinate
-	 * @return pixel y coordinate on the screen
-	 */
-	private int convertWorldYToScaledScreen(double y) {
-		return (int) (convertWorldToPixelUnits(y - svy / (double) SIZE_UNIT_PIXELS) * scale) + svy;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see games.stendhal.client.IGameScreen#convertWorldToScreenView(double,
-	 *      double)
-	 */
-	@Override
-	public Point convertWorldToScreenView(final double wx, final double wy) {
-		return new Point(convertWorldXToScreenView(wx),
-				convertWorldYToScreenView(wy));
-	}
-
-	/**
-	 * Convert a world unit value to pixel units.
-	 *
-	 * @param w World value.
-	 *
-	 * @return A screen value (in pixels).
-	 */
-	private int convertWorldToPixelUnits(final double w) {
-		return (int) (w * SIZE_UNIT_PIXELS);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see games.stendhal.client.IGameScreen#convertScreenViewToWorld(java.awt.Point)
-	 */
 	@Override
 	public Point2D convertScreenViewToWorld(final Point p) {
 		return convertScreenViewToWorld(p.x, p.y);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see games.stendhal.client.IGameScreen#convertScreenViewToWorld(int, int)
-	 */
 	@Override
 	public Point2D convertScreenViewToWorld(final int x, final int y) {
-		return new Point.Double(((x / scale) + getScreenViewX()) / SIZE_UNIT_PIXELS,
-				((y / scale) + getScreenViewY()) / SIZE_UNIT_PIXELS);
+		final double scale = GameScreenSpriteHelper.getScale();
+		return new Point.Double(((x / scale) + GameScreenSpriteHelper.getScreenViewX()) / SIZE_UNIT_PIXELS,
+				((y / scale) + GameScreenSpriteHelper.getScreenViewY()) / SIZE_UNIT_PIXELS);
 	}
 
-	/**
-	 * Get the view X screen coordinate.
-	 *
-	 * @return The X coordinate of the left side.
-	 */
-	private int getScreenViewX() {
-		return svx;
-	}
-
-	/**
-	 * Get the view Y screen coordinate.
-	 *
-	 * @return The Y coordinate of the left side.
-	 */
-	private int getScreenViewY() {
-		return svy;
-	}
-
-	//
-	// PositionChangeListener
-	//
-
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see games.stendhal.client.IGameScreen#positionChanged(double, double)
-	 */
 	@Override
 	public void positionChanged(final double x, final double y) {
 		final int ix = (int) x;
@@ -1050,7 +936,7 @@ public class GameScreen extends JComponent implements IGameScreen, DropTarget,
 	public void addAchievementBox(String title, String description,
 			String category) {
 		final Sprite sprite = getAchievementFactory().createAchievementBox(title, description, category);
-		
+
 		/*
 		 * Keep the achievements a bit longer on the screen. They do not leave
 		 * a line to the chat log, so we give the player a bit more time to
@@ -1058,11 +944,11 @@ public class GameScreen extends JComponent implements IGameScreen, DropTarget,
 		 */
 		addStaticSprite(sprite, 2 * RemovableSprite.STANDARD_PERSISTENCE_TIME, 0);
 	}
-	
+
 	/**
 	 * Add a text box bound to the bottom of the screen, with a timeout
 	 * dependent on the text length.
-	 * 
+	 *
 	 * @param sprite text box sprite
 	 * @param textLength text length in characters
 	 * @param priority importance of the message to keep it above others
@@ -1073,10 +959,10 @@ public class GameScreen extends JComponent implements IGameScreen, DropTarget,
 				textLength * RemovableSprite.STANDARD_PERSISTENCE_TIME / 50),
 				priority);
 	}
-	
+
 	/**
 	 * Add a sprite anchored to the screen bottom.
-	 * 
+	 *
 	 * @param sprite sprite
 	 * @param persistTime time to stay on the screen before being automatically
 	 * 	removed
@@ -1090,20 +976,26 @@ public class GameScreen extends JComponent implements IGameScreen, DropTarget,
 		staticSprites.add(msg);
 		Collections.sort(staticSprites);
 	}
-	
+
 	@Override
-	public void onZoneUpdate() {
+	public void onZoneUpdate(Zone zone) {
 		viewManager.resetViews();
 	}
 
 	@Override
-	public void onZoneChange() {
+	public void onZoneChange(Zone zone) {
 		removeAllObjects();
+		SwingUtilities.invokeLater(globalEffects::clear);
+	}
+
+	@Override
+	public void onZoneChangeCompleted(final Zone zone) {
+		SwingUtilities.invokeLater(() -> setMaxWorldSize(zone.getWidth(), zone.getHeight()));
 	}
 
 	/**
 	 * Switch to spell casting triggered by a key event.
-	 * 
+	 *
 	 * @param e triggering key event
 	 */
 	public void switchToSpellCasting(KeyEvent e) {
@@ -1117,7 +1009,7 @@ public class GameScreen extends JComponent implements IGameScreen, DropTarget,
 
 	/**
 	 * Switch to spell casting with an already chosen spell.
-	 * 
+	 *
 	 * @param spell the chosen spell
 	 */
 	public void switchToSpellCastingState(RPObject spell) {
@@ -1125,10 +1017,10 @@ public class GameScreen extends JComponent implements IGameScreen, DropTarget,
 		this.ground.setNewMouseHandlerState(newState);
 		newState.setSpell(spell);
 	}
-	
+
 	/**
 	 * Find spell corresponding to a key.
-	 * 
+	 *
 	 * @param e key
 	 * @return spell, or <code>null</code> if the key does not match any spell
 	 */
@@ -1148,9 +1040,6 @@ public class GameScreen extends JComponent implements IGameScreen, DropTarget,
 
 	@Override
 	public boolean canAccept(IEntity entity) {
-		if ((entity instanceof Item) || (entity instanceof Corpse)) {
-			return true;
-		}
-		return false;
+		return (entity instanceof Item) || (entity instanceof Corpse);
 	}
 }

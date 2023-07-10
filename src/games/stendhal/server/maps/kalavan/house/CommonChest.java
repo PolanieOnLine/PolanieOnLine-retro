@@ -1,4 +1,3 @@
-/* $Id: CommonChest.java,v 1.9 2010/09/19 02:31:09 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,21 +11,21 @@
  ***************************************************************************/
 package games.stendhal.server.maps.kalavan.house;
 
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.entity.mapstuff.chest.Chest;
 
-import java.util.Map;
-
 public class CommonChest implements ZoneConfigurator {
-
 	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildKalavanHouseAreaChest(zone);
 	}

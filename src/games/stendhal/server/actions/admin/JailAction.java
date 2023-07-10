@@ -1,6 +1,5 @@
-/* $Id: JailAction.java,v 1.12 2010/09/19 02:21:43 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -54,7 +53,7 @@ public class JailAction extends AdministrationAction {
 		}
 
 		// extract and validate player
-			final String target = action.get(TARGET);
+		final String target = action.get(TARGET);
 		if (StendhalRPRuleProcessor.get().getPlayer(target) == null) {
 			try {
 				if (!DAORegister.get().get(CharacterDAO.class).hasCharacter(target)) {

@@ -1,5 +1,4 @@
-/* $Id: Scroll.java,v 1.25 2012/06/11 09:26:03 kiheru Exp $
- /**************************************************************************
+/**************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
@@ -12,29 +11,27 @@
  ***************************************************************************/
 package games.stendhal.server.entity.item.scroll;
 
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.core.events.UseListener;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.RPEntity;
 import games.stendhal.server.entity.item.StackableItem;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.Map;
-
 import marauroa.common.game.RPObject;
-
-import org.apache.log4j.Logger;
 
 /**
  * Represents a scroll.
  */
-public class Scroll extends StackableItem implements UseListener {
+public class Scroll extends StackableItem {
 
 	private static final Logger logger = Logger.getLogger(Scroll.class);
 
 	/**
 	 * Creates a new scroll.
-	 * 
+	 *
 	 * @param name
 	 * @param clazz
 	 * @param subclass
@@ -47,7 +44,7 @@ public class Scroll extends StackableItem implements UseListener {
 
 	/**
 	 * Copy constructor.
-	 * 
+	 *
 	 * @param item
 	 *            item to copy
 	 */
@@ -55,14 +52,15 @@ public class Scroll extends StackableItem implements UseListener {
 		super(item);
 	}
 
+	@Override
 	public final boolean onUsed(final RPEntity user) {
 		RPObject base = getBaseContainer();
 
 		if (user.nextTo((Entity) base)) {
-			// We need to remove the scroll before using it. Makes space in 
+			// We need to remove the scroll before using it. Makes space in
 			// the bag in the case of last empty scrolls, and prevents
 			// the player getting free replacement scrolls from bank vaults.
-			// Save the necessary information for backtracking:  
+			// Save the necessary information for backtracking:
 			Scroll clone = (Scroll) clone();
 			Scroll splitted = (Scroll) splitOff(1);
 			StendhalRPZone zone = getZone();
@@ -96,10 +94,10 @@ public class Scroll extends StackableItem implements UseListener {
 
 	/**
 	 * Use a scroll.
-	 * 
+	 *
 	 * @param player
 	 *            The player using scroll.
-	 * 
+	 *
 	 * @return <code>true</code> if successful, <code>false</code>
 	 *         otherwise.
 	 */

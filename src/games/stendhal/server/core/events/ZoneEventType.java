@@ -1,4 +1,4 @@
-/* $Id: ZoneEventType.java,v 1.8 2010/09/19 02:22:51 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -14,7 +14,7 @@ package games.stendhal.server.core.events;
 
 /**
  * Event types used in the new Zone notifier.
- * 
+ *
  * @author kymara (based on TutorialEventType by hendrik)
  */
 public enum ZoneEventType {
@@ -42,7 +42,7 @@ public enum ZoneEventType {
 
 	/**
 	 * create a new ZoneEventType.
-	 * 
+	 *
 	 * @param message
 	 *            human readable message
 	 */
@@ -52,7 +52,7 @@ public enum ZoneEventType {
 
 	/**
 	 * get the descriptive message.
-	 * 
+	 *
 	 * @return message
 	 */
 	String getMessage() {

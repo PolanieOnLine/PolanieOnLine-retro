@@ -1,6 +1,5 @@
-/* $Id: StendhalRPRuleProcessor.java,v 1.92 2012/08/14 19:29:28 nhnb Exp $ */
 /***************************************************************************
- *                      (C) Copyright 2003 - Marauroa                      *
+ *                    (C) Copyright 2003-2020 - Marauroa                   *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -13,28 +12,6 @@
 package games.stendhal.server.core.engine;
 
 import static games.stendhal.common.constants.Actions.AWAY;
-import games.stendhal.common.Debug;
-import games.stendhal.common.NotificationType;
-import games.stendhal.common.filter.FilterCriteria;
-import games.stendhal.server.actions.CommandCenter;
-import games.stendhal.server.actions.admin.AdministrationAction;
-import games.stendhal.server.core.account.AccountCreator;
-import games.stendhal.server.core.account.CharacterCreator;
-import games.stendhal.server.core.engine.db.StendhalWebsiteDAO;
-import games.stendhal.server.core.engine.dbcommand.SetOnlineStatusCommand;
-import games.stendhal.server.core.engine.transformer.PlayerTransformer;
-import games.stendhal.server.core.events.TutorialNotifier;
-import games.stendhal.server.core.rp.StendhalRPAction;
-import games.stendhal.server.core.scripting.ScriptRunner;
-import games.stendhal.server.entity.Entity;
-import games.stendhal.server.entity.RPEntity;
-import games.stendhal.server.entity.npc.NPCList;
-import games.stendhal.server.entity.npc.behaviour.impl.OutfitChangerBehaviour.ExpireOutfit;
-import games.stendhal.server.entity.player.AfkTimeouter;
-import games.stendhal.server.entity.player.Player;
-import games.stendhal.server.events.PlayerLoggedOnEvent;
-import games.stendhal.server.events.PlayerLoggedOutEvent;
-import games.stendhal.server.extension.StendhalServerExtension;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -49,6 +26,34 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
+import games.stendhal.common.Debug;
+import games.stendhal.common.NotificationType;
+import games.stendhal.common.filter.FilterCriteria;
+import games.stendhal.server.actions.CommandCenter;
+import games.stendhal.server.actions.admin.AdministrationAction;
+import games.stendhal.server.core.account.AccountCreator;
+import games.stendhal.server.core.account.CharacterCreator;
+import games.stendhal.server.core.engine.db.StendhalWebsiteDAO;
+import games.stendhal.server.core.engine.dbcommand.SetOnlineStatusCommand;
+import games.stendhal.server.core.engine.transformer.PlayerTransformer;
+import games.stendhal.server.core.events.TurnListener;
+import games.stendhal.server.core.events.TurnNotifier;
+import games.stendhal.server.core.events.TutorialNotifier;
+import games.stendhal.server.core.rp.StendhalQuestSystem;
+import games.stendhal.server.core.rp.StendhalRPAction;
+import games.stendhal.server.core.scripting.ScriptRunner;
+import games.stendhal.server.entity.Entity;
+import games.stendhal.server.entity.RPEntity;
+import games.stendhal.server.entity.npc.NPCList;
+import games.stendhal.server.entity.npc.behaviour.impl.OutfitChangerBehaviour.ExpireOutfit;
+import games.stendhal.server.entity.player.AfkTimeouter;
+import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.events.PlayerLoggedOnEvent;
+import games.stendhal.server.events.PlayerLoggedOutEvent;
+import games.stendhal.server.extension.StendhalServerExtension;
 import marauroa.common.Configuration;
 import marauroa.common.Pair;
 import marauroa.common.game.AccountResult;
@@ -58,32 +63,30 @@ import marauroa.common.game.RPAction;
 import marauroa.common.game.RPObject;
 import marauroa.common.io.UnicodeSupportingInputStreamReader;
 import marauroa.server.db.command.DBCommand;
+import marauroa.server.db.command.DBCommandPriority;
 import marauroa.server.db.command.DBCommandQueue;
 import marauroa.server.game.Statistics;
 import marauroa.server.game.db.DAORegister;
+import marauroa.server.game.dbcommand.LogGameEventCommand;
 import marauroa.server.game.rp.IRPRuleProcessor;
 import marauroa.server.game.rp.RPServerManager;
-
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 /**
  * adds game rules for Stendhal to the marauroa environment.
  *
  * @author hendrik
  */
 public class StendhalRPRuleProcessor implements IRPRuleProcessor {
+	/** The logger instance. */
+	private static final Logger logger = Logger.getLogger(StendhalRPRuleProcessor.class);
+	/** The Singleton instance. */
+	protected static StendhalRPRuleProcessor instance;
 
 	/** only log the first exception while reading welcome URL. */
 	private static boolean firstWelcomeException = true;
-	/** the logger instance. */
-	private static final Logger logger = Logger.getLogger(StendhalRPRuleProcessor.class);
 	/** list of super admins read from admins.list. */
 	private static Map<String, String> adminNames;
 	/** welcome message unless overwritten by an URL */
-	private static String welcomeMessage = " Witaj w #PolskaOnLine dzielny wojowniku! Odwiedź stronę #www.gra.polskaonline.org";
-
-	/** The Singleton instance. */
-	protected static StendhalRPRuleProcessor instance;
+	private static String welcomeMessage = "Witaj w #'PolanieOnLine'! Odwiedź stronę - #'polanieonline.eu'! \nPamiętaj, aby nikomu &'nie udostępniać' hasła do swojego konta! Jeżeli znalazłeś jakieś błędy w grze to zgłoś to nam do &'supportu'.";
 
 	private RPServerManager rpman;
 
@@ -100,20 +103,7 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 	/** a list of zone that should be removed (like vaults) */
 	private final List<StendhalRPZone> zonesToRemove = new LinkedList<StendhalRPZone>();
 
-	/**
-	 * creates a new StendhalRPRuleProcessor
-	 */
-	protected StendhalRPRuleProcessor() {
-		onlinePlayers = new PlayerList();
-		playersRmText = new LinkedList<Player>();
-		entityToKill = new LinkedList<Pair<RPEntity, Entity>>();
-	}
-
-	private void init() {
-		String[] params = {};
-		new GameEvent("server system", "startup", params).raise();
-		AfkTimeouter.create();
-	}
+	private LinkedList<marauroa.server.game.rp.GameEvent> gameEvents = new LinkedList<>();
 
 	/**
 	 * gets the singleton instance of StendhalRPRuleProcessor
@@ -124,11 +114,22 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 		synchronized(StendhalRPRuleProcessor.class) {
 			if (instance == null) {
 				StendhalRPRuleProcessor instance = new StendhalRPRuleProcessor();
-				instance.init();
 				StendhalRPRuleProcessor.instance = instance;
+				new GameEvent("server system", "startup").raise();
+				AfkTimeouter.create();
 			}
 		}
+
 		return instance;
+	}
+
+	/**
+	 * creates a new StendhalRPRuleProcessor
+	 */
+	protected StendhalRPRuleProcessor() {
+		onlinePlayers = new PlayerList();
+		playersRmText = new LinkedList<Player>();
+		entityToKill = new LinkedList<Pair<RPEntity, Entity>>();
 	}
 
 	/**
@@ -140,6 +141,7 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 		return onlinePlayers;
 	}
 
+	@Override
 	public void setContext(final RPServerManager rpman) {
 		try {
 			/*
@@ -149,16 +151,23 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 			if (Debug.PRE_RELEASE_VERSION != null) {
 				preRelease = " - " + preRelease;
 			}
-			logger.info("Running PolskaOnLine server VERSION " + Debug.VERSION + preRelease);
+			logger.info("Running PolanieOnLine server VERSION " + Debug.VERSION + preRelease);
 			Translate.init();
-			
+
 			this.rpman = rpman;
 			StendhalRPAction.initialize(rpman);
 
 			/* Initialize quests */
-			SingletonRepository.getStendhalQuestSystem().init();
+			final StendhalQuestSystem questSystem = StendhalQuestSystem.get();
+			questSystem.init();
 
-			new ScriptRunner();
+			new ScriptRunner().init();
+
+			/* initialize quests stored in cache */
+			questSystem.loadCachedQuests();
+
+			/* actions registered to be executed at end of server startup */
+			CachedActionManager.get().run();
 
 			final Configuration config = Configuration.getConfiguration();
 			try {
@@ -186,11 +195,12 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 		}
 	}
 
+	@Override
 	public boolean checkGameVersion(final String game, final String version) {
 		try {
-			if (!game.equals(Configuration.getConfiguration().get("server_typeGame", "polskaonline"))) {
-				logger.warn("Client for game " + game + " is trying to login to server for game " 
-						+ Configuration.getConfiguration().get("server_typeGame", "stendhal") 
+			if (!game.equals(Configuration.getConfiguration().get("server_typeGame", "polanieonline"))) {
+				logger.warn("Client for game " + game + " is trying to login to server for game "
+						+ Configuration.getConfiguration().get("server_typeGame", "polanieonline")
 						+ ", as defined in server configuration file (usually server.ini) with key server_typeGame (defaults to \"stendhal\" if not present).");
 				return false;
 			}
@@ -216,7 +226,7 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 
 	/**
 	 * Checks whether the given RPEntity has been killed this turn.
-	 * 
+	 *
 	 * @param entity
 	 *            The entity to check.
 	 * @return pair of killed, killer if the specified entity did logout while dying, <code>null</code> otherwise.
@@ -239,7 +249,7 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 
 	/**
 	 * Finds an online player with a specific name.
-	 * 
+	 *
 	 * @param name
 	 *            The player's name
 	 * @return The player, or null if no player with the given name is currently
@@ -249,10 +259,12 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 		return onlinePlayers.getOnlinePlayer(name);
 	}
 
+	@Override
 	public boolean onActionAdd(final RPObject caster, final RPAction action, final List<RPAction> actionList) {
 		return true;
 	}
 
+	@Override
 	public void execute(final RPObject caster, final RPAction action) {
 		if (caster instanceof Player) {
 			((Player) caster).setLastClientActionTimestamp(System.currentTimeMillis());
@@ -265,6 +277,7 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 	}
 
 	/** Notify it when a new turn happens. */
+	@Override
 	public synchronized void beginTurn() {
 		final long start = System.nanoTime();
 
@@ -273,7 +286,7 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 		} catch (final Exception e) {
 			logger.error("error in beginTurn", e);
 		}
-			
+
 		try {
 			logNumberOfPlayersOnline();
 		} catch (final Exception e) {
@@ -313,7 +326,7 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 			world.removeZone(zone);
 		}
 		zonesToRemove.clear();
-		
+
 	}
 
 	protected void logNumberOfPlayersOnline() {
@@ -342,6 +355,7 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 
 	protected void executePlayerLogic() {
 		getOnlinePlayers().forAllPlayersExecute(new Task<Player>() {
+			@Override
 			public void execute(final Player player) {
 				try {
 					player.logic();
@@ -369,7 +383,7 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 		entityToKill.clear();
 	}
 
-
+	@Override
 	public synchronized void endTurn() {
 		final int currentTurn = getTurn();
 		try {
@@ -387,10 +401,10 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 			logger.error("error in endTurn", e);
 		}
 	}
-	
+
 	/**
 	 * reads the admins from admins.list.
-	 * 
+	 *
 	 * @param player
 	 *            Player to check for super admin status.
 	 */
@@ -400,7 +414,7 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 				Map<String, String> tempAdminNames = new HashMap<String, String>();
 
 				String adminFilename = "data/conf/admins.txt";
-			
+
 				try {
 					InputStream is = player.getClass().getClassLoader().getResourceAsStream(
 							adminFilename);
@@ -440,6 +454,7 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 		}
 	}
 
+	@Override
 	public synchronized boolean onInit(final RPObject object) {
 		try {
 			if (object == null) {
@@ -449,7 +464,7 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 
 			if (object instanceof Player) {
 				Player player = (Player) object;
-			
+
 				playersRmText.add(player);
 
 				// place the player and his pets into the world
@@ -459,6 +474,11 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 				StendhalRPAction.transferContent(player);
 
 				getOnlinePlayers().add(player);
+
+				if (player.has(AWAY)) {
+					player.remove(AWAY);
+					player.setVisibility(100);
+				}
 
 				if (!player.isGhost()) {
 					notifyOnlineStatus(true, player);
@@ -475,13 +495,13 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 				readAdminsFromFile(player);
 				welcome(player);
 
-		        // expire outfits
-		        if (player.has("outfit_expire_age")) {
+				// expire outfits
+				if (player.has("outfit_expire_age")) {
 					int expire = player.getInt("outfit_expire_age") - player.getAge();
-		            ExpireOutfit expireOutfit = new ExpireOutfit(player.getName());
-		            SingletonRepository.getTurnNotifier().dontNotify(expireOutfit);
-		            SingletonRepository.getTurnNotifier().notifyInSeconds(Math.max(0, expire * 60), expireOutfit);
-		        }
+					ExpireOutfit expireOutfit = new ExpireOutfit(player.getName());
+					SingletonRepository.getTurnNotifier().dontNotify(expireOutfit);
+					SingletonRepository.getTurnNotifier().notifyInSeconds(Math.max(0, expire * 60), expireOutfit);
+				}
 				return true;
 			} else {
 				logger.error("onInit: object is not an instance of Player: " + object, new Throwable());
@@ -502,7 +522,7 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 	 * send a welcome message to the player which can be configured in
 	 * marauroa.ini file as "server_welcome". If the value is an http:// address,
 	 * the first line of that address is read and used as the message
-	 * 
+	 *
 	 * @param player
 	 *            Player
 	 */
@@ -512,14 +532,14 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 			final Configuration config = Configuration.getConfiguration();
 			if (config.has("server_welcome")) {
 				msg = config.get("server_welcome");
-				if (msg.startsWith("http://")) {
+				if (msg.startsWith("http://") || msg.startsWith("https://")) {
 					final URL url = new URL(msg);
 					HttpURLConnection.setFollowRedirects(false);
 					final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                    try {					
+                    try {
                         final BufferedReader br = new BufferedReader(
-							new InputStreamReader(connection.getInputStream()));
-                        try {					
+							new InputStreamReader(connection.getInputStream(), "UTF-8"));
+                        try {
                             msg = br.readLine();
                         } finally {
                             br.close();
@@ -536,10 +556,16 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 			}
 		}
 		if (msg != null) {
-			player.sendPrivateText(msg);
+			/*
+			 * Avoid spamming all client channels. Very old clients do not
+			 * recognize SERVER type, but they just log an error. Client version
+			 * information has not been received yet.
+			 */
+			player.sendPrivateText(NotificationType.SERVER, msg);
 		}
 	}
 
+	@Override
 	public synchronized boolean onExit(final RPObject object) {
 		return onLogout(object, "logout");
 	}
@@ -555,11 +581,6 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 					entry.first().onDead(entry.second());
 				}
 
-				if (player.has(AWAY)) {
-					player.remove(AWAY);
-					player.setVisibility(100);
-				}
-
 				if (!player.isGhost()) {
 					notifyOnlineStatus(false, player);
 				}
@@ -570,10 +591,11 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 
 				DBCommand command = new SetOnlineStatusCommand(player.getName(), false);
 				DBCommandQueue.get().enqueue(command);
-			
+
 				new GameEvent(player.getName(), "logout", reason).raise();
 				logger.debug("removed player " + player);
 
+				SingletonRepository.getLogoutNotifier().onPlayerLoggedOut(player);
 				return true;
 			} catch (final Exception e) {
 				logger.error("error in onExit", e);
@@ -585,15 +607,23 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 		}
 	}
 
+	@Override
 	public synchronized void onTimeout(final RPObject object) {
 		onLogout(object, "timeout");
 	}
 
+	@Override
 	public AccountResult createAccount(final String username, final String password, final String email) {
 		final AccountCreator creator = new AccountCreator(username, password, email);
 		return creator.create();
 	}
 
+	@Override
+	public AccountResult createAccountWithToken(String username, String tokenType, String token) {
+		return null;
+	}
+
+	@Override
 	public CharacterResult createCharacter(final String username, final String character, final RPObject template) {
 		final CharacterCreator creator = new CharacterCreator(username, character, template);
 		return creator.create();
@@ -605,7 +635,7 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 
 	/**
 	 * Tell this message all players.
-	 * 
+	 *
 	 * @param notificationType type of notification message, usually NotificationType.PRIVMSG
 	 * @param message
 	 *            Message to tell all players
@@ -616,7 +646,7 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 
 	/**
 	 * Sends a message to all supporters.
-	 * 
+	 *
 	 * @param message Support message
 	 */
 	public void sendMessageToSupporters(final String message) {
@@ -624,6 +654,7 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 
 		new Task<Player>() {
 
+			@Override
 			public void execute(final Player player) {
 				player.sendPrivateText(NotificationType.SUPPORT, message);
 				player.notifyWorldAboutChanges();
@@ -633,6 +664,7 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 
 		new FilterCriteria<Player>() {
 
+			@Override
 			public boolean passes(final Player p) {
 				return p.getAdminLevel() >= AdministrationAction.REQUIRED_ADMIN_LEVEL_FOR_SUPPORT;
 			}
@@ -644,7 +676,7 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 
 	/**
 	 * Sends a message to all supporters.
-	 * 
+	 *
 	 * @param source
 	 *            a player or script name
 	 * @param message
@@ -669,6 +701,7 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 		if (instance != null) {
 			if (isOnline) {
 				SingletonRepository.getRuleProcessor().getOnlinePlayers().forAllPlayersExecute(new Task<Player>() {
+					@Override
 					public void execute(final Player player) {
 						player.notifyOnline(playerToNotifyAbout.getName());
 					}
@@ -676,6 +709,7 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 
 			} else {
 				SingletonRepository.getRuleProcessor().getOnlinePlayers().forAllPlayersExecute(new Task<Player>() {
+					@Override
 					public void execute(final Player player) {
 						player.notifyOffline(playerToNotifyAbout.getName());
 					}
@@ -686,36 +720,43 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 
 	/**
 	 * Update all player's lists of online player names on login of a new player
-	 * 
+	 *
 	 * @param playerToNotifyAbout
 	 */
 	private void updatePlayerNameListForPlayersOnLogin(final Player playerToNotifyAbout) {
 		SingletonRepository.getRuleProcessor().getOnlinePlayers().forAllPlayersExecute(new Task<Player>() {
+			@Override
 			public void execute(final Player player) {
 				if(playerToNotifyAbout.isGhost()) {
 					playerToNotifyAbout.addEvent(new PlayerLoggedOnEvent(player.getName()));
-					if (player.isGhost()) {
+					playerToNotifyAbout.notifyWorldAboutChanges();
+					if (player.isGhost() && (player != playerToNotifyAbout)) {
 						player.addEvent(new PlayerLoggedOnEvent(playerToNotifyAbout.getName()));
+						player.notifyWorldAboutChanges();
 					}
 				} else {
 					player.addEvent(new PlayerLoggedOnEvent(playerToNotifyAbout.getName()));
-					if (!player.isGhost()) {
+					player.notifyWorldAboutChanges();
+					if (!player.isGhost() && (player != playerToNotifyAbout)) {
 						playerToNotifyAbout.addEvent(new PlayerLoggedOnEvent(player.getName()));
+						playerToNotifyAbout.notifyWorldAboutChanges();
 					}
 				}
 			}
 		});
 	}
-	
+
 	/**
 	 * Update all player's lists of online player names on login of a new player
-	 * 
+	 *
 	 * @param playerToNotifyAbout
 	 */
 	private void updatePlayerNameListForPlayersOnLogout(final Player playerToNotifyAbout) {
 		SingletonRepository.getRuleProcessor().getOnlinePlayers().forAllPlayersExecute(new Task<Player>() {
+			@Override
 			public void execute(final Player player) {
 				player.addEvent(new PlayerLoggedOutEvent(playerToNotifyAbout.getName()));
+				player.notifyWorldAboutChanges();
 			}
 		});
 	}
@@ -739,11 +780,44 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 	}
 
 	/**
+	 * logs a gameEvent
+	 *
+	 * @param gameEvent a game event
+	 */
+	public void logGameEvent(GameEvent gameEvent) {
+		this.logGameEvent(gameEvent.getSource(), gameEvent.getEvent(), gameEvent.getParams());
+	}
+
+	/**
+	 * logs a game event
+	 *
+	 * @param source source
+	 * @param event  event
+	 * @param params parameters
+	 */
+	public void logGameEvent(String source, String event, String... params) {
+		this.gameEvents.add(new marauroa.server.game.rp.GameEvent(source, event, params));
+
+		// we collect one second of game events and write them as batch to the database
+		if (this.gameEvents.size() == 1) {
+			TurnNotifier.get().notifyInSeconds(1, new TurnListener() {
+				@Override
+				public void onTurnReached(int currentTurn) {
+					DBCommand command = new LogGameEventCommand(gameEvents);
+					gameEvents.clear();
+					DBCommandQueue.get().enqueue(command, DBCommandPriority.LOW);
+				}
+			});
+		}
+	}
+
+	/**
 	 * gets the content type for the requested resource
-	 * 
+	 *
 	 * @param resource name of resource
 	 * @return mime content/type or <code>null</code>
 	 */
+	@Override
 	public String getMimeTypeForResource(String resource) {
 		if (resource.endsWith(".tmx")) {
 			return "text/xml";
@@ -757,10 +831,11 @@ public class StendhalRPRuleProcessor implements IRPRuleProcessor {
 
 	/**
 	 * gets an input stream to the requested resource
-	 * 
+	 *
 	 * @param resource name of resource
 	 * @return InputStream or <code>null</code>
 	 */
+	@Override
 	public InputStream getResource(String resource) {
 		if (resource.startsWith("/tiled") || resource.startsWith("/data")) {
 			return StendhalRPRuleProcessor.class.getClassLoader().getResourceAsStream(resource.substring(1));

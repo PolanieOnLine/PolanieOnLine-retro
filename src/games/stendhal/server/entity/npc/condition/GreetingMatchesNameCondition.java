@@ -1,4 +1,4 @@
-/* $Id: GreetingMatchesNameCondition.java,v 1.4 2012/09/09 12:33:24 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2010-2011 - Stendhal                    *
  ***************************************************************************
@@ -12,18 +12,16 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.condition;
 
+import java.util.Arrays;
+import java.util.List;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
 import games.stendhal.server.core.config.annotations.Dev.Category;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.npc.ChatCondition;
+import games.stendhal.server.entity.npc.ConditionBuilder;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Checks if an optional subject in the user input matches the NPC name. Use with greeting messages in IDLE state at busy places.
@@ -45,6 +43,7 @@ public class GreetingMatchesNameCondition implements ChatCondition {
 		nameWords = Arrays.asList(name.toLowerCase().split(" "));
 	}
 
+	@Override
 	public boolean fire(final Player player, final Sentence sentence, final Entity entity) {
 		if (sentence == null) {
 			return true;
@@ -71,8 +70,10 @@ public class GreetingMatchesNameCondition implements ChatCondition {
 
 	/**
 	 * Check if all of the given words are present in nameWords.
+	 *
 	 * @param words list of words to search for
-	 * @return
+	 * @return <code>true</code> if all the words were found, otherwise
+	 * 	<code>false</code>
 	 */
 	private boolean matchesName(String... words) {
 		for(String word : words) {
@@ -91,12 +92,19 @@ public class GreetingMatchesNameCondition implements ChatCondition {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 43651 * name.hashCode();
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				GreetingMatchesNameCondition.class);
+		if (!(obj instanceof GreetingMatchesNameCondition)) {
+			return false;
+		}
+		GreetingMatchesNameCondition other = (GreetingMatchesNameCondition) obj;
+		return name.equals(other.name);
+	}
+
+	public static ConditionBuilder greetingMatchesName(String name) {
+		return new ConditionBuilder(new GreetingMatchesNameCondition(name));
 	}
 }

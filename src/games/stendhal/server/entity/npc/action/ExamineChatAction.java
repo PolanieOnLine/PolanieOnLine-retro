@@ -1,4 +1,4 @@
-/* $Id: ExamineChatAction.java,v 1.15 2012/09/09 12:19:56 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +12,8 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.action;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
 import games.stendhal.server.core.config.annotations.Dev.Category;
@@ -20,9 +22,6 @@ import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.events.ExamineEvent;
 
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
-
 /**
  * Opens an examine window on the client showing an image
  *
@@ -30,7 +29,7 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
  */
 @Dev(category=Category.CHAT, label="Image")
 public class ExamineChatAction implements ChatAction {
-	private final String image;
+	private String image;
 	private final String title;
 	private final String caption;
 
@@ -42,13 +41,18 @@ public class ExamineChatAction implements ChatAction {
 	 * @param caption text to display along the image
 	 */
 	public ExamineChatAction(final String image, final String title, final String caption) {
-		this.image = image;
-		this.title = title;
-		this.caption = caption;
+		this.image = checkNotNull(image);
+		if (!image.startsWith("http://") && !image.startsWith("https://")) {
+			this.image = "examine/" + image;
+		}
+		this.title = checkNotNull(title);
+		this.caption = checkNotNull(caption);
 	}
 
+	@Override
 	public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
-		player.addEvent(new ExamineEvent("examine/" + image, title, caption));
+		player.addEvent(new ExamineEvent(image, title, caption));
+		player.notifyWorldAboutChanges();
 	}
 
 	@Override
@@ -57,14 +61,19 @@ public class ExamineChatAction implements ChatAction {
 	}
 
 	@Override
-	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				ExamineChatAction.class);
+	public int hashCode() {
+		return 5189 * (image.hashCode() + 5197 * (title.hashCode() + 5209 * caption.hashCode()));
 	}
 
 	@Override
-	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+	public boolean equals(final Object obj) {
+		if (!(obj instanceof ExamineChatAction)) {
+			return false;
+		}
+		ExamineChatAction other = (ExamineChatAction) obj;
+		return image.equals(other.image)
+			&& title.equals(other.title)
+			&& caption.equals(other.caption);
 	}
 
 }

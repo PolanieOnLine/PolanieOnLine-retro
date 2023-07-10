@@ -1,6 +1,5 @@
-/* $Id: RingSmithNPC.java,v 1.34 2012/08/23 20:05:44 yoriy Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,22 +11,16 @@
  ***************************************************************************/
 package games.stendhal.server.maps.fado.weaponshop;
 
-import games.stendhal.server.core.config.ZoneConfigurator;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.core.pathfinder.FixedPath;
-import games.stendhal.server.core.pathfinder.Node;
-import games.stendhal.server.entity.npc.ShopList;
-import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.behaviour.adder.BuyerAdder;
-import games.stendhal.server.entity.npc.behaviour.adder.SellerAdder;
-import games.stendhal.server.entity.npc.behaviour.impl.BuyerBehaviour;
-import games.stendhal.server.entity.npc.behaviour.impl.SellerBehaviour;
-
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import games.stendhal.server.core.config.ZoneConfigurator;
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.core.pathfinder.FixedPath;
+import games.stendhal.server.core.pathfinder.Node;
+import games.stendhal.server.entity.npc.SpeakerNPC;
 
 /**
  * Builds an NPC to buy gems and gold and sell engagement ring.
@@ -40,8 +33,6 @@ import java.util.Map;
  * @author kymara
  */
 public class RingSmithNPC implements ZoneConfigurator {
-	private final ShopList shops = SingletonRepository.getShopList();
-
 	/**
 	 * Configure a zone.
 	 *
@@ -50,14 +41,13 @@ public class RingSmithNPC implements ZoneConfigurator {
 	 * @param attributes
 	 *            Configuration attributes.
 	 */
-	public void configureZone(final StendhalRPZone zone,
-			final Map<String, String> attributes) {
+	@Override
+	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildNPC(zone);
 	}
 
 	private void buildNPC(final StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Ognir") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -72,7 +62,7 @@ public class RingSmithNPC implements ZoneConfigurator {
 
 			@Override
 			protected void createDialog() {
-				addGreeting("Cześć. W czym mogę pomóc?");
+				addGreeting("Cześć. W czym mogę #pomóc?");
 				addJob("Pracuję ze #złotem oraz naprawiam i wytwarzam biżuterię.");
 				addOffer("Sprzedaję pierścionki zaręczynowe z diamentem, które wyrabiam własnoręcznie. Skupuję także kamyki i złoto. Zobacz czerwony katalog na stole.");
 				addReply(
@@ -80,16 +70,14 @@ public class RingSmithNPC implements ZoneConfigurator {
 						"Jest odlewany ze złotych samorodków. które można wydobyć w pobliżu rzeki Or'ril. Nie odlewam złota własnoręcznie, ale kowal w Ados tak.");
 				addHelp("Jestem ekspertem od #'obrączki ślubnej' i #'pierścień szmaragdowy' czasami zwanymi ring of #life.");
 				addQuest("Cóż mógłbyś rozważyć możliwość wzięcia ślubu jako zadania! Zapytaj mnie o kupno pierścionka zaręczynowego #'buy pierścień zaręczynowy' jeżeli potrzebujesz.");
-				new SellerAdder().addSeller(this, new SellerBehaviour(shops.get("sellrings")), false);
-				new BuyerAdder().addBuyer(this, new BuyerBehaviour(shops.get("buyprecious")), false);
-				addGoodbye("Dowidzenia przyjacielu.");
+				addGoodbye("Do widzenia przyjacielu.");
 			}
 		};
 
-		npc.setDescription("Oto Ognir przyjazny brodaty gość.");
+		npc.setDescription("Oto Ognir, przyjazny brodaty gość.");
 		npc.setEntityClass("ringsmithnpc");
+		npc.setGender("M");
 		npc.setPosition(18, 8);
-		npc.initHP(100);
 		zone.add(npc);
 	}
 }

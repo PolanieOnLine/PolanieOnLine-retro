@@ -1,4 +1,4 @@
-/* $Id: SummonAction.java,v 1.18 2011/05/15 08:49:43 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -25,25 +25,31 @@ class SummonAction implements SlashAction {
 
 	/**
 	 * Execute a chat command.
-	 * 
+	 *
 	 * We accept the following command syntaxes, coordinates are recognized from numeric parameters:
-	 * /summon &lt;creature name&gt;
-	 * /summon &lt;creature name&gt; x y
-	 * /summon x y &lt;creature name&gt;
-	 * 
+	 * 		/summon entity
+	 * 		/summon x y entity
+	 * 		/summon entity x y
+	 * 		/summon quantity entity
+	 * 		/summon entity quantity
+	 *		/summon x y quantity entity
+	 *		/summon entity x y quantity
+	 *
 	 * @param params
 	 *            The formal parameters.
 	 * @param remainder
 	 *            Line content after parameters.
-	 * 
+	 *
 	 * @return <code>true</code> if was handled.
 	 */
+	@Override
 	public boolean execute(final String[] params, final String remainder) {
 		final RPAction summon = new RPAction();
 
 		final NameBuilder nameBuilder = new NameBuilder();
 		Integer x = null;
 		Integer y = null;
+		Integer quantity = null;
 
 		for (int i = 0; i < params.length; ++i) {
 			final String str = params[i];
@@ -51,17 +57,19 @@ class SummonAction implements SlashAction {
 			if (str != null) {
 				if (str.matches("[0-9].*")) {
         			try {
-        				final Integer num = new Integer(str);
+        				final Integer num = Integer.valueOf(str);
 
         				if (x == null) {
         					x = num;
         				} else if (y == null) {
         					y = num;
+        				} else if (quantity == null) {
+        					quantity = num;
         				} else {
         					nameBuilder.append(str);
         				}
         			} catch (final NumberFormatException e) {
-        				ClientSingletonRepository.getUserInterface().addEventLine(new StandardEventLine("Invalid number: " + str));
+        				ClientSingletonRepository.getUserInterface().addEventLine(new StandardEventLine("Nieprawidłowa liczba: " + str));
         				return true;
         			}
     			} else {
@@ -70,8 +78,17 @@ class SummonAction implements SlashAction {
 			}
 		}
 
+		// use x value as quantity if y was not specified
+		if (quantity == null && y == null && x != null) {
+			quantity = x;
+			x = null;
+		}
+
 		summon.put("type", "summon");
 		summon.put("creature", nameBuilder.toString());
+		if (quantity != null) {
+			summon.put("quantity", quantity);
+		}
 
 		if (x != null) {
 			if (y != null) {
@@ -92,18 +109,20 @@ class SummonAction implements SlashAction {
 
 	/**
 	 * Get the maximum number of formal parameters.
-	 * 
+	 *
 	 * @return The parameter count.
 	 */
+	@Override
 	public int getMaximumParameters() {
 		return 9;
 	}
 
 	/**
 	 * Get the minimum number of formal parameters.
-	 * 
+	 *
 	 * @return The parameter count.
 	 */
+	@Override
 	public int getMinimumParameters() {
 		return 1;
 	}

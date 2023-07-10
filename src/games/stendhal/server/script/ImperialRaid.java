@@ -1,6 +1,5 @@
-/* $Id: ImperialRaid.java,v 1.3 2011/05/03 19:15:53 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -17,7 +16,7 @@ import java.util.Map;
 
 /**
  * @author kymara
- * 
+ *
  * Not safe for players below level 150
  */
 public class ImperialRaid extends CreateRaid {
@@ -37,7 +36,7 @@ public class ImperialRaid extends CreateRaid {
 		attackArmy.put("imperialny generał gigant", 2);
 		return attackArmy;
 	}
-	
+
 	@Override
 	protected String getInfo() {
 		return "Nie jest bezpieczny dla wojowników poniżej 150 poziomu";

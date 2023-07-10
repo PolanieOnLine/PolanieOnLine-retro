@@ -1,4 +1,4 @@
-/* $Id: World.java,v 1.5 2010/11/24 21:25:04 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -17,21 +17,21 @@ public final class World {
 	private static World instance = new World();
 
 	private World() {}
-	
+
 	public static World get() {
 		return instance;
 	}
-	
+
 	private final PlayerList playerList = new PlayerList();
 
 	public PlayerList getPlayerList() {
 		return playerList;
 	}
-	
+
 	public void removePlayerLoggingOut(final String player) {
 		playerList.removePlayer(player);
 	}
-	
+
 	public void addPlayerLoggingOn(final String player) {
 		playerList.addPlayer(player);
 	}

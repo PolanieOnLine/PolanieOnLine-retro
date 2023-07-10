@@ -1,4 +1,4 @@
-/* $Id: Sheep2DView.java,v 1.20 2012/09/01 20:17:54 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,12 +12,11 @@
  ***************************************************************************/
 package games.stendhal.client.gui.j2d.entity;
 
+import java.util.List;
+
 import games.stendhal.client.entity.ActionType;
 import games.stendhal.client.entity.Sheep;
 import games.stendhal.client.entity.User;
-import games.stendhal.client.gui.styled.cursor.StendhalCursor;
-
-import java.util.List;
 
 /**
  * The 2D view of a sheep.
@@ -26,7 +25,7 @@ class Sheep2DView extends DomesticAnimal2DView<Sheep> {
 	/**
 	 * The weight that a sheep becomes fat (big).
 	 */
-	protected static final int BIG_WEIGHT = 60;
+	private static final int BIG_WEIGHT = 60;
 
 	//
 	// DomesticAnimal2DView
@@ -34,7 +33,7 @@ class Sheep2DView extends DomesticAnimal2DView<Sheep> {
 
 	/**
 	 * Get the weight at which the animal becomes big.
-	 * 
+	 *
 	 * @return A weight.
 	 */
 	@Override
@@ -49,7 +48,7 @@ class Sheep2DView extends DomesticAnimal2DView<Sheep> {
 	/**
 	 * Build a list of entity specific actions. <strong>NOTE: The first entry
 	 * should be the default.</strong>
-	 * 
+	 *
 	 * @param list
 	 *            The list to populate.
 	 */
@@ -61,7 +60,7 @@ class Sheep2DView extends DomesticAnimal2DView<Sheep> {
 
 		if (user != null) {
 			if (!user.hasSheep()) {
-			list.add(ActionType.OWN.getRepresentation());
+				list.add(ActionType.OWN.getRepresentation());
 			} else if ((sheep != null) && (user.getSheepID() == sheep.getID()
 					.getObjectID())) {
 				list.add(ActionType.LEAVE_SHEEP.getRepresentation());
@@ -75,7 +74,7 @@ class Sheep2DView extends DomesticAnimal2DView<Sheep> {
 
 	/**
 	 * Perform an action.
-	 * 
+	 *
 	 * @param at
 	 *            The action.
 	 */
@@ -94,10 +93,4 @@ class Sheep2DView extends DomesticAnimal2DView<Sheep> {
 			break;
 		}
 	}
-
-	@Override
-	public StendhalCursor getCursor() {
-		return StendhalCursor.LOOK;
-	}
-	
 }

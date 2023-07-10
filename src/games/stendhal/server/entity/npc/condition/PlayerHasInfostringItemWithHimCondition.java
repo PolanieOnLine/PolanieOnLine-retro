@@ -1,4 +1,4 @@
-/* $Id: PlayerHasInfostringItemWithHimCondition.java,v 1.6 2012/09/09 12:33:24 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +12,10 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.condition;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.List;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
 import games.stendhal.server.core.config.annotations.Dev.Category;
@@ -19,11 +23,6 @@ import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.item.Item;
 import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.List;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Does the player carry the specified item with the specified infostring?
@@ -45,10 +44,11 @@ public class PlayerHasInfostringItemWithHimCondition implements ChatCondition {
 	 *            infostring to check
 	 */
 	public PlayerHasInfostringItemWithHimCondition(final String itemName, final String infostring) {
-		this.itemName = itemName;
-		this.infostring = infostring;
+		this.itemName = checkNotNull(itemName);
+		this.infostring = checkNotNull(infostring);
 	}
 
+	@Override
 	public boolean fire(final Player player, final Sentence sentence, final Entity entity) {
 		final List<Item> items = player.getAllEquipped(itemName);
 		for (final Item item : items) {
@@ -61,17 +61,21 @@ public class PlayerHasInfostringItemWithHimCondition implements ChatCondition {
 
 	@Override
 	public String toString() {
-		return "wojownik posiada przedmiot <" + itemName + "> z opisem <" + infostring + ">";
+		return "player has item <" + itemName + "> with infostring <" + infostring + ">";
 	}
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 43867 * itemName.hashCode() + infostring.hashCode();
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				PlayerHasInfostringItemWithHimCondition.class);
+		if (!(obj instanceof PlayerHasInfostringItemWithHimCondition)) {
+			return false;
+		}
+		PlayerHasInfostringItemWithHimCondition other = (PlayerHasInfostringItemWithHimCondition) obj;
+		return itemName.equals(other.itemName)
+			&& infostring.equals(other.infostring);
 	}
 }

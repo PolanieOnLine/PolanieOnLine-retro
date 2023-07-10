@@ -1,6 +1,6 @@
-/* $Id: GrainField.java,v 1.20 2010/12/10 20:52:45 madmetzger Exp $ */
+/* $Id$ */
 /***************************************************************************
- *                      (C) Copyright 2003 - Marauroa                      *
+ *                   (C) Copyright 2003-2023 - Marauroa                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,27 +12,27 @@
  ***************************************************************************/
 package games.stendhal.server.entity.mapstuff.spawner;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.events.UseListener;
 import games.stendhal.server.entity.RPEntity;
 import games.stendhal.server.entity.item.Item;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.LinkedList;
-import java.util.List;
-
 /**
  * A grain field can be harvested by players who have a scythe. After that, it
  * will slowly regrow; there are several regrowing steps in which the graphics
  * will change to show the progress.
- * 
+ *
  * @author daniel
  */
 public class GrainField extends GrowingPassiveEntityRespawnPoint implements
 		UseListener {
 	/** How many growing steps are needed before one can harvest again. */
 	public static final int RIPE = 5;
-	
+
 	/** Resistance of fully grown grain */
 	private static final int MAX_RESISTANCE = 80;
 
@@ -43,11 +43,16 @@ public class GrainField extends GrowingPassiveEntityRespawnPoint implements
 		return grainName;
 	}
 
+	@Override
+	public String getItemName() {
+		return getGrainName();
+	}
+
 	/**
 	 * creates a new GrainField
 	 *
 	 * @param name   name of the field
-	 * @param tools  list of tool that can be used to harvest. 
+	 * @param tools  list of tool that can be used to harvest.
 	 *               The first one will be used in the message to the player
 	 *               if he is missing a suitable tool.
 	 */
@@ -97,6 +102,7 @@ public class GrainField extends GrowingPassiveEntityRespawnPoint implements
 	 * @param entity the harvesting entity
 	 * @return true if successful
 	 */
+	@Override
 	public boolean onUsed(final RPEntity entity) {
 		if (!entity.nextTo(this)) {
 			entity.sendPrivateText("Nie możesz stąd dosięgnąć pola, gdzie rośnie " + grainName + ".");
@@ -118,7 +124,6 @@ public class GrainField extends GrowingPassiveEntityRespawnPoint implements
 		entity.equipOrPutOnGround(grain);
 		if(entity instanceof Player) {
 			((Player) entity).incHarvestedForItem(grainName, 1);
-			SingletonRepository.getAchievementNotifier().onObtain((Player) entity);
 		}
 		return true;
 	}

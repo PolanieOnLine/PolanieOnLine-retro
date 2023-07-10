@@ -1,6 +1,5 @@
-/* $Id: AlterCreatureAction.java,v 1.14 2011/01/02 16:19:34 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -15,6 +14,7 @@ package games.stendhal.server.actions.admin;
 import static games.stendhal.common.constants.Actions.ALTERCREATURE;
 import static games.stendhal.common.constants.Actions.TARGET;
 import static games.stendhal.common.constants.Actions.TEXT;
+
 import games.stendhal.common.MathHelper;
 import games.stendhal.server.actions.CommandCenter;
 import games.stendhal.server.core.engine.GameEvent;
@@ -26,7 +26,7 @@ import marauroa.common.game.RPAction;
 class AlterCreatureAction extends AdministrationAction {
 
 	public static void register() {
-		CommandCenter.register(ALTERCREATURE, new AlterCreatureAction(), 17);
+		CommandCenter.register(ALTERCREATURE, new AlterCreatureAction(), 34);
 
 	}
 
@@ -64,9 +64,9 @@ class AlterCreatureAction extends AdministrationAction {
 			final Creature creature = (Creature) changed;
 			new GameEvent(player.getName(), "alter", action.get(TARGET), stat).raise();
 
-			final int newatk = MathHelper.parseIntDefault(parts[1], creature.getAtk());
-			final int newdef = MathHelper.parseIntDefault(parts[2], creature.getDef());
-			final int newHP = MathHelper.parseIntDefault(parts[3], creature.getBaseHP());
+			short newatk = parseShortError(parts[1], creature.getAtk(), "ATK", player);
+			short newdef = parseShortError(parts[2], creature.getDef(), "DEF", player);
+			short newHP = parseShortError(parts[3], creature.getBaseHP(), "HP", player);
 			final int newXP = MathHelper.parseIntDefault(parts[4], creature.getXP());
 
 			if(!"-".equals(parts[0])) {
@@ -79,9 +79,26 @@ class AlterCreatureAction extends AdministrationAction {
 
 			creature.update();
 			creature.notifyWorldAboutChanges();
-
-
 		}
 	}
 
+	/**
+	 * A helper for parsing integer values used for stats that can actually only
+	 * fit a short. Sends an error message to the player if needed.
+	 *
+	 * @param s string to be parsed
+	 * @param def default value
+	 * @param desc name of the stat
+	 * @param player player to be messaged on error
+	 * @return value of the string, or the default value on error
+	 */
+	private short parseShortError(String s, int def, String desc, Player player) {
+		short val = (short) def;
+		try {
+			val = Short.parseShort(s);
+		} catch (NumberFormatException e) {
+			player.sendPrivateText("Invalid " + desc + " value '" + s + "'.");
+		}
+		return val;
+	}
 }

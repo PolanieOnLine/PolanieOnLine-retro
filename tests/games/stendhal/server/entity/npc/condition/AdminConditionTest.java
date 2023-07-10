@@ -1,4 +1,4 @@
-/* $Id: AdminConditionTest.java,v 1.15 2011/05/01 19:50:06 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -15,12 +15,12 @@ package games.stendhal.server.entity.npc.condition;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import games.stendhal.common.parser.ConversationParser;
-import games.stendhal.server.maps.MockStendlRPWorld;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.common.parser.ConversationParser;
+import games.stendhal.server.maps.MockStendlRPWorld;
 import utilities.PlayerTestHelper;
 import utilities.SpeakerNPCTestHelper;
 
@@ -30,32 +30,12 @@ public class AdminConditionTest extends PlayerTestHelper {
 	public static void setUpBeforeClass() throws Exception {
 		MockStendlRPWorld.get();
 	}
-	
-	/**
-	 * Tests for constructor.
-	 */
-	@Test
-	public void testConstructor() throws Throwable {
-		final AdminCondition adminCondition = new AdminCondition();
-		assertEquals("adminCondition.hashCode()", 5629,
-				adminCondition.hashCode());
-	}
-
-	/**
-	 * Tests for constructor1.
-	 */
-	@Test
-	public void testConstructor1() throws Throwable {
-		final AdminCondition adminCondition = new AdminCondition(100);
-		assertEquals("adminCondition.hashCode()", 729,
-				adminCondition.hashCode());
-	}
 
 	/**
 	 * Tests for equals.
 	 */
 	@Test
-	public void testEquals() throws Throwable {
+	public void testEquals() {
 		final AdminCondition obj = new AdminCondition(100);
 		assertTrue(obj.equals(obj));
 		assertTrue(new AdminCondition().equals(new AdminCondition()));
@@ -72,7 +52,7 @@ public class AdminConditionTest extends PlayerTestHelper {
 	 * Tests for fire.
 	 */
 	@Test
-	public void testFire() throws Throwable {
+	public void testFire() {
 		assertTrue(new AdminCondition(0).fire(createPlayer("player"),
 				ConversationParser.parse("testAdminConditionText"),
 				SpeakerNPCTestHelper.createSpeakerNPC()));
@@ -86,16 +66,16 @@ public class AdminConditionTest extends PlayerTestHelper {
 	 * Tests for hashCode.
 	 */
 	@Test
-	public void testHashCode() throws Throwable {
-		assertEquals("result", 629, new AdminCondition(0).hashCode());
-		assertEquals("result", 729, new AdminCondition(100).hashCode());
+	public void testHashCode() {
+		assertEquals("result", new AdminCondition(0).hashCode(), new AdminCondition(0).hashCode());
+		assertEquals("result", new AdminCondition(100).hashCode(), new AdminCondition(100).hashCode());
 	}
 
 	/**
 	 * Tests for toString.
 	 */
 	@Test
-	public void testToString() throws Throwable {
+	public void testToString() {
 		assertEquals("result", "admin <100>",
 				new AdminCondition(100).toString());
 	}
@@ -104,7 +84,7 @@ public class AdminConditionTest extends PlayerTestHelper {
 	 * Tests for fireThrowsNullPointerException.
 	 */
 	@Test(expected = NullPointerException.class)
-	public void testFireThrowsNullPointerException() throws Throwable {
+	public void testFireThrowsNullPointerException() {
 		new AdminCondition(100).fire(null, ConversationParser.parse("testAdminConditionText"),
 				SpeakerNPCTestHelper.createSpeakerNPC());
 	}

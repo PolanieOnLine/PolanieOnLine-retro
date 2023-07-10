@@ -1,6 +1,5 @@
-/* $Id: LoginDialog.java,v 1.39 2012/06/30 17:52:38 kiheru Exp $ */
 /***************************************************************************
- *                      (C) Copyright 2003 - Marauroa                      *
+ *                 (C) Copyright 2003 - 2015 Faiumoni e.V.                 *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -11,14 +10,6 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.client.gui.login;
-
-import games.stendhal.client.StendhalClient;
-import games.stendhal.client.stendhal;
-import games.stendhal.client.gui.ProgressBar;
-import games.stendhal.client.gui.WindowUtils;
-import games.stendhal.client.gui.layout.SBoxLayout;
-import games.stendhal.client.sprite.DataLoader;
-import games.stendhal.client.update.ClientGameConfiguration;
 
 import java.awt.Component;
 import java.awt.Frame;
@@ -35,7 +26,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
-import java.util.Iterator;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -46,13 +36,28 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.Document;
 
+import org.apache.log4j.Logger;
+
+import games.stendhal.client.StendhalClient;
+import games.stendhal.client.stendhal;
+import games.stendhal.client.gui.NumberDocumentFilter;
+import games.stendhal.client.gui.ProgressBar;
+import games.stendhal.client.gui.WindowUtils;
+import games.stendhal.client.gui.layout.SBoxLayout;
+import games.stendhal.client.gui.wt.core.WtWindowManager;
+import games.stendhal.client.sprite.DataLoader;
+import games.stendhal.client.update.ClientGameConfiguration;
+import games.stendhal.common.MathHelper;
 import marauroa.client.BannedAddressException;
 import marauroa.client.LoginFailedException;
 import marauroa.client.TimeoutException;
@@ -60,19 +65,15 @@ import marauroa.common.io.Persistence;
 import marauroa.common.net.InvalidVersionException;
 import marauroa.common.net.message.MessageS2CLoginNACK;
 
-import org.apache.log4j.Logger;
-
 /**
  * Server login dialog.
- * 
  */
 public class LoginDialog extends JDialog {
+	private static final String SELECTED_PROFILE_PROPERTY = "ui.window.login.profile";
 
-	private static final long serialVersionUID = -1182930046629241075L;
+	private ProfileList profiles;
 
-	protected ProfileList profiles;
-	
-	private JComboBox profilesComboBox;
+	private JComboBox<Profile> profilesComboBox;
 
 	private JCheckBox saveLoginBox;
 
@@ -90,13 +91,18 @@ public class LoginDialog extends JDialog {
 
 	private JButton removeButton;
 
-	private JPanel contentPane;
-
-	// End of variables declaration
 	private final StendhalClient client;
 
 	private ProgressBar progressBar;
+	/** Object checking that all required fields are filled */
+	private DataValidator fieldValidator;
 
+	/**
+	 * Create a new LoginDialog.
+	 *
+	 * @param owner parent window
+	 * @param client client
+	 */
 	public LoginDialog(final Frame owner, final StendhalClient client) {
 		super(owner, true);
 		this.client = client;
@@ -104,17 +110,19 @@ public class LoginDialog extends JDialog {
 		WindowUtils.closeOnEscape(this);
 	}
 
+	/**
+	 * Create the dialog contents.
+	 */
 	private void initializeComponent() {
-		this.addWindowListener(new WindowAdapter() {
-			@Override
-			public void windowClosing(WindowEvent e) {
-				if (getOwner() == null) {
-					System.exit(0);
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		if (getOwner() != null) {
+			addWindowListener(new WindowAdapter() {
+				@Override
+				public void windowClosing(WindowEvent e) {
+					getOwner().setEnabled(true);
 				}
-				getOwner().setEnabled(true);
-				dispose();
-			}
-		});
+			});
+		}
 
 		JLabel l;
 
@@ -124,7 +132,7 @@ public class LoginDialog extends JDialog {
 		//
 		// contentPane
 		//
-		contentPane = (JPanel) this.getContentPane();
+		JComponent contentPane = (JComponent) getContentPane();
 		contentPane.setLayout(new GridBagLayout());
 		final int pad = SBoxLayout.COMMON_PADDING;
 		contentPane.setBorder(BorderFactory.createEmptyBorder(pad, pad, pad, pad));
@@ -144,14 +152,14 @@ public class LoginDialog extends JDialog {
 		c.gridy = 0;
 		contentPane.add(l, c);
 
-		profilesComboBox = new JComboBox();
+		profilesComboBox = new JComboBox<Profile>();
 		profilesComboBox.addActionListener(new ProfilesCB());
-		
+
 		/*
 		 * Remove profile button
 		 */
 		removeButton = createRemoveButton();
-		
+
 		// Container for the profiles list and the remove button
 		JComponent box = SBoxLayout.createContainer(SBoxLayout.HORIZONTAL, pad);
 		profilesComboBox.setAlignmentY(Component.CENTER_ALIGNMENT);
@@ -192,6 +200,7 @@ public class LoginDialog extends JDialog {
 
 		serverPortField = new JTextField(
 				ClientGameConfiguration.get("DEFAULT_PORT"));
+		((AbstractDocument) serverPortField.getDocument()).setDocumentFilter(new NumberDocumentFilter(serverPortField, false));
 		c.gridx = 1;
 		c.gridy = 2;
 		c.insets = new Insets(4, 4, 4, 4);
@@ -261,18 +270,34 @@ public class LoginDialog extends JDialog {
 		this.rootPane.setDefaultButton(loginButton);
 
 		loginButton.addActionListener(new ActionListener() {
-
+			@Override
 			public void actionPerformed(final ActionEvent e) {
-				loginButton_actionPerformed(e);
+				loginButtonActionPerformed();
 			}
 		});
+
+		JComponent buttonBox = SBoxLayout.createContainer(SBoxLayout.HORIZONTAL, SBoxLayout.COMMON_PADDING);
+		JButton cancelButton = new JButton("Anuluj");
+		cancelButton.setMnemonic(KeyEvent.VK_C);
+		cancelButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				dispatchEvent(new WindowEvent(LoginDialog.this, WindowEvent.WINDOW_CLOSING));
+			}
+		});
+		buttonBox.add(cancelButton);
+		buttonBox.add(loginButton);
 
 		c.gridx = 1;
 		c.gridy = 5;
 		c.gridheight = 2;
-		c.anchor = GridBagConstraints.CENTER;
-		c.insets = new Insets(15, 4, 4, 4);
-		contentPane.add(loginButton, c);
+		c.anchor = GridBagConstraints.LAST_LINE_END;
+		c.insets = new Insets(0, 0, SBoxLayout.COMMON_PADDING, SBoxLayout.COMMON_PADDING);
+		contentPane.add(buttonBox, c);
+
+		// Before loading profiles so that we can catch the data filled from
+		// there
+		bindEditListener();
 
 		/*
 		 * Load saved profiles
@@ -298,8 +323,17 @@ public class LoginDialog extends JDialog {
 	}
 
 	/**
+	 * Prepare the field validator and bind it to the relevant text fields.
+	 */
+	private void bindEditListener() {
+		fieldValidator = new DataValidator(loginButton,
+				serverField.getDocument(), serverPortField.getDocument(),
+				usernameField.getDocument(), passwordField.getDocument());
+	}
+
+	/**
 	 * Create the remove character button.
-	 * 
+	 *
 	 * @return JButton
 	 */
 	private JButton createRemoveButton() {
@@ -311,16 +345,19 @@ public class LoginDialog extends JDialog {
 		button.setToolTipText("Usuwa wybrane konto z listy");
 
 		button.addActionListener(new ActionListener() {
-
+			@Override
 			public void actionPerformed(final ActionEvent e) {
-				removeButton_actionPerformed(e);
+				removeButtonActionPerformed();
 			}
 		});
-		
+
 		return button;
 	}
 
-	private void loginButton_actionPerformed(final ActionEvent e) {
+	/**
+	 * Called when the login button is activated.
+	 */
+	private void loginButtonActionPerformed() {
 		// If this window isn't enabled, we shouldn't act.
 		if (!isEnabled()) {
 			return;
@@ -363,17 +400,20 @@ public class LoginDialog extends JDialog {
 				saveProfiles(profiles);
 				profile.setPassword(pw);
 			}
-
 		}
+		setCurrentProfileAsDefault();
 
 		/*
 		 * Run the connection procces in separate thread. added by TheGeneral
 		 */
-		final Thread t = new Thread(new ConnectRunnable(profile), "Zaloguj");
+		final Thread t = new Thread(new ConnectRunnable(profile), "Login");
 		t.start();
 	}
 
-	private void removeButton_actionPerformed(final ActionEvent e) {
+	/**
+	 * Called when the remove profile button is activated.
+	 */
+	private void removeButtonActionPerformed() {
 		// If this window isn't enabled, we shouldn't act.
 		if (!isEnabled() || (profiles.profiles.size() == 0)) {
 			return;
@@ -389,36 +429,48 @@ public class LoginDialog extends JDialog {
 			"Zostanie usunięty twój profil z lokalnej listy kont.\n"
 			+ "Nie usunie to twojego konta z żadnego serwera.\n"
 			+ "Czy chcesz usunąć profil \'" + profile.getUser() + "@" + profile.getHost() + "\'?",
-			"Usuwa prfil użytkownika z lokalnej listy kont",
+			"Usuwa profil użytkownika z lokalnej listy kont",
 			JOptionPane.OK_CANCEL_OPTION,
 			JOptionPane.QUESTION_MESSAGE,
 			null,
 			options,
 			options[1]);
 
-		if ( confirmRemoveProfile == 0 ) {
+		if (confirmRemoveProfile == 0) {
 			profiles.remove(profile);
 			saveProfiles(profiles);
 			profiles = loadProfiles();
 			populateProfiles(profiles);
+			setCurrentProfileAsDefault();
 		}
 
 		setEnabled(true);
 	}
 
+	private void setCurrentProfileAsDefault() {
+		final int currentIndex = profilesComboBox.getSelectedIndex();
+		if (currentIndex >= 0) {
+			WtWindowManager.getInstance().setProperty(SELECTED_PROFILE_PROPERTY, String.valueOf(currentIndex));
+		}
+	}
+
 	@Override
 	public void setEnabled(final boolean b) {
 		super.setEnabled(b);
-		loginButton.setEnabled(b);
+		// Enabling login button is conditional
+		fieldValidator.revalidate();
 		removeButton.setEnabled(b);
 	}
+
 	/**
 	 * Connect to a server using a given profile.
-	 * @param profile 
+	 *
+	 * @param profile profile used for login
 	 */
 	public void connect(final Profile profile) {
 		// We are not in EDT
 		SwingUtilities.invokeLater(new Runnable() {
+			@Override
 			public void run() {
 				progressBar = new ProgressBar(LoginDialog.this);
 				progressBar.start();
@@ -432,6 +484,7 @@ public class LoginDialog extends JDialog {
 			// created in EDT, so it is not guaranteed non null in the main
 			// thread.
 			SwingUtilities.invokeLater(new Runnable() {
+				@Override
 				public void run() {
 					progressBar.step();
 				}
@@ -439,6 +492,7 @@ public class LoginDialog extends JDialog {
 		} catch (final Exception ex) {
 			// if something goes horribly just cancel the progressbar
 			SwingUtilities.invokeLater(new Runnable() {
+				@Override
 				public void run() {
 					progressBar.cancel();
 					setEnabled(true);
@@ -456,26 +510,26 @@ public class LoginDialog extends JDialog {
 			return;
 		}
 
-		final JDialog me=this;
 		try {
 			client.setAccountUsername(profile.getUser());
 			client.setCharacter(profile.getCharacter());
 			client.login(profile.getUser(), profile.getPassword(), profile.getSeed());
 			SwingUtilities.invokeLater(new Runnable() {
+				@Override
 				public void run() {
 					progressBar.finish();
 					// workaround near failures in AWT at openjdk (tested on openjdk-1.6.0.0)
 					try {
-					setVisible(false);
+						setVisible(false);
 					} catch (NullPointerException npe) {
 						Logger.getLogger(LoginDialog.class).error("Error probably related to bug in JRE occured", npe);
-						me.dispose();
+						LoginDialog.this.dispose();
 					}
 				}
 			});
 
 		} catch (final InvalidVersionException e) {
-			handleError("Uruchomiłeś starszą wersję PolskaOnLine. Proszę zaktualizuj",
+			handleError("Uruchomiłeś starszą wersję gry. Proszę zaktualizuj",
 					"Starsza wersja");
 		} catch (final TimeoutException e) {
 			handleError("Serwer jest niedostępny. Możliwe, że padł, a jeżeli używasz innego serwera to sprawdź czy dobrze wpisałeś jego nazwę i numer portu.",
@@ -486,13 +540,13 @@ public class LoginDialog extends JDialog {
 				System.exit(1);
 			}
 		} catch (final BannedAddressException e) {
-			handleError("Twoje IP zostało zablokowane. Jeżeli nie zgadzasz się z tą decyzją to skontaktuj się z nami na http://www.gra.polskaonline.org/kontakt-gmgags",
+			handleError("Twoje IP zostało zablokowane. Jeżeli nie zgadzasz się z tą decyzją to skontaktuj się z nami na https://s1.polanieonline.eu/kontakt-gmgags.html",
 					"Zablokowane IP");
 		}
 	}
 
 	/**
-	 * Displays the error message, removes the progress bar and 
+	 * Displays the error message, removes the progress bar and
 	 * either enabled the login dialog in interactive mode or exits
 	 * the client in non interactive mode.
 	 *
@@ -501,6 +555,7 @@ public class LoginDialog extends JDialog {
 	 */
 	private void handleError(final String errorMessage, final String errorTitle) {
 		SwingUtilities.invokeLater(new Runnable() {
+			@Override
 			public void run() {
 				progressBar.cancel();
 				JOptionPane.showMessageDialog(
@@ -546,22 +601,27 @@ public class LoginDialog extends JDialog {
 
 	/**
 	 * Populate the profiles combobox and select the default.
-	 * @param profiles 
+	 *
+	 * @param profiles profile data
 	 */
-	protected void populateProfiles(final ProfileList profiles) {
+	private void populateProfiles(final ProfileList profiles) {
 		profilesComboBox.removeAllItems();
 
-		final Iterator< ? > iter = profiles.iterator();
-
-		while (iter.hasNext()) {
-			profilesComboBox.addItem(iter.next());
+		for (Profile p : profiles) {
+			profilesComboBox.addItem(p);
 		}
 
-		/*
-		 * The last profile (if any) is the default.
-		 */
+		selectDefaultProfile();
+	}
+
+	private void selectDefaultProfile() {
+		String profileIndexProperty = WtWindowManager.getInstance().getProperty(SELECTED_PROFILE_PROPERTY, "-1");
+		int savedProfileIndex = MathHelper.parseIntDefault(profileIndexProperty, -1);
 		final int count = profilesComboBox.getItemCount();
-		if (count != 0) {
+		if (savedProfileIndex >= 0 && savedProfileIndex < count) {
+			profilesComboBox.setSelectedIndex(savedProfileIndex);
+		} else if (count != 0) {
+			// The last profile is the default.
 			profilesComboBox.setSelectedIndex(count - 1);
 		}
 	}
@@ -569,10 +629,11 @@ public class LoginDialog extends JDialog {
 	/**
 	 * Called when a profile selection is changed.
 	 */
-	protected void profilesCB() {
+	private void profilesCB() {
 		Profile profile;
 		String host;
 
+		// This *should* be generic in swing, but it is not
 		profile = (Profile) profilesComboBox.getSelectedItem();
 
 		if (profile != null) {
@@ -589,6 +650,62 @@ public class LoginDialog extends JDialog {
 
 			usernameField.setText("");
 			passwordField.setText("");
+		}
+	}
+
+	/**
+	 * Checks that a group of Documents (text fields) is not empty, and enables
+	 * or disables a JComponent on that condition.
+	 */
+	private static class DataValidator implements DocumentListener {
+		private final Document[] documents;
+		private final JComponent component;
+
+		/**
+		 * Create a new DataValidator.
+		 *
+		 * @param component component to be enabled depending on the state of
+		 *  documents
+		 * @param docs documents
+		 */
+		DataValidator(JComponent component, Document... docs) {
+			this.component = component;
+			documents = docs;
+			for (Document doc : docs) {
+				doc.addDocumentListener(this);
+			}
+			revalidate();
+		}
+
+		@Override
+		public void insertUpdate(DocumentEvent e) {
+			revalidate();
+		}
+
+		@Override
+		public void removeUpdate(DocumentEvent e) {
+			if (e.getDocument().getLength() == 0) {
+				component.setEnabled(false);
+			}
+		}
+
+		@Override
+		public void changedUpdate(DocumentEvent e) {
+			// Attribute change - ignore
+		}
+
+		/**
+		 * Do a full document state check and set the component status according
+		 * to the result.
+		 */
+		final void revalidate() {
+			for (Document doc : documents) {
+				if (doc.getLength() == 0) {
+					component.setEnabled(false);
+					return;
+				}
+			}
+			component.setEnabled(true);
 		}
 	}
 
@@ -619,21 +736,26 @@ public class LoginDialog extends JDialog {
 	/**
 	 * Called when save profile selection change.
 	 */
-	protected void saveProfileStateCB() {
+	private void saveProfileStateCB() {
 		savePasswordBox.setEnabled(saveLoginBox.isSelected());
 	}
 
 	/**
 	 * Server connect thread runnable.
 	 */
-	protected class ConnectRunnable implements Runnable {
+	private final class ConnectRunnable implements Runnable {
+		private final Profile profile;
 
-		protected Profile profile;
-
-		public ConnectRunnable(final Profile profile) {
+		/**
+		 * Create a new ConnectRunnable.
+		 *
+		 * @param profile profile used for connection
+		 */
+		private ConnectRunnable(final Profile profile) {
 			this.profile = profile;
 		}
 
+		@Override
 		public void run() {
 			connect(profile);
 		}
@@ -642,8 +764,8 @@ public class LoginDialog extends JDialog {
 	/**
 	 * Profiles combobox selection change listener.
 	 */
-	protected class ProfilesCB implements ActionListener {
-
+	private class ProfilesCB implements ActionListener {
+		@Override
 		public void actionPerformed(final ActionEvent e) {
 			profilesCB();
 		}
@@ -652,8 +774,8 @@ public class LoginDialog extends JDialog {
 	/**
 	 * Save profile selection change.
 	 */
-	protected class SaveProfileStateCB implements ChangeListener {
-
+	private class SaveProfileStateCB implements ChangeListener {
+		@Override
 		public void stateChanged(final ChangeEvent ev) {
 			saveProfileStateCB();
 		}

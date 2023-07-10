@@ -11,12 +11,15 @@
  ***************************************************************************/
 package games.stendhal.server.core.engine.dbcommand;
 
-import games.stendhal.server.entity.RPEntity;
-
 import java.sql.SQLException;
 
+import com.google.common.base.MoreObjects;
+
+import games.stendhal.server.core.engine.db.StendhalItemDAO;
+import games.stendhal.server.entity.RPEntity;
 import marauroa.common.game.RPObject;
 import marauroa.server.db.DBTransaction;
+import marauroa.server.game.db.DAORegister;
 
 /**
  * logs splitting off items from a stack.
@@ -47,19 +50,29 @@ public class LogSplitItemEventCommand extends AbstractLogItemEventCommand {
 
 	@Override
 	protected void log(DBTransaction transaction) throws SQLException {
-		itemLogAssignIDIfNotPresent(transaction, liveItem);
-		itemLogAssignIDIfNotPresent(transaction, liveNewItem);
+		StendhalItemDAO stendhalItemDAO = DAORegister.get().get(StendhalItemDAO.class);
+		stendhalItemDAO.itemLogAssignIDIfNotPresent(transaction, liveItem, getEnqueueTime());
+		stendhalItemDAO.itemLogAssignIDIfNotPresent(transaction, liveNewItem, getEnqueueTime());
 
 		final String outlivingQuantity = getQuantity(frozenItem);
 		final String newQuantity = getQuantity(frozenNewItem);
 		final String oldQuantity = Integer.toString(Integer.parseInt(outlivingQuantity) + Integer.parseInt(newQuantity));
-		itemLogWriteEntry(transaction, liveItem.getInt(ATTR_ITEM_LOGID), player, "split out",
-				liveNewItem.get(ATTR_ITEM_LOGID), oldQuantity,
+		stendhalItemDAO.itemLogWriteEntry(transaction, getEnqueueTime(), liveItem.getInt(StendhalItemDAO.ATTR_ITEM_LOGID), player, "split out",
+				liveNewItem.get(StendhalItemDAO.ATTR_ITEM_LOGID), oldQuantity,
 				outlivingQuantity, newQuantity);
-		itemLogWriteEntry(transaction, liveNewItem.getInt(ATTR_ITEM_LOGID), player, "splitted out",
-				liveItem.get(ATTR_ITEM_LOGID), oldQuantity,
+		stendhalItemDAO.itemLogWriteEntry(transaction, getEnqueueTime(), liveNewItem.getInt(StendhalItemDAO.ATTR_ITEM_LOGID), player, "splitted out",
+				liveItem.get(StendhalItemDAO.ATTR_ITEM_LOGID), oldQuantity,
 				newQuantity, outlivingQuantity);
 
 	}
 
+	/**
+	 * returns a string suitable for debug output of this DBCommand.
+	 *
+	 * @return debug string
+	 */
+	@Override
+	public String toString() {
+		return MoreObjects.toStringHelper(this).add("player", player).toString();
+	}
 }

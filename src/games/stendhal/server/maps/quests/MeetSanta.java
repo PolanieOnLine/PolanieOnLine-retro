@@ -1,6 +1,5 @@
-/* $Id: MeetSanta.java,v 1.76.2.1 2012/12/15 15:11:25 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -11,6 +10,14 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.engine.SingletonRepository;
@@ -36,13 +43,6 @@ import games.stendhal.server.entity.npc.condition.QuestCompletedCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotCompletedCondition;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.LinkedList;
-import java.util.List;
-
 /**
  * QUEST: Meet Santa anywhere around the World.
  *<p>
@@ -56,26 +56,15 @@ import java.util.List;
  * REPETITIONS:None
  */
 public class MeetSanta extends AbstractQuest implements LoginListener {
-	
-	// quest slot changed ready for 2011
-	private static final String QUEST_SLOT = "meet_santa_12";
-	// date changed ready for 2011
-    private static final GregorianCalendar notXmas = new GregorianCalendar(2013, Calendar.JANUARY, 6);
+	private static final String QUEST_SLOT = "meet_santa_[seasonyear]";// quest slot changed ready for 2015
+	/** The name of the quest */
+	public static final String QUEST_NAME = "Spotkanie Świętego Mikołaja";
 
-	public static final String QUEST_NAME = "MeetSanta";
-
-	/** the Santa NPC. */
+	/** The Santa NPC. */
 	protected SpeakerNPC santa;
-
-	private StendhalRPZone zone;
 
 	private TeleporterBehaviour teleporterBehaviour;
 
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
-	
 	private SpeakerNPC createSanta() {
 		santa = new SpeakerNPC("Święty Mikołaj") {
 			@Override
@@ -95,8 +84,9 @@ public class MeetSanta extends AbstractQuest implements LoginListener {
 					ConversationStates.IDLE,
 					"Witaj ponownie! Pamiętaj, aby być grzecznym jeżeli chcesz dostąc prezent w przyszłym roku!",
 				    new ChatAction() {
-					    public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) { 
-					    	addHat(player);	    
+					    @Override
+						public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
+					    	addHat(player);
 					    }
 					}
 				);
@@ -105,7 +95,8 @@ public class MeetSanta extends AbstractQuest implements LoginListener {
 				reward.add(new EquipItemAction("skarpeta"));
 				reward.add(new SetQuestAction(QUEST_SLOT, "done"));
 				reward.add(new ChatAction() {
-				        public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
+				        @Override
+						public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 						    addHat(player);
 						}
 				    }
@@ -117,7 +108,7 @@ public class MeetSanta extends AbstractQuest implements LoginListener {
                                                         new PlayerIsAGoodBoyCondition(),
                                                         new NotCondition(new NakedCondition())),
 					ConversationStates.IDLE,
-					"Wesołych Świąt! Mam prezent i czapkę dla Ciebie. Dowidzenia i pamiętaj, aby być grzecznym jeżeli chcesz dostąc prezent w przyszłym roku!",
+					"Wesołych Świąt! Mam prezent i czapkę dla Ciebie. Do widzenia i pamiętaj, aby być grzecznym jeżeli chcesz dostąc prezent w przyszłym roku!",
 					new MultipleActions(reward));
 
 				add(ConversationStates.IDLE,
@@ -139,9 +130,10 @@ public class MeetSanta extends AbstractQuest implements LoginListener {
 		};
 		santa.setEntityClass("santaclausnpc");
 		santa.initHP(100);
+		santa.setSounds(Arrays.asList("ho-ho-ho-1", "ho-ho-ho-2"));
 
 		// start in int_admin_playground
-		zone = SingletonRepository.getRPWorld().getZone("int_admin_playground");
+		StendhalRPZone zone = SingletonRepository.getRPWorld().getZone("int_admin_playground");
 		santa.setPosition(17, 13);
 		zone.add(santa);
 
@@ -149,40 +141,68 @@ public class MeetSanta extends AbstractQuest implements LoginListener {
 	}
 
 	private void addHat(final Player player) {
-		// fetch old outfit as we want to know the current hair
-		final Outfit oldoutfit = player.getOutfit();
-		// all santa hat sprites are at 50 + current hair
-		if (oldoutfit.getHair() < 50) {
-			final int hatnumber = oldoutfit.getHair() + 44;
-			// the new outfit only changes the hair, rest is null
-			final Outfit newOutfit = new Outfit(hatnumber, null, null, null);
-			//put it on, and store old outfit.
-			player.setOutfit(newOutfit.putOver(oldoutfit), true);
-			player.registerOutfitExpireTime(43200);
-		} else if (oldoutfit.getHair() > 93) {
-			final int hatnumber = oldoutfit.getHair() - 44;
-			// the new outfit only changes the hair, rest is null
-			final Outfit newOutfit = new Outfit(hatnumber, null, null, null);
-			//put it on, and store old outfit.
-			player.setOutfit(newOutfit.putOver(oldoutfit), true);
-			player.registerOutfitExpireTime(43200);
+		final Outfit origOutfit = player.getOutfit();
+		final int currentHat = origOutfit.getLayer("hat");
+		int santaHat = 999;
+		// unique Santa hats
+		if (currentHat == 4 || currentHat == 996) {
+			santaHat = 996;
+		} else if (currentHat == 5 || currentHat == 997) {
+			santaHat = 997;
 		}
+
+		final Map<String, String> colors = player.getOutfitColors();
+		player.setOutfit(new Outfit(null, null, null, null, null, null, null, santaHat, null).putOver(origOutfit), true);
+
+		// restore colors
+		if (colors != null) {
+			for (final String key : colors.keySet()) {
+				player.setOutfitColor(key, colors.get(key));
+			}
+		}
+
+		player.registerOutfitExpireTime(43200);
 	}
 
 
+	/**
+	 * Removes Santa hat if not Christmas.
+	 */
+	@Override
 	public void onLoggedIn(final Player player) {
+		final int currentHat = player.getOutfit().getLayer("hat");
+		final boolean wearingSantaHat = currentHat == 999 || currentHat == 996 || currentHat == 997;
+
 		// is it Christmas?
-		final Outfit outfit = player.getOutfit();
-		final int hairnumber = outfit.getHair();
-		if ((hairnumber >= 50) && (hairnumber < 94)) {
-			final Date now = new Date();
-			final Date dateNotXmas = notXmas.getTime();
-			if (now.after(dateNotXmas)) {
-				final int newhair = hairnumber - 44;
-				final Outfit newOutfit = new Outfit(newhair, null, null, null);
-				player.setOutfit(newOutfit.putOver(outfit), false);
-			}
+		if (!isChristmasTime(new GregorianCalendar()) && wearingSantaHat) {
+			player.returnToOriginalOutfit();
 		}
+	}
+
+	/**
+	 * checks whether now is christmas time
+	 *
+	 * @param cal current date
+	 * @return true, if we are in season, false otherwise
+	 */
+	static boolean isChristmasTime(Calendar cal) {
+		int month = cal.get(Calendar.MONTH);
+		int day = cal.get(Calendar.DAY_OF_MONTH);
+		if (month >= 1 && month < 10) {
+			return false;
+		}
+
+		// January
+		if (month == 0) {
+			return day <= 6;
+		}
+
+		// November
+		if (month == 10) {
+			return day >= 23;
+		}
+		// December
+		return true;
 	}
 
 	/**
@@ -197,24 +217,22 @@ public class MeetSanta extends AbstractQuest implements LoginListener {
 		}
 		npc.getZone().remove(npc);
 	}
-	
+
 	@Override
 	public void addToWorld() {
-		
-		super.addToWorld();
 		fillQuestInfo(
-				"Spotkanie Świętego Mikołaja",
+				QUEST_NAME,
 				"Pada śnieg, pada śnieg, spamuje cały czas... Ho Ho Ho! Spiesz się i znajdź Świętego Mikołaja w Faiumoni! Jeżeli byłeś grzeczny to dostaniesz prezent...",
 				false);
 		SingletonRepository.getLoginNotifier().addListener(this);
-		
+
 		if (System.getProperty("stendhal.santa") != null) {
 			// activate santa here
 			createSanta();
-			teleporterBehaviour = new TeleporterBehaviour(santa, "Ho, ho, ho! Wesołych Świąt!", false);
+			teleporterBehaviour = new TeleporterBehaviour(santa, null, "0", "Ho, ho, ho! Wesołych Świąt!", false);
 		}
 	}
-	
+
 	/**
 	 * removes a quest from the world.
 	 *
@@ -229,15 +247,20 @@ public class MeetSanta extends AbstractQuest implements LoginListener {
 	}
 
 	@Override
-	public String getName() {
-		return "MeetSanta";
+	public String getSlotName() {
+		return QUEST_SLOT;
 	}
-	
+
+	@Override
+	public String getName() {
+		return QUEST_NAME;
+	}
+
 	@Override
 	public boolean isVisibleOnQuestStatus() {
 		return false;
 	}
-	
+
 	@Override
 	public List<String> getHistory(final Player player) {
 		return new ArrayList<String>();
@@ -247,5 +270,4 @@ public class MeetSanta extends AbstractQuest implements LoginListener {
 	public String getNPCName() {
 		return "Święty Mikołaj";
 	}
-	
 }

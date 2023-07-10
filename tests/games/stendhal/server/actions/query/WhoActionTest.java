@@ -1,4 +1,4 @@
-/* $Id: WhoActionTest.java,v 1.1 2010/12/04 20:28:33 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -14,18 +14,17 @@ package games.stendhal.server.actions.query;
 
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertThat;
-import games.stendhal.common.constants.Actions;
-import games.stendhal.server.actions.admin.AdministrationAction;
-import games.stendhal.server.actions.query.WhoAction;
-import games.stendhal.server.entity.player.Player;
-import games.stendhal.server.maps.MockStendhalRPRuleProcessor;
-import games.stendhal.server.maps.MockStendlRPWorld;
-import marauroa.common.game.RPAction;
 
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.common.constants.Actions;
+import games.stendhal.server.actions.admin.AdministrationAction;
+import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.maps.MockStendhalRPRuleProcessor;
+import games.stendhal.server.maps.MockStendlRPWorld;
+import marauroa.common.game.RPAction;
 import utilities.PlayerTestHelper;
 
 public class WhoActionTest {
@@ -33,6 +32,7 @@ public class WhoActionTest {
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		MockStendlRPWorld.get();
+		MockStendhalRPRuleProcessor.get().clearPlayers();
 	}
 
 	@After
@@ -50,29 +50,29 @@ public class WhoActionTest {
 		action.put(Actions.TYPE, "who");
 		final Player player = PlayerTestHelper.createPlayer("player");
 		pq.onAction(player, action);
-		assertThat(player.events().get(0).get("text"), equalTo("0 Players online: "));
+		assertThat(player.events().get(0).get("text"), equalTo("0 w tejże chwili: "));
 		player.clearEvents();
 		MockStendhalRPRuleProcessor.get().addPlayer(player);
 		pq.onAction(player, action);
-		assertThat(player.events().get(0).get("text"), equalTo("1 Players online: player(0) "));
+		assertThat(player.events().get(0).get("text"), equalTo("1 w tejże chwili: player(0) "));
 		player.clearEvents();
 
 		player.setAdminLevel(AdministrationAction.getLevelForCommand("ghostmode") - 1);
 		player.setGhost(true);
 		pq.onAction(player, action);
-		assertThat(player.events().get(0).get("text"), equalTo("0 Players online: "));
+		assertThat(player.events().get(0).get("text"), equalTo("0 w tejże chwili: "));
 		player.clearEvents();
 
 		player.setAdminLevel(AdministrationAction.getLevelForCommand("ghostmode"));
 		player.setGhost(true);
 		pq.onAction(player, action);
-		assertThat(player.events().get(0).get("text"), equalTo("1 Players online: player(!0) "));
+		assertThat(player.events().get(0).get("text"), equalTo("1 w tejże chwili: player(!0) "));
 		player.clearEvents();
-		
+
 		player.setAdminLevel(AdministrationAction.getLevelForCommand("ghostmode") + 1);
 		player.setGhost(true);
 		pq.onAction(player, action);
-		assertThat(player.events().get(0).get("text"), equalTo("1 Players online: player(!0) "));
+		assertThat(player.events().get(0).get("text"), equalTo("1 w tejże chwili: player(!0) "));
 	}
 
 }

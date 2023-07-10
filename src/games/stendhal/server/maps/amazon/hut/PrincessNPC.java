@@ -1,6 +1,5 @@
-/* $Id: PrincessNPC.java,v 1.13 2010/09/19 02:31:18 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,16 +11,17 @@
  ***************************************************************************/
 package games.stendhal.server.maps.amazon.hut;
 
-import games.stendhal.server.core.config.ZoneConfigurator;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.core.pathfinder.FixedPath;
-import games.stendhal.server.core.pathfinder.Node;
-import games.stendhal.server.entity.npc.SpeakerNPC;
-
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import games.stendhal.server.core.config.ZoneConfigurator;
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.core.pathfinder.FixedPath;
+import games.stendhal.server.core.pathfinder.Node;
+import games.stendhal.server.entity.CollisionAction;
+import games.stendhal.server.entity.npc.SpeakerNPC;
 
 /**
  * Builds the princess in Princess Hut on amazon island.
@@ -29,23 +29,19 @@ import java.util.Map;
  * @author Teiv
  */
 public class PrincessNPC implements ZoneConfigurator {
-	//
-	// ZoneConfigurator
-	//
-
 	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
-		buildNPC(zone, attributes);
+		buildNPC(zone);
 	}
 
-	private void buildNPC(final StendhalRPZone zone, final Map<String, String> attributes) {
-		final SpeakerNPC princessNPC = new SpeakerNPC("Princess Esclara") {
-
+	private void buildNPC(final StendhalRPZone zone) {
+		final SpeakerNPC princessNPC = new SpeakerNPC("Księżniczka Esclara") {
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -62,21 +58,22 @@ public class PrincessNPC implements ZoneConfigurator {
 
 			@Override
 			protected void createDialog() {
-			        addGreeting("Huh, Co ty tutaj robisz?");
+				addGreeting("Huh, co ty tutaj robisz?!");
 				addReply(Arrays.asList("sorry", "przepraszam"), "Nie powinieneś się do mnie wślizgiwać od tak!");
 				addReply(Arrays.asList("look", "zobacz", "zobaczyć", "przeszukaj"), "Nie powinieneś tu szperać, tutaj wszystko jest moje!");
 				addReply(Arrays.asList("nothing", "nic"), "Odejdź i idź robić to gdzie indziej, a nie w moim domku!");
 				addJob("Praca? Myślisz, że księżniczka taka jak ja potrzebuje pracy? Ha!");
 				addHelp("Strzeż się moich sióstr na wyspie. One nie lubią obcych.");
 				addOffer("Nie mam nic do zaoferowania.");
-				addGoodbye("Dowidzenia i strzeż się barbarzyńców.");
+				addGoodbye("Do widzenia i strzeż się barbarzyńców.");
 			}
 		};
 
+		princessNPC.setDescription("Oto księżniczka Esclara. Pachnie kokosem i ananasem...");
 		princessNPC.setEntityClass("amazoness_princessnpc");
+		princessNPC.setGender("F");
 		princessNPC.setPosition(6, 13);
-		princessNPC.initHP(100);
-		princessNPC.setDescription("Widzisz księżniczke Esclara. Pachnie kokosem i ananasem...");
+		princessNPC.setCollisionAction(CollisionAction.STOP);
 		zone.add(princessNPC);
 	}
 }

@@ -1,6 +1,5 @@
-/* $Id: PlayerTestHelper.java,v 1.64 2011/11/12 11:35:29 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2011 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,14 +11,20 @@
  ***************************************************************************/
 package utilities;
 
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.common.constants.Events;
 import games.stendhal.common.parser.WordList;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.engine.transformer.PlayerTransformer;
 import games.stendhal.server.entity.ActiveEntity;
+import games.stendhal.server.entity.DressedEntityRPClass;
 import games.stendhal.server.entity.Entity;
-import games.stendhal.server.entity.Outfit;
 import games.stendhal.server.entity.RPEntity;
 import games.stendhal.server.entity.creature.Creature;
 import games.stendhal.server.entity.item.Item;
@@ -31,18 +36,10 @@ import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.entity.slot.PlayerSlot;
 import games.stendhal.server.maps.MockStendhalRPRuleProcessor;
 import games.stendhal.server.maps.MockStendlRPWorld;
-
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-
 import marauroa.common.game.RPClass;
 import marauroa.common.game.RPEvent;
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPSlot;
-
-import org.apache.log4j.Logger;
-
 import utilities.RPClass.ItemTestHelper;
 
 public abstract class PlayerTestHelper {
@@ -50,7 +47,7 @@ public abstract class PlayerTestHelper {
 
 	/**
 	 * Create a named player.
-	 * 
+	 *
 	 * @param name
 	 * @return player
 	 */
@@ -67,6 +64,9 @@ public abstract class PlayerTestHelper {
 		}
 
 		pl.setName(name);
+		pl.setGender("M");
+		pl.setLevel(0);
+		pl.setXP(0);
 
 		//addEmptySlots(pl);
 
@@ -75,7 +75,7 @@ public abstract class PlayerTestHelper {
 
 	/**
 	 * Register a player in rule processor, world and zone.
-	 * 
+	 *
 	 * @param player
 	 * @param zoneName
 	 */
@@ -85,7 +85,7 @@ public abstract class PlayerTestHelper {
 
 	/**
 	 * Register a player in rule processor, world and zone.
-	 * 
+	 *
 	 * @param player
 	 * @param zone
 	 */
@@ -97,7 +97,7 @@ public abstract class PlayerTestHelper {
 
 	/**
 	 * Register a player in rule processor and world.
-	 * 
+	 *
 	 * @param player
 	 */
 	public static void registerPlayer(final Player player) {
@@ -109,14 +109,14 @@ public abstract class PlayerTestHelper {
 	public static Player createPlayerWithOutFit(final String name) {
 		final Player player = createPlayer(name);
 
-		player.setOutfit(new Outfit(0, 1, 1, 1, 1));
+		player.setOutfit(1, 1, 1, 0, 0, 0, 1, 0, 0);
 
 		return player;
 	}
 
 	/**
 	 * Remove a player from rule processor, world and zone.
-	 * 
+	 *
 	 * @param player
 	 * @param zone
 	 */
@@ -127,7 +127,7 @@ public abstract class PlayerTestHelper {
 
 	/**
 	 * Remove a player from rule processor, world and zone.
-	 * 
+	 *
 	 * @param playerName
 	 * @param zone
 	 */
@@ -141,7 +141,7 @@ public abstract class PlayerTestHelper {
 
 	/**
 	 * Remove a player from rule processor, world and zone.
-	 * 
+	 *
 	 * @param playerName
 	 * @param zoneName
 	 */
@@ -151,7 +151,7 @@ public abstract class PlayerTestHelper {
 
 	/**
 	 * Remove a player from world and rule processor.
-	 * 
+	 *
 	 * @param playerName
 	 */
 	public static void removePlayer(final String playerName) {
@@ -164,7 +164,7 @@ public abstract class PlayerTestHelper {
 
 	/**
 	 * Remove a player from world and rule processor.
-	 * 
+	 *
 	 * @param player
 	 */
 	public static void removePlayer(final Player player) {
@@ -189,7 +189,7 @@ public abstract class PlayerTestHelper {
 
 	/**
 	 * Equip the player with the given amount of money.
-	 * 
+	 *
 	 * @param player
 	 * @param amount
 	 * @return success flag
@@ -200,7 +200,7 @@ public abstract class PlayerTestHelper {
 
 	/**
 	 * Equip the player with the given items.
-	 * 
+	 *
 	 * @param player
 	 * @param clazz
 	 * @return success flag
@@ -215,7 +215,7 @@ public abstract class PlayerTestHelper {
 
 	/**
 	 * Equip the player with the given item and set the given item string.
-	 * 
+	 *
 	 * @param player
 	 * @param clazz
 	 * @param info
@@ -231,7 +231,7 @@ public abstract class PlayerTestHelper {
 
 	/**
 	 * Equip the player with the given amount of items.
-	 * 
+	 *
 	 * @param player
 	 * @param clazz
 	 * @param amount
@@ -245,7 +245,7 @@ public abstract class PlayerTestHelper {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param player
 	 * @param clazz
 	 * @param slot
@@ -258,28 +258,35 @@ public abstract class PlayerTestHelper {
 	}
 
 	/**
-	 * Reset the conversation state of the named NPC.
-	 * 
-	 * @param npcName
+	 * Reset the conversation state of the NPC.
+	 *
+	 * @param npc
+	 * 		SpeakerNPC
 	 */
-	public static void resetNPC(final String npcName) {
-		final SpeakerNPC npc = SingletonRepository.getNPCList().get(npcName);
-
+	public static void resetNPC(final SpeakerNPC npc) {
 		if (npc != null) {
 			npc.setCurrentState(ConversationStates.IDLE);
 		}
 	}
 
 	/**
-	 * Remove the named NPC.
-	 * 
+	 * Reset the conversation state of the named NPC.
+	 *
 	 * @param npcName
+	 * 		NPC string name
 	 */
-	public static void removeNPC(final String npcName) {
-		SingletonRepository.getNPCList().remove(npcName);
+	public static void resetNPC(final String npcName) {
+		resetNPC(SingletonRepository.getNPCList().get(npcName));
 	}
 
-
+	/**
+	 * Remove the named NPC.
+	 *
+	 * @param npcName
+	 */
+	public static boolean removeNPC(final String npcName) {
+		return SpeakerNPCTestHelper.removeSpeakerNPC(npcName);
+	}
 
 	public static void addEmptySlots(final Player player) {
 		//		"bag", "rhand", "lhand", "head", "armor",
@@ -287,13 +294,18 @@ public abstract class PlayerTestHelper {
 		player.addSlot(new PlayerSlot("bag"));
 		player.addSlot(new PlayerSlot("lhand"));
 		player.addSlot(new PlayerSlot("rhand"));
-		player.addSlot(new PlayerSlot("armor"));
+		player.addSlot(new PlayerSlot("neck"));
 		player.addSlot(new PlayerSlot("head"));
+		player.addSlot(new PlayerSlot("armor"));
 		player.addSlot(new PlayerSlot("legs"));
 		player.addSlot(new PlayerSlot("feet"));
 		player.addSlot(new PlayerSlot("finger"));
+		player.addSlot(new PlayerSlot("fingerb"));
+		player.addSlot(new PlayerSlot("glove"));
 		player.addSlot(new PlayerSlot("cloak"));
+		player.addSlot(new PlayerSlot("pas"));
 		player.addSlot(new PlayerSlot("keyring"));
+		player.addSlot(new PlayerSlot("pouch"));
 		player.addSlot(new RPSlot("!quests"));
 		player.getSlot("!quests").add(new RPObject());
 		player.addSlot(new RPSlot("!kills"));
@@ -315,6 +327,10 @@ public abstract class PlayerTestHelper {
 
 		if (!RPClass.hasRPClass("rpentity")) {
 			RPEntity.generateRPClass();
+		}
+
+		if (!RPClass.hasRPClass("dressed_entity")) {
+			DressedEntityRPClass.generateRPClass();
 		}
 	}
 
@@ -359,7 +375,7 @@ public abstract class PlayerTestHelper {
 	public static void setPastTime(final Player player, final String questSlot, final int index, final long seconds) {
 		final long pastTime = new Date().getTime() - seconds*1000;
 
-		player.setQuest(questSlot, 2, Long.toString(pastTime));
+		player.setQuest(questSlot, index, Long.toString(pastTime));
 	}
 
 	/**

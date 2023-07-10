@@ -1,4 +1,3 @@
-/* $Id: DealerNPC.java,v 1.12 2010/09/19 02:35:40 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,15 +11,15 @@
  ***************************************************************************/
 package games.stendhal.server.maps.semos.pad;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Builds the NPC who deals in rainbow beans.
@@ -29,27 +28,19 @@ import java.util.Map;
  * @author kymara
  */
 public class DealerNPC implements ZoneConfigurator {
-	//
-	// ZoneConfigurator
-	//
-
 	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
-		buildNPC(zone, attributes);
+		buildNPC(zone);
 	}
 
-	//
-	// IL0_GreeterNPC
-	//
-
-	private void buildNPC(final StendhalRPZone zone, final Map<String, String> attributes) {
+	private void buildNPC(final StendhalRPZone zone) {
 		final SpeakerNPC dealerNPC = new SpeakerNPC("Pdiddi") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -72,14 +63,14 @@ public class DealerNPC implements ZoneConfigurator {
 				addHelp("Jeśli mam być z Tobą szczery koleś to wiedz, że nie pomogę Ci z tym zbytnio, lepiej odejdź do miasta szukając odpowiedzi.");
 				addQuest("Nie mam nic dla Ciebie, kolego.");
 				addOffer("Ha! Tabliczka na drzwiach jest przykrywką! To nie jest hotel. Jeżeli chcesz się napić to wracaj do miasta.");
-				addGoodbye("Dowidzenia.");
+				addGoodbye("Do widzenia.");
 			}
 		};
 
+		dealerNPC.setDescription("Oto Pdiddi. Wydaje się, że jest myślami w innym świecie...");
 		dealerNPC.setEntityClass("drugsdealernpc");
+		dealerNPC.setGender("M");
 		dealerNPC.setPosition(4, 12);
-		dealerNPC.initHP(100);
-		dealerNPC.setDescription("Widzisz Pdiddi. Wydaje się, że jest myślami w innym świecie ...");
 		zone.add(dealerNPC);
 	}
 }

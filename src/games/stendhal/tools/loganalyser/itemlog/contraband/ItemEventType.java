@@ -1,4 +1,4 @@
-/* $Id: ItemEventType.java,v 1.2 2010/09/19 01:28:55 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -19,7 +19,7 @@ import games.stendhal.tools.loganalyser.itemlog.consistency.LogEntry;
  */
 public interface ItemEventType {
 
-	
+
 	/**
 	 * processes a log entry
 	 *

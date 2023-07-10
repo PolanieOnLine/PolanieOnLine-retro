@@ -1,4 +1,4 @@
-/* $Id: UnknownEvent.java,v 1.4 2010/09/19 02:17:47 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,9 +12,9 @@
  ***************************************************************************/
 package games.stendhal.client.events;
 
-import games.stendhal.client.entity.Entity;
-
 import org.apache.log4j.Logger;
+
+import games.stendhal.client.entity.Entity;
 
 /**
  * an unknown event
@@ -22,12 +22,11 @@ import org.apache.log4j.Logger;
  * @author hendrik
  * @param <T> entity
  */
-public class UnknownEvent<T extends Entity> extends Event<T> {
+class UnknownEvent<T extends Entity> extends Event<T> {
 	private static Logger logger = Logger.getLogger(UnknownEvent.class);
 
 	@Override
 	public void execute() {
 		logger.warn("Received unknown event: " + event + " on entity " + entity);
 	}
-
 }

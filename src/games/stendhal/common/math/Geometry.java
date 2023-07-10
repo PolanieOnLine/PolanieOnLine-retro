@@ -1,4 +1,4 @@
-/* $Id: Geometry.java,v 1.3 2010/11/27 16:35:13 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -39,8 +39,9 @@ public class Geometry
         Algebra.add_Vecf(result, result, rayOrigin);
 
         // if the closest point is equal to "vec"
-        if(Algebra.isEqual_Vecf(result, point))
-            return false;
+        if(Algebra.isEqual_Vecf(result, point)) {
+			return false;
+		}
 
         return true;
     }
@@ -48,8 +49,9 @@ public class Geometry
     public static boolean closestPoint_SpherePointf(float[] result, float[] sphereCenter, float sphereRadius, float[] point)
     {
         // if "vec" is equal to the sphere center, we are not able to calculate the closest point
-        if(Algebra.isEqual_Vecf(sphereCenter, point))
-            return false;
+        if(Algebra.isEqual_Vecf(sphereCenter, point)) {
+			return false;
+		}
 
         Algebra.sub_Vecf(result, point, sphereCenter);
         Algebra.normalize_Vecf(result, result);
@@ -68,8 +70,9 @@ public class Geometry
             if(halfSpaceTest_PlanePointf(normal, capsulePt2, point) < 0.0f)
             {
                 // if "vec" lies directly on the ray, we cannot calculate the closest point to the capsule
-                if(!closestPoint_RayPointf(result, capsulePt1, normal, point))
-                    return false;
+                if(!closestPoint_RayPointf(result, capsulePt1, normal, point)) {
+					return false;
+				}
 
                 Algebra.sub_Vecf(normal, point, result);
                 Algebra.normalize_Vecf(normal, normal);

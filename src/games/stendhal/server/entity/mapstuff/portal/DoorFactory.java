@@ -1,7 +1,7 @@
 /*
  * @(#) src/games/stendhal/server/entity/portal/DoorFactory.java
  *
- * $Id: DoorFactory.java,v 1.5 2010/03/29 22:20:42 nhnb Exp $
+ * $Id$
  */
 
 package games.stendhal.server.entity.mapstuff.portal;
@@ -16,12 +16,12 @@ public abstract class DoorFactory implements ConfigurableFactory {
 
 	/**
 	 * Extract the door class from a context.
-	 * 
+	 *
 	 * @param ctx
 	 *            The configuration context.
-	 * 
+	 *
 	 * @return The class name.
-	 * 
+	 *
 	 * @throws IllegalArgumentException
 	 *             If the class attribute is missing.
 	 */
@@ -31,7 +31,7 @@ public abstract class DoorFactory implements ConfigurableFactory {
 
 	/**
 	 * Extract the rejected message from a context.
-	 * 
+	 *
 	 * @param ctx
 	 *            The configuration context.
 	 * @return The rejected message, or <code>null</code> if none.

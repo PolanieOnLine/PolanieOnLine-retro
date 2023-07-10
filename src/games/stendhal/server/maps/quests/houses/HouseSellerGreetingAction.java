@@ -1,4 +1,4 @@
-/* $Id: HouseSellerGreetingAction.java,v 1.4 2011/05/01 19:50:06 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -24,9 +24,10 @@ final class HouseSellerGreetingAction extends HouseChatAction implements ChatAct
 		super(questslot);
 	}
 
+	@Override
 	public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 		String reply = "";
-		
+
 		if (HouseUtilities.playerOwnsHouse(player)) {
 			reply = " Za "
 				+ HouseChatAction.COST_OF_SPARE_KEY
@@ -36,8 +37,8 @@ final class HouseSellerGreetingAction extends HouseChatAction implements ChatAct
 			// the player has lost the house. clear the slot so that he can buy a new one if he wants
 			player.removeQuest(questslot);
 		}
-		
+
 		raiser.say("Witaj " + player.getTitle() + "." + reply);
 	}
-	
+
 }

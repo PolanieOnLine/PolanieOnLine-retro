@@ -1,6 +1,5 @@
-/* $Id: HistorianGeographerNPC.java,v 1.26 2012/01/29 17:22:38 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,6 +11,11 @@
  ***************************************************************************/
 package games.stendhal.server.maps.semos.library;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
@@ -19,32 +23,26 @@ import games.stendhal.server.core.pathfinder.Node;
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.action.SayTextWithPlayerNameAction;
+import games.stendhal.server.entity.npc.action.SayTextAction;
 import games.stendhal.server.entity.npc.action.SetQuestAction;
 import games.stendhal.server.entity.npc.condition.AndCondition;
 import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotCompletedCondition;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 public class HistorianGeographerNPC implements ZoneConfigurator {
-
 	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
-		buildSemosLibraryArea(zone, attributes);
+		buildSemosLibraryArea(zone);
 	}
 
-	private void buildSemosLibraryArea(final StendhalRPZone zone, final Map<String, String> attributes) {
+	private void buildSemosLibraryArea(final StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Zynn Iwuhos") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -65,18 +63,14 @@ public class HistorianGeographerNPC implements ZoneConfigurator {
 
 			@Override
 			protected void createDialog() {
-				addGreeting(null, new SayTextWithPlayerNameAction("Witaj ponownie [name]. W czym mogę Ci #pomóc tym razem?"));
+				addGreeting(null, new SayTextAction("Witaj ponownie [name]. W czym mogę Ci #pomóc tym razem?"));
 				addGoodbye();
 
-						        // A little trick to make NPC remember if it has met
-		        // player before and react accordingly
-						        // NPC_name quest doesn't exist anywhere else neither is
-						        // used for any other purpose
-				add(ConversationStates.IDLE, 
+				add(ConversationStates.IDLE,
 						ConversationPhrases.GREETING_MESSAGES,
 						new AndCondition(new GreetingMatchesNameCondition(getName()),
-								new QuestNotCompletedCondition("Zynn")), 
-						ConversationStates.ATTENDING, 
+								new QuestNotCompletedCondition("Zynn")),
+						ConversationStates.ATTENDING,
 						"Witaj czytelniku! Znajdziesz tutaj zapisy z historii Semos i wiele innych interesujących faktów o wyspie Faiumoni. Jeżeli chcesz mogę udzielić szybkiego wstępu do geografii i historii! Mam też najświeższe wiadomości.",
 						new SetQuestAction("Zynn", "done"));
 
@@ -89,8 +83,7 @@ public class HistorianGeographerNPC implements ZoneConfigurator {
 				        "marked", "summon", "magic", "wizard", "sorcerer", "oferta", "kupię"), null, ConversationStates.ATTENDING,
 				        "Nie sprzedaję już zwojów... Pokłóciłem się z moim dostawcą co zwie się #Haizen.", null);
 
-				add(
-				        ConversationStates.ATTENDING,
+				add(ConversationStates.ATTENDING,
 				        Arrays.asList("haizen", "haizen."),
 				        null,
 				        ConversationStates.ATTENDING,
@@ -99,10 +92,10 @@ public class HistorianGeographerNPC implements ZoneConfigurator {
 			}
 		};
 
-		npc.setEntityClass("wisemannpc");
 		npc.setDescription("Oto Zynn Iwuhos. Wygląda na starszego niż mapy leżące tutaj wokoło.");
+		npc.setEntityClass("wisemannpc");
+		npc.setGender("M");
 		npc.setPosition(15, 3);
-		npc.initHP(100);
 		zone.add(npc);
 	}
 }

@@ -11,13 +11,6 @@
  ***************************************************************************/
 package games.stendhal.client;
 
-import games.stendhal.client.gui.j2d.Blend;
-import games.stendhal.client.gui.wt.core.WtWindowManager;
-import games.stendhal.client.sprite.Tileset;
-import games.stendhal.common.CollisionDetection;
-import games.stendhal.common.MathHelper;
-import games.stendhal.common.tiled.LayerDefinition;
-
 import java.awt.Composite;
 import java.awt.Graphics;
 import java.awt.geom.Rectangle2D;
@@ -28,21 +21,43 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
+
+import games.stendhal.client.gui.j2d.Blend;
+import games.stendhal.client.gui.wt.core.SettingChangeAdapter;
+import games.stendhal.client.gui.wt.core.WtWindowManager;
+import games.stendhal.client.sprite.Tileset;
+import games.stendhal.common.CollisionDetection;
+import games.stendhal.common.MathHelper;
+import games.stendhal.common.tiled.LayerDefinition;
 import marauroa.common.game.RPObject;
 import marauroa.common.net.InputSerializer;
-
-import org.apache.log4j.Logger;
 
 /**
  * Layer data of a zone.
  */
 public class Zone {
+	/** Logger instance. */
+	private static final Logger LOGGER = Logger.getLogger(Zone.class);
+
+	/**
+	 * The name of the setting that controls whether the weather layer should
+	 * be drawn.
+	 */
+	private static final String WEATHER_PROPERTY = "ui.draw_weather";
+
 	/** Name of the zone. */
 	private final String name;
+	/** A name that's suitable for presenting to the user. */
+	private String readableName;
 	/** Renderers for normal layers. */
 	private final Map<String, LayerRenderer> layers = new HashMap<String, LayerRenderer>();
 	/** Global current zone information. */
 	private final ZoneInfo zoneInfo = ZoneInfo.get();
+	/** Weather renderer. */
+	private LayerRenderer weather = new EmptyLayerRenderer();
+	/** Name of the weather type, or <code>null</code>. */
+	private String weatherName;
 	/** Collision layer. */
 	private CollisionDetection collision;
 	/** Protection layer. */
@@ -52,7 +67,7 @@ public class Zone {
 	/** Tilesets. */
 	private TileStore tileset;
 	/**
-	 * <code>true</code>, if the zone has been succesfully validated since the
+	 * <code>true</code>, if the zone has been successfully validated since the
 	 * last change, <code>false</code> otherwise.
 	 */
 	private volatile boolean isValid;
@@ -67,18 +82,36 @@ public class Zone {
 	 * changed colors) to the current zone.
 	 */
 	private boolean update;
-	/** Danger level of the zone */
+	/** Danger level of the zone. */
 	private double dangerLevel;
-	
+	/** Flag to check whether the weather layer should be drawn. */
+	private boolean drawWeather;
+
 	/**
 	 * Create a new zone.
-	 * 
+	 *
 	 * @param name zone name
 	 */
 	Zone(String name) {
 		this.name = name;
+
+		// Follow the weather drawing setting
+		WtWindowManager.getInstance().registerSettingChangeListener(WEATHER_PROPERTY, new SettingChangeAdapter(WEATHER_PROPERTY, "true") {
+			@Override
+			public void changed(String newValue) {
+				boolean value = Boolean.parseBoolean(newValue);
+				if (drawWeather != value) {
+					drawWeather = value;
+					if (!value) {
+						weather = new EmptyLayerRenderer();
+					} else if (weatherName != null) {
+						weather = new WeatherLayerRenderer(weatherName, zoneInfo.getZoneColor(), zoneInfo.getColorMethod());
+					}
+				}
+			}
+		});
 	}
-	
+
 	/**
 	 * Check if the zone is an update to another zone, rather than one where
 	 * the player has just moved to.
@@ -110,13 +143,13 @@ public class Zone {
 	void requireDataLayer() {
 		requireData = true;
 	}
-	
+
 	/**
 	 * Add a layer.
-	 * 
+	 *
 	 * @param layer layer name
 	 * @param in Stream for reading the layer data
-	 * 
+	 *
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
@@ -147,42 +180,7 @@ public class Zone {
 			store.addTilesets(new InputSerializer(in));
 			tileset = store;
 		} else if (layer.equals("data_map")) {
-			// Zone attributes
-			RPObject obj = new RPObject();
-			obj.readObject(new InputSerializer(in));
-
-			// *** coloring ***
-			// Ensure there's no old color left. That can happen in the
-			// morning on a daylight colored zone.
-			zoneInfo.setColorMethod(null);
-
-			// getBlend calls below may need the color, so check that one first
-			String color = obj.get("color");
-            if (color != null && isColoringEnabled()) {
-				// Keep working, but use an obviously broken color if parsing
-				// the value fails.
-				zoneInfo.setZoneColor(MathHelper.parseIntDefault(color, 0x00ff00));
-				zoneInfo.setColorMethod(getBlend(obj.get("color_method")));
-			}
-
-			// * effect blend *
-			if (isColoringEnabled()) {
-				zoneInfo.setEffectBlend(getEffectBlend(obj.get("blend_method"), zoneInfo.getColorMethod()));
-			} else {
-				zoneInfo.setEffectBlend(null);
-			}
-
-			// *** other attributes ***
-			String danger = obj.get("danger_level");
-			if (danger != null) {
-				try {
-					dangerLevel = Double.valueOf(danger);
-				} catch (NumberFormatException e) {
-					Logger.getLogger(Zone.class).warn("Invalid danger level: " + danger, e);
-				}
-			}
-			// OK to try validating after this
-			requireData = false;
+			readDataLayer(in);
 		} else {
 			/*
 			 * It is a tile layer.
@@ -193,23 +191,78 @@ public class Zone {
 		}
 		isValid = false;
 	}
-	
-	/**
-     * Check if map coloring is enabled.
-     *
-     * @return <code>true</code> if map coloring is enabled, <code>false</code>
-     *  otherwise
-     */
-    private boolean isColoringEnabled() {
-        return Boolean.parseBoolean(WtWindowManager.getInstance().getProperty("ui.colormaps", "true"));
-    }
 
-    /**
+	/**
+	 * Read the special data layer.
+	 *
+	 * @param in Stream for reading the layer data
+	 * @throws IOException
+	 */
+	private void readDataLayer(InputStream in) throws IOException {
+		// Zone attributes
+		RPObject obj = new RPObject();
+		obj.readObject(new InputSerializer(in));
+
+		// *** coloring ***
+		// Ensure there's no old color left. That can happen in the
+		// morning on a daylight colored zone.
+		zoneInfo.setColorMethod(null);
+
+		// getBlend calls below may need the color, so check that one first
+		String color = obj.get("color");
+		if (color != null && isColoringEnabled()) {
+			// Keep working, but use an obviously broken color if parsing
+			// the value fails.
+			zoneInfo.setZoneColor(MathHelper.parseIntDefault(color, 0x00ff00));
+			zoneInfo.setColorMethod(getBlend(obj.get("color_method")));
+		}
+
+		// * effect blend *
+		if (isColoringEnabled()) {
+			zoneInfo.setEffectBlend(getEffectBlend(obj.get("blend_method"), zoneInfo.getColorMethod()));
+		} else {
+			zoneInfo.setEffectBlend(null);
+		}
+
+		// *** Weather ***
+		String weather = obj.get("weather");
+		if (weather != null) {
+			weatherName = weather;
+			if (drawWeather) {
+				this.weather = new WeatherLayerRenderer(weather, zoneInfo.getZoneColor(), zoneInfo.getColorMethod());
+			}
+		}
+
+		// *** other attributes ***
+		String danger = obj.get("danger_level");
+		if (danger != null) {
+			try {
+				dangerLevel = Double.parseDouble(danger);
+			} catch (NumberFormatException e) {
+				Logger.getLogger(Zone.class).warn("Invalid danger level: " + danger, e);
+			}
+		}
+		readableName = obj.get("readable_name");
+		// OK to try validating after this
+		requireData = false;
+	}
+
+	/**
+	 * Check if map coloring is enabled.
+	 *
+	 * @return <code>true</code> if map coloring is enabled, <code>false</code>
+	 *	otherwise
+	 */
+	private boolean isColoringEnabled() {
+		return WtWindowManager.getInstance().getPropertyBoolean("ui.colormaps", true);
+	}
+
+	/**
 	 * Get blend mode for the effect layers.
-	 * 
+	 *
 	 * @param colorMode mode description
 	 * @param globalMode global coloring blend mode
-	 * 
+	 *
 	 * @return effect blend
 	 */
 	private Composite getEffectBlend(String colorMode, Composite globalMode) {
@@ -222,7 +275,7 @@ public class Zone {
 		}
 		return getBlend(colorMode);
 	}
-	
+
 	/**
 	 * Get composite mode from a string identifier.
 	 *
@@ -244,24 +297,39 @@ public class Zone {
 			return Blend.SoftLight;
 		} else if ("truecolor".equals(colorMode)) {
 			return Blend.TrueColor;
+		} else if (colorMode != null) {
+			LOGGER.warn("Unknown blend mode: '" + colorMode + "'");
 		}
+
 		return null;
 	}
 
 	/**
 	 * Get the name of the zone.
-	 * 
+	 *
 	 * @return zone name
 	 */
 	String getName() {
 		return name;
 	}
-	
+
+	/**
+	 * Get the user representable name of the zone.
+	 *
+	 * @return user readable name
+	 */
+	public String getReadableName() {
+		if (readableName != null) {
+			return readableName;
+		}
+		return name;
+	}
+
 	/**
 	 * Get the zone width.
-	 * 
+	 *
 	 * @return zone width, or 0 if the zone is not ready enough to return the
-	 * 	real width 
+	 * 	real width
 	 */
 	double getWidth() {
 		if (!isValid) {
@@ -269,10 +337,10 @@ public class Zone {
 		}
 		return collision.getWidth();
 	}
-	
+
 	/**
 	 * Get the zone height.
-	 * 
+	 *
 	 * @return zone height, or 0 if the zone is not ready enough to return the
 	 * 	real height
 	 */
@@ -282,20 +350,20 @@ public class Zone {
 		}
 		return collision.getHeight();
 	}
-	
+
 	/**
 	 * Get the zone danger level.
 	 *
 	 * @return danger level
 	 */
-	double getDangerLevel() {
+	public double getDangerLevel() {
 		return dangerLevel;
 	}
 
 	/**
 	 * Check if a shape collides within the zone.
-	 * 
-	 * @param shape
+	 *
+	 * @param shape checked area
 	 * @return <code>true</code>, if the shape overlaps the static zone
 	 *	collision, <code>false</code> otherwise
 	 */
@@ -305,44 +373,22 @@ public class Zone {
 		}
 		return false;
 	}
-	
-	/**
-	 * Draw a layer.
-	 * 
-	 * @param g graphics
-	 * @param layer layer name
-	 * @param x
-	 * @param y
-	 * @param width
-	 * @param height
-	 */
-	void draw(Graphics g, final String layer, final int x, final int y,
-			final int width, final int height) {
-		if (!isValid) {
-			return;
-		}
-
-		final LayerRenderer lr = layers.get(layer);
-		if (lr != null) {
-			lr.draw(g, x, y, width, height);
-		}
-	}
 
 	/**
 	 * Get the collision map.
-	 * 
+	 *
 	 * @return collision
 	 */
-	CollisionDetection getCollision() {
+	public CollisionDetection getCollision() {
 		return collision;
 	}
-	
+
 	/**
 	 * Get the protection map.
-	 * 
+	 *
 	 * @return protection.
 	 */
-	CollisionDetection getProtection() {
+	public CollisionDetection getProtection() {
 		return protection;
 	}
 	
@@ -351,13 +397,13 @@ public class Zone {
 	 * 
 	 * @return secret.
 	 */
-	CollisionDetection getSecret() {
+	public CollisionDetection getSecret() {
 		return secret;
 	}
-	
+
 	/**
 	 * Get a composite representation of multiple tile layers.
-	 * 
+	 *
 	 * @param compositeName name to be used for the composite for caching
 	 * @param adjustName name of the adjustment layer
 	 * @param layerNames names of the layers making up the composite starting
@@ -384,7 +430,7 @@ public class Zone {
 			if (subLayers.isEmpty()) {
 				return new EmptyGroupRenderer();
 			}
-			
+
 			TileRenderer adjLayer = null;
 			LayerRenderer subLayer = layers.get(adjustName);
 			if (subLayer instanceof TileRenderer) {
@@ -419,10 +465,30 @@ public class Zone {
 		}
 		return r;
 	}
-	
+
+	/**
+	 * Get the weather renderer.
+	 *
+	 * @return renderer for the weather layer. The value is always a valid
+	 * renderer
+	 */
+	LayerRenderer getWeather() {
+		return weather;
+	}
+
+	/**
+	 * Get the name of the weather type.
+	 *
+	 * @return weather name, or <code>null</code> if the zone has no special
+	 * 	weather
+	 */
+	String getWeatherName() {
+		return weatherName;
+	}
+
 	/**
 	 * Try validating the zone.
-	 * 
+	 *
 	 * @return <code>true</code>, if the zone has been successfully validated,
 	 * 	<code>false</code> otherwise.
 	 */
@@ -445,13 +511,13 @@ public class Zone {
 		}
 
 		for (final LayerRenderer lr : layers.values()) {
-				lr.setTileset(tileset);
+			lr.setTileset(tileset);
 		}
 
 		isValid = true;
 		return true;
 	}
-	
+
 	/**
 	 * A dummy renderer for empty layer groups.
 	 */

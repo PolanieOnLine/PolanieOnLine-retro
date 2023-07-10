@@ -1,4 +1,4 @@
-/* $Id: Chest2DView.java,v 1.38 2012/11/25 09:09:27 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2012 - Stendhal                    *
  ***************************************************************************
@@ -13,22 +13,22 @@
 package games.stendhal.client.gui.j2d.entity;
 
 
+import java.util.List;
+import java.util.Map;
+
+import javax.swing.SwingUtilities;
+
 import games.stendhal.client.IGameScreen;
 import games.stendhal.client.ZoneInfo;
 import games.stendhal.client.entity.ActionType;
 import games.stendhal.client.entity.Chest;
 import games.stendhal.client.entity.Inspector;
 import games.stendhal.client.gui.InternalWindow;
-import games.stendhal.client.gui.SlotWindow;
 import games.stendhal.client.gui.InternalWindow.CloseListener;
+import games.stendhal.client.gui.SlotWindow;
 import games.stendhal.client.gui.styled.cursor.StendhalCursor;
 import games.stendhal.client.sprite.Sprite;
 import games.stendhal.client.sprite.SpriteStore;
-
-import java.util.List;
-import java.util.Map;
-
-import javax.swing.SwingUtilities;
 
 /**
  * The 2D view of a chest.
@@ -37,12 +37,12 @@ class Chest2DView extends StateEntity2DView<Chest> {
 	/*
 	 * The closed state.
 	 */
-	protected static final String STATE_CLOSED = "close";
+	private static final String STATE_CLOSED = "close";
 
 	/*
 	 * The open state.
 	 */
-	protected static final String STATE_OPEN = "open";
+	private static final String STATE_OPEN = "open";
 
 	/**
 	 * The chest model open value changed.
@@ -78,7 +78,7 @@ class Chest2DView extends StateEntity2DView<Chest> {
 
 	/**
 	 * Populate named state sprites.
-	 * 
+	 *
 	 * @param entity entity to build sprites for
 	 * @param map
 	 *            The map to populate.
@@ -99,7 +99,7 @@ class Chest2DView extends StateEntity2DView<Chest> {
 
 	/**
 	 * Get the current entity state.
-	 * 
+	 *
 	 * @param entity
 	 * @return The current state.
 	 */
@@ -119,7 +119,7 @@ class Chest2DView extends StateEntity2DView<Chest> {
 	/**
 	 * Build a list of entity specific actions. <strong>NOTE: The first entry
 	 * should be the default.</strong>
-	 * 
+	 *
 	 * @param list
 	 *            The list to populate.
 	 */
@@ -140,9 +140,9 @@ class Chest2DView extends StateEntity2DView<Chest> {
 	 * Determines on top of which other entities this entity should be drawn.
 	 * Entities with a high Z index will be drawn on top of ones with a lower Z
 	 * index.
-	 * 
+	 *
 	 * Also, players can only interact with the topmost entity.
-	 * 
+	 *
 	 * @return The drawing index.
 	 */
 	@Override
@@ -152,7 +152,7 @@ class Chest2DView extends StateEntity2DView<Chest> {
 
 	/**
 	 * Set the content inspector for this entity.
-	 * 
+	 *
 	 * @param inspector
 	 *            The inspector.
 	 */
@@ -173,7 +173,17 @@ class Chest2DView extends StateEntity2DView<Chest> {
 			if (entity.isOpen()) {
 				// we're wanted to open this?
 				if (requestOpen) {
-					showWindow();
+					/*
+					 * The component hierarchy of the game screen should not
+					 * be modified in middle of the draw, so we push the
+					 * operation to the end of the queue.
+					 */
+					SwingUtilities.invokeLater(new Runnable() {
+						@Override
+						public void run() {
+							showWindow();
+						}
+					});
 				}
 			} else {
 				if (slotWindow != null) {
@@ -191,15 +201,13 @@ class Chest2DView extends StateEntity2DView<Chest> {
 
 	/**
 	 * An entity was changed.
-	 * 
-	 * @param entity
-	 *            The entity that was changed.
+	 *
 	 * @param property
 	 *            The property identifier.
 	 */
 	@Override
-	public void entityChanged(final Chest entity, final Object property) {
-		super.entityChanged(entity, property);
+	public void entityChanged(final Object property) {
+		super.entityChanged(property);
 
 		if (property == Chest.PROP_OPEN) {
 			proceedChangedState(entity);
@@ -213,7 +221,7 @@ class Chest2DView extends StateEntity2DView<Chest> {
 
 	/**
 	 * Perform an action.
-	 * 
+	 *
 	 * @param at
 	 *            The action.
 	 */
@@ -247,6 +255,15 @@ class Chest2DView extends StateEntity2DView<Chest> {
 		}
 	}
 
+	@Override
+	public void onAction() {
+		if (entity.isOpen()) {
+			this.onAction(ActionType.INSPECT);
+		} else {
+			this.onAction(ActionType.OPEN);
+		}
+	}
+
 	/**
 	 * Release any view resources. This view should not be used after this is
 	 * called.
@@ -273,7 +290,7 @@ class Chest2DView extends StateEntity2DView<Chest> {
 		//because they are always empty when closed
 		return StendhalCursor.BAG;
 	}
-	
+
 	/**
 	 * Show the content window.
 	 */

@@ -1,4 +1,4 @@
-/* $Id: SeedSellerBehaviourTest.java,v 1.10 2011/05/01 19:50:07 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -15,6 +15,13 @@ package games.stendhal.server.entity.npc.behaviour.impl;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import games.stendhal.common.grammar.ItemParserResult;
 import games.stendhal.server.entity.item.Item;
 import games.stendhal.server.entity.item.Seed;
@@ -23,13 +30,6 @@ import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.MockStendlRPWorld;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import utilities.PlayerTestHelper;
 
 public class SeedSellerBehaviourTest {
@@ -44,21 +44,20 @@ public class SeedSellerBehaviourTest {
 	/**
 	 * Tests for transactAgreedDeal.
 	 */
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testTransactAgreedDeal() {
 		final Map<String, Integer> pricelist = new HashMap<String, Integer>();
 		SellerBehaviour sb = new SeedSellerBehaviour(pricelist);
-		pricelist.put("lilia seed", 10);
-		pricelist.put("daisies seed", 20);
+		pricelist.put("lilia nasionka", 10);
+		pricelist.put("stokrotki nasionka", 20);
 		final SpeakerNPC speakerNPC = new SpeakerNPC("hugo");
 
 		sb = new SeedSellerBehaviour(pricelist);
-		ItemParserResult res = new ItemParserResult(true, "lilia seed",1, null);
+		ItemParserResult res = new ItemParserResult(true, "lilia nasionka",1, null);
 		final Player bob = PlayerTestHelper.createPlayer("bob");
 		PlayerTestHelper.equipWithMoney(bob, 100);
 		sb.transactAgreedDeal(res, new EventRaiser(speakerNPC), bob);
-		final Item seed = bob.getFirstEquipped("seed");
+		final Item seed = bob.getFirstEquipped("nasionka");
 		assertNotNull(seed);
 		assertEquals("lilia", seed.getInfoString());
 		assertEquals(90, ((Stackable<?>) bob.getFirstEquipped("money")).getQuantity());
@@ -71,15 +70,15 @@ public class SeedSellerBehaviourTest {
 	public void testGetAskedItem() {
 		final Map<String, Integer> pricelist = new HashMap<String, Integer>();
 		final SeedSellerBehaviour sb = new SeedSellerBehaviour(pricelist);
-		pricelist.put("lilia seed", 10);
-		pricelist.put("daisies seed", 20);
-		Item item = sb.getAskedItem("lilia seed");
+		pricelist.put("lilia nasionka", 10);
+		pricelist.put("stokrotki nasionka", 20);
+		Item item = sb.getAskedItem("lilia nasionka");
 		assertTrue(item instanceof Seed);
 		assertEquals("lilia", item.getInfoString());
 
-		item = sb.getAskedItem("daisies seed");
+		item = sb.getAskedItem("stokrotki nasionka");
 		assertTrue(item instanceof Seed);
-		assertEquals("daisies", item.getInfoString());
+		assertEquals("stokrotki", item.getInfoString());
 	}
 
 }

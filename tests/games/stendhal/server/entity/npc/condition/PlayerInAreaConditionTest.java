@@ -1,4 +1,4 @@
-/* $Id: PlayerInAreaConditionTest.java,v 1.11 2010/09/19 02:39:46 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -15,16 +15,16 @@ package games.stendhal.server.entity.npc.condition;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.entity.player.Player;
-import games.stendhal.server.maps.MockStendlRPWorld;
-import games.stendhal.server.util.Area;
 
 import java.awt.Rectangle;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.maps.MockStendlRPWorld;
+import games.stendhal.server.util.Area;
 import utilities.PlayerTestHelper;
 
 public class PlayerInAreaConditionTest {
@@ -44,11 +44,6 @@ public class PlayerInAreaConditionTest {
 			// this is an anonymous sub class
 		});
 
-		final PlayerInAreaCondition cond = new PlayerInAreaCondition(null);
-
-		assertEquals(cond.hashCode(), cond.hashCode());
-		assertEquals((new PlayerInAreaCondition(null)).hashCode(),
-				new PlayerInAreaCondition(null).hashCode());
 		assertEquals((new PlayerInAreaCondition(ar)).hashCode(),
 				new PlayerInAreaCondition(ar).hashCode());
 	}
@@ -76,23 +71,10 @@ public class PlayerInAreaConditionTest {
 	 * Tests for fireNPE.
 	 */
 	@Test(expected = NullPointerException.class)
-	public void testFireNPE() throws Exception {
+	public void testFireNPE() {
 		final PlayerInAreaCondition cond = new PlayerInAreaCondition(null);
 		final Player player = PlayerTestHelper.createPlayer("player");
 		assertFalse(cond.fire(player, null, null));
-	}
-
-	/**
-	 * Tests for playerInAreaCondition.
-	 */
-	@SuppressWarnings("serial")
-	@Test
-	public final void testPlayerInAreaCondition() {
-		new PlayerInAreaCondition(null);
-		new PlayerInAreaCondition(new Area(new StendhalRPZone("test"),
-				new Rectangle() {
-					// this is an anonymous sub class
-			}));
 	}
 
 	/**
@@ -104,8 +86,6 @@ public class PlayerInAreaConditionTest {
 		final Area ar = new Area(new StendhalRPZone("test"), new Rectangle() {
 			// this is an anonymous sub class
 		});
-		assertEquals("player in <null>",
-				new PlayerInAreaCondition(null).toString());
 		assertEquals("player in <" + ar.toString() + ">",
 				new PlayerInAreaCondition(ar).toString());
 	}
@@ -122,22 +102,8 @@ public class PlayerInAreaConditionTest {
 		final Area ar2 = new Area(new StendhalRPZone("test2"), new Rectangle() {
 			// this is an anonymous sub class
 		});
-		final PlayerInAreaCondition cond = new PlayerInAreaCondition(null);
-
-		assertTrue(cond.equals(cond));
-		assertTrue((new PlayerInAreaCondition(null)).equals(new PlayerInAreaCondition(
-				null)));
-		assertTrue((new PlayerInAreaCondition(ar)).equals(new PlayerInAreaCondition(
-				ar)));
-
-		assertFalse((new PlayerInAreaCondition(ar)).equals(null));
-
-		assertFalse((new PlayerInAreaCondition(ar)).equals(new PlayerInAreaCondition(
-				ar2)));
-		assertFalse((new PlayerInAreaCondition(null)).equals(new PlayerInAreaCondition(
-				ar2)));
-		assertFalse((new PlayerInAreaCondition(ar)).equals(new PlayerInAreaCondition(
-				null)));
+		assertTrue((new PlayerInAreaCondition(ar)).equals(new PlayerInAreaCondition(ar)));
+		assertFalse((new PlayerInAreaCondition(ar)).equals(new PlayerInAreaCondition(ar2)));
 
 		assertTrue(new PlayerInAreaCondition(ar).equals(new PlayerInAreaCondition(ar) {
 			// this is an anonymous sub class

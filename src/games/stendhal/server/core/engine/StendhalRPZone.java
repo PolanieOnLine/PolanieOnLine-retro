@@ -1,4 +1,4 @@
-/* $Id: StendhalRPZone.java,v 1.79 2012/07/23 10:30:51 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -12,10 +12,33 @@
  ***************************************************************************/
 package games.stendhal.server.core.engine;
 
+import static games.stendhal.common.constants.Actions.MOVE_CONTINUOUS;
+
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.geom.Rectangle2D;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.common.CRC;
 import games.stendhal.common.CollisionDetection;
 import games.stendhal.common.Debug;
+import games.stendhal.common.Direction;
 import games.stendhal.common.Line;
+import games.stendhal.common.MathHelper;
 import games.stendhal.common.filter.FilterCriteria;
 import games.stendhal.common.grammar.Grammar;
 import games.stendhal.common.tiled.LayerDefinition;
@@ -36,40 +59,46 @@ import games.stendhal.server.entity.creature.DomesticAnimal;
 import games.stendhal.server.entity.creature.Owczarek;
 import games.stendhal.server.entity.creature.OwczarekPodhalanski;
 import games.stendhal.server.entity.creature.Sheep;
+import games.stendhal.server.entity.creature.Goat;
 import games.stendhal.server.entity.item.Item;
+import games.stendhal.server.entity.mapstuff.area.WalkBlocker;
+import games.stendhal.server.entity.mapstuff.area.WalkBlockerFactory;
 import games.stendhal.server.entity.mapstuff.portal.OneWayPortalDestination;
 import games.stendhal.server.entity.mapstuff.portal.Portal;
 import games.stendhal.server.entity.mapstuff.spawner.CreatureRespawnPoint;
 import games.stendhal.server.entity.mapstuff.spawner.PassiveEntityRespawnPoint;
 import games.stendhal.server.entity.mapstuff.spawner.PassiveEntityRespawnPointFactory;
 import games.stendhal.server.entity.mapstuff.spawner.SheepFood;
+import games.stendhal.server.entity.mapstuff.useable.SourceEntity;
+import games.stendhal.server.entity.mapstuff.useable.UseableEntity;
+import games.stendhal.server.entity.mapstuff.useable.sources.SourceAmetyst;
+import games.stendhal.server.entity.mapstuff.useable.sources.SourceCarbuncle;
+import games.stendhal.server.entity.mapstuff.useable.sources.SourceCopper;
+import games.stendhal.server.entity.mapstuff.useable.sources.SourceDiamond;
+import games.stendhal.server.entity.mapstuff.useable.sources.SourceEmerald;
+import games.stendhal.server.entity.mapstuff.useable.sources.SourceGold;
+import games.stendhal.server.entity.mapstuff.useable.sources.SourceIron;
+import games.stendhal.server.entity.mapstuff.useable.sources.SourceMithril;
+import games.stendhal.server.entity.mapstuff.useable.sources.SourceObsidian;
+import games.stendhal.server.entity.mapstuff.useable.sources.SourcePlatinum;
+import games.stendhal.server.entity.mapstuff.useable.sources.SourceSalt;
+import games.stendhal.server.entity.mapstuff.useable.sources.SourceSapphire;
+import games.stendhal.server.entity.mapstuff.useable.sources.SourceShadow;
+import games.stendhal.server.entity.mapstuff.useable.sources.SourceSilver;
+import games.stendhal.server.entity.mapstuff.useable.sources.SourceSulfur;
+import games.stendhal.server.entity.mapstuff.spawner.GoatFood;
 import games.stendhal.server.entity.npc.NPC;
 import games.stendhal.server.entity.npc.SpeakerNPC;
+import games.stendhal.server.entity.npc.TrainingDummy;
+import games.stendhal.server.entity.npc.TrainingDummyFactory;
 import games.stendhal.server.entity.player.Player;
-
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.geom.Rectangle2D;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Vector;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import games.stendhal.server.util.StringUtils;
 import marauroa.common.game.IRPZone;
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPSlot;
 import marauroa.common.net.OutputSerializer;
 import marauroa.common.net.message.TransferContent;
 import marauroa.server.game.rp.MarauroaRPZone;
-
-import org.apache.log4j.Logger;
 
 public class StendhalRPZone extends MarauroaRPZone {
 	/**
@@ -81,8 +110,10 @@ public class StendhalRPZone extends MarauroaRPZone {
 	 */
 	private static final double DANGER_WEIGHT_CREATURE_DENSITY = 1.0;
 
+	private static final Pattern ZONE_NAME_PATTERN = Pattern.compile("^(-?[\\d]|int)_(.+)$");
+
 	TeleportationRules teleRules = new TeleportationRules();
-	
+
 	/** the logger instance. */
 	private static final Logger logger = Logger.getLogger(StendhalRPZone.class);
 
@@ -101,6 +132,8 @@ public class StendhalRPZone extends MarauroaRPZone {
 	 * The sheep foods in the zone.
 	 */
 	private final List<SheepFood> sheepFoods;
+	
+	private final List<GoatFood> goatFoods;
 
 	private final List<CreatureRespawnPoint> respawnPoints;
 
@@ -124,7 +157,7 @@ public class StendhalRPZone extends MarauroaRPZone {
 	 */
 	private final List<MovementListener> movementListeners;
 
-	
+
 	private final List<ZoneEnterExitListener> zoneListeners;
 
 	/**
@@ -139,8 +172,7 @@ public class StendhalRPZone extends MarauroaRPZone {
 
 	/** Contains data to verify is someone is in a PK-free area. */
 	public CollisionDetection protectionMap;
-
-	/** Contains data to verify is someone is in a PK-free area. */
+	
 	public CollisionDetection secretMap;
 
 	/** Position of this zone in the world map. */
@@ -152,6 +184,54 @@ public class StendhalRPZone extends MarauroaRPZone {
 
 	private int y;
 
+	/** User representable name of the zone. */
+	private final String readableName;
+
+	/** Zones that some event types propagate to from this one. */
+	private String associatedZones;
+
+	/** Facing directions for portals. */
+	private final int UP_FN = 8;
+	private final int UP_FE = 9;
+	private final int UP_FS = 10;
+	private final int UP_FW = 11;
+	private final int DOWN_FN = 12;
+	private final int DOWN_FE = 13;
+	private final int DOWN_FS = 14;
+	private final int DOWN_FW = 15;
+	private final int UP_FN_CM = 16;
+	private final int UP_FE_CM = 17;
+	private final int UP_FS_CM = 18;
+	private final int UP_FW_CM = 19;
+	private final int DOWN_FN_CM = 20;
+	private final int DOWN_FE_CM = 21;
+	private final int DOWN_FS_CM = 22;
+	private final int DOWN_FW_CM = 23;
+	@SuppressWarnings("serial")
+	private final List<Integer> stairsUp = new ArrayList<Integer>() {{
+		add(2);
+		add(UP_FN);
+		add(UP_FE);
+		add(UP_FS);
+		add(UP_FW);
+		add(UP_FN_CM);
+		add(UP_FE_CM);
+		add(UP_FS_CM);
+		add(UP_FW_CM);
+	}};
+	@SuppressWarnings("serial")
+	private final List<Integer> stairsDown = new ArrayList<Integer>() {{
+		add(3);
+		add(DOWN_FN);
+		add(DOWN_FE);
+		add(DOWN_FS);
+		add(DOWN_FW);
+		add(DOWN_FN_CM);
+		add(DOWN_FE_CM);
+		add(DOWN_FS_CM);
+		add(DOWN_FW_CM);
+	}};
+
 	public StendhalRPZone(final String name) {
 		super(name);
 
@@ -162,6 +242,7 @@ public class StendhalRPZone extends MarauroaRPZone {
 		bloods = new LinkedList<Blood>();
 		npcs = new LinkedList<NPC>();
 		sheepFoods = new LinkedList<SheepFood>();
+		goatFoods = new LinkedList<GoatFood>();
 		respawnPoints = new LinkedList<CreatureRespawnPoint>();
 		plantGrowers = new LinkedList<PassiveEntityRespawnPoint>();
 		players = new LinkedList<Player>();
@@ -173,6 +254,17 @@ public class StendhalRPZone extends MarauroaRPZone {
 		collisionMap = new CollisionDetection();
 		protectionMap = new CollisionDetection();
 		secretMap = new CollisionDetection();
+
+		String readable = createReadableName(name);
+		if (!name.equals(readable)) {
+			readableName = readable;
+			// Ensure that the zone has attribute layer if it has a readable
+			// name that differs from the internal name
+			ZoneAttributes attr = new ZoneAttributes(this);
+			setAttributes(attr);
+		} else {
+			readableName = null;
+		}
 	}
 
 	public StendhalRPZone(final String name, final int width, final int height) {
@@ -182,22 +274,26 @@ public class StendhalRPZone extends MarauroaRPZone {
 
 	public StendhalRPZone(final String name, final StendhalRPZone zone) {
 		this(name);
+		if (attributes != null) {
+			// Try to match the attribute layer name with the rest of the zone
+			attributes.setBaseName(zone.getName());
+		}
 		contents.addAll(zone.contents);
 		collisionMap = zone.collisionMap;
 		protectionMap  = zone.protectionMap;
 		secretMap  = zone.secretMap;
-		
+
 		this.zoneid = new ID(name);
 	}
 
 	/**
 	 * Get blood (if any) at a specified zone position.
-	 * 
+	 *
 	 * @param x
 	 *            The X coordinate.
 	 * @param y
 	 *            The Y coordinate.
-	 * 
+	 *
 	 * @return The blood, or <code>null</code>.
 	 */
 	public Blood getBlood(final int x, final int y) {
@@ -233,12 +329,12 @@ public class StendhalRPZone extends MarauroaRPZone {
 
 	/**
 	 * Get the portal (if any) at a specified zone position.
-	 * 
+	 *
 	 * @param x
 	 *            The X coordinate.
 	 * @param y
 	 *            The Y coordinate.
-	 * 
+	 *
 	 * @return The portal, or <code>null</code>.
 	 */
 	public Portal getPortal(final int x, final int y) {
@@ -253,11 +349,15 @@ public class StendhalRPZone extends MarauroaRPZone {
 
 	/**
 	 * Get the list of sheep foods in the zone.
-	 * 
+	 *
 	 * @return The list of sheep foods.
 	 */
 	public List<SheepFood> getSheepFoodList() {
 		return sheepFoods;
+	}
+
+	public List<GoatFood> getGoatFoodList() {
+		return goatFoods;
 	}
 
 	public List<CreatureRespawnPoint> getRespawnPointList() {
@@ -266,7 +366,7 @@ public class StendhalRPZone extends MarauroaRPZone {
 
 	/**
 	 * Add a creature respawn point to the zone.
-	 * 
+	 *
 	 * @param point
 	 *            The respawn point.
 	 */
@@ -276,7 +376,7 @@ public class StendhalRPZone extends MarauroaRPZone {
 
 	/**
 	 * Remove a creature respawn point from the zone.
-	 * 
+	 *
 	 * @param point
 	 *            The respawn point.
 	 */
@@ -284,8 +384,31 @@ public class StendhalRPZone extends MarauroaRPZone {
 		respawnPoints.remove(point);
 	}
 
+	/**
+	 * Retrieves growers in this zone.
+	 */
 	public List<PassiveEntityRespawnPoint> getPlantGrowers() {
 		return plantGrowers;
+	}
+
+	/**
+	 * Registers a grower in this zone.
+	 *
+	 * @param grower
+	 *     Grower being added.
+	 */
+	public void addPlantGrower(final PassiveEntityRespawnPoint grower) {
+		plantGrowers.add(grower);
+	}
+
+	/**
+	 * Unregisters a grower in this zone.
+	 *
+	 * @param grower
+	 *     Grower being removed.
+	 */
+	public void removePlantGrower(final PassiveEntityRespawnPoint grower) {
+		plantGrowers.remove(grower);
 	}
 
 	/** We reserve the first 64 portals ids for hand made portals. */
@@ -345,10 +468,19 @@ public class StendhalRPZone extends MarauroaRPZone {
 	/**
 	 * Creates a new TransferContent for the specified data and adds it to the
 	 * contents list.
-	 * @param name 
-	 * @param byteContents 
+	 * @param name
+	 * @param byteContents
 	 */
 	private void addToContent(final String name, final byte[] byteContents) {
+		// Remove old data by the same name if it exists
+		Iterator<TransferContent> it = contents.iterator();
+		while (it.hasNext()) {
+			if (name.equals(it.next().name)) {
+				logger.info("Replacing old '" + name + "' layer.");
+				it.remove();
+			}
+		}
+
 		final TransferContent content = new TransferContent();
 		content.name = name;
 		content.cacheable = true;
@@ -360,11 +492,32 @@ public class StendhalRPZone extends MarauroaRPZone {
 	}
 
 	/**
+	 * Resend the zone data to players on the zone. This is meant for situations
+	 * where the map data changes. (Weather and lighting changes, and so on).
+	 */
+	public void notifyOnlinePlayers() {
+		// Notify resident players about the changed weather
+		if (!getPlayers().isEmpty()) {
+			List<TransferContent> newContents = getContents();
+			for (Player player : getPlayers()) {
+				// Old clients do not understand content transfer that just
+				// update the old map, and end up with no entities on the screen
+				if (!player.isDisconnected() && player.isClientNewerThan("0.97")) {
+					StendhalRPAction.transferContent(player, newContents);
+				}
+			}
+		}
+	}
+
+	/**
 	 * Set zone attributes that should be passed to the client.
-	 * 
+	 *
 	 * @param attr attributes
 	 */
 	public void setAttributes(ZoneAttributes attr) {
+		if (readableName != null) {
+			attr.put("readable_name", readableName);
+		}
 		attributes = attr;
 	}
 
@@ -379,7 +532,7 @@ public class StendhalRPZone extends MarauroaRPZone {
 		addToContent(name, protectionLayer.encode());
 		protectionMap.setCollisionData(protectionLayer);
 	}
-
+	
 	public void addSecretLayer(final String name, final LayerDefinition secretLayer)
 			throws IOException {
 		addToContent(name, secretLayer.encode());
@@ -415,10 +568,10 @@ public class StendhalRPZone extends MarauroaRPZone {
 
 	/**
 	 * Determine if this zone overlaps an area in global coordinates.
-	 * 
+	 *
 	 * @param area
 	 *            The area (in global coordinate space).
-	 * 
+	 *
 	 * @return <code>true</code> if the area overlaps.
 	 */
 	public boolean intersects(final Rectangle2D area) {
@@ -429,9 +582,9 @@ public class StendhalRPZone extends MarauroaRPZone {
 
 	/**
 	 * Populate a zone based on it's map content.
-	 * 
+	 *
 	 * TODO: This should be moved to the zone loader or something.
-	 * @param objectsLayer 
+	 * @param objectsLayer
 	 */
 	public void populate(final LayerDefinition objectsLayer) {
 		/* We build the layer data */
@@ -462,17 +615,12 @@ public class StendhalRPZone extends MarauroaRPZone {
 		int levelSum = 1;
 		for (CreatureRespawnPoint spawner : respawnPoints) {
 			Creature creature = spawner.getPrototypeCreature();
-			// Rare creatures should not count.
-			if (creature.isRare()) {
+			// Rare & abnormal & immortal creatures should not count.
+			if (creature.isAbnormal()) {
 				continue;
 			}
 			// Add 1, so that level 0 creatures do not get completely ignored.
 			int level = creature.getLevel() + 1;
-			// The level restriction is a hack to keep the chess pieces from
-			// being included.
-			if (level > 1000) {
-				continue;
-			}
 			maxLevel = Math.max(level, maxLevel);
 			levelSum += level;
 		}
@@ -481,7 +629,7 @@ public class StendhalRPZone extends MarauroaRPZone {
 		/*
 		 * Use as the level of the highest level creature as the base, and
 		 * adjust it upwards by creatures near the same level, inversely
-		 * proportionally to the average distance between the creatures. 
+		 * proportionally to the average distance between the creatures.
 		 */
 		double dangerLevel = maxLevel * (1 + DANGER_WEIGHT_CREATURE_DENSITY * (levelSum - maxLevel) / maxLevel / Math.sqrt(area)) - 1;
 		/*
@@ -495,9 +643,11 @@ public class StendhalRPZone extends MarauroaRPZone {
 			attributes.put("danger_level", Double.toString(dangerLevel));
 		}
 	}
-	
+
 	/**
 	 * Get the area of the zone, excluding static collisions.
+	 *
+	 * @return free area size
 	 */
 	private int getFreeArea() {
 		int res = 0;
@@ -513,22 +663,22 @@ public class StendhalRPZone extends MarauroaRPZone {
 
 	/**
 	 * Create a map entity as a given coordinate.
-	 * 
+	 *
 	 * @param clazz
 	 *            the clazz of entity we are loading.<br>
 	 *            It is related to the way entities are stored in tilesets now.
 	 * @param type integer to represent the type of entity to be created.
-	 * <p> if the class contains portal type is evaluated as follows: 
+	 * <p> if the class contains portal type is evaluated as follows:
 	 * <ul>
-	 * <li> 0 , 1  entry point 
+	 * <li> 0 , 1  entry point
 	 * <li> 1 zone change
 	 * <li> 5 ,2 , 3 LevelPortal
 	 * </ul>
-	 
-	 * @param x 
-	 * @param y 
-	 * 
-	 * 
+
+	 * @param x
+	 * @param y
+	 *
+	 *
 	 */
 	protected void createEntityAt(final String clazz, final int type, final int x, final int y) {
 		logger.debug("creating " + clazz + ":" + type + " at " + x + "," + y);
@@ -536,41 +686,41 @@ public class StendhalRPZone extends MarauroaRPZone {
 		final int ZONE_CHANGE = 1;
 		final int DOOR = 6;
 		final int PORTAL = 4;
-		final int PORTAL_STAIRS_DOWN = 3;
-		final int PORTAL_STAIRS_UP = 2;
 		final int ONE_WAY_PORTAL_DESTINATION = 5;
-		
+
 		try {
 			if (clazz.contains("logic/portal")) {
-				switch (type) {
-				
-				case ENTRY_POINT: 
-				case ZONE_CHANGE: 
-					setEntryPoint(x, y);
-					break;
-
-				case ONE_WAY_PORTAL_DESTINATION: 
-				case PORTAL_STAIRS_UP: 
-				case PORTAL_STAIRS_DOWN: 
+				if (stairsUp.contains(type) || stairsDown.contains(type) || (type == ONE_WAY_PORTAL_DESTINATION)) {
 					createLevelPortalAt(type, x, y);
-					break;
+				} else {
+					switch (type) {
+						case ENTRY_POINT:
+						case ZONE_CHANGE:
+							setEntryPoint(x, y);
+							break;
+						case PORTAL:
+							break;
 
-				case PORTAL:
-					break;
-				
-				case DOOR: 
-					break;
+						case DOOR:
+							break;
 
-				default:
-					logger.error("Unknown Portal (class/type: " + clazz + ":"
-							+ type + ") at (" + x + "," + y + ") of " + getID()
-							+ " found");
-					break;
+						default:
+							logger.error("Unknown Portal (class/type: " + clazz + ":"
+								+ type + ") at (" + x + "," + y + ") of " + getID()
+								+ " found");
+							break;
+					}
 				}
+			} else if (clazz.contains("motherlode.png")) {
+				createSourceAt(type, x, y);
 			} else if (clazz.contains("sheep.png")) {
 				final Sheep sheep = new Sheep();
 				sheep.setPosition(x, y);
 				add(sheep);
+			} else if (clazz.contains("goat.png")) {
+				final Goat goat = new Goat();
+				goat.setPosition(x, y);
+				add(goat);
 			} else if (clazz.contains("logic/creature")) {
 				// get the default EntityManager
 				final EntityManager manager = SingletonRepository.getEntityManager();
@@ -595,6 +745,16 @@ public class StendhalRPZone extends MarauroaRPZone {
 					passiveEntityrespawnPoint.setStartState();
 
 				}
+			} else if (clazz.contains("logic/training_dummy")) {
+				final TrainingDummy dummy = TrainingDummyFactory.create(type);
+				dummy.setPosition(x, y);
+				add(dummy);
+			} else if (clazz.contains("logic/area")) {
+				// TODO: configure WalkBlocker & FlyOverArea on "collision" map layer
+
+				final WalkBlocker blocker = WalkBlockerFactory.create(type);
+				blocker.setPosition(x, y);
+				add(blocker);
 			}
 		} catch (final RuntimeException e) {
 			logger.error("error creating entity " + type + " at (" + x + ","
@@ -602,10 +762,65 @@ public class StendhalRPZone extends MarauroaRPZone {
 		}
 	}
 
-	/*
+	protected void createSourceAt(final int type, final int x, final int y) {
+		UseableEntity source;
+		source = new SourceEntity();
+		switch (type) {
+			case 0:
+				source = new SourceSalt();
+				break;
+			case 1:
+				source = new SourceSulfur();
+				break;
+			case 2:
+				source = new SourceIron();
+				break;
+			case 3:
+				source = new SourceCopper();
+				break;
+			case 4:
+				source = new SourceGold();
+				break;
+			case 5:
+				source = new SourceAmetyst();
+				break;
+			case 6:
+				source = new SourceShadow();
+				break;
+			case 7:
+				source = new SourceSilver();
+				break;
+			case 8:
+				source = new SourceEmerald();
+				break;
+			case 9:
+				source = new SourceSapphire();
+				break;
+			case 10:
+				source = new SourceCarbuncle();
+				break;
+			case 11:
+				source = new SourceObsidian();
+				break;
+			case 12:
+				source = new SourceMithril();
+				break;
+			case 13:
+				source = new SourcePlatinum();
+				break;
+			case 14:
+				source = new SourceDiamond();
+				break;
+			default:
+				break;
+		}
+
+		source.setPosition(x, y);
+		add(source);
+	}
+
+	/**
 	 * Create a portal between levels.
-	 * 
-	 * 
 	 */
 	protected void createLevelPortalAt(final int type, final int x, final int y) {
 		if (logger.isDebugEnabled()) {
@@ -616,6 +831,46 @@ public class StendhalRPZone extends MarauroaRPZone {
 
 		if (type != 5) {
 			portal = new Portal();
+			switch (type) {
+				case UP_FN:
+				case DOWN_FN:
+					portal.setFaceDirection(Direction.UP);
+					break;
+				case UP_FE:
+				case DOWN_FE:
+					portal.setFaceDirection(Direction.RIGHT);
+					break;
+				case UP_FS:
+				case DOWN_FS:
+					portal.setFaceDirection(Direction.DOWN);
+					break;
+				case UP_FW:
+				case DOWN_FW:
+					portal.setFaceDirection(Direction.LEFT);
+					break;
+				case UP_FN_CM:
+				case DOWN_FN_CM:
+					portal.setFaceDirection(Direction.UP);
+					portal.put(MOVE_CONTINUOUS, "");
+					break;
+				case UP_FE_CM:
+				case DOWN_FE_CM:
+					portal.setFaceDirection(Direction.RIGHT);
+					portal.put(MOVE_CONTINUOUS, "");
+					break;
+				case UP_FS_CM:
+				case DOWN_FS_CM:
+					portal.setFaceDirection(Direction.DOWN);
+					portal.put(MOVE_CONTINUOUS, "");
+					break;
+				case UP_FW_CM:
+				case DOWN_FW_CM:
+					portal.setFaceDirection(Direction.LEFT);
+					portal.put(MOVE_CONTINUOUS, "");
+					break;
+				default:
+					break;
+			}
 		} else {
 			portal = new OneWayPortalDestination();
 		}
@@ -641,12 +896,12 @@ public class StendhalRPZone extends MarauroaRPZone {
 			/*
 			 * Portals in the correct direction?
 			 */
-			if (type == 2) {
+			if (stairsUp.contains(type)) {
 				/* portal stairs up */
 				if ((zone.getLevel() - getLevel()) != 1) {
 					continue;
 				}
-			} else if (type == 3) {
+			} else if (stairsDown.contains(type)) {
 				/* portal stairs down */
 				if ((zone.getLevel() - getLevel()) != -1) {
 					continue;
@@ -709,7 +964,7 @@ public class StendhalRPZone extends MarauroaRPZone {
 				contents.remove(0);
 			}
 			// Ensure the attributes comes first, so that the client has coloring
-			// information 
+			// information
 			contents.add(0, attr);
 		}
 		return contents;
@@ -719,7 +974,7 @@ public class StendhalRPZone extends MarauroaRPZone {
 		final Rectangle2D area = entity.getArea();
 		return protectionMap.collides(area);
 	}
-
+	
 	public boolean isInSecretArea(final Entity entity) {
 		final Rectangle2D area = entity.getArea();
 		return secretMap.collides(area);
@@ -741,10 +996,10 @@ public class StendhalRPZone extends MarauroaRPZone {
 
 	/**
 	 * Adds an object to the ground.
-	 * 
+	 *
 	 * The player parameter can be used to create special items that react when
 	 * they are dropped on the ground by a player.
-	 * 
+	 *
 	 * @param object
 	 *            The object that should be added to the zone
 	 * @param player
@@ -753,20 +1008,20 @@ public class StendhalRPZone extends MarauroaRPZone {
 	public void add(final RPObject object, final Player player) {
 		add(object, player, true);
 	}
-	
+
 	/**
 	 * Adds an object to the ground.
-	 * 
+	 *
 	 * @param object
 	 *            The object that should be added to the zone
 	 * @param expire
-	 *            True if the item should expire according to its normal behaviour, 
+	 *            True if the item should expire according to its normal behaviour,
 	 *            false otherwise
 	 */
 	public void add(final RPObject object, final boolean expire) {
 		add(object, null, expire);
 	}
-	
+
 	private synchronized void add(final RPObject object, final Player player, final boolean expire) {
 		/*
 		 * Assign [zone relative] ID info. TODO: Move up to MarauroaRPZone
@@ -775,43 +1030,23 @@ public class StendhalRPZone extends MarauroaRPZone {
 		super.add(object);
 
 		notifyAdded(object);
-		
-		// Needs to be before adding an item, in case Item.onPutOnGround() 
+
+		// Needs to be before adding an item, in case Item.onPutOnGround()
 		// needs proper zone information
 		if (object instanceof Entity) {
 			((Entity) object).onAdded(this);
 		}
-		
+
 		if (object instanceof Item) {
 			final Item item = (Item) object;
 			if (player != null) {
 				// let item decide what to do when it's thrown by a player
 				item.onPutOnGround(player);
-			} else if (item.getName().equals("figura fioletowa") || item.getName().equals("figura zielona")
-				|| item.getName().equals("damka fioletowa") || item.getName().equals("damka zielona")
-				|| item.getName().equals("pionek czerwony") || item.getName().equals("pionek niebieski")
-				|| item.getName().equals("pionek zielony") || item.getName().equals("pionek żółty")
-				|| item.getName().equals("kostka") || item.getName().equals("kółko")
-				|| item.getName().equals("krzyżyk") || item.getName().equals("biały pionek")
-				|| item.getName().equals("biała wieża") || item.getName().equals("biały skoczek")
-				|| item.getName().equals("biały goniec") || item.getName().equals("biały hetman")
-				|| item.getName().equals("biały król") || item.getName().equals("czarny pionek")
-				|| item.getName().equals("czarna wieża") || item.getName().equals("czarny skoczek")
-				|| item.getName().equals("czarny goniec") || item.getName().equals("czarny hetman")
-				|| item.getName().equals("czarny król")) {
-				// item shouldn't expire
 			} else {
 				// otherwise follow expire
 				item.onPutOnGround(expire);
 			}
 			itemsOnGround.add(item);
-		}
-
-		/*
-		 * Eventually move to <Entity>.onAdded().
-		 */
-		if (object instanceof PassiveEntityRespawnPoint) {
-			plantGrowers.add((PassiveEntityRespawnPoint) object);
 		}
 
 		if (object instanceof Blood) {
@@ -835,6 +1070,12 @@ public class StendhalRPZone extends MarauroaRPZone {
 			}
 		} else if (object instanceof SheepFood) {
 			sheepFoods.add((SheepFood) object);
+		} else if (object instanceof Goat) {
+			if (((Goat) object).wasOwned()) {
+				playersAndFriends.add((Goat) object);
+			}
+		} else if (object instanceof GoatFood) {
+			goatFoods.add((GoatFood) object);
 		} else if (object instanceof BabyDragon) {
 			playersAndFriends.add((BabyDragon) object);
 		} else if (object instanceof Owczarek) {
@@ -891,13 +1132,6 @@ public class StendhalRPZone extends MarauroaRPZone {
 			npcs.remove(object);
 		}
 
-		/*
-		 * Eventually move to <Entity>.onRemoved().
-		 */
-		if (object instanceof PassiveEntityRespawnPoint) {
-			plantGrowers.remove(object);
-		}
-
 		if (object instanceof Blood) {
 			bloods.remove(object);
 		} else if (object instanceof Player) {
@@ -909,6 +1143,10 @@ public class StendhalRPZone extends MarauroaRPZone {
 			playersAndFriends.remove(object);
 		} else if (object instanceof SheepFood) {
 			sheepFoods.remove(object);
+		} else if (object instanceof Goat) {
+			playersAndFriends.remove(object);
+		} else if (object instanceof GoatFood) {
+			goatFoods.remove(object);
 		} else if (object instanceof BabyDragon) {
 			playersAndFriends.remove(object);
 		} else if (object instanceof Owczarek) {
@@ -919,6 +1157,13 @@ public class StendhalRPZone extends MarauroaRPZone {
 			SingletonRepository.getNPCList().remove(((SpeakerNPC) object).getName());
 		} else if (object instanceof Portal) {
 			portals.remove(object);
+		}
+
+		if (object instanceof ZoneEnterExitListener) {
+			removeZoneEnterExitListener((ZoneEnterExitListener) object);
+		}
+		if (object instanceof MovementListener) {
+			removeMovementListener((MovementListener) object);
 		}
 
 		super.remove(id);
@@ -936,7 +1181,7 @@ public class StendhalRPZone extends MarauroaRPZone {
 
 	/**
 	 * removes object from zone.
-	 * 
+	 *
 	 * @param object
 	 * @return the removed object
 	 */
@@ -968,7 +1213,7 @@ public class StendhalRPZone extends MarauroaRPZone {
 	/**
 	 * Checks if there is a collision on the airline between 2 positions. Only
 	 * the collision map will be used.
-	 * 
+	 *
 	 * @param x1
 	 *            x value of position 1
 	 * @param y1
@@ -980,7 +1225,7 @@ public class StendhalRPZone extends MarauroaRPZone {
 	 * @return true if there is a collision
 	 */
 	public boolean collidesOnLine(final int x1, final int y1, final int x2, final int y2) {
-		Vector<Point> points;
+		List<Point> points;
 		// Always draw the line to the same direction, so that if A to B
 		// collides, then so does B to A
 		if ((x1 < x2) || ((x1 == x2) && (y1 < y2))) {
@@ -996,15 +1241,37 @@ public class StendhalRPZone extends MarauroaRPZone {
 		return false;
 	}
 
+	/**
+	 * Checks a single pair of coordinates for collision.
+	 *
+	 * @param x
+	 * 		X-coordinate
+	 * @param y
+	 * 		Y-coordinate
+	 * @return
+	 * 		<code>true</code> if collision tile located at coordinates.
+	 */
 	public boolean collides(final int x, final int y) {
 		return collisionMap.collides(x, y);
+	}
+
+	/**
+	 * Checks an area for collision.
+	 *
+	 * @param shape
+	 * 		Rectangle area.
+	 * @return
+	 * 		<code>true</code> if any collision tiles are found in the area.
+	 */
+	public boolean collides(final Rectangle2D shape) {
+		return collisionMap.collides(shape);
 	}
 
 	/**
 	 * Checks whether the given entity would be able to stand at the given
 	 * position, or if it would collide with the collision map or with another
 	 * entity.
-	 * 
+	 *
 	 * @param entity
 	 *            The entity that would stand on the given position
 	 * @param x
@@ -1021,7 +1288,7 @@ public class StendhalRPZone extends MarauroaRPZone {
 	 * Checks whether the given entity would be able to stand at the given
 	 * position, or if it would collide with the collision map or (if
 	 * <i>checkObjects</i> is enabled) with another entity.
-	 * 
+	 *
 	 * @param entity
 	 *            The entity that would stand on the given position
 	 * @param x
@@ -1073,9 +1340,9 @@ public class StendhalRPZone extends MarauroaRPZone {
 	}
 
 	/**
-	 * Finds an Entity at the given coordinates. 
-	 * 
-	 * @param x coordinate 
+	 * Finds an Entity at the given coordinates.
+	 *
+	 * @param x coordinate
 	 * @param y coordinate
 	 * @return the first entity found if there are more than one or null if there are none
 	 */
@@ -1099,7 +1366,7 @@ public class StendhalRPZone extends MarauroaRPZone {
 	 */
 	public synchronized List<Entity> getEntitiesAt(final double x, final double y) {
 		List<Entity> entities = new LinkedList<Entity>();
-		
+
 		for (final RPObject other : objects.values()) {
 			final Entity entity = (Entity) other;
 
@@ -1112,19 +1379,86 @@ public class StendhalRPZone extends MarauroaRPZone {
 		return entities;
 	}
 
+
+	/**
+	 * Finds all entities at the given coordinates.
+	 * @param x coordinate
+	 * @param y coordinate
+	 * @return list of entities at (x, y)
+	 */
+	public synchronized <T extends Entity> List<T> getEntitiesAt(final double x, final double y, Class<T> clazz) {
+		List<T> entities = new LinkedList<T>();
+
+		for (final RPObject other : objects.values()) {
+			final Entity entity = (Entity) other;
+			if (!clazz.isInstance(entity)) {
+				continue;
+			}
+
+			final Rectangle2D rect = entity.getArea();
+			if (rect.contains(x, y)) {
+				entities.add(clazz.cast(entity));
+			}
+		}
+
+		return entities;
+	}
+
 	/**
 	 * Get the zone name. This is the same as <code>getID().getID()</code>,
 	 * only cleaner to use.
-	 * 
+	 *
 	 * @return The zone name.
 	 */
 	public String getName() {
 		return getID().getID();
 	}
 
+	public String getHumanReadableName() {
+		final List<String> commonSuffixes = Arrays.asList(
+				"n", "nw", "ne", "s", "sw", "se", "e", "w");
+
+		//final StringBuilder sb = new StringBuilder();
+		final List<String> prefix = new LinkedList<>();
+		final List<String> suffix = new LinkedList<>();
+
+		String level = null;
+		for (final String word: getName().split("_")) {
+			if (level == null) {
+				level = word;
+				continue;
+			}
+
+			if (commonSuffixes.contains(word)) {
+				suffix.add(word);
+				continue;
+			}
+
+			try {
+				if (word.length() > 1) {
+					Integer.parseInt(word.substring(1));
+					suffix.add(word);
+					continue;
+				}
+			} catch (final NumberFormatException e) {
+
+			}
+
+			prefix.add(word);
+		}
+
+		final StringBuilder sb = new StringBuilder(StringUtils.titleize(String.join(" ", prefix)));
+		if (!suffix.isEmpty()) {
+			sb.append(" " + String.join("", suffix).toUpperCase());
+		}
+		sb.append(", poziom " + level);
+
+		return sb.toString();
+	}
+
 	/**
 	 * Notify anything interested in when an entity entered.
-	 * 
+	 *
 	 * @param entity
 	 *            The entity that entered.
 	 * @param newX
@@ -1147,7 +1481,7 @@ public class StendhalRPZone extends MarauroaRPZone {
 
 	/**
 	 * Notify anything interested in when an entity exited.
-	 * 
+	 *
 	 * @param entity
 	 *            The entity that moved.
 	 * @param oldX
@@ -1170,7 +1504,7 @@ public class StendhalRPZone extends MarauroaRPZone {
 
 	/**
 	 * Notify anything interested that an entity moved.
-	 * 
+	 *
 	 * @param entity
 	 *            The entity that moved.
 	 * @param oldX
@@ -1212,12 +1546,31 @@ public class StendhalRPZone extends MarauroaRPZone {
 		}
 	}
 
+	public void notifyBeforeMovement(final ActiveEntity entity, final int oldX, final int oldY,
+			final int newX, final int newY) {
+		Rectangle2D neArea;
+		boolean newIn;
+
+		neArea = entity.getArea(newX, newY);
+
+		for (final MovementListener l : movementListeners) {
+			Rectangle2D area = l.getArea();
+
+			newIn = area.intersects(neArea);
+
+			if (newIn) {
+				l.beforeMove(entity, this, oldX, oldY, newX, newY);
+			}
+
+		}
+	}
+
 	public void addZoneEnterExitListener(final ZoneEnterExitListener listener) {
 		zoneListeners.add(listener);
 	}
-	
+
 	public void removeZoneEnterExitListener(final ZoneEnterExitListener listener) {
-		zoneListeners.add(listener);
+		zoneListeners.remove(listener);
 	}
 
 
@@ -1225,7 +1578,7 @@ public class StendhalRPZone extends MarauroaRPZone {
 	/**
 	 * Register a movement listener for notification. Eventually create a
 	 * macro-block hash to cut down on listeners to check.
-	 * 
+	 *
 	 * @param listener
 	 *            A movement listener to register.
 	 */
@@ -1235,7 +1588,7 @@ public class StendhalRPZone extends MarauroaRPZone {
 
 	/**
 	 * Unregister a movement listener from notification.
-	 * 
+	 *
 	 * @param listener
 	 *            A movement listener to unregister.
 	 */
@@ -1257,7 +1610,7 @@ public class StendhalRPZone extends MarauroaRPZone {
 
 	/**
 	 * Gets all players in this zone.
-	 * 
+	 *
 	 * @return A list of all players.
 	 */
 	public List<Player> getPlayers() {
@@ -1267,7 +1620,7 @@ public class StendhalRPZone extends MarauroaRPZone {
 	/**
 	 * Gets all players in this zone, as well as friendly entities such as
 	 * sheep. These are the targets (enemies) for wild creatures such as orcs.
-	 * 
+	 *
 	 * @return a list of all players and friendly entities
 	 */
 	public List<RPEntity> getPlayerAndFriends() {
@@ -1276,7 +1629,7 @@ public class StendhalRPZone extends MarauroaRPZone {
 
 	/**
 	 * Can moveto (mouse movement using pathfinding) be done on this map?
-	 * 
+	 *
 	 * @return true, if moveto is possible, false otherwise
 	 */
 	public boolean isMoveToAllowed() {
@@ -1286,7 +1639,7 @@ public class StendhalRPZone extends MarauroaRPZone {
 	/**
 	 * Sets the flag whether moveto (mouse movement using pathfinding) is
 	 * possible in this zone.
-	 * 
+	 *
 	 * @param moveToAllowed
 	 *            true, if it is possible, false otherwise
 	 */
@@ -1301,7 +1654,7 @@ public class StendhalRPZone extends MarauroaRPZone {
 
 	private String noItemMoveMessage;
 
-	
+
 
 	@Override
 	@SuppressWarnings("unused")
@@ -1322,6 +1675,7 @@ public class StendhalRPZone extends MarauroaRPZone {
 			os.append("portals: " + portals.size() + "\n");
 			os.append("respawnPoints: " + respawnPoints.size() + "\n");
 			os.append("sheepFoods: " + sheepFoods.size() + "\n");
+			os.append("goatFoods: " + goatFoods.size() + "\n");
 			os.append("objects: " + objects.size() + "\n");
 			logger.info(os);
 		}
@@ -1334,6 +1688,13 @@ public class StendhalRPZone extends MarauroaRPZone {
 			} catch (final Exception e) {
 				logger.error("Error in npc logic for zone " + getID().getID(), e);
 			}
+		}
+		for (final Portal portal : portals) {
+		    try {
+		        portal.logic();
+		    } catch (final Exception e) {
+		        logger.error("Error in portal logic for zone " + getID().getID(), e);
+		    }
 		}
 	}
 
@@ -1387,23 +1748,23 @@ public class StendhalRPZone extends MarauroaRPZone {
         return false;
     }
 
-    
+
 	public List<Entity> getFilteredEntities(final FilterCriteria<Entity> criteria) {
 		final List <Entity> result = new LinkedList<Entity>();
-		
+
 		for (final RPObject obj : objects.values()) {
 	            if (obj instanceof Entity) {
 					final Entity entity = (Entity) obj;
 					if (criteria.passes(entity)) {
 						result.add(entity);
 					}
-					
+
 				}
 	        }
-		
+
 		return result;
-		
-		
+
+
 	}
 
 	/**
@@ -1414,10 +1775,10 @@ public class StendhalRPZone extends MarauroaRPZone {
 		disallowIn();
 		disallowOut();
 	}
-	
+
 	/**
 	 * Disallow teleporting to and from a specified area.
-	 * 
+	 *
 	 * @param x left x coordinate
 	 * @param y top y coordinate
 	 * @param width width of the area
@@ -1430,7 +1791,7 @@ public class StendhalRPZone extends MarauroaRPZone {
 
 	/**
 	 * Check if teleporting with a scroll to a location is allowed.
-	 * 
+	 *
 	 * @param x x coordinate
 	 * @param y y coordinate
 	 * @return <code>true</code> iff teleporting is allowed
@@ -1441,7 +1802,7 @@ public class StendhalRPZone extends MarauroaRPZone {
 
 	/**
 	 * Check if teleporting with a scroll from a location is allowed.
-	 * 
+	 *
 	 * @param x x coordinate
 	 * @param y y coordinate
 	 * @return <code>true</code> iff teleporting is allowed
@@ -1451,15 +1812,15 @@ public class StendhalRPZone extends MarauroaRPZone {
 	}
 
 	/**
-	 * Forbid teleporting to the entire zone using a scroll. 
+	 * Forbid teleporting to the entire zone using a scroll.
 	 */
 	public void disallowIn() {
 		teleRules.disallowIn();
 	}
-	
+
 	/**
 	 * Disallow teleporting to specified area.
-	 * 
+	 *
 	 * @param x left x coordinate
 	 * @param y top y coordinate
 	 * @param width width of the area
@@ -1475,10 +1836,10 @@ public class StendhalRPZone extends MarauroaRPZone {
 	public void disallowOut() {
 		teleRules.disallowOut();
 	}
-	
+
 	/**
 	 * Disallow teleporting from specified area.
-	 * 
+	 *
 	 * @param x left x coordinate
 	 * @param y top y coordinate
 	 * @param width width of the area
@@ -1487,7 +1848,7 @@ public class StendhalRPZone extends MarauroaRPZone {
 	public void disallowOut(int x, int y, int width, int height) {
 		teleRules.disallowOut(x, y, width, height);
 	}
-	
+
 	public void onRemoved() {
 		for (RPObject inspected : this) {
 			if (inspected instanceof ActiveEntity) {
@@ -1502,16 +1863,16 @@ public class StendhalRPZone extends MarauroaRPZone {
 	public boolean isPublicAccessible() {
 		return accessible;
 	}
-	
+
 	/**
 	 * Sets the public accessibility of this zone
-	 * 
+	 *
 	 * @param accessible
 	 */
 	public void setPublicAccessible(boolean accessible) {
 		this.accessible = accessible;
 	}
-	
+
 	/**
 	 * Mappings for the zone names that would look weird with the dynamic
 	 * translation.
@@ -1522,10 +1883,11 @@ public class StendhalRPZone extends MarauroaRPZone {
 		zoneNameMappings.put("0_athor_ship_w2", "na promie Athor");
 		zoneNameMappings.put("-1_athor_ship_w2", "na promie Athor");
 		zoneNameMappings.put("-2_athor_ship_w2", "na promie Athor");
-		zoneNameMappings.put("hell", "w Piekle");
 		zoneNameMappings.put("int_polish_ship", "na promie Kraków");
+		zoneNameMappings.put("hell", "w Piekle");
+		zoneNameMappings.put("malleus_plain", "na równinie Malleus");
 	}
-	
+
 	/**
 	 * Translate zone name into a more readable form.
 	 *
@@ -1533,13 +1895,12 @@ public class StendhalRPZone extends MarauroaRPZone {
 	 * @return translated zone name
 	 */
 	private static String translateZoneName(final String zoneName) {
-		
+
 		if (zoneNameMappings.get(zoneName) != null) {
 			return zoneNameMappings.get(zoneName);
 		}
 		String result = "";
-		final Pattern p = Pattern.compile("^(-?[\\d]|int)_(.+)$");
-		final Matcher m = p.matcher(zoneName);
+		final Matcher m = ZONE_NAME_PATTERN.matcher(zoneName);
 		int levelValue = -1;
 		if (m.matches()) {
 			final String level = m.group(1);
@@ -1557,12 +1918,12 @@ public class StendhalRPZone extends MarauroaRPZone {
 				} else {
 					result = "pod ziemią na poziomie ";
 				}
-			} else if (level.matches("^\\d")) { 
+			} else if (level.matches("^\\d")) {
 				/* positive floor */
 				try {
 					levelValue = Integer.parseInt(level);
 				} catch (final NumberFormatException e) {
-					levelValue = 0; 
+					levelValue = 0;
 				}
 				if (levelValue != 0) {
 					if (levelValue > 1) {
@@ -1570,7 +1931,7 @@ public class StendhalRPZone extends MarauroaRPZone {
 					} else {
 						result = "na poziomie ";
 					}
-				} 
+				}
 			}
 			final StringBuilder sb = new StringBuilder();
 			final String[] directions = new String[] { ".+_n\\d?e\\d?($|_).*",
@@ -1601,7 +1962,7 @@ public class StendhalRPZone extends MarauroaRPZone {
 			// here we need to capitalise the city name
 			result += Grammar.makeUpperCaseWord(remainder.replaceAll("_", " ")) + "" + direction;
 		} else {
-			System.err.println("no match: " + zoneName);
+			logger.warn("no match: " + zoneName);
 		}
 		if ("".equals(result)) {
 			return zoneName;
@@ -1609,7 +1970,7 @@ public class StendhalRPZone extends MarauroaRPZone {
 			return result.trim();
 		}
 	}
-	
+
 	private static String getInteriorName(final String zoneName) {
 		if (zoneName == null) {
 			throw new IllegalArgumentException("zoneName is null");
@@ -1625,12 +1986,70 @@ public class StendhalRPZone extends MarauroaRPZone {
 			return zoneName;
 		}
 	}
-	
+
 	public static String describe(final String zoneName) {
 		return StendhalRPZone.translateZoneName(zoneName);
 	}
 	public String describe() {
 		return StendhalRPZone.translateZoneName(this.getName());
+	}
+
+	/**
+	 * Generate a precise zone name that can be shown to players (in client
+	 * minimap). For vague zone names, use {@link #describe()}.
+	 *
+	 * @param zoneName game internal zone name
+	 * @return human readable zone name
+	 */
+	private String createReadableName(String zoneName) {
+		StringBuilder result = new StringBuilder();
+		final Matcher m = ZONE_NAME_PATTERN.matcher(zoneName);
+		if (m.matches()) {
+			final String level = m.group(1);
+			String remainder = m.group(2);
+
+			final String[] directions = new String[] {
+					".+_n(\\d?)e(\\d?)($|_).*", "N$1E$2", "_n\\d?e\\d?($|_)", "_",
+					".+_n(\\d?)w(\\d?)($|_).*", "N$1W$2", "_n\\d?w\\d?($|_)", "_",
+					".+_s(\\d?)e(\\d?)($|_).*", "S$1E$2 ", "_s\\d?e\\d?($|_)", "_",
+					".+_s(\\d?)w(\\d?)($|_).*", "S$1W$2", "_s\\d?w\\d?($|_)", "_",
+					".+_n(\\d?)($|_).*", "N$1", "_n\\d?($|_)", "_",
+					".+_s(\\d?)($|_).*", "S$1", "_s\\d?($|_)", "_",
+					".+_w(\\d?)($|_).*", "W$1", "_w\\d?($|_)", "_",
+					".+_e(\\d?)($|_).*", "E$1", "_e\\d?($|_)", "_", };
+			StringBuilder dirBuf = new StringBuilder();
+			for (int i = 0; i < directions.length; i += 4) {
+				Matcher match = Pattern.compile(directions[i]).matcher(remainder);
+				if (match.matches()) {
+					dirBuf.append(match.replaceAll(directions[i + 1]));
+					remainder = remainder.replaceAll(directions[i + 2],
+							directions[i + 3]);
+				}
+			}
+
+			// here we need to capitalize the city name
+			result.append(Grammar.makeUpperCaseWord(remainder.replaceAll("_", " ")));
+			result.append(dirBuf);
+			if ("int".equals(level)) {
+				result.append(", budynek");
+			} else if (level.matches("^-?\\d")) {
+				int levelValue = MathHelper.parseInt(level);
+				if (levelValue != 0) {
+					result.append(", poziom ");
+					result.append(levelValue);
+				}
+			}
+		} else {
+			// As of this writing (2014-01-15), the few zone names that do not
+			// match produce good results with this.
+			logger.info("no match: " + zoneName);
+			return Grammar.makeUpperCaseWord(zoneName.replaceAll("_", " "));
+		}
+		if (result.length() == 0) {
+			return null;
+		} else {
+			return result.toString().trim();
+		}
 	}
 
 	/**
@@ -1649,5 +2068,42 @@ public class StendhalRPZone extends MarauroaRPZone {
 	 */
 	public String getNoItemMoveMessage() {
 		return this.noItemMoveMessage;
+	}
+
+	/**
+	 * gets the zone attributes
+	 *
+	 * @return zone attributes
+	 */
+	public ZoneAttributes getAttributes() {
+		return attributes;
+	}
+
+	/**
+	 * Sets other zones that should receive certain events such as knocking on door.
+	 *
+	 * @param zones
+	 *     Comma-separated string of zone names.
+	 */
+	public void setAssociatedZones(final String zones) {
+		associatedZones = zones;
+	}
+
+	/**
+	 * Gets other zones that should receive certain events such as knocking on door.
+	 */
+	public String getAssociatedZones() {
+		return associatedZones;
+	}
+
+	/**
+	 * Gets other zones that should receive certain events such as knocking on door.
+	 */
+	public List<String> getAssociatedZonesList() {
+		if (associatedZones == null) {
+			return new ArrayList<>();
+		}
+
+		return Arrays.asList(getAssociatedZones().split(","));
 	}
 }

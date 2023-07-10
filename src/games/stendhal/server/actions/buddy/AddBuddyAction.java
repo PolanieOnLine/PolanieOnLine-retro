@@ -1,6 +1,5 @@
-/* $Id: AddBuddyAction.java,v 1.22 2011/01/10 19:07:04 martinfuchs Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -13,6 +12,10 @@
 package games.stendhal.server.actions.buddy;
 
 import static games.stendhal.common.constants.Actions.TARGET;
+
+import java.util.Arrays;
+import java.util.Collection;
+
 import games.stendhal.common.NotificationType;
 import games.stendhal.server.actions.ActionListener;
 import games.stendhal.server.core.engine.GameEvent;
@@ -22,10 +25,6 @@ import games.stendhal.server.core.events.TurnListener;
 import games.stendhal.server.core.events.TurnListenerDecorator;
 import games.stendhal.server.core.events.TurnNotifier;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.Arrays;
-import java.util.Collection;
-
 import marauroa.common.game.RPAction;
 import marauroa.server.db.command.DBCommand;
 import marauroa.server.db.command.DBCommandQueue;
@@ -36,38 +35,40 @@ import marauroa.server.db.command.ResultHandle;
  * Adds someone to your buddy list.
  */
 class AddBuddyAction implements ActionListener, TurnListener {
-	
+
 	private ResultHandle handle = new ResultHandle();
-	
+
 	/**
 	 * Starts to handle a buddy action.
-	 * 
+	 *
 	 * @param player
 	 *            The player.
 	 * @param action
 	 *            The action.
 	 */
+	@Override
 	public void onAction(final Player player, final RPAction action) {
 		if (countBuddies(player) > 500) {
 			player.sendPrivateText(NotificationType.ERROR, "Masz już zbyt dużo przyjaciół");
 			return;
 		}
-		
+
 		final String who = action.get(TARGET);
-		
+
 		DBCommand command = new QueryCanonicalCharacterNamesCommand(player, Arrays.asList(who));
 		DBCommandQueue.get().enqueueAndAwaitResult(command, handle);
 		TurnNotifier.get().notifyInTurns(0, new TurnListenerDecorator(this));
 	}
-	
+
 	/**
 	 * Completes handling the buddy action.
-	 * 
+	 *
 	 * @param currentTurn ignored
 	 */
+	@Override
 	public void onTurnReached(int currentTurn) {
 		QueryCanonicalCharacterNamesCommand checkcommand = DBCommandQueue.get().getOneResult(QueryCanonicalCharacterNamesCommand.class, handle);
-		
+
 		if (checkcommand == null) {
 			TurnNotifier.get().notifyInTurns(0, new TurnListenerDecorator(this));
 			return;
@@ -77,13 +78,13 @@ class AddBuddyAction implements ActionListener, TurnListener {
 
 		Collection<String> queriedNames = checkcommand.getQueriedNames();
 		String who = queriedNames.iterator().next(); // We know, we queried exactly one character.
-		
+
 		Collection<String> validNames = checkcommand.getValidNames();
 		if (validNames.isEmpty()) {
 				player.sendPrivateText(NotificationType.ERROR, "Nie znaleziono " + who + ".");
-				return;
-		} 
-		
+			return;
+		}
+
 		// get the canonical name
 		who = validNames.iterator().next();
 		final Player buddy = SingletonRepository.getRuleProcessor().getPlayer(who);

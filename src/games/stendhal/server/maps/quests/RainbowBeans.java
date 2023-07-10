@@ -1,6 +1,5 @@
-/* $Id: RainbowBeans.java,v 1.46 2012/04/19 18:26:42 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -11,6 +10,10 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import games.stendhal.common.MathHelper;
 import games.stendhal.common.parser.Sentence;
@@ -37,10 +40,6 @@ import games.stendhal.server.entity.npc.condition.QuestStartedCondition;
 import games.stendhal.server.entity.npc.condition.TimePassedCondition;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.Region;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * QUEST: Rainbow Beans
@@ -77,22 +76,15 @@ import java.util.List;
  * </ul>
  */
 public class RainbowBeans extends AbstractQuest {
+	private static final String QUEST_SLOT = "rainbow_beans";
+	private final SpeakerNPC npc = npcs.get("Pdiddi");
 
 	private static final int REQUIRED_LEVEL = 30;
-
 	private static final int REQUIRED_MONEY = 2000;
 
 	private static final int REQUIRED_MINUTES = 6 * 60;
 
-	private static final String QUEST_SLOT = "rainbow_beans";
-
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
 	private void step_1() {
-		final SpeakerNPC npc = npcs.get("Pdiddi");
-
 		// player says hi before starting the quest
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 			new AndCondition(new GreetingMatchesNameCondition(npc.getName()),
@@ -107,7 +99,7 @@ public class RainbowBeans extends AbstractQuest {
 			ConversationPhrases.GREETING_MESSAGES,
 			new AndCondition(new GreetingMatchesNameCondition(npc.getName()),
 					new QuestStartedCondition(QUEST_SLOT),
-					new TimePassedCondition(QUEST_SLOT, 1, REQUIRED_MINUTES)),  
+					new TimePassedCondition(QUEST_SLOT, 1, REQUIRED_MINUTES)),
 			ConversationStates.QUEST_OFFERED,
 			"Oj, ty. Wróciłeś po więcej magicznych fasolek?", null);
 
@@ -118,30 +110,30 @@ public class RainbowBeans extends AbstractQuest {
 			ConversationPhrases.GREETING_MESSAGES,
 			new AndCondition(new GreetingMatchesNameCondition(npc.getName()),
 					new QuestStartedCondition(QUEST_SLOT),
-					new NotCondition(new TimePassedCondition(QUEST_SLOT, 1, REQUIRED_MINUTES))),  
-			ConversationStates.ATTENDING, 
+					new NotCondition(new TimePassedCondition(QUEST_SLOT, 1, REQUIRED_MINUTES))),
+			ConversationStates.ATTENDING,
 			null,
 			new SayTimeRemainingAction(QUEST_SLOT, 1, REQUIRED_MINUTES, "Wszystko w porządku? Mam nadzieję, że nie chcesz więcej fasolek. Nie możesz wziąć tego więcej przez co najmniej"));
 
 		// player responds to word 'deal' - enough level
-		npc.add(ConversationStates.INFORMATION_1, 
-			Arrays.asList("deal", "handluje","umowa","fasolkami","fasolki"),
+		npc.add(ConversationStates.INFORMATION_1,
+			Arrays.asList("deal", "handluje", "umowa", "fasolkami", "fasolki"),
 			new AndCondition(
-					new QuestNotStartedCondition(QUEST_SLOT), 
+					new QuestNotStartedCondition(QUEST_SLOT),
 					new LevelGreaterThanCondition(REQUIRED_LEVEL-1)),
-			ConversationStates.QUEST_OFFERED, 
+			ConversationStates.QUEST_OFFERED,
 			"Nie jesteś wścibski? Handluję magicznymi #fasolkami. Możesz wziąć trochę, ale kto wie gdzie Cię zabiorą. To będzie Cię kosztować "
 								+ REQUIRED_MONEY
-								+ " money. Chcesz kupić?",
+								+ " money. I pamiętaj, że może się skończyć szybciej niż sądzisz! Ryzykowny interes! Chcesz nadal kupić?",
 			null);
-		
+
 		// player responds to word 'deal' - low level
-		npc.add(ConversationStates.INFORMATION_1, 
-			Arrays.asList("deal", "handluje","umowa","fasolkami","fasolki"),
+		npc.add(ConversationStates.INFORMATION_1,
+			Arrays.asList("deal", "handluje", "umowa", "fasolkami", "fasolki"),
 			new AndCondition(
-					new QuestNotStartedCondition(QUEST_SLOT), 
+					new QuestNotStartedCondition(QUEST_SLOT),
 					new LevelLessThanCondition(REQUIRED_LEVEL)),
-			ConversationStates.ATTENDING, 
+			ConversationStates.ATTENDING,
 			"Nie jesteś gotowy na ten towar. Wyjdź stąd i nie wracaj dopóki nie będziesz miał włosów na klacie!",
 			null);
 
@@ -149,21 +141,22 @@ public class RainbowBeans extends AbstractQuest {
 		npc.add(ConversationStates.QUEST_OFFERED,
 			ConversationPhrases.YES_MESSAGES,
 			new NotCondition(new PlayerHasItemWithHimCondition("money", REQUIRED_MONEY)),
-			ConversationStates.ATTENDING, 
+			ConversationStates.ATTENDING,
 			"Plugawy oszust! Nie masz pieniędzy.",
 			null);
 
 		// player wants to take the beans
 		npc.add(ConversationStates.QUEST_OFFERED,
-				ConversationPhrases.YES_MESSAGES, 
+				ConversationPhrases.YES_MESSAGES,
 				new PlayerHasItemWithHimCondition("money", REQUIRED_MONEY),
-				ConversationStates.ATTENDING, 
+				ConversationStates.ATTENDING,
 				"W porządku oto twoje fasolki. Gdy weźmiesz to wrócisz za około 60 minut. Jeśli będziesz chciał wcześniej wrócić to skorzystaj tam z zielonego kwadracika, który zabierze Ciebie z powrotem.",
 				new MultipleActions(
 						new DropItemAction("money", REQUIRED_MONEY),
 						new EquipItemAction("magiczne fasolki", 1, true),
 						// this is still complicated and could probably be split out further
 						new ChatAction() {
+							@Override
 							public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 								if (player.hasQuest(QUEST_SLOT)) {
 									final String[] tokens = player.getQuest(QUEST_SLOT).split(";");
@@ -172,17 +165,17 @@ public class RainbowBeans extends AbstractQuest {
 										player.setQuest(QUEST_SLOT, "bought;"
 												+ System.currentTimeMillis() + ";taken;" + tokens[3]);
 									} else {
-										// it must have started with "done" (old quest slot status was done;timestamp), but now we store when the beans were taken. 
+										// it must have started with "done" (old quest slot status was done;timestamp), but now we store when the beans were taken.
 										// And they haven't taken beans since
 										player.setQuest(QUEST_SLOT, "bought;"
 												+ System.currentTimeMillis() + ";taken;-1");
-								
+
 									}
 								} else {
 									// first time they bought beans here
 									player.setQuest(QUEST_SLOT, "bought;"
 											+ System.currentTimeMillis() + ";taken;-1");
-								
+
 								}
 							}
 						}));
@@ -205,14 +198,14 @@ public class RainbowBeans extends AbstractQuest {
 			ConversationStates.ATTENDING,
 			"Już mówiliśmy o tym! Spróbuj innym razem.",
 			null);
-			
+
 		// player says 'deal' or asks about beans when NPC is ATTENDING, not
 		// just in information state (like if they said no then changed mind and
 		// are trying to get him to deal again)
 		npc.add(ConversationStates.ATTENDING,
 			Arrays.asList("deal", "beans", "magiczne fasolki", "yes", "tak"),
 			new LevelLessThanCondition(REQUIRED_LEVEL),
-			ConversationStates.ATTENDING, 
+			ConversationStates.ATTENDING,
 			"Ten towar jest za silny dla Ciebie. Nie ma szans!",
 			null);
 	}
@@ -223,30 +216,41 @@ public class RainbowBeans extends AbstractQuest {
 		 * there is a note in TimedTeleportScroll that it should be done there or its subclass.
 		 */
 		SingletonRepository.getLoginNotifier().addListener(new LoginListener() {
+			@Override
 			public void onLoggedIn(final Player player) {
 			    RainbowBeansScroll scroll = (RainbowBeansScroll) SingletonRepository.getEntityManager().getItem("magiczne fasolki");
 				scroll.teleportBack(player);
 			}
 
 		});
-		super.addToWorld();
 		fillQuestInfo(
 				"Magiczne Fasolki",
-				"Magiczne fasolki mogą być biletem do obcej krainy.",
+				"Dziwne fasolki mogą być biletem do dziwnej krainy i czasami niebezpiecznej!",
 				false);
 		step_1();
 
 	}
+
+	@Override
+	public List<String> getHistory(final Player player) {
+		return new ArrayList<String>();
+	}
+
+	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
+	}
+
 	@Override
 	public String getName() {
-		return "RainbowBeans";
+		return "Magiczne Fasolki";
 	}
-	
+
 	@Override
 	public int getMinLevel() {
 		return REQUIRED_LEVEL;
 	}
-	
+
 	@Override
 	public boolean isCompleted(final Player player) {
 		if(!player.hasQuest(QUEST_SLOT)) {
@@ -258,21 +262,17 @@ public class RainbowBeans extends AbstractQuest {
 		}
 		return MathHelper.parseLongDefault(tokens[3],-1)>0;
 	}
-	
+
 	@Override
 	public boolean isVisibleOnQuestStatus() {
 		return false;
 	}
-	
-	@Override
-	public List<String> getHistory(final Player player) {
-		return new ArrayList<String>();	
-	}
+
 	@Override
 	public String getNPCName() {
-		return "Pdiddi";
+		return npc.getName();
 	}
-	
+
 	@Override
 	public String getRegion() {
 		return Region.SEMOS_SURROUNDS;

@@ -1,4 +1,4 @@
-/* $Id: WhereBuddyAction.java,v 1.5 2010/09/19 02:18:29 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,21 +12,20 @@
  ***************************************************************************/
 package games.stendhal.client.gui.buddies;
 
-import games.stendhal.client.actions.SlashActionRepository;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-class WhereBuddyAction implements ActionListener {
+import games.stendhal.client.actions.SlashActionRepository;
 
+class WhereBuddyAction implements ActionListener {
 	private final String buddyName;
 
 	protected WhereBuddyAction(final String buddyName) {
 		this.buddyName = buddyName;
 	}
 
+	@Override
 	public void actionPerformed(final ActionEvent e) {
 		SlashActionRepository.get("where").execute(null, buddyName);
 	}
-
 }

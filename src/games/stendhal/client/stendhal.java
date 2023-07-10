@@ -1,4 +1,4 @@
-/* $Id: stendhal.java,v 1.139 2012/12/01 07:52:02 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -12,38 +12,46 @@
  ***************************************************************************/
 package games.stendhal.client;
 
+import static games.stendhal.client.gui.settings.SettingsProperties.OVERRIDE_AA;
+import static games.stendhal.common.constants.Actions.MOVE_CONTINUOUS;
 import static java.io.File.separator;
-import games.stendhal.client.gui.StendhalFirstScreen;
-import games.stendhal.client.gui.j2DClient;
-import games.stendhal.client.gui.login.LoginDialog;
-import games.stendhal.client.gui.login.Profile;
-import games.stendhal.client.gui.styled.StyledLookAndFeel;
-import games.stendhal.client.gui.styled.WoodStyle;
-import games.stendhal.client.gui.wt.core.WtWindowManager;
-import games.stendhal.client.update.ClientGameConfiguration;
-import games.stendhal.common.Debug;
-import games.stendhal.common.Version;
 
 import java.awt.Dimension;
 import java.io.File;
 import java.security.AccessControlException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CountDownLatch;
 
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import org.apache.log4j.Logger;
+
+import games.stendhal.client.actions.MoveContinuousAction;
+import games.stendhal.client.gui.StendhalFirstScreen;
+import games.stendhal.client.gui.j2DClient;
+import games.stendhal.client.gui.login.LoginDialog;
+import games.stendhal.client.gui.login.Profile;
+import games.stendhal.client.gui.styled.StyledLookAndFeel;
+import games.stendhal.client.gui.styled.styles.StyleFactory;
+import games.stendhal.client.gui.wt.core.WtWindowManager;
+import games.stendhal.client.update.ClientGameConfiguration;
+import games.stendhal.common.Debug;
+import games.stendhal.common.MathHelper;
+import games.stendhal.common.Version;
 import marauroa.common.Log4J;
 import marauroa.common.MarauroaUncaughtExceptionHandler;
 
-import org.apache.log4j.Logger;
-
-public class stendhal {
+/**
+ * Main game class.
+ */
+public final class stendhal {
 
 	private static final String LOG_FOLDER = "log/";
 	private static final Logger logger = Logger.getLogger(stendhal.class);
-
-	private static boolean doLogin;
 
 	// Use getGameFolder() where you need the real game data location
 	private static final String STENDHAL_FOLDER;
@@ -73,7 +81,12 @@ public class stendhal {
 
 	public static final String VERSION = Version.getVersion();
 
-	private static Dimension screenSize = new Dimension(800, 576);
+	/** Display sizes optimized for different screen resolutions */
+	private static final List<Dimension> displaySizes = new ArrayList<Dimension>(3);
+	public static final Integer SIZE_INDEX = 0;
+	public static final Integer SIZE_INDEX_LARGE = 2;
+	public static final Integer SIZE_INDEX_WIDE = 2;
+	public static final Integer DISPLAY_SIZE_INDEX = SIZE_INDEX_LARGE;
 
 	public static final boolean SHOW_COLLISION_DETECTION = false;
 
@@ -81,7 +94,15 @@ public class stendhal {
 
 	public static final boolean FILTER_ATTACK_MESSAGES = true;
 
-	public static final int FPS_LIMIT = 25;
+	static final int FPS_LIMIT = 50;
+	/** For keeping the login status. Blocks until logged in. */
+	private static final CountDownLatch latch = new CountDownLatch(1);
+
+	/**
+	 * Make the class non-instantiable.
+	 */
+	private stendhal() {
+	}
 
 	/**
 	 * Initialize the client game directory.
@@ -91,13 +112,13 @@ public class stendhal {
 	 */
 	private static void initGameFolder() {
 		String defaultFolder = System.getProperty("user.home") + STENDHAL_FOLDER;
-		/* 
+		/*
 		 * Add any previously unrecognized unix like systems here. These will
 		 * try to use ~/.config/stendhal if the user does not have saved data
 		 * in ~/stendhal.
-		 * 
+		 *
 		 * OS X is counted in here too, but should it?
-		 * 
+		 *
 		 * List taken from:
 		 * 	http://mindprod.com/jgloss/properties.html#OSNAME
 		 */
@@ -107,7 +128,7 @@ public class stendhal {
 			// Check first if the user has important data in the default folder.
 			File f = new File(defaultFolder + "user.dat");
 			if (!f.exists()) {
-				gameFolder = System.getProperty("user.home") + separator 
+				gameFolder = System.getProperty("user.home") + separator
 				+ ".config" + separator + STENDHAL_FOLDER;
 				return;
 			}
@@ -116,35 +137,41 @@ public class stendhal {
 		gameFolder = defaultFolder;
 	}
 
+	/**
+	 * Notify that the login has been performed and the client should proceed
+	 * to show the game window.
+	 */
 	public static void setDoLogin()	{
-		doLogin = true;
-	}
-
-	public static Dimension getScreenSize() {
-		return screenSize;
+		latch.countDown();
 	}
 
 	/**
-	 * Parses command line arguments.
-	 * 
-	 * @param args
-	 *            command line arguments
+	 * Get the maximum size of the visible game area.
+	 *
+	 * @return screen dimensions
 	 */
-	private static void parseCommandlineArguments(final String[] args) {
-		String size = null;
-		int i = 0;
+	public static Dimension getDisplaySize() {
+		String spec = System.getProperty("display.index");
+		int sizeIndex = MathHelper.parseIntDefault(spec, DISPLAY_SIZE_INDEX);
 
-		while (i != args.length) {
-			if (args[i].equals("-s")) {
-				size = args[i + 1];
-			}
-			i++;
+		try {
+			return displaySizes.get(sizeIndex);
+		} catch (IndexOutOfBoundsException e) {
+			logger.error("Invalid client size index: " + spec + " (" + sizeIndex + ")", e);
 		}
 
-		if (size != null) {
-			String[] tempsize = size.split("x");
-			screenSize = new Dimension(Integer.parseInt(tempsize[0]), Integer.parseInt(tempsize[1]));
-		}
+		return displaySizes.get(DISPLAY_SIZE_INDEX);
+	}
+
+	/**
+	 * Initialize list of dimensions that can be used for the clients
+	 * display area.
+	 */
+	private static void initUsableDisplaySizes() {
+		// Optimized display dimensions for display resolutions
+		displaySizes.add(new Dimension(800, 600)); // Smaller 4:3 (1024x768 and smaller)
+		displaySizes.add(new Dimension(864, 600)); // Larger 4:3 (1280x1024)
+		displaySizes.add(new Dimension(928, 644)); // Larger 16:9 (1366x768 and larger)
 	}
 
 	/**
@@ -152,7 +179,7 @@ public class stendhal {
 	 */
 	private static void startLogSystem() {
 		prepareLoggingSystemEnviroment();
-		
+
 		logger.debug("XXXXXXX");
 
 		logger.info("-Setting base at :" + STENDHAL_FOLDER);
@@ -161,9 +188,9 @@ public class stendhal {
 		logger.debug("XXXXXXX");
 
 		logger.info("Setting base at :" + STENDHAL_FOLDER);
-		logger.info("PolskaOnLine " + VERSION);
+		logger.info("PolanieOnLine " + VERSION);
 		logger.info(Debug.PRE_RELEASE_VERSION);
-		logger.info("Logging to directory: "+ getLogFolder());
+		logger.info("Logging to directory: " + getLogFolder());
 
 		String patchLevel = System.getProperty("sun.os.patch.level");
 		if ((patchLevel == null) || (patchLevel.equals("unknown"))) {
@@ -182,6 +209,9 @@ public class stendhal {
 		LogUncaughtExceptionHandler.setup();
 	}
 
+	/**
+	 * Initialize the logging system.
+	 */
 	private static void prepareLoggingSystemEnviroment() {
 		// property configuration relies on this parameter
 		System.setProperty("log.directory", getLogFolder());
@@ -192,34 +222,25 @@ public class stendhal {
 	/**
 	 * @return the name of the log folder
 	 */
-	public static String getLogFolder() {
+	private static String getLogFolder() {
 		return getGameFolder() + LOG_FOLDER;
-	}
-	
-	/**
-	 * @return the name of the log file
-	 */
-	public static String getLogFile() {
-		return getLogFolder() + GAME_NAME.toLowerCase() + ".txt";
 	}
 
 	/**
 	 * A loop which simply waits for the login to be completed.
 	 */
 	private static void waitForLogin() {
-		while (!doLogin) {
-			try {
-				Thread.sleep(200);
-			} catch (final InterruptedException e) {
-				logger.warn(e, e);
-			}
+		try {
+			latch.await();
+		} catch (final InterruptedException e) {
+			logger.error("Unexpected interrupt", e);
+			Thread.currentThread().interrupt();
 		}
 	}
 
-
 	/**
 	 * Get the location of persistent game client data.
-	 * 
+	 *
 	 * @return game's home directory
 	 */
 	public static String getGameFolder() {
@@ -228,56 +249,99 @@ public class stendhal {
 
 	/**
 	 * Main Entry point.
-	 * 
+	 *
 	 * @param args
 	 *            command line arguments
 	 */
 	public static void main(final String[] args) {
-		// get size string
-		parseCommandlineArguments(args);
 		startLogSystem();
 		MarauroaUncaughtExceptionHandler.setup(false);
-		final UserContext userContext = new UserContext();
-		final PerceptionDispatcher perceptionDispatch = new PerceptionDispatcher();
-		final StendhalClient client = new StendhalClient(userContext, perceptionDispatch);
+		initUsableDisplaySizes();
+		new Startup(args);
+	}
 
-		try {
-			StyledLookAndFeel look = new StyledLookAndFeel(WoodStyle.getInstance());
-			UIManager.setLookAndFeel(look);
-			int fontSize = WtWindowManager.getInstance().getPropertyInt("ui.font_size", 12);
-			look.setDefaultFontSize(fontSize);
-		} catch (UnsupportedLookAndFeelException e) {
-			/*
-			 * Should not happen as StyledLookAndFeel always returns true for
-			 * isSupportedLookAndFeel()
-			 */
-			logger.error("Failed to set Look and Feel", e);
-		}
+	private static class Startup {
+		StendhalFirstScreen splash;
 
-		UIManager.getLookAndFeelDefaults().put("ClassLoader", stendhal.class.getClassLoader());
-		
-		final Profile profile = Profile.createFromCommandline(args);
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				if (profile.isValid()) {
-					new LoginDialog(null, client).connect(profile);
-				} else {
-					new StendhalFirstScreen(client);
+		Startup(String[] args) {
+			WtWindowManager wm = WtWindowManager.getInstance();
+
+			if (wm.getPropertyBoolean(OVERRIDE_AA, false)) {
+				System.setProperty("awt.useSystemAAFontSettings", "on");
+			}
+
+			// initialize tileset animation data
+			TileStore.init();
+			// initialize emoji data
+			ClientSingletonRepository.getEmojiStore().init();
+			// initialize outfit data
+			OutfitStore.get().init();
+
+			final UserContext userContext = UserContext.get();
+			final PerceptionDispatcher perceptionDispatch = new PerceptionDispatcher();
+			final StendhalClient client = new StendhalClient(userContext, perceptionDispatch);
+
+			try {
+				String style = wm.getProperty("ui.style", "Jasne drewno (default)");
+				StyledLookAndFeel look = new StyledLookAndFeel(StyleFactory.createStyle(style));
+				UIManager.setLookAndFeel(look);
+				/*
+				 * Prevents the click event at closing a popup menu by clicking
+				 * outside it being passed to the component underneath.
+				 */
+				UIManager.put("PopupMenu.consumeEventOnClose", Boolean.TRUE);
+				int fontSize = wm.getPropertyInt("ui.font_size", 12);
+				look.setDefaultFontSize(fontSize);
+			} catch (UnsupportedLookAndFeelException e) {
+				/*
+				 * Should not happen as StyledLookAndFeel always returns true for
+				 * isSupportedLookAndFeel()
+				 */
+				logger.error("Failed to set Look and Feel", e);
+			}
+
+			UIManager.getLookAndFeelDefaults().put("ClassLoader", stendhal.class.getClassLoader());
+
+			final Profile profile = Profile.createFromCommandline(args);
+
+			SwingUtilities.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					if (profile.isValid()) {
+						new LoginDialog(null, client).connect(profile);
+					} else {
+						splash = new StendhalFirstScreen(client);
+					}
 				}
-			}
-		});
+			});
 
-		waitForLogin();
-		CStatusSender.send();
-		
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				j2DClient locclient = new j2DClient(client, userContext);
-				perceptionDispatch.register(locclient.getPerceptionListener());
-				locclient.startGameLoop();
-			}
-		});
+			waitForLogin();
+			CStatusSender.send();
+
+			/*
+			 * Pass the continuous movement setting is to the server.
+			 * It is done in game loop to ensure that the server version is
+			 * known before sending the command, to avoid sending invalid
+			 * commands.
+			 */
+			GameLoop.get().runOnce(new Runnable() {
+				@Override
+				public void run() {
+					boolean moveContinuous = WtWindowManager.getInstance().getPropertyBoolean(MOVE_CONTINUOUS, false);
+					if (moveContinuous) {
+						new MoveContinuousAction().sendAction(true, false);
+					}
+				}
+			});
+
+			SwingUtilities.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					j2DClient locclient = new j2DClient(client, userContext, splash);
+					perceptionDispatch.register(locclient.getPerceptionListener());
+					locclient.startGameLoop();
+				}
+			});
+		}
 	}
 }

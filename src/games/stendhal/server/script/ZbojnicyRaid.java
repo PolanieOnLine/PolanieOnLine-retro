@@ -1,6 +1,5 @@
-/* $Id: OrcRaid.java,v 1.2 2010/10/07 17:10:26 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -17,7 +16,7 @@ import java.util.Map;
 
 /**
  * @author kymara
- * 
+ *
  * Atak hordy zbójeckiej
  */
 public class ZbojnicyRaid extends CreateRaid {

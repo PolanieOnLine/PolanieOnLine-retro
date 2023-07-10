@@ -1,5 +1,5 @@
 /***************************************************************************
- *                    (C) Copyright 2003-2009 - Stendhal                   *
+ *                    (C) Copyright 2003-2020 - Stendhal                   *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -18,10 +18,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import marauroa.server.db.DBTransaction;
-import marauroa.server.db.TransactionPool;
-
 import org.apache.log4j.Logger;
+
+import marauroa.server.db.DBTransaction;
 
 /**
  * database access for the hall of fame used in deathmatch
@@ -34,7 +33,7 @@ public class StendhalHallOfFameDAO {
 
 	/**
 	 * Returns the points in the specified hall of fame.
-	 * 
+	 *
 	 * @param transaction
 	 *            Transaction
 	 * @param charname
@@ -66,7 +65,7 @@ public class StendhalHallOfFameDAO {
 
 	/**
 	 * Stores an entry in the hall of fame.
-	 * 
+	 *
 	 * @param transaction
 	 *            Transaction
 	 * @param charname
@@ -90,7 +89,7 @@ public class StendhalHallOfFameDAO {
 			params.put("charname", charname);
 			params.put("fametype", fametype);
 
-			
+
 			final int count = transaction.execute(query, params);
 
 			if (count == 0) {
@@ -138,62 +137,5 @@ public class StendhalHallOfFameDAO {
 			res.add(resultSet.getString(1));
 		}
 		return res;
-	}
-
-	/**
-	 * Returns the points in the specified hall of fame.
-	 * 
-	 * @param charname name of the player
-	 * @param fametype type of the hall of fame
-	 * @return points or 0 in case there is no entry
-	 */
-	public int getHallOfFamePoints(final String charname, final String fametype) {
-		DBTransaction transaction = TransactionPool.get().beginWork();
-		int res = -1;
-		try {
-			res = getHallOfFamePoints(transaction, charname, fametype);
-			TransactionPool.get().commit(transaction);
-		} catch (SQLException e) {
-			TransactionPool.get().rollback(transaction);
-		}
-		return res;
-	}
-
-	/**
-	 * Stores an entry in the hall of fame.
-	 * 
-	 * @param charname name of the player
-	 * @param fametype type of the hall of fame
-	 * @param points points to store
-	 * @throws SQLException in case of an database error
-	 */
-	public void setHallOfFamePoints(final String charname, final String fametype, final int points) throws SQLException {
-		DBTransaction transaction = TransactionPool.get().beginWork();
-		try {
-			setHallOfFamePoints(transaction, charname, fametype, points);
-		} finally {
-			TransactionPool.get().commit(transaction);
-		}
-	}
-
-	/**
-	 * gets the characters who have taken part in the specified fametype
-	 *
-	 * @param fametype type of fame
-	 * @param max maximum number of returned characters
-	 * @param ascending sort ascending or descending
-	 * @return list of character names
-	 */
-	public List<String> getCharactersByFametype(String fametype, int max, boolean ascending) {
-		DBTransaction transaction = TransactionPool.get().beginWork();
-		try {
-			List<String> res = getCharactersByFametype(transaction, fametype, max, ascending);
-			TransactionPool.get().commit(transaction);
-			return res;
-		} catch (SQLException e) {
-			logger.error(e, e);
-			TransactionPool.get().rollback(transaction);
-			return new LinkedList<String>();
-		}
 	}
 }

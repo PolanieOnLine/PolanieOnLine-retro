@@ -1,4 +1,4 @@
-/* $Id: ListRaidsTest.java,v 1.4 2010/12/04 15:44:47 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -14,25 +14,25 @@ package games.stendhal.server.script;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertThat;
-import games.stendhal.server.entity.player.Player;
-import games.stendhal.server.maps.MockStendhalRPRuleProcessor;
-import games.stendhal.server.maps.MockStendlRPWorld;
 
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.maps.MockStendhalRPRuleProcessor;
+import games.stendhal.server.maps.MockStendlRPWorld;
 import utilities.PlayerTestHelper;
 
 public class ListRaidsTest {
 
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
+	public static void setUpBeforeClass() {
 		MockStendlRPWorld.get();
 	}
 
 	@After
-	public void tearDown() throws Exception {
+	public void tearDown() {
 		MockStendhalRPRuleProcessor.get().clearPlayers();
 	}
 
@@ -40,11 +40,10 @@ public class ListRaidsTest {
 	 * Tests for name.
 	 */
 	@Test
-	public void testname() throws Exception {
+	public void testname() {
 		ListRaids script = new ListRaids();
 		Player player = PlayerTestHelper.createPlayer("george");
 		script.execute(player, null);
-		assertThat(player.events().get(0).toString(), containsString("CreateRaid"));
+		assertThat(player.events().get(0).toString(), containsString("ZombieRaid"));
 	}
-
 }

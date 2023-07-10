@@ -1,4 +1,4 @@
-/* $Id: ViewPanel.java,v 1.5 2010/09/19 02:18:34 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -31,7 +31,7 @@ public abstract class ViewPanel extends JComponent {
 	 */
 	public ViewPanel() {
 		setLayout(new BorderLayout());
-		setOpaque(false);
+		setOpaque(true);
 	}
 
 	/**
@@ -39,7 +39,5 @@ public abstract class ViewPanel extends JComponent {
 	 *
 	 * @param maxSize of the panel
 	 */
-	public void prepareView(Dimension maxSize) {
-		// do nothing
-	}
+	public abstract void prepareView(Dimension maxSize);
 }

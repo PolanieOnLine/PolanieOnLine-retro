@@ -1,4 +1,3 @@
-/* $Id: Achievement.java,v 1.4 2012/02/20 07:11:00 madmetzger Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -17,40 +16,32 @@ import games.stendhal.server.entity.player.Player;
 /**
  * An Achievement a player can reach while playing the game.
  * Achievements are given for example for doing a certain number of quests or killing a number of special creatures
- *  
+ *
  * @author madmetzger
  */
 public class Achievement {
-	
 	/** base score for easy achievements */
 	public static final int EASY_BASE_SCORE = 1;
-	
 	/** base score for achievements of medium difficulty */
 	public static final int MEDIUM_BASE_SCORE = 2;
-	
 	/** base score for difficult achievements */
 	public static final int HARD_BASE_SCORE = 5;
-	
+	/** base score for very difficult achievements */
+	public static final int LEGENDARY_BASE_SCORE = 10;
+
 	private final String identifier;
-	
 	private final String title;
-	
 	private final Category category;
-	
 	private final String description;
-	
 	private final int baseScore;
-	
 	/** is this achievement visible? */
 	private final boolean active;
 
 	private final ChatCondition condition;
 
-	
-
 	/**
 	 * create a new achievement
-	 * 
+	 *
 	 * @param identifier
 	 * @param title
 	 * @param category
@@ -96,7 +87,7 @@ public class Achievement {
 	public String getDescription() {
 		return description;
 	}
-	
+
 	/**
 	 * @return the base score for this achievement
 	 */
@@ -113,6 +104,7 @@ public class Achievement {
 
 	/**
 	 * Check if a player has fulfilled this achievement
+	 *
 	 * @param p the player to check
 	 * @return true iff this achievement's condition evaluates to true
 	 */
@@ -124,5 +116,4 @@ public class Achievement {
 	public String toString() {
 		return "Achievement<id: "+identifier+", title: "+title+">";
 	}
-
 }

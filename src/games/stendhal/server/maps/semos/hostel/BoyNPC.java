@@ -1,6 +1,5 @@
-/* $Id: BoyNPC.java,v 1.2 2011/08/15 22:13:22 sjtsp2008 Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -11,6 +10,8 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.maps.semos.hostel;
+
+import java.util.Map;
 
 import games.stendhal.common.Direction;
 import games.stendhal.common.parser.Sentence;
@@ -24,14 +25,12 @@ import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.action.SayTextWithPlayerNameAction;
+import games.stendhal.server.entity.npc.action.SayTextAction;
 import games.stendhal.server.entity.npc.condition.AndCondition;
 import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
 import games.stendhal.server.entity.npc.condition.QuestCompletedCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotStartedCondition;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.Map;
 
 public class BoyNPC implements ZoneConfigurator {
 	/**
@@ -40,18 +39,13 @@ public class BoyNPC implements ZoneConfigurator {
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
-		buildSemosTownhallArea(zone, attributes);
+		buildSemosTownhallArea(zone);
 	}
 
-	private void buildSemosTownhallArea(final StendhalRPZone zone, final Map<String, String> attributes) {
+	private void buildSemosTownhallArea(final StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Tad") {
-
-			@Override
-			protected void createPath() {
-				setPath(null);
-			}
-
 			@Override
 			protected void createDialog() {
 				add(ConversationStates.IDLE,
@@ -60,45 +54,43 @@ public class BoyNPC implements ZoneConfigurator {
 								new GreetingMatchesNameCondition(getName()),
 								new QuestNotStartedCondition("introduce_players"),
 								new ChatCondition() {
+									@Override
 									public boolean fire(final Player player, final Sentence sentence, final Entity entity) {
 										return !player.isGhost();
 									}
 								}),
 				        ConversationStates.ATTENDING,
 				        null,
-				        new SayTextWithPlayerNameAction("Ciii! Podejdź [name]! Mam #zadanie dla Ciebie."));
-				
+				        new SayTextAction("Ciii! Podejdź tutaj [name]! Miałbym #zadanie dla Ciebie."));
+
 				// this is the condition for any other case while the quest is active, not covered by the quest.
 				add(ConversationStates.IDLE,
 						ConversationPhrases.GREETING_MESSAGES,
 						new GreetingMatchesNameCondition(getName()), true,
 				        ConversationStates.ATTENDING,
-				        "*pociągniecie nosem* *pociągniecie nosem* Wciąż czuje się chory. Pospiesz się z #przysługą dla mnie.",
+				        "*siąknięcie* *siąknięcie* Wciąż czuje się chory. Pospiesz się z #przysługą dla mnie.",
 				        null);
-				
+
 				add(ConversationStates.IDLE,
 						ConversationPhrases.GREETING_MESSAGES,
 						new AndCondition(new GreetingMatchesNameCondition(getName()),
 								new QuestCompletedCondition("introduce_players")),
 				        ConversationStates.ATTENDING,
 				        null,
-				        new SayTextWithPlayerNameAction("Witaj ponownie [name]! Dziękuję. Teraz czuję się znacznie lepiej."));
+				        new SayTextAction("Witaj ponownie [name]! Dziękuję. Teraz czuję się znacznie lepiej."));
 
 				addGoodbye();
 			}
 
-			/*
-			 * (non-Javadoc)
-			 * @see games.stendhal.server.entity.npc.SpeakerNPC#onGoodbye(games.stendhal.server.entity.RPEntity)
-			 */
 			@Override
 			protected void onGoodbye(RPEntity player) {
 				setDirection(Direction.LEFT);
 			}
-			
+
 		};
 
 		npc.addInitChatMessage(null, new ChatAction() {
+			@Override
 			public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 				if (!player.hasQuest("TadFirstChat")) {
 					player.setQuest("TadFirstChat", "done");
@@ -107,13 +99,11 @@ public class BoyNPC implements ZoneConfigurator {
 			}
 		});
 
-		npc.setEntityClass("childnpc");
 		npc.setDescription("Oto młody chłopak Tad. Wygląda źle, a jego twarz jest blada.");
-
+		npc.setEntityClass("childnpc");
+		npc.setGender("M");
 		npc.setPosition(18, 21);
 		npc.setDirection(Direction.LEFT);
-
-		npc.initHP(100);
 		zone.add(npc);
 	}
 }

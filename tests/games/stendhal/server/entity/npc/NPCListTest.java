@@ -1,4 +1,4 @@
-/* $Id: NPCListTest.java,v 1.9 2010/09/19 02:40:04 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -16,10 +16,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
-import games.stendhal.server.core.engine.SingletonRepository;
 
 import org.junit.Test;
 
+import games.stendhal.server.core.engine.SingletonRepository;
 import utilities.PlayerTestHelper;
 
 public class NPCListTest {

@@ -1,4 +1,4 @@
-/* $Id: ComplainAboutSentenceErrorAction.java,v 1.7 2012/09/09 12:19:56 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2011 - Stendhal                    *
  ***************************************************************************
@@ -19,9 +19,6 @@ import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.player.Player;
 
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
-
 /**
  * Tells the player that the NPC did not understand the sentence;
  * use it in combination with SentenceHasErrorCondition.
@@ -29,6 +26,7 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
 @Dev(category=Category.CHAT, label="Error")
 public class ComplainAboutSentenceErrorAction implements ChatAction {
 
+	@Override
 	public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 		if (sentence.hasError()) {
 			raiser.say("Przepraszam, ale nie rozumiem ciebie. "
@@ -43,12 +41,11 @@ public class ComplainAboutSentenceErrorAction implements ChatAction {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 5101;
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				ComplainAboutSentenceErrorAction.class);
+		return (obj instanceof ComplainAboutSentenceErrorAction);
 	}
 }

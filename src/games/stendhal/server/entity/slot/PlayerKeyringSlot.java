@@ -1,4 +1,4 @@
-/* $Id: PlayerKeyringSlot.java,v 1.3 2010/09/19 01:11:24 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -14,17 +14,17 @@ package games.stendhal.server.entity.slot;
 
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.player.Player;
+import marauroa.common.game.SlotOwner;
 
 /**
  * Keyring slots of players which contain items.
- * 
+ *
  * @author hendrik
  */
 public class PlayerKeyringSlot extends PlayerSlot {
-
 	/**
 	 * Creates a new PlayerSlot.
-	 * 
+	 *
 	 * @param player player
 	 */
 	public PlayerKeyringSlot(final String player) {
@@ -61,5 +61,16 @@ public class PlayerKeyringSlot extends PlayerSlot {
 		}
 		Player player = (Player) entity;
 		return (player.getFeature("keyring") != null);
+	}
+
+	@Override
+	public boolean isFull() {
+		final SlotOwner owner = getOwner();
+		if (!(owner instanceof Player)) {
+			return super.isFull();
+		}
+
+		int maxSize = ((Player) owner).getMaxSlotSize("keyring");
+		return size() >= maxSize;
 	}
 }

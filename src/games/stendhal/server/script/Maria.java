@@ -1,5 +1,8 @@
-/* $Id: Maria.java,v 1.25 2012/10/22 21:16:17 nhnb Exp $ */
 package games.stendhal.server.script;
+
+import java.util.List;
+
+import org.apache.log4j.Logger;
 
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.engine.SingletonRepository;
@@ -10,7 +13,6 @@ import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.EventRaiser;
-import games.stendhal.server.entity.npc.ShopList;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.npc.action.JailAction;
 import games.stendhal.server.entity.npc.action.MultipleActions;
@@ -23,21 +25,17 @@ import games.stendhal.server.entity.npc.condition.OrCondition;
 import games.stendhal.server.entity.npc.condition.QuestInStateCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotInStateCondition;
 import games.stendhal.server.entity.npc.condition.TimePassedCondition;
+import games.stendhal.server.entity.npc.shop.ShopsList;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.List;
-
-import org.apache.log4j.Logger;
-
 /**
- * Creates a portable NPC which sell foods&drinks, or optionally items from any other shop, 
+ * Creates a portable NPC which sell foods&drinks, or optionally items from any other shop,
  * at meetings.
- * 
+ *
  * As admin use /script Maria.class to summon her right next to you. Please put
  * her back in int_admin_playground after use.
  */
 public class Maria extends ScriptImpl {
-
 	private static Logger logger = Logger.getLogger(Maria.class);
 	private static final String QUEST_SLOT = "Ketteh";
 	private static final int GRACE_PERIOD = 1;
@@ -66,7 +64,6 @@ public class Maria extends ScriptImpl {
 
 	@Override
 	public void load(final Player admin, final List<String> args, final ScriptingSandbox sandbox) {
-
 		// Create NPC
 		final ScriptingNPC npc = new ScriptingNPC("Maria");
 		npc.setEntityClass("tavernbarmaidnpc");
@@ -77,15 +74,15 @@ public class Maria extends ScriptImpl {
 		int x = 11;
 		int y = 4;
 		String shop = "food&drinks";
-		final ShopList shops = SingletonRepository.getShopList();
+		final ShopsList shops = SingletonRepository.getShopsList();
 		if (args.size() > 0 ) {
 			if (shops.get(args.get(0))!= null) {
-				shop = args.get(0);		
+				shop = args.get(0);
 			} else {
-				admin.sendPrivateText(args.get(0) 
+				admin.sendPrivateText(args.get(0)
 						+ " nie rozpoznaję jako nazwy sklepu. Używam domyślnej food&drinks");
 			}
-		} 
+		}
 		// If this script is executed by an admin, Maria will be placed next to him.
 		if (admin != null) {
 			sandbox.setZone(sandbox.getZone(admin));
@@ -107,9 +104,9 @@ public class Maria extends ScriptImpl {
 			"Znajduje się z lewej strony świątyni.");
 		npc.behave("help",
 				"Możesz otrzymać #ofertę napojów lub zrobić przerwę na poznanie nowych ludzi!");
-		npc.behave("bye", "Dowidzenia, dowidzenia!");
+		npc.behave("bye", "Do widzenia, do widzenia!");
 		try {
-			npc.behave("sell", SingletonRepository.getShopList().get(shop));
+			npc.behave("sell", SingletonRepository.getShopsList().get(shop));
 		} catch (final NoSuchMethodException e) {
 			logger.error(e, e);
 		}
@@ -164,7 +161,7 @@ public class Maria extends ScriptImpl {
 					new MultipleActions(
 							new SetQuestAction(QUEST_SLOT,0, "seen_naked"),
 							new SetQuestToTimeStampAction(QUEST_SLOT,1),
-							new JailAction(JAIL_TIME,"Maria aresztowała cię za chodzenie nago w miejscu publicznym!")));
+							new JailAction(JAIL_TIME, "Maria aresztowała cię za chodzenie nago w miejscu publicznym!")));
 	}
 
 }

@@ -1,4 +1,4 @@
-/* $Id: KillDhohrNuggetcutterTest.java,v 1.3 2011/01/17 21:33:08 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2011 - Stendhal                    *
  ***************************************************************************
@@ -15,15 +15,15 @@ package games.stendhal.server.maps.quests;
 
 import static org.junit.Assert.assertEquals;
 import static utilities.SpeakerNPCTestHelper.getReply;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.fsm.Engine;
-import games.stendhal.server.maps.ados.abandonedkeep.OrcKillGiantDwarfNPC;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.entity.npc.SpeakerNPC;
+import games.stendhal.server.entity.npc.fsm.Engine;
+import games.stendhal.server.maps.ados.abandonedkeep.OrcKillGiantDwarfNPC;
 import utilities.QuestHelper;
 import utilities.ZonePlayerAndNPCTestImpl;
 
@@ -49,13 +49,14 @@ public class KillDhohrNuggetcutterTest extends ZonePlayerAndNPCTestImpl {
 		super(ZONE_NAME, "Zogfang");
 	}
 
+	@Override
 	@Before
 	public void setUp() throws Exception {
 		super.setUp();
 
 		new OrcKillGiantDwarfNPC().configureZone(zone, null);
 
-		AbstractQuest quest = new KillDhohrNuggetcutter();
+		quest = new KillDhohrNuggetcutter();
 		quest.addToWorld();
 
 		questSlot = quest.getSlotName();
@@ -67,88 +68,88 @@ public class KillDhohrNuggetcutterTest extends ZonePlayerAndNPCTestImpl {
 		en = npc.getEngine();
 
 		en.step(player, "hi");
-		assertEquals("Hello my fine fellow. Welcome to our humble dwelling.", getReply(npc));
+		assertEquals("Cześć przyjacielu. Witaj w naszych skromnych progach.", getReply(npc));
 		en.step(player, "task");
-		assertEquals("We are unable to rid our area of dwarves. Especially one mighty one named Dhohr Nuggetcutter. Would you please kill them?", getReply(npc));
+		assertEquals("Nie możemy uwolnić naszego obszaru od krasnali. Szczególnie od takiego zwanego Dhohr Nuggetcutter. Czy mógłbyś go zabić?", getReply(npc));
 		en.step(player, "no");
-		assertEquals("Ok, I will await someone with enough backbone to do the job.", getReply(npc));
+		assertEquals("Dobrze, poczekam na kogoś odpowiedniego do tego zadania.", getReply(npc));
 		assertEquals("rejected", player.getQuest(questSlot));
 		en.step(player, "bye");
-		assertEquals("I wish you well on your journeys.", getReply(npc));
+		assertEquals("Życzę powodzenia na wyprawach.", getReply(npc));
 
 		// -----------------------------------------------
 
 		en.step(player, "hi");
-		assertEquals("Hello my fine fellow. Welcome to our humble dwelling.", getReply(npc));
+		assertEquals("Cześć przyjacielu. Witaj w naszych skromnych progach.", getReply(npc));
 		en.step(player, "task");
-		assertEquals("We are unable to rid our area of dwarves. Especially one mighty one named Dhohr Nuggetcutter. Would you please kill them?", getReply(npc));
+		assertEquals("Nie możemy uwolnić naszego obszaru od krasnali. Szczególnie od takiego zwanego Dhohr Nuggetcutter. Czy mógłbyś go zabić?", getReply(npc));
 		en.step(player, "yes");
-		assertEquals("Great! Please find them somewhere in this level of the keep and make them pay for their tresspassing!", getReply(npc));
+		assertEquals("Wspaniale! Proszę, znajdź ich gdzieś na tym poziomie i niech zapłacą za przekroczenie granicy!", getReply(npc));
 		assertEquals("start", player.getQuest(questSlot, 0));
 		en.step(player, "bye");
-		assertEquals("I wish you well on your journeys.", getReply(npc));
+		assertEquals("Życzę powodzenia na wyprawach.", getReply(npc));
 
 		// -----------------------------------------------
 
 		en.step(player, "hi");
-		assertEquals("Just go kill Dhohr Nuggetcutter and his minions; the mountain leader, hero and elder dwarves. Even the simple mountain dwarves are a danger to us, kill them too.", getReply(npc));
+		assertEquals("Po prostu idź zabić Dhohra Nuggetcuttera i jego sługusów: górskiego krasnala lidera, bohatera oraz starszego krasnala. Nawet proste krasnale górskie są dla nas zagrożeniem, ich też zabij.", getReply(npc));
 		en.step(player, "task");
-		assertEquals("I already asked you to kill Dhohr Nuggetcutter!", getReply(npc));
+		assertEquals("Już się Ciebie pytałem o zabicie Dhohr Nuggetcutter!", getReply(npc));
 		en.step(player, "bye");
-		assertEquals("I wish you well on your journeys.", getReply(npc));
+		assertEquals("Życzę powodzenia na wyprawach.", getReply(npc));
 
 		// kill Dhohr Nuggetcutter
 		player.setSoloKill("Dhohr Nuggetcutter");
 		en.step(player, "hi");
-		assertEquals("Just go kill Dhohr Nuggetcutter and his minions; the mountain leader, hero and elder dwarves. Even the simple mountain dwarves are a danger to us, kill them too.", getReply(npc));
+		assertEquals("Po prostu idź zabić Dhohra Nuggetcuttera i jego sługusów: górskiego krasnala lidera, bohatera oraz starszego krasnala. Nawet proste krasnale górskie są dla nas zagrożeniem, ich też zabij.", getReply(npc));
 		en.step(player, "task");
-		assertEquals("I already asked you to kill Dhohr Nuggetcutter!", getReply(npc));
+		assertEquals("Już się Ciebie pytałem o zabicie Dhohr Nuggetcutter!", getReply(npc));
 		en.step(player, "done");
 		en.step(player, "bye");
-		assertEquals("I wish you well on your journeys.", getReply(npc));
+		assertEquals("Życzę powodzenia na wyprawach.", getReply(npc));
 
 		// -----------------------------------------------
 
 		en.step(player, "hi");
-		assertEquals("Just go kill Dhohr Nuggetcutter and his minions; the mountain leader, hero and elder dwarves. Even the simple mountain dwarves are a danger to us, kill them too.", getReply(npc));
+		assertEquals("Po prostu idź zabić Dhohra Nuggetcuttera i jego sługusów: górskiego krasnala lidera, bohatera oraz starszego krasnala. Nawet proste krasnale górskie są dla nas zagrożeniem, ich też zabij.", getReply(npc));
 		en.step(player, "task");
-		assertEquals("I already asked you to kill Dhohr Nuggetcutter!", getReply(npc));
+		assertEquals("Już się Ciebie pytałem o zabicie Dhohr Nuggetcutter!", getReply(npc));
 		en.step(player, "bye");
-		assertEquals("I wish you well on your journeys.", getReply(npc));
+		assertEquals("Życzę powodzenia na wyprawach.", getReply(npc));
 
 		// kill some other of the enemies
-		player.setSoloKill("mountain leader dwarf");
-		player.setSoloKill("mountain leader dwarf");
+		player.setSoloKill("górski krasnal lider");
+		player.setSoloKill("górski krasnal lider");
 		en.step(player, "hi");
-		assertEquals("Just go kill Dhohr Nuggetcutter and his minions; the mountain leader, hero and elder dwarves. Even the simple mountain dwarves are a danger to us, kill them too.", getReply(npc));
+		assertEquals("Po prostu idź zabić Dhohra Nuggetcuttera i jego sługusów: górskiego krasnala lidera, bohatera oraz starszego krasnala. Nawet proste krasnale górskie są dla nas zagrożeniem, ich też zabij.", getReply(npc));
 		en.step(player, "task");
-		assertEquals("I already asked you to kill Dhohr Nuggetcutter!", getReply(npc));
-		player.setSoloKill("mountain orc");
-		player.setSoloKill("mountain orc");
+		assertEquals("Już się Ciebie pytałem o zabicie Dhohr Nuggetcutter!", getReply(npc));
+		player.setSoloKill("górski ork");
+		player.setSoloKill("górski ork");
 		en.step(player, "bye");
-		assertEquals("I wish you well on your journeys.", getReply(npc));
+		assertEquals("Życzę powodzenia na wyprawach.", getReply(npc));
 
 		// now kill all remaining creatures
-		player.setSoloKill("orc hunter");
-		player.setSoloKill("mountain orc warrior");
-		player.setSoloKill("mountain orc");
-		player.setSoloKill("mountain hero dwarf");
-		player.setSoloKill("mountain hero dwarf");
-		player.setSoloKill("mountain elder dwarf");
-		player.setSoloKill("mountain elder dwarf");
-		player.setSoloKill("mountain leader dwarf");
-		player.setSoloKill("mountain leader dwarf");
-		player.setSoloKill("mountain dwarf");
-		player.setSoloKill("mountain dwarf");
+		player.setSoloKill("ork łowca");
+		player.setSoloKill("górski ork łowca");
+		player.setSoloKill("górski ork");
+		player.setSoloKill("górski krasnal bohater");
+		player.setSoloKill("górski krasnal bohater");
+		player.setSoloKill("górski starszy krasnal");
+		player.setSoloKill("górski starszy krasnal");
+		player.setSoloKill("górski krasnal lider");
+		player.setSoloKill("górski krasnal lider");
+		player.setSoloKill("górski krasnal");
+		player.setSoloKill("górski krasnal");
 
 		en.step(player, "hi");
-		assertEquals("Thank you so much. You are a warrior, indeed! Here, have one of these. We have found them scattered about. We have no idea what they are.", getReply(npc));
+		assertEquals("Bardzo dziękuję. Rzeczywiście jesteś wojownikiem! Masz jeden z nich. Znaleźliśmy je porozrzucane wokoło. Nie mamy pojęcia, czym one są.", getReply(npc));
 		assertEquals(4000, player.getXP());
 		assertEquals("killed", player.getQuest(questSlot, 0));
 
 		en.step(player, "task");
-		assertEquals("Thank you for helping us. Maybe you could come back later. The dwarves might return. Try back in 2 weeks.", getReply(npc));
+		assertEquals("Dziękuję za pomoc. Może przyjdziesz później. Krasnale mogą wrócić. Wróć do 2 tygodni.", getReply(npc));
 		en.step(player, "bye");
-		assertEquals("I wish you well on your journeys.", getReply(npc));
+		assertEquals("Życzę powodzenia na wyprawach.", getReply(npc));
 	}
 }

@@ -1,6 +1,5 @@
-/* $Id: JailedBarbNPC.java,v 1.10 2010/09/19 02:31:18 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,16 +11,17 @@
  ***************************************************************************/
 package games.stendhal.server.maps.amazon.hut;
 
-import games.stendhal.server.core.config.ZoneConfigurator;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.core.pathfinder.FixedPath;
-import games.stendhal.server.core.pathfinder.Node;
-import games.stendhal.server.entity.npc.SpeakerNPC;
-
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import games.stendhal.server.core.config.ZoneConfigurator;
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.core.pathfinder.FixedPath;
+import games.stendhal.server.core.pathfinder.Node;
+import games.stendhal.server.entity.CollisionAction;
+import games.stendhal.server.entity.npc.SpeakerNPC;
 
 /**
  * Builds the jailed Barbarian in Prison Hut on amazon island.
@@ -29,23 +29,19 @@ import java.util.Map;
  * @author Teiv
  */
 public class JailedBarbNPC implements ZoneConfigurator {
-	//
-	// ZoneConfigurator
-	//
-
 	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
-		buildNPC(zone, attributes);
+		buildNPC(zone);
 	}
 
-	private void buildNPC(final StendhalRPZone zone, final Map<String, String> attributes) {
-		final SpeakerNPC JailedBarbNPC = new SpeakerNPC("Lorenz") {
-
+	private void buildNPC(final StendhalRPZone zone) {
+		final SpeakerNPC jailedBarbNPC = new SpeakerNPC("Lorenz") {
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -71,14 +67,15 @@ public class JailedBarbNPC implements ZoneConfigurator {
 				addReply(Arrays.asList("straży", "guard"),"Hm powiedziałem. Nic Ci nie powiem!");
 				addHelp("Zabij tyle Amazonek ile tylko możesz. Próbują mnie wpędzić w obłęd z tymi głupimi kwiatkami.");
 				addOffer("Nie mam nic do zaoferowania!");
-				addGoodbye("Dowidzenia i zetnij trochę tych wstrętnych kwiatków!");
+				addGoodbye("Do widzenia i zetnij trochę tych wstrętnych kwiatków!");
 			}
 		};
 
-		JailedBarbNPC.setEntityClass("jailedbarbariannpc");
-		JailedBarbNPC.setPosition(11, 12);
-		JailedBarbNPC.initHP(100);
-		JailedBarbNPC.setDescription("Widzisz uwięzionego barbarzyńce Lorenza. Co on zrobił amazonkom?");
-		zone.add(JailedBarbNPC);
+		jailedBarbNPC.setDescription("Oto uwięziony barbarzyńca, Lorenz. Co on zrobił amazonkom?");
+		jailedBarbNPC.setEntityClass("jailedbarbariannpc");
+		jailedBarbNPC.setGender("M");
+		jailedBarbNPC.setPosition(11, 12);
+		jailedBarbNPC.setCollisionAction(CollisionAction.STOP);
+		zone.add(jailedBarbNPC);
 	}
 }

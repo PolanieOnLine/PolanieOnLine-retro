@@ -1,4 +1,4 @@
-/* $Id: FeaturesTestArea.java,v 1.46 2010/09/19 02:28:00 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +12,11 @@
  ***************************************************************************/
 package games.stendhal.server.maps;
 
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
@@ -22,10 +27,6 @@ import games.stendhal.server.entity.creature.Creature;
 import games.stendhal.server.entity.creature.ItemGuardCreature;
 import games.stendhal.server.entity.item.Item;
 import games.stendhal.server.entity.mapstuff.spawner.CreatureRespawnPoint;
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 public class FeaturesTestArea implements ZoneConfigurator {
 
@@ -41,12 +42,13 @@ public class FeaturesTestArea implements ZoneConfigurator {
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
-		createDoorAndKey(zone, attributes);
-		attackableAnimal(zone, attributes);
+		createDoorAndKey(zone);
+		attackableAnimal(zone);
 	}
 
-	private void createDoorAndKey(final StendhalRPZone zone, final Map<String, String> attributes) {
+	private void createDoorAndKey(final StendhalRPZone zone) {
 		final List<String> slots = new LinkedList<String>();
 		slots.add("bag");
 
@@ -54,6 +56,8 @@ public class FeaturesTestArea implements ZoneConfigurator {
 		item.setImplementation(Item.class);
 		item.setWeight(1);
 		item.setEquipableSlots(slots);
+		item.setAttributes(new HashMap<>());
+		item.setUnattainable(true);
 		manager.addItem(item);
 
 		final Creature creature = new ItemGuardCreature(manager.getCreature("szczur"), "golden key");
@@ -61,7 +65,7 @@ public class FeaturesTestArea implements ZoneConfigurator {
 		zone.add(point);
 	}
 
-	private void attackableAnimal(final StendhalRPZone zone, final Map<String, String> attributes) {
+	private void attackableAnimal(final StendhalRPZone zone) {
 		Creature creature = new AttackableCreature(manager.getCreature("ork"));
 		CreatureRespawnPoint point = new CreatureRespawnPoint(zone, 4, 56, creature, 1);
 		point.setRespawnTime(60 * 60 * 3);

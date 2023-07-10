@@ -1,4 +1,3 @@
-/* $Id: BlacksmithNPC.java,v 1.34 2011/05/01 19:50:07 martinfuchs Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -11,6 +10,15 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.maps.wofol.blacksmith;
+
+import java.util.Arrays;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+import org.apache.log4j.Logger;
 
 import games.stendhal.common.grammar.Grammar;
 import games.stendhal.common.grammar.ItemParserResult;
@@ -32,21 +40,12 @@ import games.stendhal.server.entity.npc.condition.QuestActiveCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotActiveCondition;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
-import org.apache.log4j.Logger;
 /**
  * Configure Wofol Blacksmith (-1_semos_mine_nw).
  *
  * @author kymara
  */
 public class BlacksmithNPC implements ZoneConfigurator {
-
 	private static Logger logger = Logger.getLogger(BlacksmithNPC.class);
 
 	private static final String QUEST_SLOT = "alrak_make_bobbin";
@@ -63,13 +62,13 @@ public class BlacksmithNPC implements ZoneConfigurator {
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildBlacksmith(zone);
 	}
 
 	private void buildBlacksmith(final StendhalRPZone zone) {
 		final SpeakerNPC dwarf = new SpeakerNPC("Alrak") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -105,7 +104,7 @@ public class BlacksmithNPC implements ZoneConfigurator {
 				// make sure alrak tells player to remind him to get bobbin back by overriding transactAgreedDeal
 				// override giveProduct so that he doesn't say 'welcome back', which is a greeting,
 				// in the middle of an active conversation.
-				class SpecialProducerBehaviour extends ProducerBehaviour { 
+				class SpecialProducerBehaviour extends ProducerBehaviour {
 					SpecialProducerBehaviour(final List<String> productionActivity,
                         final String productName, final Map<String, Integer> requiredResourcesPerItem,
 											 final int productionTimePerItem) {
@@ -116,7 +115,7 @@ public class BlacksmithNPC implements ZoneConfigurator {
 					/**
 					 * Tries to take all the resources required to produce the agreed amount of
 					 * the product from the player. If this is possible, initiates an order.
-					 * 
+					 *
 					 * @param npc
 					 *            the involved NPC
 					 * @param player
@@ -132,7 +131,7 @@ public class BlacksmithNPC implements ZoneConfigurator {
 							npc.say("Hej! Już skończyłem! Nie próbuj mnie oszukać...");
 							return false;
 						} else {
-							for (final Map.Entry<String, Integer> entry : getRequiredResourcesPerItem().entrySet()) {
+							for (final Map.Entry<String, Integer> entry : getRequiredResourcesPerUnit().entrySet()) {
 								final int amountToDrop = amount * entry.getValue();
 								player.drop(entry.getKey(), amountToDrop);
 							}
@@ -150,20 +149,20 @@ public class BlacksmithNPC implements ZoneConfigurator {
 							return true;
 						}
 					}
-					
+
 					/**
 					 * This method is called when the player returns to pick up the finished
 					 * product. It checks if the NPC is already done with the order. If that is
 					 * the case, the player is given the product. Otherwise, the NPC asks the
 					 * player to come back later.
-					 * 
+					 *
 					 * @param npc
 					 *            The producing NPC
 					 * @param player
 					 *            The player who wants to fetch the product
 					 */
 					@Override
-						public void giveProduct(final EventRaiser npc, final Player player) {
+					public void giveProduct(final EventRaiser npc, final Player player) {
 						final String orderString = player.getQuest(QUEST_SLOT);
 						final String[] order = orderString.split(";");
 						final int numberOfProductItems = Integer.parseInt(order[0]);
@@ -183,8 +182,7 @@ public class BlacksmithNPC implements ZoneConfigurator {
 
 							player.equipOrPutOnGround(products);
 							npc.say("Skończyłem! Oto "
-									+ Grammar.quantityplnoun(numberOfProductItems,
-															 getProductName(), "") + ".");
+									+ Grammar.quantityplnoun(numberOfProductItems, getProductName()) + ".");
 							player.setQuest(QUEST_SLOT, "done");
 							// give some XP as a little bonus for industrious workers
 							player.addXP(numberOfProductItems);
@@ -192,7 +190,7 @@ public class BlacksmithNPC implements ZoneConfigurator {
 						}
 					}
 				}
-				
+
 				final ProducerBehaviour behaviour = new SpecialProducerBehaviour(Arrays.asList("make", "zrób"), "szpulka do maszyny",
 				        requiredResources, 10 * 60);
 
@@ -200,68 +198,66 @@ public class BlacksmithNPC implements ZoneConfigurator {
 				// we can't do that here because Pequod uses that all the time in his fishing quest. so player is going to have to #remind
 				// him if he wants his oil back!
 
-				add(
-				ConversationStates.ATTENDING,
-				Arrays.asList("make", "zrób"),
-				new QuestNotActiveCondition(behaviour.getQuestSlot()),
-				ConversationStates.ATTENDING, null,
-				new ProducerBehaviourAction(behaviour) {
-					@Override
-					public void fireRequestOK(final ItemParserResult res, final Player player, final Sentence sentence, final EventRaiser npc) {
-						// Find out how much items we shall produce.
-						if (res.getAmount() > 1000) {
-							logger.warn("Decreasing very large amount of "
-									+ res.getAmount()
-									+ " " + res.getChosenItemName()
-									+ " to 1 for player "
-									+ player.getName() + " talking to "
-									+ npc.getName() + " saying " + sentence);
-							res.setAmount(1);
+				add(ConversationStates.ATTENDING,
+					Arrays.asList("make", "zrób"),
+					new QuestNotActiveCondition(behaviour.getQuestSlot()),
+					ConversationStates.ATTENDING, null,
+					new ProducerBehaviourAction(behaviour) {
+						@Override
+						public void fireRequestOK(final ItemParserResult res, final Player player, final Sentence sentence, final EventRaiser npc) {
+							// Find out how much items we shall produce.
+							if (res.getAmount() > 1000) {
+								logger.warn("Decreasing very large amount of "
+										+ res.getAmount()
+										+ " " + res.getChosenItemName()
+										+ " to 1 for player "
+										+ player.getName() + " talking to "
+										+ npc.getName() + " saying " + sentence);
+								res.setAmount(1);
+							}
+	
+							if (behaviour.askForResources(res, npc, player)) {
+								currentBehavRes = res;
+								npc.setCurrentState(ConversationStates.PRODUCTION_OFFERED);
+							}
 						}
+					});
 
-						if (behaviour.askForResources(res, npc, player)) {
-							currentBehavRes = res;
-							npc.setCurrentState(ConversationStates.PRODUCTION_OFFERED);
-						}
-					}
-				});
+				add(ConversationStates.PRODUCTION_OFFERED,
+						ConversationPhrases.YES_MESSAGES, null,
+						ConversationStates.ATTENDING, null,
+						new ChatAction() {
+							@Override
+							public void fire(final Player player, final Sentence sentence,
+								final EventRaiser npc) {
+									behaviour.transactAgreedDeal(currentBehavRes, npc, player);
+		
+									currentBehavRes = null;
+								}
+						});
+	
+				add(ConversationStates.PRODUCTION_OFFERED,
+						ConversationPhrases.NO_MESSAGES, null,
+						ConversationStates.ATTENDING, "Dobrze, nie ma problemu.", null);
+		
+				add(ConversationStates.ATTENDING,
+						Arrays.asList("remind", "przypomnij"),
+						new QuestActiveCondition(behaviour.getQuestSlot()),
+						ConversationStates.ATTENDING, null,
+						new ChatAction() {
+							@Override
+							public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
+								behaviour.giveProduct(npc, player);
+							}
+						});
 
-		add(ConversationStates.PRODUCTION_OFFERED,
-				ConversationPhrases.YES_MESSAGES, null,
-				ConversationStates.ATTENDING, null,
-				new ChatAction() {
-					public void fire(final Player player, final Sentence sentence,
-						final EventRaiser npc) {
-							behaviour.transactAgreedDeal(currentBehavRes, npc, player);
-
-							currentBehavRes = null;
-						}
-				});
-
-		add(ConversationStates.PRODUCTION_OFFERED,
-				ConversationPhrases.NO_MESSAGES, null,
-				ConversationStates.ATTENDING, "Dobrze, nie ma problemu.", null);
-
-		add(ConversationStates.ATTENDING,
-				Arrays.asList("remind", "przypomnij"),
-				new QuestActiveCondition(behaviour.getQuestSlot()),
-				ConversationStates.ATTENDING, null,
-				new ChatAction() {
-					public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
-						behaviour.giveProduct(npc, player);
-					}
-				});
-			
-			}
-				
-
-		    //remaining behaviour defined in maps.quests.ObsidianKnife
-			};
+			}//remaining behaviour defined in maps.quests.ObsidianKnife
+		};
 
 		dwarf.setDescription("Oto Alrak, kowal krasnali i pustelnik.");
 		dwarf.setEntityClass("dwarfnpc");
+		dwarf.setGender("M");
 		dwarf.setPosition(22, 8);
-		dwarf.initHP(100);
 		zone.add(dwarf);
 	}
 }

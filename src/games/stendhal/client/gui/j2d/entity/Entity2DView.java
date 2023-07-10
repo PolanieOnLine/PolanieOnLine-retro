@@ -1,6 +1,5 @@
-/* $Id: Entity2DView.java,v 1.65 2012/11/25 10:30:42 kiheru Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2022 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -11,26 +10,6 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.client.gui.j2d.entity;
-
-//
-//
-
-import games.stendhal.client.IGameScreen;
-import games.stendhal.client.stendhal;
-import games.stendhal.client.entity.ActionType;
-import games.stendhal.client.entity.EntityChangeListener;
-import games.stendhal.client.entity.IEntity;
-import games.stendhal.client.entity.ImageEventProperty;
-import games.stendhal.client.entity.Inspector;
-import games.stendhal.client.entity.User;
-import games.stendhal.client.gui.j2DClient;
-import games.stendhal.client.gui.j2d.ImageEffect;
-import games.stendhal.client.gui.j2d.entity.helpers.HorizontalAlignment;
-import games.stendhal.client.gui.j2d.entity.helpers.VerticalAlignment;
-import games.stendhal.client.gui.styled.cursor.StendhalCursor;
-import games.stendhal.client.sprite.AnimatedSprite;
-import games.stendhal.client.sprite.Sprite;
-import games.stendhal.client.sprite.SpriteStore;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
@@ -46,13 +25,31 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.log4j.Logger;
 
+import games.stendhal.client.IGameScreen;
+import games.stendhal.client.stendhal;
+import games.stendhal.client.entity.ActionType;
+import games.stendhal.client.entity.EntityChangeListener;
+import games.stendhal.client.entity.IEntity;
+import games.stendhal.client.entity.ImageEventProperty;
+import games.stendhal.client.entity.Inspector;
+import games.stendhal.client.entity.RPEntity;
+import games.stendhal.client.entity.User;
+import games.stendhal.client.gui.j2DClient;
+import games.stendhal.client.gui.j2d.ImageEffect;
+import games.stendhal.client.gui.j2d.entity.helpers.HorizontalAlignment;
+import games.stendhal.client.gui.j2d.entity.helpers.VerticalAlignment;
+import games.stendhal.client.gui.styled.cursor.StendhalCursor;
+import games.stendhal.client.sprite.AnimatedSprite;
+import games.stendhal.client.sprite.Sprite;
+import games.stendhal.client.sprite.SpriteStore;
+import marauroa.common.game.RPObject;
+
 /**
  * The 2D view of an entity.
- * 
+ *
  * @param <T> type of entity
  */
-public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
-	EntityChangeListener<T> {
+public abstract class Entity2DView<T extends IEntity> implements EntityView<T> {
 	/**
 	 * The entity this view is for.
 	 */
@@ -61,7 +58,7 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 	/**
 	 * The entity drawing composite.
 	 */
-	protected Composite entityComposite;
+	private Composite entityComposite;
 
 	/**
 	 * Model values affecting animation.
@@ -91,7 +88,7 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 	/**
 	 * The X alignment offset.
 	 */
-	protected int xoffset;
+	private int xoffset;
 
 	/**
 	 * The screen Y coordinate.
@@ -101,7 +98,7 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 	/**
 	 * The Y alignment offset.
 	 */
-	protected int yoffset;
+	private int yoffset;
 
 	/**
 	 * The entity image (or current one at least).
@@ -112,7 +109,9 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 	 * Whether this view is contained.
 	 */
 	private boolean contained;
-	
+	private HorizontalAlignment xAlign = HorizontalAlignment.CENTER;
+	private VerticalAlignment yAlign = VerticalAlignment.MIDDLE;
+
 	/**
 	 * Some model value changed.
 	 */
@@ -126,10 +125,19 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 	 */
 	private volatile boolean released = false;
 	/**
-	 * A Hack to toggle the changed flag <em>after</em> entityChanged() has been
-	 * run (including any overrides in subclasses).
+	 * Listener for entity changes. Forwards the changes to the the EntityView.
+	 * The purpose is that extending classes get a chance to process the changes
+	 * before the {@link #changed} flag is toggled.
 	 */
-	private final UpdateFlagChanger updateFlagChanger = new UpdateFlagChanger(); 
+	private final UpdateListener updateListener = new UpdateListener();
+	/**
+	 * The area rectangle. Reused because it's otherwise one of the most
+	 * allocated objects.
+	 */
+	private final Rectangle area = new Rectangle();
+
+	/** determines if sprite animation cycles while idle */
+	private boolean activeIdle = false;
 
 	@Override
 	public void initialize(final T entity) {
@@ -137,8 +145,7 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 			throw new IllegalArgumentException("entity must not be null");
 		}
 		if (this.entity != null) {
-			this.entity.removeChangeListener(this);
-			this.entity.removeChangeListener(updateFlagChanger);
+			this.entity.removeChangeListener(updateListener);
 		}
 		this.entity = entity;
 
@@ -155,10 +162,14 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 		visibilityChanged = true;
 		representationChanged = true;
 
-		// In this order, to ensure the changed flag is toggled only after all
-		// the changes have been made.
-		entity.addChangeListener(this);
-		entity.addChangeListener(updateFlagChanger);
+		entity.addChangeListener(updateListener);
+
+		if (entity instanceof RPEntity) {
+			final RPObject obj = ((RPEntity) entity).getRPObject();
+			if (obj.has("active_idle")) {
+				activeIdle = true;
+			}
+		}
 	}
 
 	//
@@ -168,7 +179,8 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 	/**
 	 * Handle entity changes.
 	 */
-	protected void applyChanges() {
+	@Override
+	public void applyChanges() {
 		if (changed) {
 			changed = false;
 			update();
@@ -178,26 +190,41 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 	/**
 	 * Build a list of entity specific actions. <strong>NOTE: The first entry
 	 * should be the default.</strong>
-	 * 
+	 *
 	 * @param list
 	 *            The list to populate.
 	 */
 	protected void buildActions(final List<String> list) {
+		if (entity.getRPObject().has("menu")) {
+			list.add(entity.getRPObject().get("menu"));
+		}
 		list.add(ActionType.LOOK.getRepresentation());
 	}
 
 	/**
 	 * Rebuild the representation using the base entity.
-	 * 
+	 *
 	 * @param entity the eEntity to build the representation for
 	 */
 	protected void buildRepresentation(T entity) {
 		setSprite(SpriteStore.get().getSprite(translate(entity.getType())));
+		calculateOffset(entity, getWidth(), getHeight());
+	}
+
+	/**
+	 * Set the alignment of the sprite.
+	 *
+	 * @param xAlign horizontal position
+	 * @param yAlign vertical position
+	 */
+	void setSpriteAlignment(HorizontalAlignment xAlign, VerticalAlignment yAlign) {
+		this.xAlign = xAlign;
+		this.yAlign = yAlign;
 	}
 
 	/**
 	 * Calculate sprite image offset for the entity.
-	 * 
+	 *
 	 * @param entity entity
 	 * @param swidth
 	 *            The sprite width (in pixels).
@@ -212,9 +239,11 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 	}
 
 	/**
-	 * Calculate sprite image offset (default centered). Sub-classes may
-	 * override this to change alignment.
-	 * 
+	 * Calculate sprite image offset The result depends on the alignment
+	 * specified with
+	 * {@link #setSpriteAlignment(HorizontalAlignment, VerticalAlignment)}. The
+	 * default if centered in both directions.
+	 *
 	 * @param swidth
 	 *            The sprite width (in pixels).
 	 * @param sheight
@@ -224,32 +253,47 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 	 * @param eheight
 	 *            The entity height (in pixels).
 	 */
-	protected void calculateOffset(final int swidth, final int sheight,
+	private void calculateOffset(final int swidth, final int sheight,
 			final int ewidth, final int eheight) {
-		/*
-		 * X alignment centered, Y alignment centered
-		 */
-		xoffset = (ewidth - swidth) / 2;
-		yoffset = (eheight - sheight) / 2;
+		switch (xAlign) {
+		case LEFT:
+			xoffset = 0;
+			break;
+		case RIGHT:
+			xoffset = ewidth - swidth;
+			break;
+		default:
+			xoffset = (ewidth - swidth) / 2;
+		}
+		switch (yAlign) {
+		case TOP:
+			yoffset = 0;
+			break;
+		case BOTTOM:
+			yoffset = eheight - sheight;
+			break;
+		default:
+			yoffset = (eheight - sheight) / 2;
+		}
 	}
 
 	/**
 	 * Mark this as changed. This will force the <code>update()</code> method to
 	 * be called.
 	 */
-	protected void markChanged() {
+	void markChanged() {
 		changed = true;
 	}
 
 	/**
 	 * Attach a sprite to the view. These are drawn on top of the main view
-	 * sprite. 
-	 * 
-	 * @param sprite 
+	 * sprite.
+	 *
+	 * @param sprite
 	 * @param xAlign alignment in horizontal direction
 	 * @param yAlign alignment in vertical direction
 	 * @param xOffset x coordinate offset that is used <b>in addition</b> to
-	 * 	the alignment information 
+	 * 	the alignment information
 	 * @param yOffset y coordinate offset that is used <b>in addition</b> to
 	 * 	the alignment information
 	 */
@@ -266,7 +310,7 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 			x += (getWidth() - sprite.getWidth()) / 2;
 			break;
 		}
-		
+
 		int y = yOffset;
 		switch (yAlign) {
 		case TOP:
@@ -278,7 +322,7 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 			y += getHeight() - sprite.getHeight();
 			break;
 		}
-	
+
 		synchronized (this) {
 			if (attachedSprites == null) {
 				attachedSprites = new ConcurrentLinkedQueue<AttachedSprite>();
@@ -286,10 +330,10 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 		}
 		attachedSprites.add(new AttachedSprite(sprite, x, y));
 	}
-	
+
 	/**
 	 * Detach a sprite that has been previously attached to the view.
-	 * 
+	 *
 	 * @param sprite sprite to be detached
 	 */
 	public void detachSprite(Sprite sprite) {
@@ -308,7 +352,7 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 
 	/**
 	 * Draw the entity.
-	 * 
+	 *
 	 * @param g2d
 	 *            The graphics to drawn on.
 	 */
@@ -335,7 +379,7 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 			g2d.setComposite(oldComposite);
 		}
 	}
-	
+
 	private boolean isOnScreen(Graphics2D g2d, Rectangle r) {
 		Rectangle clip = g2d.getClipBounds();
 		return ((clip == null) || r.intersects(g2d.getClipBounds()));
@@ -343,7 +387,7 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 
 	/**
 	 * Draw the entity.
-	 * 
+	 *
 	 * @param g2d
 	 *            The graphics context.
 	 * @param x
@@ -372,7 +416,7 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 
 	/**
 	 * Draw all attached sprites.
-	 * 
+	 *
 	 * @param g2d graphics
 	 * @param x x position of the view
 	 * @param y y position of the view
@@ -388,7 +432,7 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 
 	/**
 	 * Draw the base entity part.
-	 * 
+	 *
 	 * @param g2d
 	 *            The graphics context.
 	 * @param x
@@ -408,7 +452,7 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 	/**
 	 * Draw the top layer parts of an entity. This will be on down after all
 	 * other game layers are rendered.
-	 * 
+	 *
 	 * @param g2d
 	 *            The graphics to drawn on.
 	 */
@@ -436,7 +480,7 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 
 	/**
 	 * Draw the entity.
-	 * 
+	 *
 	 * @param g2d
 	 *            The graphics context.
 	 * @param x
@@ -455,20 +499,20 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 	/**
 	 * Get the screen area this is drawn in. NOTE: This only covers the area for
 	 * the main sprite.
-	 * 
+	 *
 	 * @return The area this draws in.
 	 */
 	@Override
 	public Rectangle getArea() {
-		return new Rectangle(getX() + getXOffset(), getY() + getYOffset(),
-				getWidth(), getHeight());
+		area.setBounds(getX() + getXOffset(), getY() + getYOffset(), getWidth(), getHeight());
+		return area;
 	}
 
 	/**
 	 * Get the drawn area used by the entity. Used for checking if the entity
 	 * should be drawn. By default the same as getArea(), but extending classes
 	 * can override it to return a different area if they need it.
-	 *  
+	 *
 	 * @return The area this draws in.
 	 */
 	protected Rectangle getDrawingArea() {
@@ -478,7 +522,7 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 	/**
 	 * Get the class resource sub-path. The is the base sprite image name,
 	 * relative to <code>translate()</code>.
-	 * 
+	 *
 	 * @return The resource path.
 	 */
 	protected String getClassResourcePath() {
@@ -497,7 +541,7 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 
 	/**
 	 * Get the drawing composite.
-	 * 
+	 *
 	 * @return The drawing composite.
 	 */
 	protected AlphaComposite getComposite() {
@@ -514,16 +558,19 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 
 	/**
 	 * Get the height.
-	 * 
+	 *
 	 * @return The height (in pixels).
 	 */
 	public int getHeight() {
+		if (sprite != null) {
+			return sprite.getHeight();
+		}
 		return IGameScreen.SIZE_UNIT_PIXELS;
 	}
 
 	/**
 	 * Get the sprite image for this entity.
-	 * 
+	 *
 	 * @return The image representation.
 	 */
 	public Sprite getSprite() {
@@ -532,7 +579,7 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 
 	/**
 	 * Get the entity's visibility.
-	 * 
+	 *
 	 * @return The visibility value (0-100).
 	 */
 	protected int getVisibility() {
@@ -541,16 +588,19 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 
 	/**
 	 * Get the width.
-	 * 
+	 *
 	 * @return The width (in pixels).
 	 */
 	public int getWidth() {
+		if (sprite != null) {
+			return sprite.getWidth();
+		}
 		return IGameScreen.SIZE_UNIT_PIXELS;
 	}
 
 	/**
 	 * Get the entity's X coordinate.
-	 * 
+	 *
 	 * @return The X coordinate (in pixels).
 	 */
 	protected int getX() {
@@ -559,7 +609,7 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 
 	/**
 	 * Get the X offset alignment adjustment.
-	 * 
+	 *
 	 * @return The X offset (in pixels).
 	 */
 	protected int getXOffset() {
@@ -568,7 +618,7 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 
 	/**
 	 * Get the entity's Y coordinate.
-	 * 
+	 *
 	 * @return The Y coordinate (in pixels).
 	 */
 	protected int getY() {
@@ -577,7 +627,7 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 
 	/**
 	 * Get the Y offset alignment adjustment.
-	 * 
+	 *
 	 * @return The Y offset (in pixels).
 	 */
 	protected int getYOffset() {
@@ -588,9 +638,9 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 	 * Determines on top of which other entities this entity should be drawn.
 	 * Entities with a high Z index will be drawn on top of ones with a lower Z
 	 * index.
-	 * 
+	 *
 	 * Also, players can only interact with the topmost entity.
-	 * 
+	 *
 	 * @return The drawing index.
 	 */
 	@Override
@@ -600,7 +650,7 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 
 	/**
 	 * Determine if this view is currently animatable.
-	 * 
+	 *
 	 * @return <code>true</code> if animating enabled.
 	 */
 	protected boolean isAnimating() {
@@ -611,7 +661,7 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 	/**
 	 * Determine if this view is contained, and should render in a compressed
 	 * (it's defined) area without clipping anything important.
-	 * 
+	 *
 	 * @return <code>true</code> if contained.
 	 */
 	public boolean isContained() {
@@ -620,7 +670,7 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 
 	/**
 	 * Reorder the actions list (if needed). Please use as last resort.
-	 * 
+	 *
 	 * @param list
 	 *            The list to reorder.
 	 */
@@ -629,19 +679,24 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 
 	/**
 	 * Set the sprite's animation state (if applicable).
-	 * 
+	 *
 	 * @param sprite
 	 *            The sprite.
 	 */
-	protected void setAnimation(final Sprite sprite) {
+	private void setAnimation(final Sprite sprite) {
 		if (sprite instanceof AnimatedSprite) {
 			final AnimatedSprite asprite = (AnimatedSprite) sprite;
 
-			if (isAnimating()) {
+			if (isAnimating() || activeIdle) {
 				asprite.start();
 			} else {
 				asprite.stop();
-				asprite.reset();
+				if (this instanceof ActiveEntity2DView) {
+					// Use index 1 to show active entities as standing
+					asprite.reset(1);
+				} else {
+					asprite.reset(0);
+				}
 			}
 		}
 	}
@@ -649,7 +704,7 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 	/**
 	 * Set whether this view is contained, and should render in a compressed
 	 * (it's defined) area without clipping anything important.
-	 * 
+	 *
 	 * @param contained
 	 *            <code>true</code> if contained.
 	 */
@@ -660,7 +715,7 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 
 	/**
 	 * Set the content inspector for this entity (if needed).
-	 * 
+	 *
 	 * @param inspector
 	 *            The inspector.
 	 */
@@ -668,9 +723,13 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 	public void setInspector(final Inspector inspector) {
 	}
 
+	@Override
+	public void setVisibleScreenArea(Rectangle area) {
+	}
+
 	/**
 	 * Set the sprite.
-	 * 
+	 *
 	 * @param sprite
 	 *            The sprite.
 	 */
@@ -683,10 +742,10 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 
 	/**
 	 * Translate a resource name into it's sprite image path.
-	 * 
+	 *
 	 * @param name
 	 *            The resource name.
-	 * 
+	 *
 	 * @return The full resource name.
 	 */
 	protected String translate(final String name) {
@@ -729,21 +788,13 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 		}
 	}
 
-
-	//
-	// EntityChangeListener
-	//
-
 	/**
-	 * An entity was changed.
-	 * 
-	 * @param entity
-	 *            The entity that was changed.
+	 * A property of the entity changed.
+	 *
 	 * @param property
 	 *            The property identifier.
 	 */
-	@Override
-	public void entityChanged(final T entity, final Object property) {
+	void entityChanged(final Object property) {
 		if (property == IEntity.PROP_ANIMATED) {
 			animatedChanged = true;
 		} else if (property == IEntity.PROP_POSITION) {
@@ -761,7 +812,7 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 
 	/**
 	 * Get the list of actions.
-	 * 
+	 *
 	 * @return The list of actions.
 	 */
 	@Override
@@ -790,7 +841,7 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 
 	/**
 	 * Get the view's entity.
-	 * 
+	 *
 	 * @return The view's entity.
 	 */
 	@Override
@@ -800,7 +851,7 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 
 	/**
 	 * Determine if this entity can be moved (e.g. via dragging).
-	 * 
+	 *
 	 * @return <code>true</code> if the entity is movable.
 	 */
 	@Override
@@ -816,7 +867,6 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 		onAction(ActionType.LOOK);
 	}
 
-
 	/**
 	 * Perform the default action unless it is not safe.
 	 *
@@ -830,7 +880,7 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 
 	/**
 	 * Perform an action.
-	 * 
+	 *
 	 * @param at
 	 *            The action.
 	 */
@@ -849,28 +899,26 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 
 		switch (at) {
 		case LOOK:
+		case ADMIN_INSPECT:
+		case ADMIN_DESTROY:
+		case MARK_ALL:
+		case USE:
 			at.send(at.fillTargetInfo(entity));
 			break;
 
 		case ADMIN_GAG:
-			j2DClient.get().setChatLine("/gag " + entity.getTitle() + " ");
-			break;
-
-		case ADMIN_INSPECT:
-			at.send(at.fillTargetInfo(entity));
+			j2DClient.get().setChatLine("/gag " + entity.getName() + " ");
 			break;
 
 		case ADMIN_JAIL:
-			j2DClient.get().setChatLine("/jail " + entity.getTitle() + " ");
-			break;
-
-		case ADMIN_DESTROY:
-			at.send(at.fillTargetInfo(entity));
+			j2DClient.get().setChatLine("/jail " + entity.getName() + " ");
 			break;
 
 		case ADMIN_ALTER:
 			if (type.equals("player")) {
-				j2DClient.get().setChatLine("/alter " + entity.getTitle() + " ");
+				j2DClient.get().setChatLine("/alter " + entity.getName() + " ");
+			} else if (type.equals("creature")){
+				j2DClient.get().setChatLine("/altercreature #" + id + " '" + entity.getTitle() + "';atk;def;hp;xp");
 			} else {
 				j2DClient.get().setChatLine("/alter #" + id + " ");
 			}
@@ -885,7 +933,7 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 
 	/**
 	 * is this entity interactive so that the player can click or move it?
-	 * 
+	 *
 	 * @return true if the player can interact with it, false otherwise.
 	 */
 	@Override
@@ -899,10 +947,10 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 	 */
 	@Override
 	public void release() {
-		entity.removeChangeListener(this);
+		entity.removeChangeListener(updateListener);
 		released = true;
 	}
-	
+
 	/**
 	 * Check if the view has been released. Usually a released view should not
 	 * be used anymore, but in certain situations it may be preferable to send
@@ -910,9 +958,9 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 	 * example with items in bag, where a new view gets created after an item
 	 * has changed, but the new view represents the same item stack as the old
 	 * one.
-	 * 
-	 * @return <code>true</code> if the view has been released, 
-	 * 	<code>false</code> otherwise 
+	 *
+	 * @return <code>true</code> if the view has been released,
+	 * 	<code>false</code> otherwise
 	 */
 	protected boolean isReleased() {
 		return released;
@@ -928,7 +976,7 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 		String cursorName = entity.getCursor();
 		return StendhalCursor.valueOf(cursorName, StendhalCursor.UNKNOWN);
 	}
-	
+
 	/**
 	 * Container for sprites attached to the view.
 	 */
@@ -939,10 +987,10 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 		int xOffset;
 		/** y offset compared to the EntityView's location. */
 		int yOffset;
-		
+
 		/**
 		 * Create a new AttachedSprite.
-		 * 
+		 *
 		 * @param sprite
 		 * @param x x position relative to the EntityView
 		 * @param y y position relative to the EntityView
@@ -952,10 +1000,10 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 			this.xOffset = x;
 			this.yOffset = y;
 		}
-		
+
 		/**
 		 * Draw the sprite at the EntityView's location.
-		 * 
+		 *
 		 * @param g
 		 * @param x x coordinate of the view
 		 * @param y y coordinate of the view
@@ -964,13 +1012,16 @@ public abstract class Entity2DView<T extends IEntity> implements EntityView<T>,
 			sprite.draw(g, x + xOffset, y + yOffset);
 		}
 	}
-	
+
 	/**
 	 * Helper for monitoring entity changes.
 	 */
-	private class UpdateFlagChanger implements EntityChangeListener<IEntity> {
+	private class UpdateListener implements EntityChangeListener<T> {
 		@Override
-		public void entityChanged(IEntity entity, Object property) {
+		public void entityChanged(T entity, Object property) {
+			// In this order, to ensure the changed flag is toggled only after
+			// all the changes have been made.
+			Entity2DView.this.entityChanged(property);
 			markChanged();
 		}
 	}

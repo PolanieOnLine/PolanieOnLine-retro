@@ -1,4 +1,4 @@
-/* $Id: Door.java,v 1.46 2010/04/27 18:29:45 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -17,7 +17,7 @@ import marauroa.common.game.RPObject;
 /**
  * A door entity.
  */
-public class Door extends Entity {
+public class Door extends Portal {
 	/**
 	 * Open state property.
 	 */
@@ -41,7 +41,7 @@ public class Door extends Entity {
 
 	/**
 	 * Check if the door is open.
-	 * 
+	 *
 	 * @return <code>true</code> if the door is open.
 	 */
 	public boolean isOpen() {
@@ -54,10 +54,10 @@ public class Door extends Entity {
 
 	/**
 	 * Initialize this entity for an object.
-	 * 
+	 *
 	 * @param object
 	 *            The object.
-	 * 
+	 *
 	 * @see #release()
 	 */
 	@Override
@@ -76,7 +76,7 @@ public class Door extends Entity {
 
 	/**
 	 * The object added/changed attribute(s).
-	 * 
+	 *
 	 * @param object
 	 *            The base object.
 	 * @param changes
@@ -97,7 +97,7 @@ public class Door extends Entity {
 
 	/**
 	 * The object removed attribute(s).
-	 * 
+	 *
 	 * @param object
 	 *            The base object.
 	 * @param changes
@@ -114,14 +114,5 @@ public class Door extends Entity {
 			open = false;
 			fireChange(PROP_OPEN);
 		}
-	}
-
-	/**
-	 * Is this entity useable?
-	 *
-	 * @return true if it is useable, false otherwise
-	 */
-	public boolean isUseable() {
-		return rpObject.has("use");
 	}
 }

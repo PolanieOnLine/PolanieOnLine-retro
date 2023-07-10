@@ -1,4 +1,4 @@
-/* $Id: PlayerList.java,v 1.5 2010/09/19 02:17:49 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -19,32 +19,27 @@ import org.apache.log4j.Logger;
 
 /**
  * Manages a list of player names
- * 
+ *
  * @author madmetzger
  */
 public class PlayerList {
-	
 	private static final Logger logger = Logger.getLogger(PlayerList.class);
-	
+
 	private Set<String> namesList = new HashSet<String>();
 
 	public Set<String> getNamesList() {
 		return namesList;
 	}
-	
-	public void removePlayer(String player) {
+
+	void removePlayer(String player) {
 		logger.debug("Player "+player+" removed.");
 		namesList.remove(player);
 		logger.debug("Currently in list after remove: "+namesList);
 	}
-	
-	public void addPlayer(String player) {
+
+	void addPlayer(String player) {
 		logger.debug("Player "+player+" added.");
 		namesList.add(player);
 		logger.debug("Currently in list after add: "+namesList);
-	}
-
-	public boolean contains(String player) {
-		return namesList.contains(player);
 	}
 }

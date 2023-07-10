@@ -1,6 +1,5 @@
-/* $Id: Blackjack.java,v 1.76 2012/02/13 00:34:02 bluelads99 Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -11,6 +10,15 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Stack;
 
 import games.stendhal.common.Direction;
 import games.stendhal.common.grammar.Grammar;
@@ -30,41 +38,24 @@ import games.stendhal.server.entity.npc.action.BehaviourAction;
 import games.stendhal.server.entity.npc.behaviour.impl.Behaviour;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Stack;
-
 public class Blackjack extends AbstractQuest {
 	// spades ♠
 	 private static final String SPADES = "\u2660";
-
 	// hearts ♥
 	private static final String HEARTS = "\u2665";
-
 	// diamonds ♦
 	private static final String DIAMONDS = "\u2666";
-
 	// clubs ♣
 	private static final String CLUBS = "\u2663";
 
-	
-	
-	// 1 min at 300 ms/turn
-	private static final int CHAT_TIMEOUT = 200;
+	private static final int CHAT_TIMEOUT = 60;
 
 	private static final int MIN_STAKE = 10;
-
 	private static final int MAX_STAKE = 400;
 
 	private int stake;
 
 	private boolean bankStands;
-
 	private boolean playerStands;
 
 	private Map<String, Integer> cardValues;
@@ -72,11 +63,9 @@ public class Blackjack extends AbstractQuest {
 	private Stack<String> deck;
 
 	private final List<String> playerCards = new LinkedList<String>();
-
 	private final List<String> bankCards = new LinkedList<String>();
 
 	private StackableItem playerCardsItem;
-
 	private StackableItem bankCardsItem;
 
 	private SpeakerNPC ramon;
@@ -157,8 +146,8 @@ public class Blackjack extends AbstractQuest {
 	 *            The number of cards that each player should draw.
 	 */
 	private void dealCards(final RPEntity rpEntity, final int number) {
-		StringBuffer messagebuf = new StringBuffer();
-		messagebuf.append("\n");
+		StringBuilder messagebuf = new StringBuilder();
+		messagebuf.append('\n');
 		int playerSum = sumValues(playerCards);
 		int bankSum = sumValues(bankCards);
 		for (int i = 0; i < number; i++) {
@@ -258,6 +247,7 @@ public class Blackjack extends AbstractQuest {
 		SingletonRepository.getTurnNotifier().notifyInSeconds(1, new TurnListener() {
 			private final String name = playerName;
 
+			@Override
 			public void onTurnReached(final int currentTurn) {
 				if (name.equals(ramon.getAttending().getName())) {
 					dealCards(ramon.getAttending(), 1);
@@ -311,7 +301,7 @@ public class Blackjack extends AbstractQuest {
 						"blackjack",
 						"Blackjack jest prostą grą w karty. Zasady gry są na tablicy na ścianie.");
 				addHelp("Uważaj by gra nie zajęła cię za bardzo, bo możesz przegapić prom! Słuchaj ogłoszeń.");
-				addGoodbye("Dowidzenia!");
+				addGoodbye("Do widzenia!");
 			}
 
 			@Override
@@ -395,6 +385,7 @@ public class Blackjack extends AbstractQuest {
 		ramon.add(ConversationStates.QUESTION_1,
 				ConversationPhrases.YES_MESSAGES, null,
 				ConversationStates.ATTENDING, null, new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 						dealCards(player, 1);
 					}
@@ -405,6 +396,7 @@ public class Blackjack extends AbstractQuest {
 		ramon.add(ConversationStates.QUESTION_1,
 				ConversationPhrases.NO_MESSAGES, null,
 				ConversationStates.ATTENDING, null, new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 						playerStands = true;
 						if (bankStands) {
@@ -423,6 +415,23 @@ public class Blackjack extends AbstractQuest {
 				"Blackjack",
 				"Podczas podróży na wyspę Athor, dla zabicia czasu możesz zagrać w Blackjack",
 				true);
+	}
+
+	@Override
+	public boolean removeFromWorld() {
+		boolean res = true;
+		if (ramon != null) {
+			zone.remove(ramon);
+			res = SingletonRepository.getNPCList().get(ramon.getName()) == null;
+		}
+		if (res) {
+			cleanUpTable();
+			playerCards.clear();
+			bankCards.clear();
+			cardValues = null;
+			deck = null;
+		}
+		return res;
 	}
 
 	@Override

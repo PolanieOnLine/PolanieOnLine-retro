@@ -15,6 +15,7 @@ import games.stendhal.client.ClientSingletonRepository;
 import games.stendhal.client.entity.User;
 import games.stendhal.client.gui.BareBonesBrowserLaunch;
 import games.stendhal.client.gui.chatlog.HeaderLessEventLine;
+import games.stendhal.client.update.ClientGameConfiguration;
 import games.stendhal.common.NotificationType;
 
 /**
@@ -22,7 +23,7 @@ import games.stendhal.common.NotificationType;
  *
  * @author hendrik
  */
-public class ProfileAction implements SlashAction{
+class ProfileAction implements SlashAction{
 
 	/**
 	 * Opens an URL with the browser
@@ -31,8 +32,9 @@ public class ProfileAction implements SlashAction{
 	 * @param remainder ignored
 	 * @return <code>true</code>
 	 */
+	@Override
 	public boolean execute(final String[] params, final String remainder) {
-		String url = "https://pol.polskaonline.org/character/";
+		String url = ClientGameConfiguration.get("DEFAULT_SERVER_WEB") + "/character/";
 		String name = null;
 		if ((params.length > 0) && (params[0] != null)) {
 			name = params[0];
@@ -57,6 +59,7 @@ public class ProfileAction implements SlashAction{
 	 *
 	 * @return The parameter count.
 	 */
+	@Override
 	public int getMaximumParameters() {
 		return 1;
 	}
@@ -66,6 +69,7 @@ public class ProfileAction implements SlashAction{
 	 *
 	 * @return The parameter count.
 	 */
+	@Override
 	public int getMinimumParameters() {
 		return 0;
 	}

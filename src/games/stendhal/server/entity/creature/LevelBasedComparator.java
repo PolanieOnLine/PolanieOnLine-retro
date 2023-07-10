@@ -1,4 +1,4 @@
-/* $Id: LevelBasedComparator.java,v 1.8 2010/09/19 02:23:48 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,19 +12,20 @@
  ***************************************************************************/
 package games.stendhal.server.entity.creature;
 
-import games.stendhal.server.entity.RPEntity;
-
 import java.io.Serializable;
 import java.util.Comparator;
 
+import games.stendhal.server.entity.RPEntity;
+
 /**
  * Compares two RPEntities based on their level.
- * 
+ *
  * @author hendrik
  */
 public class LevelBasedComparator implements Comparator<RPEntity>, Serializable {
 	private static final long serialVersionUID = -8923421203006949207L;
 
+	@Override
 	public int compare(final RPEntity o1, final RPEntity o2) {
 		return o1.getLevel() - o2.getLevel();
 	}

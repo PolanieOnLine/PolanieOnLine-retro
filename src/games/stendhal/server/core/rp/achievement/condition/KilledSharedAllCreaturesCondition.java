@@ -1,5 +1,5 @@
 /***************************************************************************
- *                   (C) Copyright 2003-2011 - Stendhal                    *
+ *                   (C) Copyright 2003-2013 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -11,6 +11,8 @@
  ***************************************************************************/
 package games.stendhal.server.core.rp.achievement.condition;
 
+import java.util.Collection;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.Entity;
@@ -18,22 +20,16 @@ import games.stendhal.server.entity.creature.Creature;
 import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.Collection;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
-
 /**
  * Did the player kill all creatures, shared? (excluding rare)
  *
  */
 public class KilledSharedAllCreaturesCondition implements ChatCondition {
-
-
+	@Override
 	public boolean fire(final Player player, final Sentence sentence, final Entity entity) {
 		final Collection<Creature> creatures = SingletonRepository.getEntityManager().getCreatures();
 		for (Creature creature : creatures) {
-			if (!creature.isRare()) {
+			if (!creature.isAbnormal()) {
 				if (!player.hasKilledShared(creature.getName())) {
 					return false;
 				}
@@ -49,12 +45,11 @@ public class KilledSharedAllCreaturesCondition implements ChatCondition {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return -1273982;
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				KilledSharedAllCreaturesCondition.class);
+		return (obj instanceof KilledSharedAllCreaturesCondition);
 	}
 }

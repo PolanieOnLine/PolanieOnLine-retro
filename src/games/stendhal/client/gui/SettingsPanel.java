@@ -1,4 +1,4 @@
-/* $Id: SettingsPanel.java,v 1.18 2012/12/02 18:14:18 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                  (C) Copyright 2005-2012 - Stendhal                     *
  ***************************************************************************
@@ -12,11 +12,6 @@
  ***************************************************************************/
 
 package games.stendhal.client.gui;
-
-import games.stendhal.client.actions.SlashAction;
-import games.stendhal.client.actions.SlashActionRepository;
-import games.stendhal.client.gui.styled.Style;
-import games.stendhal.client.gui.styled.StyleUtil;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -39,14 +34,20 @@ import javax.swing.JPopupMenu;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 
+import games.stendhal.client.actions.SlashAction;
+import games.stendhal.client.actions.SlashActionRepository;
+import games.stendhal.client.gui.styled.Style;
+import games.stendhal.client.gui.styled.StyleUtil;
+import games.stendhal.common.constants.Actions;
+
 /**
  * The panel where you can adjust your settings.
  */
 class SettingsPanel extends JButton {
-	/** Extra padding for 
+	/** Extra padding for
 	/** Empty space above and below the separators in the popup menu */
 	private static final int SEPARATOR_MARGIN = 8;
-	
+
 	/**
 	 * Creates a new instance of SettingsPanel.
 	 */
@@ -56,7 +57,7 @@ class SettingsPanel extends JButton {
 		setSelectedIcon(createArrowIcon(false));
 		// Don't steal focus from the game screen
 		setFocusable(false);
-	
+
 		// JMenu is not flexible enough for custom layout management.
 		final JPopupMenu menu = new JPopupMenu();
 
@@ -65,34 +66,34 @@ class SettingsPanel extends JButton {
 		 * use a complicated layout manager. GroupLayout could in principle
 		 * produce the the desired layout, but any changes to the menu structure
 		 * would have global effects, so to spare the sanity of anyone adding
-		 * new menu items, we use GridBag and hope for the best.  
+		 * new menu items, we use GridBag and hope for the best.
 		 */
 		GridBagLayout layout = new GridBagLayout();
 		menu.setLayout(layout);
 		GridBagConstraints c = new GridBagConstraints();
-		
+
 		// Accounts
 		Column column = new Column(menu, c);
 		createAccountsMenu(column);
-		
+
 		addSeparator(menu, c);
-		
+
 		// Tools
 		column = new Column(menu, c);
 		createToolsMenu(column);
-		
+
 		addSeparator(menu, c);
 
 		// Commands
 		column = new Column(menu, c);
 		createCommandsMenu(column);
-		
+
 		addSeparator(menu, c);
-		
+
 		// Help
 		column = new Column(menu, c);
 		createHelpMenu(column);
-		
+
 		addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -106,10 +107,10 @@ class SettingsPanel extends JButton {
 		 */
 		WindowUtils.watchFontSize(menu);
 	}
-	
+
 	/**
 	 * Add a column separator.
-	 * 
+	 *
 	 * @param container
 	 * @param c
 	 */
@@ -126,13 +127,13 @@ class SettingsPanel extends JButton {
 		c.gridheight = 1;
 		c.insets = tmpInsets;
 	}
-	
+
 	/**
 	 * Create arrow icon for the menu button.
-	 * 
+	 *
 	 * @param etched <code>true</code> if the arrow should be drawn as an etched
 	 * image. If <code>false</code> the arrow will be drawn as a raised image
-	 *  
+	 *
 	 * @return arrow icon
 	 */
 	private Icon createArrowIcon(boolean etched) {
@@ -160,30 +161,30 @@ class SettingsPanel extends JButton {
 		g.setColor(seColor);
 		g.drawLine(7, 11, 14, 4);
 		g.dispose();
-		
+
 		return new ImageIcon(image);
 	}
-	
+
 	/**
 	 * Create the account control submenu.
-	 * 
+	 *
 	 * @param column
 	 */
 	private void createAccountsMenu(Column column) {
-		JComponent label = createMenuTitle("Accounts");
+		JComponent label = createMenuTitle("Konta");
 		column.addComponent(label);
 		
-		JMenuItem item = createMenuItem("Change Password", "changepassword");
+		JMenuItem item = createMenuItem("Zmień Hasło", "changepassword");
 		column.addComponent(item);
-		item = createMenuItem("Merge Accounts", "merge");
+		item = createMenuItem("Połącz Konta", "merge");
 		column.addComponent(item);
-		item = createMenuItem("Login History", "loginhistory");
+		item = createMenuItem("Historia Logowania", "loginhistory");
 		column.addComponent(item);
 	}
-	
+
 	/**
 	 * Create the tools submenu.
-	 * 
+	 *
 	 * @param column
 	 */
 	private void createToolsMenu(Column column) {
@@ -198,7 +199,7 @@ class SettingsPanel extends JButton {
 
 	/**
 	 * Create the game commands submenu.
-	 * 
+	 *
 	 * @param column
 	 */
 	private void createCommandsMenu(Column column) {
@@ -213,11 +214,13 @@ class SettingsPanel extends JButton {
 		column.addComponent(item);
 		item = createMenuItem("Dziennik Zadań", "travellog");
 		column.addComponent(item);
+		item = createMenuItem("Dziennik Osiągnięć", Actions.ACHIEVEMENTLOG);
+		column.addComponent(item);
 	}
-	
+
 	/**
 	 * Create the help submenu.
-	 * 
+	 *
 	 * @param column
 	 */
 	private void createHelpMenu(Column column) {
@@ -235,10 +238,10 @@ class SettingsPanel extends JButton {
 		item = createMenuItem("Regulamin", "rules");
 		column.addComponent(item);
 	}
-	
+
 	/**
 	 * Create title for a sumbenu.
-	 * 
+	 *
 	 * @param title title string
 	 * @return component with the title
 	 */
@@ -247,10 +250,10 @@ class SettingsPanel extends JButton {
 		label.setBorder(BorderFactory.createEmptyBorder(5, 4, 10, 0));
 		return label;
 	}
-	
+
 	/**
 	 * Create a menu item.
-	 * 
+	 *
 	 * @param name title of the menu item
 	 * @param action SlashAction name
 	 * @return menu item
@@ -261,28 +264,28 @@ class SettingsPanel extends JButton {
 		item.setBorder(null);
 		return item;
 	}
-	
+
 	/**
 	 * Listener for menu actions.
-		 */
+	 */
 	private static class CommandActionListener implements ActionListener {
 		private final SlashAction action;
-		
+
 		/**
 		 * Create a CommandActionListener.
-		 * 
+		 *
 		 * @param identifier SlashAction name
 		 */
 		public CommandActionListener(String identifier) {
 			action = SlashActionRepository.get(identifier);
 		}
-		
+
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			action.execute(null, null);
 		}
 	}
-	
+
 	/**
 	 * A workaround for a design flaw in swing menu items. BasicMenuItemUI tries
 	 * to force all menu items to the same width, instead of doing that properly
@@ -310,25 +313,25 @@ class SettingsPanel extends JButton {
 	private static class Column {
 		final JComponent container;
 		final GridBagConstraints c;
-		
+
 		/**
 		 * Create a new ColumnHelper.
-		 * 
-		 * @param container parent component 
+		 *
+		 * @param container parent component
 		 * @param c constraints object to be used, and which will be modified
 		 * 	for subsequent uses
 		 */
 		Column(JComponent container, GridBagConstraints c) {
 			this.container = container;
-			this.c = c; 
+			this.c = c;
 			c.gridy = 0;
 			c.gridx++;
 			c.fill = GridBagConstraints.BOTH;
 		}
-		
+
 		/**
 		 * Add a component to the colum.
-		 * 
+		 *
 		 * @param component
 		 */
 		void addComponent(JComponent component) {

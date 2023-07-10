@@ -1,4 +1,4 @@
-/* $Id: SheepTestHelperTest.java,v 1.3 2010/09/19 01:28:49 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -13,14 +13,15 @@
 package utilities.RPClass;
 
 import static org.junit.Assert.assertTrue;
-import marauroa.common.game.RPClass;
 
 import org.junit.Test;
+
+import marauroa.common.game.RPClass;
 
 public class SheepTestHelperTest {
 	@Test
 	public void testGenerateRPClasses() {
-		
+
 		SheepTestHelper.generateRPClasses();
 		assertTrue(RPClass.hasRPClass("sheep"));
 	}

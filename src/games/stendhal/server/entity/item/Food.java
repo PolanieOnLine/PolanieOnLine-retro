@@ -1,4 +1,4 @@
-/* $Id: Food.java,v 1.16 2008/07/12 14:43:47 astridemma Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -23,7 +23,7 @@ public class Food extends ConsumableItem {
 
 	/**
 	 * copy constructor.
-	 * 
+	 *
 	 * @param item
 	 *            item to copy
 	 */

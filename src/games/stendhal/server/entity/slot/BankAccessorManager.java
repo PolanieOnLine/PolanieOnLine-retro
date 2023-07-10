@@ -1,4 +1,4 @@
-/* $Id: BankAccessorManager.java,v 1.9 2010/09/19 01:11:24 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,41 +12,45 @@
  ***************************************************************************/
 package games.stendhal.server.entity.slot;
 
-import games.stendhal.server.entity.Entity;
-
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
+import games.stendhal.server.entity.Entity;
+
 /**
  * Keeps track of "personal chests" which are an interface to the bank slots.
- * 
+ *
  * @author hendrik
  */
 public class BankAccessorManager {
+	/** The singleton instance. */
 	private static BankAccessorManager instance;
 	private final HashMap<Banks, List<Entity>> accessors;
 
-	private BankAccessorManager() {
-		// hide constructor; Singleton pattern
-		accessors = new HashMap<Banks, List<Entity>>();
-	}
-
 	/**
 	 * Gets the BankAccessorManager.
-	 * 
+	 *
 	 * @return BankAccessorManager
 	 */
 	public static BankAccessorManager get() {
 		if (instance == null) {
 			instance = new BankAccessorManager();
 		}
+
 		return instance;
 	}
 
 	/**
+	 * Hidden singleton constructor.
+	 */
+	private BankAccessorManager() {
+		accessors = new HashMap<Banks, List<Entity>>();
+	}
+
+	/**
 	 * Adds an accessor for this bank.
-	 * 
+	 *
 	 * @param bank
 	 *            Banks
 	 * @param entity
@@ -60,9 +64,9 @@ public class BankAccessorManager {
 	}
 
 	/**
-	 * Gets the list of accessors for the specified bank. 
+	 * Gets the list of accessors for the specified bank.
 	 * <p> In case the bank is unknown, an empty list is automatically created
-	 * 
+	 *
 	 * @param bank
 	 *            Banks
 	 * @return list of accessors
@@ -78,7 +82,7 @@ public class BankAccessorManager {
 
 	/**
 	 * gets the list of accessors for think bank.
-	 * 
+	 *
 	 * @param bank
 	 *            Banks
 	 * @return list of accessors or an empty list if this bank is unknown

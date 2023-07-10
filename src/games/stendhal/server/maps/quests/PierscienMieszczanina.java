@@ -1,6 +1,5 @@
-/* $Id: PierscienMieszczanina.java,v 1.18 2012/02/26 01:14:06 Legolas Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2010-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -10,9 +9,16 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-// Based on UltimateCollector and HelpMrsYeti.
 package games.stendhal.server.maps.quests;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
+import games.stendhal.common.grammar.Grammar;
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.ConversationPhrases;
@@ -21,93 +27,35 @@ import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.npc.action.DropItemAction;
 import games.stendhal.server.entity.npc.action.EquipItemAction;
-import games.stendhal.server.entity.npc.action.DropRecordedItemAction;
 import games.stendhal.server.entity.npc.action.IncreaseXPAction;
 import games.stendhal.server.entity.npc.action.MultipleActions;
-import games.stendhal.server.entity.npc.action.SayTimeRemainingAction;
 import games.stendhal.server.entity.npc.action.SetQuestAction;
-import games.stendhal.server.entity.npc.action.StartRecordingRandomItemCollectionAction;
 import games.stendhal.server.entity.npc.action.SetQuestAndModifyKarmaAction;
-import games.stendhal.server.entity.npc.action.SayRequiredItemAction;
 import games.stendhal.server.entity.npc.condition.AndCondition;
 import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
 import games.stendhal.server.entity.npc.condition.NotCondition;
-import games.stendhal.server.entity.npc.condition.OrCondition;
-import games.stendhal.server.entity.npc.condition.QuestInStateCondition;
 import games.stendhal.server.entity.npc.condition.PlayerHasItemWithHimCondition;
-import games.stendhal.server.entity.npc.condition.PlayerHasRecordedItemWithHimCondition;
-import games.stendhal.server.entity.npc.condition.QuestActiveCondition;
 import games.stendhal.server.entity.npc.condition.QuestCompletedCondition;
 import games.stendhal.server.entity.npc.condition.QuestInStateCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotCompletedCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotStartedCondition;
-import games.stendhal.server.entity.npc.condition.TimePassedCondition;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.log4j.Logger;
-
-	public class PierscienMieszczanina extends AbstractQuest {
-
+public class PierscienMieszczanina extends AbstractQuest {
 	private static final String QUEST_SLOT = "pierscien_mieszczanina";
+	private final SpeakerNPC npc = npcs.get("Marianek");
 
 	private static final String MRSYETI_QUEST_SLOT = "mrsyeti";
-
 	private static final String ANDRZEJ_MAKE_ZLOTA_CIUPAGA_QUEST_SLOT = "andrzej_make_zlota_ciupaga";
 
 	private static Logger logger = Logger.getLogger(PierscienMieszczanina.class);
 
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
-
-	@Override
-	public List<String> getHistory(final Player player) {
-		final List<String> res = new ArrayList<String>();
-		if (!player.hasQuest(QUEST_SLOT)) {
-			return res;
-		}
-		res.add("Spotkałem kowala Marianka.");
-		res.add("Zaproponował mi pierścień mieszczanina.");
-		final String questState = player.getQuest(QUEST_SLOT);
-		if (questState.equals("rejected")) {
-			res.add("Nie potrzebna mi są błyskotki..");
-			return res;
-		} 
-		if (questState.equals("start")) {
-			return res;
-		} 
-		res.add("Kowal Marjanek poprosił abym mu dostarczył: 50 sztabek srebra, 50 sztabek mithrilu, 150 sztabek złota i 30 bryłek mithrilu. po zdobyciu tych żeczy mam mu powiedzieć: pierścień.");
-		if (questState.equals("start")) {
-			return res;
-		} 
-		res.add("Kowal Marjanek był zadowolony z mojej postawy. W zamian dostałem pierścień mieszczanina.");
-
-		if (isCompleted(player)) {
-			return res;
-		} 
-
-		// if things have gone wrong and the quest state didn't match any of the above, debug a bit:
-		final List<String> debug = new ArrayList<String>();
-		debug.add("Stan zadania to: " + questState);
-		logger.error("Historia nie pasuje do stanu poszukiwania " + questState);
-		return debug;
-	}
-
 	private void checkLevelHelm() {
-		final SpeakerNPC npc = npcs.get("Marianek");
-
 		npc.add(ConversationStates.ATTENDING,
 			ConversationPhrases.QUEST_MESSAGES, null,
 			ConversationStates.QUEST_OFFERED, null,
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 					if (player.isBadBoy()){ 
 						raiser.say("Z twej ręki zginął rycerz! Nie masz tu czego szukać, pozbądź się piętna czaszki. A teraz precz mi z oczu!");
@@ -136,6 +84,7 @@ import org.apache.log4j.Logger;
 			ConversationPhrases.YES_MESSAGES, null,
 			ConversationStates.ATTENDING, null,
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 					raiser.say("Ale wpierw sprawdzę czy masz wszystkie zadania zrobione nim dostaniesz #pierścień.");
 					player.addKarma(10);
@@ -150,31 +99,26 @@ import org.apache.log4j.Logger;
 	}
 
 	private void checkCollectingQuests() {
-		final SpeakerNPC npc = npcs.get("Marianek");
-
-		npc.add(
-			ConversationStates.IDLE,
+		npc.add(ConversationStates.IDLE,
 			ConversationPhrases.GREETING_MESSAGES,
 			new AndCondition(new GreetingMatchesNameCondition(npc.getName()),
-							 new QuestCompletedCondition(MRSYETI_QUEST_SLOT),
-							 new QuestNotStartedCondition(QUEST_SLOT)),
+					new QuestCompletedCondition(MRSYETI_QUEST_SLOT),
+					new QuestNotStartedCondition(QUEST_SLOT)),
 			ConversationStates.ATTENDING,
 			"Witaj przyjacielu. Mam dla Ciebie wyzwanie dzięki, któremu zdobędziesz #pierścień mieszczanina.",
 			null);
-			
+
 			npc.add(ConversationStates.ATTENDING,
 			Arrays.asList("challenge", "pierścień", "pierscien"), 
-			new AndCondition( new QuestCompletedCondition(MRSYETI_QUEST_SLOT),
-							 new QuestNotStartedCondition(QUEST_SLOT),
-							 new QuestNotCompletedCondition(ANDRZEJ_MAKE_ZLOTA_CIUPAGA_QUEST_SLOT)),
+			new AndCondition(new QuestCompletedCondition(MRSYETI_QUEST_SLOT),
+					new QuestNotStartedCondition(QUEST_SLOT),
+					new QuestNotCompletedCondition(ANDRZEJ_MAKE_ZLOTA_CIUPAGA_QUEST_SLOT)),
 			ConversationStates.ATTENDING, 
 			"Wciąż masz zadanie do wykonania u kowala Andrzeja!",
 			null);
 	}
 
 	private void requestItem() {
-		final SpeakerNPC npc = npcs.get("Marianek");
-
 		npc.add(ConversationStates.ATTENDING,
 			Arrays.asList("challenge", "pierścień", "pierscien"),
 			new AndCondition(
@@ -183,14 +127,14 @@ import org.apache.log4j.Logger;
 			ConversationStates.ATTENDING, "Aby zdobyć #pierścień musisz przynieść kilka przedmiotów.",
 			new SetQuestAction(QUEST_SLOT, "start" ));
 
-		final List<ChatAction> amuletactions = new LinkedList<ChatAction>();
-		amuletactions.add(new DropItemAction("money",200000));
-		amuletactions.add(new DropItemAction("ciupaga",1));
-		amuletactions.add(new DropItemAction("sztabka złota",50));
-		amuletactions.add(new DropItemAction("bryłka mithrilu",20));
-		amuletactions.add(new EquipItemAction("pierścień mieszczanina", 1, true));
-		amuletactions.add(new IncreaseXPAction(1000));
-		amuletactions.add(new SetQuestAction(QUEST_SLOT, "done"));
+		final List<ChatAction> reward = new LinkedList<ChatAction>();
+		reward.add(new DropItemAction("money",200000));
+		reward.add(new DropItemAction("ciupaga",1));
+		reward.add(new DropItemAction("sztabka złota",50));
+		reward.add(new DropItemAction("bryłka mithrilu",20));
+		reward.add(new EquipItemAction("pierścień mieszczanina", 1, true));
+		reward.add(new IncreaseXPAction(1000));
+		reward.add(new SetQuestAction(QUEST_SLOT, "done"));
 
 		npc.add(ConversationStates.ATTENDING, Arrays.asList("challenge", "pierścień", "pierscien"),
 			new AndCondition(
@@ -200,7 +144,7 @@ import org.apache.log4j.Logger;
 					new PlayerHasItemWithHimCondition("sztabka złota",50),
 					new PlayerHasItemWithHimCondition("bryłka mithrilu",20)),
 			ConversationStates.ATTENDING, "Widzę, że masz wszystko o co cię prosiłem. A oto nagroda pierścień mieszczanina.",
-			new MultipleActions(amuletactions));
+			new MultipleActions(reward));
 
 		npc.add(ConversationStates.ATTENDING, Arrays.asList("challenge", "pierścień", "pierscien"),
 			new AndCondition(
@@ -220,7 +164,6 @@ import org.apache.log4j.Logger;
 
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
 			"Pierścień Mieszczanina",
 			"Uporaj się z wyzwaniami, które postawił przed tobą kowal Marianek.",
@@ -232,12 +175,50 @@ import org.apache.log4j.Logger;
 	}
 
 	@Override
+	public List<String> getHistory(final Player player) {
+		final List<String> res = new ArrayList<String>();
+		if (!player.hasQuest(QUEST_SLOT)) {
+			return res;
+		}
+		res.add(Grammar.genderVerb(player.getGender(), "Spotkałem") + " kowala Marianka.");
+		res.add("Zaproponował mi pierścień mieszczanina.");
+		final String questState = player.getQuest(QUEST_SLOT);
+		if (questState.equals("rejected")) {
+			res.add("Nie potrzebne mi są błyskotki..");
+			return res;
+		} 
+		if (questState.equals("start")) {
+			return res;
+		} 
+		res.add("Kowal Marianek poprosił, abym mu " + Grammar.genderVerb(player.getGender(), "dostarczył") + ": 50 sztabek srebra, 50 sztabek mithrilu, 150 sztabek złota i 30 bryłek mithrilu. po zdobyciu tych rzeczy mam mu powiedzieć: pierścień.");
+		if (questState.equals("start")) {
+			return res;
+		} 
+		res.add("Kowal Marianek był zadowolony z mojej postawy. W zamian " + Grammar.genderVerb(player.getGender(), "dostałem") + " pierścień mieszczanina.");
+
+		if (isCompleted(player)) {
+			return res;
+		} 
+
+		// if things have gone wrong and the quest state didn't match any of the above, debug a bit:
+		final List<String> debug = new ArrayList<String>();
+		debug.add("Stan zadania to: " + questState);
+		logger.error("Historia nie pasuje do stanu poszukiwania " + questState);
+		return debug;
+	}
+
+	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
+	}
+
+	@Override
 	public String getName() {
-		return "PierscienMieszczanina";
+		return "Pierścień Mieszczanina";
 	}
 
 	@Override
 	public String getNPCName() {
-		return "Marianek";
+		return npc.getName();
 	}
 }

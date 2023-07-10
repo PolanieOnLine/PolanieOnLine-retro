@@ -1,4 +1,3 @@
-/* $Id: DiverNPC.java,v 1.11 2010/10/31 13:11:11 kymara Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +11,10 @@
  ***************************************************************************/
 package games.stendhal.server.maps.athor.holiday_area;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
@@ -20,20 +23,14 @@ import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 public class DiverNPC implements ZoneConfigurator  {
-
-	public void configureZone(StendhalRPZone zone,
-			Map<String, String> attributes) {
+	@Override
+	public void configureZone(StendhalRPZone zone, Map<String, String> attributes) {
 		buildNPC(zone);
 	}
 
 	private void buildNPC(StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Dorinel") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -47,14 +44,16 @@ public class DiverNPC implements ZoneConfigurator  {
 				addGreeting("Witaj mój przyjacielu!");
 				add(ConversationStates.ATTENDING, ConversationPhrases.QUEST_MESSAGES, null,
 				        ConversationStates.ATTENDING, "Nie dziękuję. Nie potrzebuję pomocy!", null);
-				addJob("Jestem kierowcą, ale nie widzę teraz rybki!");
-				addHelp("Lubię kąpielówki, które można dostać z przebieralni na plaży.");
-				addGoodbye("Dowidzenia!");
+				addJob("Jestem nurkiem, ale w tej chwili nie widzę ani jednej ryby!");
+				addHelp("Lubię kostiumy kąpielowe, które można dostać w garderobie na plaży.");
+				addGoodbye("Do widzenia!");
 			}
-
 		};
-		npc.setPosition(36, 28);
+
+		npc.setDescription ("Oto Dorinel, który kocha słońce.");
 		npc.setEntityClass("swimmer2npc");
-		zone.add(npc);		
+		npc.setGender("M");
+		npc.setPosition(36, 28);
+		zone.add(npc);
 	}
 }

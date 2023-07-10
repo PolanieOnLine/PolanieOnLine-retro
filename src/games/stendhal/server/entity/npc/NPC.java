@@ -1,6 +1,5 @@
-/* $Id: NPC.java,v 1.54 2012/07/14 16:46:41 kiheru Exp $ */
 /***************************************************************************
- *						(C) Copyright 2003 - Marauroa					   *
+ *						(C) Copyright 2019 - Marauroa					   *
  ***************************************************************************
  ***************************************************************************
  *																		   *
@@ -12,28 +11,44 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
+import games.stendhal.common.Direction;
 import games.stendhal.common.Rand;
 import games.stendhal.common.constants.Events;
+import games.stendhal.common.constants.SoundLayer;
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
 import games.stendhal.server.core.pathfinder.Path;
+import games.stendhal.server.entity.DressedEntity;
 import games.stendhal.server.entity.Entity;
-import games.stendhal.server.entity.RPEntity;
 import games.stendhal.server.entity.item.Corpse;
-
-import java.util.ArrayList;
-import java.util.List;
-
+import games.stendhal.server.events.SoundEvent;
 import marauroa.common.game.Definition;
+import marauroa.common.game.Definition.Type;
 import marauroa.common.game.RPClass;
 import marauroa.common.game.RPEvent;
 import marauroa.common.game.RPObject;
 import marauroa.common.game.SyntaxException;
-import marauroa.common.game.Definition.Type;
 
-import org.apache.log4j.Logger;
-
-public abstract class NPC extends RPEntity {
+public abstract class NPC extends DressedEntity {
+	/**
+	 * Probability of generating a sound event at each turn, if the creature has
+	 * specified sounds.
+	 */
+	private static final int SOUND_PROBABILITY = 20;
+	/**
+	 * Creature sound radius.
+	 */
+	protected static final int SOUND_RADIUS = 23;
+	/**
+	 * Minimum delay in milliseconds between playing creature sounds.
+	 */
+	private static final long SOUND_DEAD_TIME = 10000L;
 
 	/** the logger instance. */
 	private static final Logger logger = Logger.getLogger(NPC.class);
@@ -53,16 +68,29 @@ public abstract class NPC extends RPEntity {
 	 */
 	private int movementRange = 20;
 
+	/**
+	 * Idling between path cycles
+	 */
+    protected int pauseTurns = 0;
+    public int pauseTurnsRemaining = 0;
+    protected Direction pauseDirection;
+
+	/**
+	 * Possible sound events.
+	 */
+	private List<String> sounds;
+	/** The time stamp of previous sound event. */
+	private long lastSoundTime;
+
 	public static void generateRPClass() {
 		try {
 			final RPClass npc = new RPClass("npc");
-			npc.isA("rpentity");
+			npc.isA("dressed_entity");
 			npc.addAttribute("class", Type.STRING);
 			npc.addAttribute("subclass", Type.STRING);
 			//npc.addAttribute("text", Type.LONG_STRING, Definition.VOLATILE);
-			npc.addRPEvent("text", Definition.VOLATILE);
 			npc.addAttribute("idea", Type.STRING, Definition.VOLATILE);
-			npc.addAttribute("outfit", Type.INT);
+			npc.addAttribute("cloned", Type.STRING);
 		} catch (final SyntaxException e) {
 			logger.error("cannot generate RPClass", e);
 		}
@@ -81,7 +109,7 @@ public abstract class NPC extends RPEntity {
 
 	/**
 	 * Set the NPC's idea/thought.
-	 * 
+	 *
 	 * @param idea
 	 *			  The idea mnemonic, or <code>null</code>.
 	 */
@@ -98,8 +126,35 @@ public abstract class NPC extends RPEntity {
 	}
 
 	/**
+	 * Set the possible sound events.
+	 *
+	 * @param sounds sound name list
+	 */
+	public void setSounds(final List<String> sounds) {
+		this.sounds = sounds;
+	}
+
+	/**
+	 * Set the possible sound events.
+	 *
+	 * @param sounds sound name list
+	 */
+	public void setSounds(final String[] sounds) {
+		this.sounds = Arrays.asList(sounds);
+	}
+
+	/**
+	 * Get the list of possible sound events.
+	 *
+	 * @return list of sound names
+	 */
+	protected List<String> getSounds() {
+		return sounds;
+	}
+
+	/**
 	 * Get the NPC's idea/thought.
-	 * 
+	 *
 	 * @return The idea mnemonic, or <code>null</code>.
 	 */
 	public String getIdea() {
@@ -113,6 +168,14 @@ public abstract class NPC extends RPEntity {
 		this.notifyWorldAboutChanges();
 	}
 
+	public void say(final String text, final int rangeSquared) {
+		final RPEvent rpe = new RPEvent(Events.PUBLIC_TEXT);
+		rpe.put("text", text);
+		rpe.put("range", rangeSquared);
+		this.addEvent(rpe);
+		this.notifyWorldAboutChanges();
+	}
+
 	/**
 	 * moves to the given entity. When the distance to the destination is
 	 * between <code>min</code> and <code>max</code> and this entity does
@@ -121,7 +184,7 @@ public abstract class NPC extends RPEntity {
 	 * <b>Note:</b> When the distance to the destination is less than
 	 * <code>min</code> the path is removed. <b>Warning:</b> The pathfinder
 	 * is not asynchronous, so this thread is blocked until a path is found.
-	 * 
+	 *
 	 * @param destEntity
 	 *			  the destination entity
 	 * @param min
@@ -153,7 +216,7 @@ public abstract class NPC extends RPEntity {
 
 	/**
 	 * Set a random destination as a path.
-	 * 
+	 *
 	 * @param distance
 	 *			  The maximum axis distance to move.
 	 * @param x
@@ -162,6 +225,8 @@ public abstract class NPC extends RPEntity {
 	 *			  The origin Y coordinate for placement.
 	 */
 	public void setRandomPathFrom(final int x, final int y, final int distance) {
+		setUsesRandomPath(true);
+
 		final int dist2_1 = distance + distance + 1;
 		final int dx = Rand.rand(dist2_1) - distance;
 		final int dy = Rand.rand(dist2_1) - distance;
@@ -221,9 +286,106 @@ public abstract class NPC extends RPEntity {
 		// sub classes can implement this method
 	}
 
-	@Override
-	public void logic() {
-		// sub classes can implement this method
+	/**
+	 * Checks if the NPC should remain stationary or begin walking
+	 */
+	public void checkPause() {
+        if (pauseTurnsRemaining == 0) {
+            if (hasPath()) {
+                setSpeed(getBaseSpeed());
+            }
+
+            applyMovement();
+        } else {
+            if (!stopped()) {
+                stop();
+                if (pauseDirection != null) {
+					setDirection(pauseDirection);
+				}
+            }
+
+            pauseTurnsRemaining -= 1;
+        }
 	}
 
+	@Override
+	public void logic() {
+	    if (atMovementRadius()) {
+	        onOutsideMovementRadius();
+	    }
+		if (!hasPath()) {
+		    if (logger.isDebugEnabled()) {
+		        String title = getTitle();
+		        String zone = getZone().getName();
+		        String coords = Integer.toString(getX()) + ", " + Integer.toString(getY());
+		        logger.debug("Moving entity " + title + " at " + zone + " " + coords + " does not have a path");
+		    }
+		}
+
+		maybeMakeSound();
+		checkPause();
+        notifyWorldAboutChanges();
+	}
+
+    /**
+     * Give NPC a random path
+     */
+    public void moveRandomly() {
+        setRandomPathFrom(getX(), getY(), getMovementRange() / 2);
+    }
+
+    @Override
+    public void onFinishedPath() {
+        super.onFinishedPath();
+
+        if (usesRandomPath()) {
+            // FIXME: There is a pause when renewing path
+            moveRandomly();
+        }
+
+        pauseTurnsRemaining = pauseTurns;
+    }
+
+    /**
+     * Pause the entity when path is completed.
+     * Call setDirection() first to specify which
+     * way entity should face during pause.
+     *
+     * @param pause
+     *         Number of turns entity should stay paused
+     */
+    public void setPathCompletedPause(final int pause) {
+        //setPathCompletedPause(pause, getDirection());
+        this.pauseTurns = pause;
+    }
+
+    public void setPathCompletedPause(final int pause, final Direction dir) {
+        this.pauseTurns = pause;
+        this.pauseDirection = dir;
+    }
+
+    /**
+	 * Generate a sound event with the probability of SOUND_PROBABILITY, if
+	 * the previous sound event happened long enough ago.
+	 */
+	protected void maybeMakeSound() {
+		maybeMakeSound(SOUND_PROBABILITY);
+	}
+
+	/**
+	 * Generate a sound event with the specified probability, if
+	 * the previous sound event happened long enough ago.
+	 *
+	 * @param probablility sound probability
+	 */
+	protected void maybeMakeSound(int probablility) {
+		if ((sounds != null) && !sounds.isEmpty() && (Rand.rand(100) < probablility)) {
+			long time = System.currentTimeMillis();
+			if (lastSoundTime + SOUND_DEAD_TIME < time) {
+				lastSoundTime = time;
+				this.addEvent(new SoundEvent(Rand.rand(sounds), SOUND_RADIUS, 100, SoundLayer.CREATURE_NOISE));
+				this.notifyWorldAboutChanges();
+			}
+		}
+	}
 }

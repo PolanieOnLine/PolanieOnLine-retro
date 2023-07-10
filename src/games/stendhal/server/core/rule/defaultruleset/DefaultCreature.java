@@ -1,4 +1,4 @@
-/* $Id: DefaultCreature.java,v 1.13 2012/07/10 20:38:22 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -12,12 +12,6 @@
  ***************************************************************************/
 package games.stendhal.server.core.rule.defaultruleset;
 
-import games.stendhal.common.constants.Nature;
-import games.stendhal.server.core.rule.EntityManager;
-import games.stendhal.server.entity.creature.Creature;
-import games.stendhal.server.entity.creature.impl.DropItem;
-import games.stendhal.server.entity.creature.impl.EquipItem;
-
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -28,70 +22,82 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
+import org.codehaus.groovy.control.CompilationFailedException;
+
+import games.stendhal.common.constants.Nature;
+import games.stendhal.server.core.rule.EntityManager;
+import games.stendhal.server.entity.creature.Creature;
+import games.stendhal.server.entity.creature.impl.DropItem;
+import games.stendhal.server.entity.creature.impl.EquipItem;
+import games.stendhal.server.entity.status.Status;
+import games.stendhal.server.entity.status.StatusAttacker;
+import groovy.lang.Binding;
+import groovy.lang.GroovyShell;
 
 public class DefaultCreature {
-
 	/** the logger instance. */
 	private static final Logger logger = Logger.getLogger(DefaultCreature.class);
 
 	/** Creature class. */
 	private String clazz;
-
 	/** Creature subclass. */
 	private String subclass;
-
+	/** shadow to use for entity */
+	private String shadowStyle = null;
 	/** Creature name. */
 	private String name;
-
 	/** optional creature description. * */
 	private String description;
-
 	/** Map Tile Id in the way tileset.png:pos. */
 	private String tileid;
-
-	/** hitpoints. */
+	/** hit points. */
 	private int hp;
-
-	/** Attack points. */
+	/** attack points. */
 	private int atk;
-
+	/** ranged attack points */
+	private int ratk;
 	/** defense points. */
 	private int def;
-
 	/** experience points for killing this creature. */
 	private int xp;
-
 	private int level;
-
 	private int respawn;
-
 	/** size of the creature. */
 	private int width;
-
 	private int height;
+
+	private String bloodClass;
 
 	/** resistance. */
 	private int resistance;
-
 	/** visibility. */
 	private int visibility;
 
 	private String corpseName;
+	private String harmlessCorpseName;
 	private int corpseWidth;
 	private int corpseHeight;
 
 	/** The list of items this creature may drop. */
 	private List<DropItem> dropsItems;
-
 	private List<EquipItem> equipsItems;
+	/** List of possible sound events. */
+	private List<String> sounds;
+	/** Sound played on creature death */
+	private String deathSound;
+
+	/** Looped sound effect for moving creature */
+	private String movementSound;
 
 	private LinkedHashMap<String, LinkedList<String>> creatureSays;
-
 	private Map<String, String> aiProfiles;
-
 	/** Susceptibilities of the creature */
 	private Map<Nature, Double> susceptibilities;
-	
+
+	/** Status attack types */
+	private String statusAttack;
+	private double statusAttackProbability;
+
 	/** Type of damage caused by the creature */
 	private Nature damageType;
 	/** Type of damage caused by the creature when using ranged attacks. if
@@ -111,7 +117,7 @@ public class DefaultCreature {
 		dropsItems = new LinkedList<DropItem>();
 		equipsItems = new LinkedList<EquipItem>();
 		creatureSays = new LinkedHashMap<String, LinkedList<String>>();
-		
+
 		aiProfiles = new LinkedHashMap<String, String>();
 	}
 
@@ -123,9 +129,10 @@ public class DefaultCreature {
 		return description;
 	}
 
-	public void setRPStats(final int hp, final int atk, final int def, final double speed) {
+	public void setRPStats(final int hp, final int atk, final int ratk, final int def, final double speed) {
 		this.hp = hp;
 		this.atk = atk;
+		this.ratk = ratk;
 		this.def = def;
 		this.speed = speed;
 	}
@@ -136,6 +143,10 @@ public class DefaultCreature {
 
 	public int getAtk() {
 		return atk;
+	}
+
+	public int getRatk() {
+		return ratk;
 	}
 
 	public int getDef() {
@@ -179,7 +190,7 @@ public class DefaultCreature {
 	public double getHeight() {
 		return height;
 	}
-
+	
 	public void setResistance(final int resistance) {
 		this.resistance = resistance;
 	}
@@ -211,9 +222,82 @@ public class DefaultCreature {
 	public List<EquipItem> getEquipedItems() {
 		return equipsItems;
 	}
-	
-	public void setCorpse(final String name, final int width, final int height) {
+
+	public String getShadowStyle() {
+		return shadowStyle;
+	}
+
+	public String getBloodClass() {
+		return bloodClass;
+	}
+
+	public String getCorpseName() {
+		return corpseName;
+	}
+
+	public String getHarmlessCorpseName() {
+		return harmlessCorpseName;
+	}
+
+	public int getCorpseWidth() {
+		return corpseWidth;
+	}
+
+	public int getCorpseHeight() {
+		return corpseHeight;
+	}
+
+	public List<DropItem> getDropsItems() {
+		return dropsItems;
+	}
+
+	public List<EquipItem> getEquipsItems() {
+		return equipsItems;
+	}
+
+	public List<String> getSounds() {
+		return sounds;
+	}
+
+	public String getDeathSound() {
+		return deathSound;
+	}
+
+	public String getMovementSound() {
+		return movementSound;
+	}
+
+	public Map<String, String> getAiProfiles() {
+		return aiProfiles;
+	}
+
+	public Map<Nature, Double> getSusceptibilities() {
+		return susceptibilities;
+	}
+
+	public String getStatusAttack() {
+		return statusAttack;
+	}
+
+	public double getStatusAttackProbability() {
+		return statusAttackProbability;
+	}
+
+	public Nature getDamageType() {
+		return damageType;
+	}
+
+	public Nature getRangedDamageType() {
+		return rangedDamageType;
+	}
+
+	public void setBlood(final String name) {
+		this.bloodClass = name;
+	}
+
+	public void setCorpse(final String name, final String harmless, final int width, final int height) {
 		corpseName = name;
+		harmlessCorpseName = harmless;
 		corpseWidth = width;
 		corpseHeight = height;
 	}
@@ -232,16 +316,16 @@ public class DefaultCreature {
 
 	/**
 	 * Set the susceptibility mapping.
-	 * 
+	 *
 	 * @param susceptibilities creature susceptibilities
 	 */
 	public void setSusceptibilities(final Map<Nature, Double> susceptibilities) {
 		this.susceptibilities = susceptibilities;
 	}
-	
+
 	/**
 	 * Set the damage types.
-	 * 
+	 *
 	 * @param type
 	 * @param rangedType if <code>null</code>, then melee type is used for both
 	 * 	attack modes
@@ -251,11 +335,11 @@ public class DefaultCreature {
 		rangedDamageType = rangedType;
 	}
 
-	/** @return a creature-instance. 
+	/** @return a creature-instance.
 	 */
 	public Creature getCreature() {
 		Collections.sort(dropsItems, new Comparator<DropItem>() {
-
+			@Override
 			public int compare(final DropItem o1, final DropItem o2) {
 				if (o1.probability < o2.probability) {
 					return -1;
@@ -265,18 +349,38 @@ public class DefaultCreature {
 					return 0;
 				}
 			}
-
 		});
 
-		final Creature creature = new Creature(clazz, subclass, name, hp, atk, def,
+		final Creature creature = new Creature(clazz, subclass, name, hp, atk, ratk, def,
 				level, xp, width, height, speed, resistance, visibility, dropsItems, aiProfiles,
 				creatureSays, respawn, description);
 		creature.equip(equipsItems);
-		
-		creature.setCorpse(corpseName, corpseWidth, corpseHeight);
+
+		creature.setCorpse(corpseName, harmlessCorpseName, corpseWidth, corpseHeight);
+		creature.setBlood(bloodClass);
 		creature.setSusceptibilities(susceptibilities);
 		creature.setDamageTypes(damageType, rangedDamageType);
-		
+		creature.setSounds(Collections.unmodifiableList(sounds));
+		creature.setDeathSound(deathSound);
+		creature.setMovementSound(movementSound);
+
+		if (shadowStyle != null) {
+			creature.setShadowStyle(shadowStyle);
+		}
+
+		// Status attack types
+		if (statusAttack != null) {
+			Binding groovyBinding = new Binding();
+			final GroovyShell interp = new GroovyShell(groovyBinding);
+			try {
+				String code = "import games.stendhal.server.entity.status.*;\r\n" + statusAttack;
+				StatusAttacker attacker = new StatusAttacker((Status) interp.evaluate(code), statusAttackProbability);
+				creature.addStatusAttacker(attacker);
+			} catch (CompilationFailedException e) {
+				throw new IllegalArgumentException(e);
+			}
+		}
+
 		return creature;
 	}
 
@@ -314,6 +418,54 @@ public class DefaultCreature {
 		name = val;
 	}
 
+	/**
+	 * Set the possible sound names.
+	 *
+	 * @param sounds list of sounds
+	 */
+	public void setCreatureSounds(List<String> sounds) {
+		this.sounds = sounds;
+	}
+
+	/**
+	 * Set the sound played when a creature dies
+	 *
+	 * @param sound Name of sound
+	 */
+	public void setCreatureDeathSound(String sound) {
+	    this.deathSound = sound;
+	}
+
+	/**
+	 * Set a looped sound effect for creature when moving
+	 *
+	 * @param sound
+	 * 				desired sound effect
+	 */
+	public void setCreatureMovementSound(String sound) {
+		this.movementSound = sound;
+	}
+
+	/**
+	 *
+	 * @param name
+	 * @param probability
+	 */
+	public void setStatusAttack(final String name, final double probability) {
+	    statusAttack = name;
+	    statusAttackProbability = probability;
+	}
+
+	/**
+	 * Sets the style of shadow to use for this entity.
+	 *
+	 * @param style
+	 * 		Name of the style.
+	 */
+	public void setShadowStyle(final String style) {
+		shadowStyle = style;
+	}
+
 	public boolean verifyItems(final EntityManager defaultEntityManager) {
 		for (final DropItem item : dropsItems) {
 			if (!defaultEntityManager.isItem(item.name)) {
@@ -344,6 +496,7 @@ public class DefaultCreature {
 		}
 		os.append("    <attributes>\n");
 		os.append("      <atk value=\"" + atk + "\"/>\n");
+		os.append("      <ratk value=\"" + ratk + "\"/>\n");
 		os.append("      <def value=\"" + def + "\"/>\n");
 		os.append("      <hp value=\"" + hp + "\"/>\n");
 		os.append("      <speed value=\"" + speed + "\"/>\n");
@@ -370,17 +523,17 @@ public class DefaultCreature {
 		os.append("    <ai>\n");
 		if (!creatureSays.isEmpty()) {
 			os.append("      <says>\n");
-			
+
 			while(creatureSays.entrySet().iterator().hasNext()) {
 				final Entry<String, LinkedList<String>> entry =
 					creatureSays.entrySet().iterator().next();
 				for (int i=0; i<entry.getValue().size(); i++) {
 					os.append("        <noise state=\""+entry.getKey()+
-							"\" value=\"" + entry.getValue().get(i) + "\"/>\n");					
+							"\" value=\"" + entry.getValue().get(i) + "\"/>\n");
 				}
 			}
 
-			os.append("      </says>\n");
+		os.append("      </says>\n");
 		}
 		for (final Map.Entry<String, String> entry : aiProfiles.entrySet()) {
 			os.append("      <profile name=\"" + entry.getKey() + "\"");

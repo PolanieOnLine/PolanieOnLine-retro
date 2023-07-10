@@ -1,4 +1,3 @@
-/* $Id: JesterNPC.java,v 1.14 2010/12/29 23:39:17 martinfuchs Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +11,11 @@
  ***************************************************************************/
 package games.stendhal.server.maps.ados.castle;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
@@ -19,10 +23,6 @@ import games.stendhal.server.core.pathfinder.Node;
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Builds a Jester NPC to inform entrants to the castle.
@@ -36,6 +36,7 @@ public class JesterNPC implements ZoneConfigurator {
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildNPC(zone);
 	}
@@ -63,18 +64,19 @@ public class JesterNPC implements ZoneConfigurator {
 				addGreeting("Pozdrawiam!");
 				addJob("Jestem nadwornym błaznem. Nie mogę przestać! W mojej umowie o pracę nie ma stania i rozmawiania.");
 				addHelp("Ciii... Mógłbym Ci opowiedzieć coś o przestępcach..., gdy Król wyjechał to oni przejęli zamek. Siedzę teraz cicho. Ciii...");
-				add(ConversationStates.ATTENDING, "offer", null, ConversationStates.IDLE,
-				        "Niczego nie potrzebuję! Muszę żonglować! Dowidzenia!", null);
+				add(ConversationStates.ATTENDING, Arrays.asList("offer", "oferta"), null, ConversationStates.IDLE,
+				        "Niczego nie potrzebuję! Muszę żonglować! Do widzenia!", null);
 				add(ConversationStates.ATTENDING, ConversationPhrases.QUEST_MESSAGES, null,
 				        ConversationStates.IDLE,
-				        "Niczego nie potrzebuję! Muszę żonglować! Dowidzenia!", null);
-				addGoodbye("Dowidzenia!");
+				        "Niczego nie potrzebuję! Muszę żonglować! Do widzenia!", null);
+				addGoodbye("Do widzenia!");
 			}
 		};
+
 		npc.setDescription("Oto Huckle Rohn, nadworny błazen.");
 		npc.setEntityClass("magic_jesternpc");
+		npc.setGender("M");
 		npc.setPosition(8, 57);
-		npc.initHP(100);
 		zone.add(npc);
 	}
 }

@@ -1,4 +1,4 @@
-/* $Id: KoboldRaid.java,v 1.3 2010/09/19 02:36:26 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -17,7 +17,7 @@ import java.util.Map;
 
 /**
  * @author kymara
- * 
+ *
  * Less safe for players below level 10
  */
 public class KoboldRaid extends CreateRaid {
@@ -26,15 +26,15 @@ public class KoboldRaid extends CreateRaid {
 	protected Map<String, Integer> createArmy() {
 		final Map<String, Integer> attackArmy = new HashMap<String, Integer>();
 		attackArmy.put("kobold", 7);
-		attackArmy.put("kobold łucznik", 3);
-		attackArmy.put("kobold lider", 7);
-		attackArmy.put("kobold żołnierz", 7);
-		attackArmy.put("kobold olbrzymi", 2);
-		attackArmy.put("kobold weteran", 7);
+		attackArmy.put("archer kobold", 3);
+		attackArmy.put("leader kobold", 7);
+		attackArmy.put("soldier kobold", 7);
+		attackArmy.put("giant kobold", 2);
+		attackArmy.put("veteran kobold", 7);
 		return attackArmy;
 	}
 	@Override
 	protected String getInfo() {
-		return "Mniej bezpieczny dla wojowników poniżej poziomu 10.";
+		return "Less safe for players below level 10.";
 	}
 }

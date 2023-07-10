@@ -1,7 +1,7 @@
 /*
  * @(#) src/games/stendhal/server/entity/area/DamagingAreaFactory.java
  *
- * $Id: DamagingAreaFactory.java,v 1.4 2008/07/12 14:43:56 astridemma Exp $
+ * $Id$
  */
 
 package games.stendhal.server.entity.mapstuff.area;
@@ -15,7 +15,7 @@ public class DamagingAreaFactory extends OccupantAreaFactory {
 
 	/**
 	 * Extract the damage amount from a context.
-	 * 
+	 *
 	 * @param ctx
 	 *            The configuration context.
 	 * @return The damage amount.
@@ -28,12 +28,12 @@ public class DamagingAreaFactory extends OccupantAreaFactory {
 
 	/**
 	 * Extract the moving damage probability (as percent) from a context.
-	 * 
+	 *
 	 * @param ctx
 	 *            The configuration context.
-	 * 
+	 *
 	 * @return The damage probability (0.0 - 1.0).
-	 * 
+	 *
 	 * @throws IllegalArgumentException
 	 *             If the attribute is invalid.
 	 */
@@ -47,7 +47,7 @@ public class DamagingAreaFactory extends OccupantAreaFactory {
 
 	/**
 	 * Creates the OccupantArea.
-	 * 
+	 *
 	 * @param ctx
 	 *            The configuration context.
 	 * @return An OccupantArea.

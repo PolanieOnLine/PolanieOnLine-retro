@@ -1,6 +1,5 @@
-/* $Id: FlowerSellerNPC.java,v 1.20 2012/02/13 00:16:54 bluelads99 Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,13 +11,14 @@
  ***************************************************************************/
 package games.stendhal.server.maps.semos.house;
 
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.entity.CollisionAction;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.npc.behaviour.impl.TeleporterBehaviour;
-
-import java.util.Map;
 
 /**
  * Builds a Flower Seller NPC for the Elf Princess quest.
@@ -26,33 +26,28 @@ import java.util.Map;
  * @author kymara
  */
 public class FlowerSellerNPC implements ZoneConfigurator {
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
-
-        	new TeleporterBehaviour(buildSemosHouseArea(), "Kwiatki! Świeże kwiatki!");
+		new TeleporterBehaviour(buildSemosHouseArea(), null, "0", "Kwiatki! Świeże kwiatki!");
 	}
 
 	private SpeakerNPC buildSemosHouseArea() {
-
-	    final SpeakerNPC rose = new SpeakerNPC("Róża Kwiaciarka") {
-	                @Override
-			protected void createPath() {
-				// npc does not move
-				setPath(null);
-			}
-	                @Override
+		final SpeakerNPC rose = new SpeakerNPC("Róża Kwiaciarka") {
+			@Override
 			protected void createDialog() {
-			    addJob("Jestem wędrowną kwiaciarką z dalekiego Grodu Kraka.");
-			    addGoodbye("Wszystko zaczyna się od róż ... dowidzenia ...");
-			    // the rest is in the ElfPrincess quest
-			}
+				addJob("Jestem wędrowną kwiaciarką z dalekiego Grodu Kraka.");
+				addGoodbye("Wszystko zaczyna się od róż... Do widzenia...");
+			}// the rest is in the ElfPrincess quest
 		};
 
-		rose.setEntityClass("gypsywomannpc");
-		rose.initHP(100);
 		rose.setDescription("Oto Róża Kwiaciarka. Skacze z miejsca na miejsce z koszykiem pełnym pięknych róż.");
+		rose.setEntityClass("gypsywomannpc");
+		rose.setGender("F");
+		rose.setCollisionAction(CollisionAction.REVERSE);
+		rose.setSounds(new String[] {"npc/hum_happy"});
 
 		// start in int_semos_house
-		final StendhalRPZone	zone = SingletonRepository.getRPWorld().getZone("int_semos_house");
+		final StendhalRPZone zone = SingletonRepository.getRPWorld().getZone("int_semos_house");
 		rose.setPosition(5, 6);
 		zone.add(rose);
 

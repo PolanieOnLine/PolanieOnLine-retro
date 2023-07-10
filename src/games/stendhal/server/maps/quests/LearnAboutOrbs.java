@@ -1,6 +1,5 @@
-/* $Id: LearnAboutOrbs.java,v 1.14 2011/11/13 17:14:15 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2011 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,6 +11,12 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import games.stendhal.common.grammar.Grammar;
+import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.SpeakerNPC;
@@ -24,81 +29,56 @@ import games.stendhal.server.entity.npc.condition.QuestCompletedCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotCompletedCondition;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.Region;
-
-import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.List;
+import games.stendhal.server.maps.semos.temple.HealerNPC;
+import games.stendhal.server.util.ResetSpeakerNPC;
 
 /**
  * QUEST: Learn about Orbs
- * 
+ *
  * PARTICIPANTS:
  * <ul>
  * <li>Ilisa, the summon healer in Semos temple</li>
  * </ul>
- * 
+ *
  * STEPS:
  * <ul>
  * <li>Ilisa offers to teach you about orbs</li>
  * <li>You use the orb</li>
  * <li>You tell her if you were successful.</li>
  * </ul>
- * 
+ *
  * REWARD:
  * <ul>
  * <li>50 XP</li>
  * <li>Ability to use orb in semos temple which teleports you outside into city</li>
  * <li>Ability to use other orbs e.g. in orril lich palace</li>
  * </ul>
- * 
+ *
  * REPETITIONS:
  * <ul>
  * <li>Can always learn about orbs but not get the xp each time</li>
  * </ul>
  */
 public class LearnAboutOrbs extends AbstractQuest {
-
 	private static final String QUEST_SLOT = "learn_scrying";
-
-
-	
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
-
-	@Override
-	public List<String> getHistory(final Player player) {
-		final List<String> res = new ArrayList<String>();
-		if (!player.hasQuest(QUEST_SLOT)) {
-			return res;
-		}
-		res.add("Spotkałem Ilisa w świątyni w Semos.");
-		final String questState = player.getQuest(QUEST_SLOT);
-		if (questState.equals("done")) {
-			res.add("Ilisa pokazała mi jak używać kul. Muszę uważać, ponieważ mogą mnie wysłać w inne niebezpieczne miejsce.");
-		}
-		return res;
-	}
+	private final SpeakerNPC npc = npcs.get("Ilisa");
 
 	private void step1() {
-		final SpeakerNPC npc = npcs.get("Ilisa");
-		
 		npc.add(ConversationStates.ATTENDING,
-			ConversationPhrases.QUEST_MESSAGES, 
+			ConversationPhrases.QUEST_MESSAGES,
 			new QuestNotCompletedCondition(QUEST_SLOT),
-			ConversationStates.QUEST_OFFERED, 
+			ConversationStates.QUEST_OFFERED,
 			"Pewne kule mają specjalne właściwości. Mogłabym Cię nauczyć jak #używać kuli jak ta co leży na stole.", null);
 
 		npc.add(ConversationStates.ATTENDING,
 			ConversationPhrases.QUEST_MESSAGES,
 			new QuestCompletedCondition(QUEST_SLOT),
-			ConversationStates.ATTENDING, 
+			ConversationStates.ATTENDING,
 			"Mogę Ci przypomnieć jak #używać kuli.", null);
 
 		// player interested in orb
 		npc.add(ConversationStates.QUEST_OFFERED,
-			Arrays.asList("use", "używać"), 
+			Arrays.asList("use", "używać"),
 			new LevelGreaterThanCondition(10),
 			ConversationStates.QUESTION_1,
 			"Naciśnij prawy przycisk i wybierz Użyj. Dostałeś jakąś wiadomość?",
@@ -106,10 +86,10 @@ public class LearnAboutOrbs extends AbstractQuest {
 
 		// player interested in orb but level < 10
 		npc.add(ConversationStates.QUEST_OFFERED,
-			Arrays.asList("use", "używać"), 
+			Arrays.asList("use", "używać"),
 			new NotCondition(new LevelGreaterThanCondition(10)),
 			ConversationStates.ATTENDING,
-			"Aha, Dostałam wiadomość, że wciąż jesteś tutaj nowy. Może wróć później, gdy będziesz miał więcej doświadczenia. Na razie jeżeli potrzebujesz #pomocy to pytaj!",
+			"Aha... Dostałam wiadomość, że wciąż jesteś tutaj nowy. Może wróć później, gdy będziesz miał więcej doświadczenia. Na razie jeżeli potrzebujesz #pomocy to pytaj!",
 			null);
 
 		// player wants reminder on Use
@@ -131,30 +111,55 @@ public class LearnAboutOrbs extends AbstractQuest {
 		// player didn't get message, try again
 		npc.add(ConversationStates.QUESTION_1, ConversationPhrases.NO_MESSAGES,
 			null, ConversationStates.QUESTION_1,
-			"Cóż musisz stanąć obok. Podejdź blisko. Dostałeś wiadomość?", null);
+			"Cóż, musisz stanąć obok tej kuli. Zbliż się, czy dostałeś teraz wiadomość?", null);
 	}
 
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
 				"Nauka o Kulach",
-				"Ilisa nauczy mnie o Kulach.",
+				"Ilisa uczy o działaniu magicznych kul.",
 				false);
 		step1();
+	}
 
+	@Override
+	public boolean removeFromWorld() {
+		final boolean res = ResetSpeakerNPC.reload(new HealerNPC(), getNPCName());
+		// reload other quests associated with Ilisa
+		SingletonRepository.getStendhalQuestSystem().reloadQuestSlots("introduce_players");
+		return res;
+	}
+
+	@Override
+	public List<String> getHistory(final Player player) {
+		final List<String> res = new ArrayList<String>();
+		if (!player.hasQuest(QUEST_SLOT)) {
+			return res;
+		}
+		res.add(Grammar.genderVerb(player.getGender(), "Spotkałem") + " Ilise w świątyni w Semos.");
+		final String questState = player.getQuest(QUEST_SLOT);
+		if (questState.equals("done")) {
+			res.add("Ilisa pokazała mi jak używać kul. Muszę uważać, ponieważ mogą mnie wysłać w inne niebezpieczne miejsce.");
+		}
+		return res;
+	}
+
+	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
 	}
 
 	@Override
 	public String getName() {
-		return "LearnAboutOrbs";
+		return "Nauka o Kulach";
 	}
-	
+
 	@Override
 	public int getMinLevel() {
 		return 11;
 	}
-	
+
 	@Override
 	public String getRegion() {
 		return Region.SEMOS_CITY;
@@ -162,6 +167,6 @@ public class LearnAboutOrbs extends AbstractQuest {
 
 	@Override
 	public String getNPCName() {
-		return "Ilisa";
+		return npc.getName();
 	}
 }

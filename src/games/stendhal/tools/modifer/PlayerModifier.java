@@ -1,4 +1,4 @@
-/* $Id: PlayerModifier.java,v 1.6 2010/09/19 01:29:19 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,11 +12,12 @@
  ***************************************************************************/
 package games.stendhal.tools.modifer;
 
-import games.stendhal.server.entity.player.Player;
-
 import java.io.IOException;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.Date;
 
+import games.stendhal.server.entity.player.Player;
 import marauroa.common.game.RPObject;
 import marauroa.server.db.DBTransaction;
 import marauroa.server.game.db.CharacterDAO;
@@ -44,8 +45,8 @@ public class PlayerModifier {
 
 	public boolean savePlayer(final DBTransaction transaction, final Player player) {
 		try {
-			DAORegister.get().get(CharacterDAO.class).storeCharacter(transaction, player.getName(), player.getName(), player);
-
+			DAORegister.get().get(CharacterDAO.class).storeCharacter(transaction, player.getName(), player.getName(), player,
+					new Timestamp(new Date().getTime()));
 		} catch (final SQLException e) {
 			return false;
 		} catch (final IOException e) {

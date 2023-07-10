@@ -1,5 +1,6 @@
-/* $Id: DumpTransitions.java,v 1.21 2011/05/01 19:50:06 martinfuchs Exp $ */
 package games.stendhal.server.script;
+
+import java.util.List;
 
 import games.stendhal.common.parser.Expression;
 import games.stendhal.server.core.engine.SingletonRepository;
@@ -9,12 +10,10 @@ import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.npc.fsm.Transition;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.List;
-
 /**
  * Dumps the transition table of an NPC for "dot" http://www.graphviz.org/ to
  * generate a nice graph and prints the graph text to the client console.
- * 
+ *
  * @author hendrik
  */
 public class DumpTransitions extends ScriptImpl {
@@ -44,7 +43,7 @@ public class DumpTransitions extends ScriptImpl {
 
 	/**
 	 * Returns the transition diagram as string.
-	 * 
+	 *
 	 * @param npc
 	 *            SpeakerNPC
 	 * @return transition diagram

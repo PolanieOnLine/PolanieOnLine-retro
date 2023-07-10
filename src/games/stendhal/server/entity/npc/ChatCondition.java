@@ -1,4 +1,4 @@
-/* $Id: ChatCondition.java,v 1.6 2011/05/01 19:50:07 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -19,5 +19,6 @@ import games.stendhal.server.entity.player.Player;
 
 public interface ChatCondition extends PreTransitionCondition {
 
+	@Override
 	boolean fire(Player player, Sentence sentence, Entity npc);
 }

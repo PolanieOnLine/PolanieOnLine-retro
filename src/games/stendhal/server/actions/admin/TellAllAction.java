@@ -1,6 +1,5 @@
-/* $Id: TellAllAction.java,v 1.13 2011/11/03 20:12:57 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -14,6 +13,7 @@ package games.stendhal.server.actions.admin;
 
 import static games.stendhal.common.constants.Actions.TELLALL;
 import static games.stendhal.common.constants.Actions.TEXT;
+
 import games.stendhal.common.NotificationType;
 import games.stendhal.server.actions.CommandCenter;
 import games.stendhal.server.core.engine.GameEvent;

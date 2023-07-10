@@ -1,4 +1,3 @@
-/* $Id: AnimalKeeperNPC.java,v 1.48 2011/05/01 19:50:07 martinfuchs Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +11,10 @@
  ***************************************************************************/
 package games.stendhal.server.maps.ados.outside;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.common.Rand;
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.ZoneConfigurator;
@@ -20,6 +23,7 @@ import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
 import games.stendhal.server.core.rp.StendhalRPAction;
+import games.stendhal.server.entity.CollisionAction;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.creature.Pet;
 import games.stendhal.server.entity.npc.ChatAction;
@@ -30,12 +34,7 @@ import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 public class AnimalKeeperNPC implements ZoneConfigurator {
-
 	private static final String ZONE_NAME = "int_ados_pet_sanctuary";
 
 	/**
@@ -44,13 +43,13 @@ public class AnimalKeeperNPC implements ZoneConfigurator {
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
-		buildZooArea(zone, attributes);
+		buildZooArea(zone);
 	}
 
-	private void buildZooArea(final StendhalRPZone zone, final Map<String, String> attributes) {
+	private void buildZooArea(final StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Katinka") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -71,6 +70,7 @@ public class AnimalKeeperNPC implements ZoneConfigurator {
 				add(ConversationStates.ATTENDING,
 					ConversationPhrases.HELP_MESSAGES,
 					new ChatCondition() {
+						@Override
 						public boolean fire(final Player player, final Sentence sentence,
 											final Entity engine) {
 							return player.hasPet();
@@ -83,6 +83,7 @@ public class AnimalKeeperNPC implements ZoneConfigurator {
 					ConversationPhrases.YES_MESSAGES, null,
 					ConversationStates.ATTENDING, null,
 					new ChatAction() {
+						@Override
 						public void fire(final Player player, final Sentence sentence,
 										 final EventRaiser npc) {
 							Pet pet = player.getPet();
@@ -114,6 +115,7 @@ public class AnimalKeeperNPC implements ZoneConfigurator {
 				add(ConversationStates.ATTENDING,
 					ConversationPhrases.HELP_MESSAGES,
 					new ChatCondition() {
+						@Override
 						public boolean fire(final Player player, final Sentence sentence,
 											final Entity engine) {
 							return !player.hasPet();
@@ -122,17 +124,16 @@ public class AnimalKeeperNPC implements ZoneConfigurator {
 					ConversationStates.ATTENDING, "Jeżeli spotkasz spotkasz porzucone zwierzątko to proszę przyprowadź je do mnie.",
 					null);
 
-				addGoodbye("Dowidzenia!");
-				
-			}
-			// remaining behaviour is defined in maps.quests.ZooFood.
+				addGoodbye("Do widzenia!");
+			}// remaining behaviour is defined in maps.quests.ZooFood.
 		};
 
+		npc.setDescription("Oto Katinka. Opiekuje się zwierzątkami w tym Zoo.");
 		npc.setEntityClass("woman_007_npc");
+		npc.setGender("F");
 		npc.setPosition(41, 40);
 		//npc.setDirection(Direction.DOWN);
-		npc.initHP(100);
-		npc.setDescription("Oto Katinka. Opiekuje się zwierzętami w tym Zoo.");
+		npc.setCollisionAction(CollisionAction.STOP);
 		zone.add(npc);
 	}
 }

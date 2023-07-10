@@ -1,6 +1,5 @@
-/* $Id: FeatureList.java,v 1.10 2010/10/04 18:42:03 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2013 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -17,10 +16,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 /**
- * A list of [enabled] features. TODO currently effectively not used
+ * A list of [enabled] features.
  */
 public class FeatureList implements Iterable<String> {
-	protected HashMap<String, String> list;
+	private HashMap<String, String> list;
 
 	/**
 	 * Create a list of [enabled] features.
@@ -42,10 +41,10 @@ public class FeatureList implements Iterable<String> {
 
 	/**
 	 * Read an encoded features list.
-	 * 
+	 *
 	 * Encoded features are in the form of:<br>
 	 * <em>name</em>[<code>=</code><em>value</em>][<code>:</code><em>name</em>[<code>=</code><em>value</em>]...]
-	 * @param encoded 
+	 * @param encoded encoded string to decode
 	 */
 	public void decode(final String encoded) {
 		int len;
@@ -88,18 +87,19 @@ public class FeatureList implements Iterable<String> {
 
 	/**
 	 * Get a feature value.
-	 * @param name 
-	 * 
+	 *
+	 * @param name key
 	 * @return A feature value, or <code>null</code> if not-enabled.
 	 */
 	public String get(final String name) {
 		return list.get(name);
 	}
 
-	
+
 	//
 	// Iterable
 	//
+	@Override
 	public Iterator<String> iterator() {
 		return list.keySet().iterator();
 	}

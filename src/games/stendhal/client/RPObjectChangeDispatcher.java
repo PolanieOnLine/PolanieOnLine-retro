@@ -1,4 +1,4 @@
-/* $Id: RPObjectChangeDispatcher.java,v 1.26 2011/03/09 19:44:24 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -13,23 +13,23 @@
 package games.stendhal.client;
 
 
+import org.apache.log4j.Logger;
+
 import games.stendhal.client.listener.RPObjectChangeListener;
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPSlot;
 
-import org.apache.log4j.Logger;
-
 /**
  * A dispatcher for RPObjectChangeListeners. This normalizes the tree deltas
  * into individual object deltas.
- * 
+ *
  * NOTE: The order of dispatch between contained objects and when their
  * container is very specific. Children objects are given a chance to perform
  * creation/updates before their parent is notified it happened to that specific
  * child. For cases of object removal, the parent is notified first, in case the
  * child does destruction/cleanup.
  */
-public class RPObjectChangeDispatcher {
+class RPObjectChangeDispatcher {
 	/**
 	 * The logger.
 	 */
@@ -38,22 +38,22 @@ public class RPObjectChangeDispatcher {
 	/**
 	 * The normal listener.
 	 */
-	protected RPObjectChangeListener listener;
+	private RPObjectChangeListener listener;
 
 	/**
 	 * The user object listener.
 	 */
-	protected RPObjectChangeListener userListener;
+	private RPObjectChangeListener userListener;
 
 	/**
 	 * Create an RPObjectChange event dispatcher.
-	 * 
+	 *
 	 * @param listener
 	 *            The normal listener.
 	 * @param userListener
 	 *            The user object listener.
 	 */
-	public RPObjectChangeDispatcher(final RPObjectChangeListener listener, final RPObjectChangeListener userListener) {
+	RPObjectChangeDispatcher(final RPObjectChangeListener listener, final RPObjectChangeListener userListener) {
 		this.listener = listener;
 		this.userListener = userListener;
 	}
@@ -64,11 +64,11 @@ public class RPObjectChangeDispatcher {
 
 	/**
 	 * Dispatch object added event.
-	 * 
+	 *
 	 * @param object
 	 *            The object.
 	 */
-	public void dispatchAdded(final RPObject object) {
+	void dispatchAdded(final RPObject object) {
 		try {
 			logger.debug("Object(" + object.getID() + ") added to client");
 			fireAdded(object);
@@ -79,11 +79,11 @@ public class RPObjectChangeDispatcher {
 
 	/**
 	 * Dispatch object removed event.
-	 * 
+	 *
 	 * @param object
 	 *            The object.
 	 */
-	public void dispatchRemoved(final RPObject object) {
+	void dispatchRemoved(final RPObject object) {
 		try {
 			logger.debug("Object(" + object.getID() + ") removed from client");
 			fireRemoved(object);
@@ -95,13 +95,13 @@ public class RPObjectChangeDispatcher {
 
 	/**
 	 * Dispatch object added/changed attribute(s) event.
-	 * 
+	 *
 	 * @param object
 	 *            The base object.
 	 * @param changes
 	 *            The changes.
 	 */
-	public void dispatchModifyAdded(final RPObject object,
+	void dispatchModifyAdded(final RPObject object,
 			final RPObject changes) {
 		try {
 			logger.debug("Object(" + object.getID() + ") modified in client");
@@ -116,13 +116,13 @@ public class RPObjectChangeDispatcher {
 
 	/**
 	 * Dispatch object removed attribute(s) event.
-	 * 
+	 *
 	 * @param object
 	 *            The base object.
 	 * @param changes
 	 *            The changes.
 	 */
-	public void dispatchModifyRemoved(final RPObject object, final RPObject changes) {
+	void dispatchModifyRemoved(final RPObject object, final RPObject changes) {
 		if (object != null) {
 			try {
 				logger.debug("Object(" + object.getID() + ") modified in client");
@@ -139,39 +139,23 @@ public class RPObjectChangeDispatcher {
 		} else {
 			logger.error("dispatchModifyRemoved failed, object is null, changes is " + changes);
 		}
-		
-	}
 
-	protected static void buildIDPath(final StringBuilder sbuf,
-			final RPObject object) {
-		final RPSlot slot = object.getContainerSlot();
-
-		if (slot != null) {
-			buildIDPath(sbuf, object.getContainer());
-			sbuf.append(':');
-			sbuf.append(slot.getName());
-			sbuf.append(':');
-		}
-
-		sbuf.append(object.getID().getObjectID());
 	}
 
 	/**
 	 * Notify listeners that an object was added.
-	 * 
+	 *
 	 * @param object
 	 *            The object.
 	 */
-	protected void fireAdded(final RPObject object) {
+	private void fireAdded(final RPObject object) {
 
 		/*
 		 * Call before children have been notified
 		 */
 		listener.onAdded(object);
 
-		
-			userListener.onAdded(object);
-		
+		userListener.onAdded(object);
 
 		/*
 		 * Walk each slot
@@ -187,7 +171,7 @@ public class RPObjectChangeDispatcher {
 
 	/**
 	 * Notify listeners that a slot object was added.
-	 * 
+	 *
 	 * @param object
 	 *            The parent object.
 	 * @param slotName
@@ -195,7 +179,7 @@ public class RPObjectChangeDispatcher {
 	 * @param sobject
 	 *            The slot object.
 	 */
-	protected void fireAdded(final RPObject object, final String slotName,
+	private void fireAdded(final RPObject object, final String slotName,
 			final RPObject sobject) {
 		/*
 		 * Notify child
@@ -207,21 +191,19 @@ public class RPObjectChangeDispatcher {
 		 */
 		listener.onSlotAdded(object, slotName, sobject);
 
-		
 		userListener.onSlotAdded(object, slotName, sobject);
-		
 	}
 
 	/**
 	 * Notify listeners that an object added/changed attribute(s). This will
 	 * cascade down slot trees.
-	 * 
+	 *
 	 * @param object
 	 *            The base object.
 	 * @param changes
 	 *            The changes.
 	 */
-	protected void fireChangedAdded(final RPObject object, final RPObject changes) {
+	private void fireChangedAdded(final RPObject object, final RPObject changes) {
 
 		/*
 		 * Walk each slot
@@ -237,21 +219,19 @@ public class RPObjectChangeDispatcher {
 		 */
 		listener.onChangedAdded(object, changes);
 
-		
-			userListener.onChangedAdded(object, changes);
-		
+		userListener.onChangedAdded(object, changes);
 	}
 
 	/**
 	 * Notify listeners that an object slot added/changed attribute(s). This
 	 * will cascade down object trees.
-	 * 
+	 *
 	 * @param object
 	 *            The base object.
 	 * @param cslot
 	 *            The changes slot.
 	 */
-	protected void fireChangedAdded(final RPObject object, final RPSlot cslot) {
+	private void fireChangedAdded(final RPObject object, final RPSlot cslot) {
 		final String slotName = cslot.getName();
 		RPSlot slot;
 
@@ -275,10 +255,8 @@ public class RPObjectChangeDispatcher {
 
 				listener.onSlotChangedAdded(object, slotName, sobject, schanges);
 
-				
-					userListener.onSlotChangedAdded(object, slotName, sobject,
-							schanges);
-				
+				userListener.onSlotChangedAdded(object, slotName, sobject,
+						schanges);
 
 				fireChangedAdded(sobject, schanges);
 			} else {
@@ -294,22 +272,20 @@ public class RPObjectChangeDispatcher {
 	/**
 	 * Notify listeners that an object removed attribute(s). This will cascade
 	 * down slot trees.
-	 * 
+	 *
 	 * @param object
 	 *            The base object.
 	 * @param changes
 	 *            The changes.
 	 */
-	protected void fireChangedRemoved(final RPObject object, final RPObject changes) {
-		
+	private void fireChangedRemoved(final RPObject object, final RPObject changes) {
+
 		/*
 		 * Call before children have been notified
 		 */
 		listener.onChangedRemoved(object, changes);
 
-		
-			userListener.onChangedRemoved(object, changes);
-		
+		userListener.onChangedRemoved(object, changes);
 
 		/*
 		 * Walk each slot
@@ -324,13 +300,13 @@ public class RPObjectChangeDispatcher {
 	/**
 	 * Notify listeners that an object slot removed attribute(s). This will
 	 * cascade down object trees.
-	 * 
+	 *
 	 * @param object
 	 *            The base object.
 	 * @param cslot
 	 *            The changes slot.
 	 */
-	protected void fireChangedRemoved(final RPObject object, final RPSlot cslot) {
+	private void fireChangedRemoved(final RPObject object, final RPSlot cslot) {
 		final String slotName = cslot.getName();
 
 		/*
@@ -357,10 +333,8 @@ public class RPObjectChangeDispatcher {
 				listener.onSlotChangedRemoved(object, slotName, sobject,
 						schanges);
 
-				
-					userListener.onSlotChangedRemoved(object, slotName,
-							sobject, schanges);
-				
+				userListener.onSlotChangedRemoved(object, slotName,
+						sobject, schanges);
 
 				fireChangedRemoved(sobject, schanges);
 			} else {
@@ -371,11 +345,11 @@ public class RPObjectChangeDispatcher {
 
 	/**
 	 * Notify listeners that an object was removed.
-	 * 
+	 *
 	 * @param object
 	 *            The object.
 	 */
-	protected void fireRemoved(final RPObject object) {
+	private void fireRemoved(final RPObject object) {
 		/*
 		 * Walk each slot
 		 */
@@ -392,14 +366,12 @@ public class RPObjectChangeDispatcher {
 		 */
 		listener.onRemoved(object);
 
-		
-			userListener.onRemoved(object);
-		
+		userListener.onRemoved(object);
 	}
 
 	/**
 	 * Notify listeners that a slot object was removed.
-	 * 
+	 *
 	 * @param object
 	 *            The container object.
 	 * @param slotName
@@ -407,16 +379,14 @@ public class RPObjectChangeDispatcher {
 	 * @param sobject
 	 *            The slot object.
 	 */
-	protected void fireRemoved(final RPObject object, final String slotName,
+	private void fireRemoved(final RPObject object, final String slotName,
 			final RPObject sobject) {
 		/*
 		 * Call before the child is notified
 		 */
 		listener.onSlotRemoved(object, slotName, sobject);
 
-		
-			userListener.onSlotRemoved(object, slotName, sobject);
-		
+		userListener.onSlotRemoved(object, slotName, sobject);
 
 		/*
 		 * Notify child

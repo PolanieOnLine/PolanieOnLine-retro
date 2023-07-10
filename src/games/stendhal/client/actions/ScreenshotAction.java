@@ -11,41 +11,42 @@
  ***************************************************************************/
 package games.stendhal.client.actions;
 
+import java.awt.Graphics;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.concurrent.ExecutionException;
+
+import javax.imageio.ImageIO;
+import javax.swing.SwingWorker;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.client.ClientSingletonRepository;
 import games.stendhal.client.GameScreen;
 import games.stendhal.client.stendhal;
 import games.stendhal.client.gui.chatlog.EventLine;
 import games.stendhal.common.NotificationType;
 
-import java.awt.Graphics;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
-import javax.imageio.ImageIO;
-import javax.swing.SwingUtilities;
-
-import org.apache.log4j.Logger;
-
 /**
  * Take a screenshot, and save it in the game directory.
  */
-public class ScreenshotAction implements SlashAction {
+class ScreenshotAction implements SlashAction {
 	/**
 	 * Execute save a screenshot command.
-	 * 
+	 *
 	 * @param params
 	 *            The formal parameters.
 	 * @param remainder
 	 *            Line content after parameters.
-	 * 
+	 *
 	 * @return <code>true</code> if was handled.
 	 */
+	@Override
 	public boolean execute(String[] params, String remainder) {
 		ClientSingletonRepository.getUserInterface().addEventLine(new EventLine("", "Tworzenie zrzutu ekranu...", NotificationType.CLIENT));
-		// Ming the image needs to be done in EDT.
+		// Drawing the image needs to be done in EDT.
 		GameScreen screen = GameScreen.get();
 		int width = screen.getWidth();
 		int height = screen.getHeight();
@@ -54,55 +55,65 @@ public class ScreenshotAction implements SlashAction {
 		screen.paintComponent(g);
 		g.dispose();
 		// Saving at least can be done outside the EDT.
-		new Thread() {
+		final String fileName = getFileName();
+		new SwingWorker<String, Void>() {
 			@Override
-			public void run() {
-				String fileName = getFileName();
-				String message;
-				try {
-				    File file = new File(fileName);
-				    ImageIO.write(img, "png", file);
-				    message = "Zrzut ekranu został zapisany w " + fileName;
-				} catch (IOException e) {
-					message = "Nie powiodło się zapisywanie zrzutu ekranu do " + fileName;
-					Logger.getLogger(ScreenshotAction.class).error(message, e);
-				}
-				final String msg = message;
-				SwingUtilities.invokeLater(new Runnable() {
-					public void run() {
-						ClientSingletonRepository.getUserInterface().addEventLine(new EventLine("", msg, NotificationType.CLIENT));
-					}
-				});
+			protected String doInBackground() throws Exception {
+				File file = new File(fileName);
+				ImageIO.write(img, "png", file);
+				return "Zrzut ekranu został zapisany w " + fileName;
 			}
-		}.start();
-		
+
+			@Override
+			public void done() {
+				String msg = "";
+				try {
+					msg = get();
+				} catch (InterruptedException e) {
+					Logger.getLogger(ScreenshotAction.class).error(e);
+				} catch (ExecutionException e) {
+					msg = "Nie powiodło się zapisywanie zrzutu ekranu do " + fileName + " : ";
+		            Throwable cause = e.getCause();
+		            Logger.getLogger(ScreenshotAction.class).error(e);
+		            if (cause != null) {
+		                msg = cause.getMessage();
+		            } else {
+		                msg = e.getMessage();
+		            }
+				}
+				ClientSingletonRepository.getUserInterface().addEventLine(new EventLine("", msg, NotificationType.CLIENT));
+			}
+		}.execute();
+
 		return true;
 	}
-	
+
 	/**
 	 * Get a nice descriptive file name for the screenshot image.
-	 * 
+	 *
 	 * @return File name
 	 */
 	private String getFileName() {
 		String time = new SimpleDateFormat("-yyyy.MM.dd-HH.mm.ss").format(new Date());
-		return stendhal.getGameFolder() + stendhal.GAME_NAME.toLowerCase() + time + ".png";
+		return stendhal.getGameFolder() + "/" + stendhal.GAME_NAME.toLowerCase() + time + ".png";
 	}
 
 	/**
 	 * Get the maximum number of formal parameters.
-	 * 
+	 *
 	 * @return The parameter count.
 	 */
+	@Override
 	public int getMaximumParameters() {
 		return 0;
 	}
 
 	/**
 	 * Get the minimum number of formal parameters.
-	 * 
+	 *
 	 * @return The parameter count.
 	 */
+	@Override
 	public int getMinimumParameters() {
 		return 0;
 	}

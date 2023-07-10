@@ -1,6 +1,5 @@
-/* $Id: ZombieRaid.java,v 1.2 2010/09/19 02:36:26 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -17,7 +16,7 @@ import java.util.Map;
 
 /**
  * @author gummipferd
- * 
+ *
  * Less safe for players below level 50
  */
 public class ZombieRaid extends CreateRaid {

@@ -1,4 +1,3 @@
-/* $Id: BoyGuardianNPC.java,v 1.9 2012/07/19 17:02:45 kiheru Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,17 +11,19 @@
  ***************************************************************************/
 package games.stendhal.server.maps.semos.road;
 
+import java.util.Arrays;
+import java.util.Map;
+
 import games.stendhal.common.Direction;
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.entity.RPEntity;
 import games.stendhal.server.entity.npc.ChatAction;
+import games.stendhal.server.entity.npc.ConversationPhrases;
+import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.player.Player;
-import games.stendhal.server.entity.npc.ConversationStates;
-import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.condition.AndCondition;
 import games.stendhal.server.entity.npc.condition.LevelGreaterThanCondition;
 import games.stendhal.server.entity.npc.condition.LevelLessThanCondition;
@@ -30,9 +31,7 @@ import games.stendhal.server.entity.npc.condition.NotCondition;
 import games.stendhal.server.entity.npc.condition.OrCondition;
 import games.stendhal.server.entity.npc.condition.PlayerHasShieldEquippedCondition;
 import games.stendhal.server.entity.npc.condition.QuestCompletedCondition;
-
-import java.util.Arrays;
-import java.util.Map;
+import games.stendhal.server.entity.player.Player;
 
 public class BoyGuardianNPC implements ZoneConfigurator {
 	/**
@@ -43,28 +42,19 @@ public class BoyGuardianNPC implements ZoneConfigurator {
 	 * @param attributes
 	 *            Configuration attributes.
 	 */
-	public void configureZone(final StendhalRPZone zone,
-			final Map<String, String> attributes) {
-		buildMineArea(zone, attributes);
+	@Override
+	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
+		buildMineArea(zone);
 	}
 
-	private void buildMineArea(final StendhalRPZone zone,
-			final Map<String, String> attributes) {
+	private void buildMineArea(final StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Will") {
-
-			@Override
-			protected void createPath() {
-				setPath(null);
-			}
-
 			@Override
 			protected void createDialog() {
-				
-				String greetingBasis = "Hej ty! Trzymaj się. Właśnie opuszczasz miasto! ";
-				
+				String greetingBasis = "Hej, ty! Trzymaj się. Właśnie opuszczasz miasto! ";
+
 				// When the players level is below 15 AND (he has a shield equipped OR he completed the "meet_hayunn" quest)
-				add(
-						ConversationStates.IDLE,
+				add(ConversationStates.IDLE,
 						ConversationPhrases.GREETING_MESSAGES,
 						new AndCondition(
 								new LevelLessThanCondition(15),
@@ -77,8 +67,7 @@ public class BoyGuardianNPC implements ZoneConfigurator {
 						greetingBasis + "Uważaj na zwierzęta, które mogą cię zaatakować i innych wrogów, którzy kręcą sięw pobliżu. Lepiej weź ze sobą coś do jedzenia i picia ze sobą! ",
 						null);
 				// When the players level is below 15 AND he has NO shield AND he has NOT completed the "meet_hayunn" quest
-				add(
-						ConversationStates.IDLE,
+				add(ConversationStates.IDLE,
 						ConversationPhrases.GREETING_MESSAGES,
 						new AndCondition(
 								new LevelLessThanCondition(15),
@@ -89,14 +78,13 @@ public class BoyGuardianNPC implements ZoneConfigurator {
 						greetingBasis + "Coo! Nie masz nawet tarczy. Wróć i porozmawiaj z Hayunn w starym domku strażników w wiosce Semos nim wpadniesz w tarapaty.",
 						null);
 				// When the player is above level 15
-				add(
-						ConversationStates.IDLE,
+				add(ConversationStates.IDLE,
 						ConversationPhrases.GREETING_MESSAGES,
 						new LevelGreaterThanCondition(15),
 						ConversationStates.ATTENDING,
-						greetingBasis + "Oh teraz widzę jesteś silny i odważny! Miłej zabawy :)",
+						greetingBasis + "Och teraz widzę jesteś silny i odważny! Miłej zabawy :)",
 						null);
-				
+
 				addJob("Moją pracą jest obserwowanie złych potworów! Moi rodzice przydzielili mi tą specjalną #służbę!");
 				addReply(Arrays.asList("duty", "służbę"), "Tak jest specjalna i ważna!");
 				addHelp("Mój ojciec zawsze mówi, abym #skradał się po lesie, którego nie znam... Mówił też, że powinienem mieć zawsze coś do #jedzenia i #picia, aby być bezpieczny!");
@@ -105,9 +93,9 @@ public class BoyGuardianNPC implements ZoneConfigurator {
 				addReply("Carmen", "Jest znaną uzdrowicielką w mieście Semos. Może widziałeś ją przy drodze do wioski :)");
 				addReply("Margaret", "Pracuje w tawernie, ale nie chodzę tam bez moich rodziców...");
 				addQuest("Jestem na misji :) Mam oko na złe potwory, złych typków i ostrzegam ludzi, aby im #pomóc! Ale nic nie mam dla ciebie...");
-				addGoodbye("Ciii nie mów zbyt głośno! Dowidzenia i trzymaj się!");
+				addGoodbye("Ciii nie mów zbyt głośno! Do widzenia i trzymaj się!");
 			}
-			
+
 			@Override
 			protected void onGoodbye(RPEntity player) {
 				setDirection(Direction.DOWN);
@@ -115,6 +103,7 @@ public class BoyGuardianNPC implements ZoneConfigurator {
 		};
 
 		npc.addInitChatMessage(null, new ChatAction() {
+			@Override
 			public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 				if (!player.hasQuest("WillFirstChat")) {
 					player.setQuest("WillFirstChat", "done");
@@ -123,11 +112,11 @@ public class BoyGuardianNPC implements ZoneConfigurator {
 			}
 		});
 
+		npc.setDescription("Oto Will. W przyszłości chce być zawodowym strażnikiem miejskim.");
 		npc.setEntityClass("boyguardnpc");
-		npc.setDescription("Oto Will. W przyszłości chce być zawodowym śtrażnikiem miejskim.");
+		npc.setGender("M");
 		npc.setPosition(6, 43);
 		npc.setDirection(Direction.DOWN);
-		npc.initHP(100);
 		npc.setPerceptionRange(4);
 		zone.add(npc);
 	}

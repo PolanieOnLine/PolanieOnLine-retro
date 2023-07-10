@@ -1,4 +1,4 @@
-/* $Id: NPCEmoteAction.java,v 1.7 2012/09/09 12:19:56 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -19,9 +19,6 @@ import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.player.Player;
 
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
-
 /**
  * npc emoting to player
  */
@@ -29,18 +26,62 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
 public class NPCEmoteAction implements ChatAction {
 
 	private final String npcAction;
+	private final String npcActionPost;
+
+	/** Determines if emote action will be directed at player. */
+	private final boolean towardPlayer;
 
 	/**
-	 * Creates a new EmoteAction.
+	 * Creates a new EmoteAction directed toward the player.
 	 *
-	 * @param npcAction text to say as emote
+	 * @param npcAction
+	 * 		Text to say as emote.
 	 */
-	public NPCEmoteAction(String npcAction) {
+	public NPCEmoteAction(final String npcAction) {
 		this.npcAction = npcAction.trim();
+		this.npcActionPost = null;
+		this.towardPlayer = true;
 	}
 
+	/**
+	 * Creates a new EmoteAction that can optionally be directed toward the player.
+	 *
+	 * @param npcAction
+	 * 		Text to say as emote.
+	 * @param towardPlayer
+	 * 		<code>boolean</code>: If <true>, will be directed at player.
+	 */
+	public NPCEmoteAction(final String npcAction, final boolean towardPlayer) {
+		this.npcAction = npcAction.trim();
+		this.npcActionPost = null;
+		this.towardPlayer = towardPlayer;
+	}
+
+	/**
+	 * Creates a new EmoteAction directed toward the player.
+	 *
+	 * @param npcAction
+	 * 		Text to say as emote.
+	 * @param npcActionPost
+	 * 		Second part of emote text after player name.
+	 */
+	public NPCEmoteAction(final String npcAction, final String npcActionPost) {
+		this.npcAction = npcAction.trim();
+		this.npcActionPost = npcActionPost.trim();
+		this.towardPlayer = true;
+	}
+
+	@Override
 	public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
-		raiser.say("!me " + npcAction + " " + player.getName());
+		final StringBuilder sb = new StringBuilder("!me " + npcAction);
+		if (towardPlayer) {
+			sb.append(" " + player.getName());
+			if (npcActionPost != null) {
+				sb.append(" " + npcActionPost);
+			}
+		}
+
+		raiser.say(sb.toString());
 	}
 
 	@Override
@@ -51,12 +92,15 @@ public class NPCEmoteAction implements ChatAction {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 5333 * npcAction.hashCode();
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				NPCEmoteAction.class);
+		if (!(obj instanceof NPCEmoteAction)) {
+			return false;
+		}
+		final NPCEmoteAction other = (NPCEmoteAction) obj;
+		return npcAction.equals(other.npcAction);
 	}
 }

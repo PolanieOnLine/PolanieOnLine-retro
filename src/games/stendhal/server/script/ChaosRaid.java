@@ -1,4 +1,3 @@
-/* $Id: ChaosRaid.java,v 1.3 2010/09/19 02:36:26 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -17,7 +16,7 @@ import java.util.Map;
 
 /**
  * @author kymara
- * 
+ *
  * Not safe for players below level 150
  */
 public class ChaosRaid extends CreateRaid {
@@ -38,9 +37,9 @@ public class ChaosRaid extends CreateRaid {
 		attackArmy.put("czarny smok", 1);
 		return attackArmy;
 	}
-	
+
 	@Override
 	protected String getInfo() {
-		return "Niebezpieczny dla wojowników poni|ej poziomu 150";
+		return "Niebezpieczny dla wojowników poniżej poziomu 150.";
 	}
 }

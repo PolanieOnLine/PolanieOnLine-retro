@@ -1,4 +1,4 @@
-/* $Id: MockUserInterface.java,v 1.9 2012/07/13 16:59:29 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +12,7 @@
  ***************************************************************************/
 package games.stendhal.client.gui;
 
+import games.stendhal.client.entity.Entity;
 import games.stendhal.client.gui.chatlog.EventLine;
 import games.stendhal.client.sound.facade.SoundSystemFacade;
 import games.stendhal.client.sound.nosound.NoSoundFacade;
@@ -26,6 +27,7 @@ public class MockUserInterface implements UserInterface {
 	/** Stored last message */
 	private EventLine previousEventLine;
 
+	@Override
 	public void addEventLine(EventLine line) {
 		previousEventLine = line;
 	}
@@ -44,15 +46,22 @@ public class MockUserInterface implements UserInterface {
 		return null;
 	}
 
+	@Override
 	public void addGameScreenText(double x, double y, String text,
 			NotificationType type, boolean isTalking) {
 		// do nothing
 	}
 
+	@Override
+	public void addGameScreenText(final Entity entity, final String text,
+		final NotificationType type, final boolean isTalking) {}
+
+	@Override
 	public SoundSystemFacade getSoundSystemFacade() {
 		return sound;
 	}
 
+	@Override
 	public void addAchievementBox(String title, String description,
 			String category) {
 		// do nothing

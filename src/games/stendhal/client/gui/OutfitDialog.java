@@ -1,6 +1,5 @@
-/* $Id: OutfitDialog.java,v 1.100 2011/11/10 19:07:19 kiheru Exp $ */
 /***************************************************************************
- *                      (C) Copyright 2003 - 2011 Stendhal                 *
+ *                      (C) Copyright 2003 - 2015 Stendhal                 *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -10,33 +9,25 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-
 package games.stendhal.client.gui;
 
-import games.stendhal.client.OutfitStore;
-import games.stendhal.client.StendhalClient;
-import games.stendhal.client.gui.layout.SBoxLayout;
-import games.stendhal.client.gui.layout.SLayout;
-import games.stendhal.client.gui.styled.Style;
-import games.stendhal.client.gui.styled.StyleUtil;
-import games.stendhal.client.sprite.Sprite;
-import games.stendhal.client.sprite.SpriteStore;
-import games.stendhal.common.Outfits;
+import static games.stendhal.common.Outfits.HATS_NO_HAIR;
+import static games.stendhal.common.Outfits.SHIPS_NO_LAYERS;
 
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Graphics;
-import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
-import java.awt.image.RenderedImage;
-import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -50,25 +41,40 @@ import javax.swing.colorchooser.ColorSelectionModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import marauroa.common.game.RPAction;
-
 import org.apache.log4j.Logger;
 
-public class OutfitDialog extends JDialog {
+import games.stendhal.client.OutfitStore;
+import games.stendhal.client.StendhalClient;
+import games.stendhal.client.gui.layout.SBoxLayout;
+import games.stendhal.client.gui.layout.SLayout;
+import games.stendhal.client.gui.styled.Style;
+import games.stendhal.client.gui.styled.StyleUtil;
+import games.stendhal.client.sprite.Sprite;
+import games.stendhal.client.sprite.SpriteStore;
+import games.stendhal.common.Outfits;
+import games.stendhal.common.constants.Actions;
+import marauroa.common.game.RPAction;
 
+/**
+ * Outfit selection dialog.
+ */
+class OutfitDialog extends JDialog {
 	/** the logger instance. */
 	private static final Logger LOGGER = Logger.getLogger(OutfitDialog.class);
-
-	private static final long serialVersionUID = 4628210176721975735L;
 
 	private static final int PLAYER_WIDTH = 48;
 	private static final int PLAYER_HEIGHT = 64;
 	private static final int SLIDER_WIDTH = 80;
 
-	private final SelectorModel hair;
-	private final SelectorModel head;
-	private final SelectorModel body;
-	private final SelectorModel dress;
+	private final SelectorModel hair = new SelectorModel(Outfits.HAIR_OUTFITS);
+	private final SelectorModel head = new SelectorModel(Outfits.HEAD_OUTFITS);
+	private final SelectorModel body = new SelectorModel(Outfits.BODY_OUTFITS);
+	private final SelectorModel dress = new SelectorModel(Outfits.CLOTHES_OUTFITS);
+
+	private final SelectorModel eyes = new SelectorModel(Outfits.EYES_OUTFITS);
+	private final SelectorModel mouth = new SelectorModel(Outfits.MOUTH_OUTFITS);
+	private final SelectorModel hat = new SelectorModel(Outfits.HAT_OUTFITS);
+	private final SelectorModel mask = new SelectorModel(Outfits.MASK_OUTFITS);
 
 	/**
 	 * Coloring data used to get the initial colors, and to adjust colors should
@@ -76,15 +82,13 @@ public class OutfitDialog extends JDialog {
 	 */
 	private final OutfitColor outfitColor;
 
-	/** Sprite direction: 0 for direction UP, 1 RIGHT, 2 DOWN and 3 LEFT */
+	/** Sprite direction: 0 for direction UP, 1 RIGHT, 2 DOWN and 3 LEFT. */
 	private int direction = 2;
 
 	private final SpriteStore store = SpriteStore.get();
 	private final OutfitStore ostore = OutfitStore.get();
 
 	private final List<ResetListener> resetListeners = new ArrayList<ResetListener>();
-
-	private JButton okButton;
 
 	/** Label containing the hair image. */
 	private OutfitLabel hairLabel;
@@ -94,59 +98,26 @@ public class OutfitDialog extends JDialog {
 	private OutfitLabel bodyLabel;
 	/** Label containing the dress image. */
 	private OutfitLabel dressLabel;
-	/** Label containing the full outfit image */
+	/** Label containing the full outfit image. */
 	private OutfitLabel outfitLabel;
 
-	/** Selector for the sprite direction */
+	// extended outfit parts
+	private OutfitLabel eyesLabel;
+	private OutfitLabel mouthLabel;
+	private OutfitLabel hatLabel;
+	private OutfitLabel maskLabel;
+
+	/** Selector for the sprite direction. */
 	private JSlider directionSlider;
 
 	/**
 	 * Create a new OutfitDialog.
-	 * 
-	 * @param parent parent window
-	 * @param title title of the dialog
-	 * @param outfit number of the outfit
-	 * @param outfitColor coloring information. <b>Note that outfitColor
-	 *	can be modified by the dialog.</b> 
 	 */
-	public OutfitDialog(final Frame parent, final String title, final int outfit,
-			OutfitColor outfitColor) {
-		this(parent, title, outfit, outfitColor, Outfits.HAIR_OUTFITS,
-				Outfits.HEAD_OUTFITS, Outfits.BODY_OUTFITS,	Outfits.CLOTHES_OUTFITS);
-	}
-
-	/**
-	 * Create a new OutfitDialog.
-	 * 
-	 * @param parent
-	 *
-	 * @param title
-	 *            a String with the title for the dialog
-	 * @param outfit
-	 *            the current outfit
-	 * @param outfitColor coloring data
-	 * @param total_hairs
-	 *            an integer with the total of sprites with hairs
-	 * @param total_heads
-	 *            an integer with the total of sprites with heads
-	 * @param total_bodies
-	 *            an integer with the total of sprites with bodies
-	 * @param total_clothes
-	 *            an integer with the total of sprites with clothes
-	 */
-	private OutfitDialog(final Frame parent, final String title, int outfit,
-			OutfitColor outfitColor, final int total_hairs,
-			final int total_heads, final int total_bodies,
-			final int total_clothes) {
+	OutfitDialog(final Frame parent, final String title, final String strcode, final OutfitColor outfitColor) {
 		super(parent, false);
-		
+
 		this.outfitColor = outfitColor;
-		
-		hair = new SelectorModel(total_hairs);
-		head = new SelectorModel(total_heads);
-		body = new SelectorModel(total_bodies);
-		dress = new SelectorModel(total_clothes);
-		
+
 		// Needs to be after initializing the models
 		initComponents();
 		applyStyle();
@@ -155,114 +126,266 @@ public class OutfitDialog extends JDialog {
 		// Follow the model changes; the whole outfit follows them all
 		hair.addListener(hairLabel);
 		hair.addListener(outfitLabel);
+		eyes.addListener(eyesLabel);
+		eyes.addListener(outfitLabel);
+		mouth.addListener(mouthLabel);
+		mouth.addListener(outfitLabel);
 		head.addListener(headLabel);
 		head.addListener(outfitLabel);
 		body.addListener(bodyLabel);
 		body.addListener(outfitLabel);
 		dress.addListener(dressLabel);
 		dress.addListener(outfitLabel);
+		hat.addListener(outfitLabel);
+		hat.addListener(hatLabel);
+		mask.addListener(maskLabel);
+		mask.addListener(outfitLabel);
 
-		// analyse current outfit
-		int bodiesIndex = outfit % 100;
-		outfit = outfit / 100;
-		int clothesIndex = outfit % 1000;
-		outfit = outfit / 1000;
-		int headsIndex = outfit % 100;
-		outfit = outfit / 100;
-		int hairsIndex = outfit % 1000;
+		final Map<String, Integer> layer_map = new HashMap<>();
+		for (String layer: strcode.split(",")) {
+			if (layer.contains("=")) {
+				final String[] key = layer.split("=");
+				layer_map.put(key[0], Integer.parseInt(key[1]));
+			}
+		}
 
-		// reset special outfits
-		if (hairsIndex >= total_hairs) {
-			hairsIndex = 0;
-		}
-		if (headsIndex >= total_heads) {
-			headsIndex = 0;
-		}
-		if (bodiesIndex >= total_bodies) {
+		Integer bodiesIndex = layer_map.get("body");
+		Integer clothesIndex = layer_map.get("dress");
+		Integer headsIndex = layer_map.get("head");
+		Integer mouthsIndex = layer_map.get("mouth");
+		Integer eyesIndex = layer_map.get("eyes");
+		Integer masksIndex = layer_map.get("mask");
+		Integer hairsIndex = layer_map.get("hair");
+		Integer hatsIndex = layer_map.get("hat");
+
+		// failsafes
+		if (bodiesIndex == null) {
 			bodiesIndex = 0;
 		}
-		if (clothesIndex >= total_clothes) {
+		if (clothesIndex == null) {
 			clothesIndex = 0;
 		}
-		
-		// Set the current outfit indices; this will update the labels as well
-		hair.setIndex(hairsIndex);
-		head.setIndex(headsIndex);
-		body.setIndex(bodiesIndex);
-		dress.setIndex(clothesIndex);
+		if (headsIndex == null) {
+			headsIndex = 0;
+		}
+		if (mouthsIndex == null) {
+			mouthsIndex = 0;
+		}
+		if (eyesIndex == null) {
+			eyesIndex = 0;
+		}
+		if (masksIndex == null) {
+			masksIndex = 0;
+		}
+		if (hairsIndex == null) {
+			hairsIndex = 0;
+		}
+		if (hatsIndex == null) {
+			hatsIndex = 0;
+		}
+
+		// set current outfit; this will update labels as well
+		body.setIndex(checkIndex(bodiesIndex, body));
+		dress.setIndex(checkIndex(clothesIndex, dress));
+		head.setIndex(checkIndex(headsIndex, head));
+		mouth.setIndex(checkIndex(mouthsIndex, mouth));
+		eyes.setIndex(checkIndex(eyesIndex, eyes));
+		mask.setIndex(checkIndex(masksIndex, mask));
+		hair.setIndex(checkIndex(hairsIndex, hair));
+		hat.setIndex(checkIndex(hatsIndex, hat));
 
 		pack();
 		WindowUtils.closeOnEscape(this);
+		WindowUtils.trackLocation(this, "outfit", false);
 	}
 
+	/**
+	 * Check an index is within player accessible limits.
+	 *
+	 * @param index current index
+	 * @param model to determine the limits
+	 * @return index, if the supplied index is within limits, otherwise 0
+	 */
+	private int checkIndex(int index, SelectorModel model) {
+		if (!model.isAllowed(index)) {
+			return 0;
+		}
+		return index;
+	}
+
+	/**
+	 * Create the component layout.
+	 */
 	private void initComponents() {
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		setResizable(false);
 
-		final JComponent content = (JComponent) getContentPane();
-		final int pad = SBoxLayout.COMMON_PADDING;
-		content.setBorder(BorderFactory.createEmptyBorder(pad, pad, pad, pad));
-		
-		content.setLayout(new SBoxLayout(SBoxLayout.HORIZONTAL, pad));
-		final JComponent partialsColumn = SBoxLayout.createContainer(SBoxLayout.VERTICAL, pad);
-		content.add(partialsColumn);
+		int pad = SBoxLayout.COMMON_PADDING;
 
-		// --------- outfit parts column ----------
-		
+		JComponent content = SBoxLayout.createContainer(SBoxLayout.HORIZONTAL, pad);
+		JComponent cPane = (JComponent) getContentPane();
+		cPane.setBorder(BorderFactory.createCompoundBorder(cPane.getBorder(),
+				BorderFactory.createEmptyBorder(pad, pad, pad, pad)));
+		cPane.setLayout(new SBoxLayout(SBoxLayout.VERTICAL, pad));
+		add(content);
+
+		// --------- outfit parts column 1 ----------
+
+		final JComponent partialsColumn1 = SBoxLayout.createContainer(SBoxLayout.VERTICAL, pad);
+		content.add(partialsColumn1);
+
 		// Hair
 		SpriteRetriever hairRetriever = new SpriteRetriever() {
+			@Override
 			public Sprite getSprite() {
 				return getHairSprite();
 			}
 		};
 		hairLabel = new OutfitLabel(hairRetriever);
-		partialsColumn.add(createSelector(hair, hairLabel));
-		
+		partialsColumn1.add(createSelector(hair, hairLabel));
+
+		// Eyes
+		SpriteRetriever eyesRetriever = new SpriteRetriever() {
+			@Override
+			public Sprite getSprite() {
+				return getEyesSprite();
+			}
+		};
+		eyesLabel = new OutfitLabel(eyesRetriever);
+		partialsColumn1.add(createSelector(eyes, eyesLabel));
+
+		// Mouth
+		SpriteRetriever mouthRetriever = new SpriteRetriever() {
+			@Override
+			public Sprite getSprite() {
+				return getMouthSprite();
+			}
+		};
+		mouthLabel = new OutfitLabel(mouthRetriever);
+		partialsColumn1.add(createSelector(mouth, mouthLabel));
+
 		// Head
 		SpriteRetriever headRetriever = new SpriteRetriever() {
+			@Override
 			public Sprite getSprite() {
 				return getHeadSprite();
 			}
 		};
 		headLabel = new OutfitLabel(headRetriever);
-		partialsColumn.add(createSelector(head, headLabel));
-		
+		partialsColumn1.add(createSelector(head, headLabel));
+
 		// Body
 		SpriteRetriever bodyRetriever = new SpriteRetriever() {
+			@Override
 			public Sprite getSprite() {
 				return getBodySprite();
 			}
 		};
 		bodyLabel = new OutfitLabel(bodyRetriever);
-		partialsColumn.add(createSelector(body, bodyLabel));
-		
+		partialsColumn1.add(createSelector(body, bodyLabel));
+
 		// Dress
 		SpriteRetriever dressRetriever = new SpriteRetriever() {
+			@Override
 			public Sprite getSprite() {
 				return getDressSprite();
 			}
 		};
 		dressLabel = new OutfitLabel(dressRetriever);
-		partialsColumn.add(createSelector(dress, dressLabel));
-		
+		partialsColumn1.add(createSelector(dress, dressLabel));
+
 		// --------- Color selection column ---------
+
 		JComponent column = SBoxLayout.createContainer(SBoxLayout.VERTICAL);
-		content.add(column, SBoxLayout.constraint(SLayout.EXPAND_Y));
-		JComponent selector = createColorSelector("włosów", OutfitColor.HAIR, hairLabel);
+		content.add(column, SLayout.EXPAND_Y);
+		/* hair color */
+		JComponent selector = createColorSelector("włosów", OutfitColor.HAIR,
+				hairLabel);
 		selector.setAlignmentX(CENTER_ALIGNMENT);
 		column.add(selector);
-		SBoxLayout.addSpring(column);
+
+		/* eyes color */
+		selector = createColorSelector("oczu", OutfitColor.EYES, eyesLabel);
+		selector.setAlignmentX(CENTER_ALIGNMENT);
+		column.add(selector);
+
+		/* skin color */
+		selector = createColorSelector("skóry", OutfitColor.SKIN, true, bodyLabel,
+				headLabel);
+		selector.setAlignmentX(CENTER_ALIGNMENT);
+		column.add(selector);
+
+		/* dress color */
 		selector = createColorSelector("ubrania", OutfitColor.DRESS, dressLabel);
 		selector.setAlignmentX(CENTER_ALIGNMENT);
 		column.add(selector);
-		
+		SBoxLayout.addSpring(column);
+
+		// --------- outfit parts column 2 ----------
+
+		final JComponent partialsColumn2 = SBoxLayout.createContainer(SBoxLayout.VERTICAL, pad);
+		content.add(partialsColumn2);
+
+		// Hat
+		SpriteRetriever hatRetriever = new SpriteRetriever() {
+			@Override
+			public Sprite getSprite() {
+				return getHatSprite();
+			}
+		};
+		hatLabel = new OutfitLabel(hatRetriever);
+		partialsColumn2.add(createSelector(hat, hatLabel));
+
+		// Mask
+		SpriteRetriever maskRetriever = new SpriteRetriever() {
+			@Override
+			public Sprite getSprite() {
+				return getMaskSprite();
+			}
+		};
+		maskLabel = new OutfitLabel(maskRetriever);
+		partialsColumn2.add(createSelector(mask, maskLabel));
+
 		// --------- whole outfit side ----------
 		column = SBoxLayout.createContainer(SBoxLayout.VERTICAL, pad);
 		column.setAlignmentY(CENTER_ALIGNMENT);
 		content.add(column);
 
-		outfitLabel = new OutfitLabel(bodyRetriever, dressRetriever,
-				headRetriever, hairRetriever);
+		outfitLabel = new OutfitLabel(bodyRetriever, dressRetriever, headRetriever, mouthRetriever,
+				eyesRetriever, maskRetriever, hairRetriever, hatRetriever) {
+			@Override
+			public void changed() {
+				// Update image
+				BufferedImage img = getGraphicsConfiguration().createCompatibleImage(PLAYER_WIDTH, PLAYER_HEIGHT);
+				Graphics g = img.getGraphics();
+				g.setColor(Color.WHITE);
+				g.fillRect(0, 0, PLAYER_WIDTH, PLAYER_HEIGHT);
+				for (SpriteRetriever retriever : retrievers) {
+					// hair is not drawn under certain hats/helmets
+					if (retriever.equals(hairRetriever) && HATS_NO_HAIR.contains(hat.getIndex())) {
+						continue;
+					}
+
+					// other outfit layers isn't drawn with cavalery body
+					final boolean ship_without_layers = SHIPS_NO_LAYERS.contains(body.getIndex());
+					if ((retriever.equals(dressRetriever) && ship_without_layers)
+							|| (retriever.equals(headRetriever) && ship_without_layers)
+							|| (retriever.equals(mouthRetriever) && ship_without_layers)
+							|| (retriever.equals(eyesRetriever) && ship_without_layers)
+							|| (retriever.equals(hairRetriever) && ship_without_layers)
+							|| (retriever.equals(maskRetriever) && ship_without_layers)
+							|| (retriever.equals(hatRetriever) && ship_without_layers)) {
+						continue;
+					}
+
+					retriever.getSprite().draw(g, 0, 0);
+				}
+				g.dispose();
+				ImageIcon icon = new ImageIcon(img);
+				setIcon(icon);
+			}
+		};
+
 		outfitLabel.setAlignmentX(CENTER_ALIGNMENT);
 		column.add(outfitLabel);
 
@@ -275,25 +398,39 @@ public class OutfitDialog extends JDialog {
 		d.width = SLIDER_WIDTH;
 		directionSlider.setPreferredSize(d);
 		directionSlider.addChangeListener(new ChangeListener() {
+			@Override
 			public void stateChanged(final ChangeEvent evt) {
-				sliderDirectionStateChanged(evt);
+				sliderDirectionStateChanged();
 			}
 		});
 		column.add(directionSlider);
 
-		okButton = new JButton("OK");
-		okButton.addActionListener(new ActionListener() {
-			public void actionPerformed(final ActionEvent evt) {
-				okActionPerformed(evt);
+		JComponent buttonBox = SBoxLayout.createContainer(SBoxLayout.HORIZONTAL, pad);
+		buttonBox.setAlignmentX(RIGHT_ALIGNMENT);
+		JButton cancelButton = new JButton("Zamknij");
+		cancelButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				OutfitDialog.this.dispatchEvent(new WindowEvent(OutfitDialog.this, WindowEvent.WINDOW_CLOSING));
 			}
 		});
-		okButton.setAlignmentX(CENTER_ALIGNMENT);
-		column.add(okButton);
+		cancelButton.setMnemonic(KeyEvent.VK_C);
+		buttonBox.add(cancelButton);
+		JButton okButton = new JButton("Zmień wygląd");
+		okButton.setMnemonic(KeyEvent.VK_A);
+		okButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent evt) {
+				okActionPerformed();
+			}
+		});
+		buttonBox.add(okButton);
+		add(buttonBox);
 	}
 
 	/**
 	 * Create a selector for outfit part.
-	 * 
+	 *
 	 * @param model model that the buttons should modify
 	 * @param label central image label
 	 * @return selector component
@@ -303,6 +440,7 @@ public class OutfitDialog extends JDialog {
 
 		JButton button = new JButton("<");
 		button.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				model.scrollDown();
 			}
@@ -311,9 +449,10 @@ public class OutfitDialog extends JDialog {
 		row.add(label);
 		button = new JButton(">");
 		button.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				model.scrollUp();
-	}
+			}
 		});
 		row.add(button);
 
@@ -321,17 +460,30 @@ public class OutfitDialog extends JDialog {
 	}
 
 	/**
-	 * this is called every time the user moves the slider.
-	 * @param evt
+	 * This is called every time the user moves the slider.
 	 */
-	private void sliderDirectionStateChanged(final ChangeEvent evt) {
+	private void sliderDirectionStateChanged() {
 		direction = directionSlider.getValue();
 
 		outfitLabel.changed();
 		hairLabel.changed();
+		eyesLabel.changed();
+		mouthLabel.changed();
 		headLabel.changed();
-		bodyLabel.changed();
 		dressLabel.changed();
+		bodyLabel.changed();
+		hatLabel.changed();
+		maskLabel.changed();
+	}
+
+	/**
+	 * Get the hat sprite.
+	 *
+	 * @return hat sprite
+	 */
+	private Sprite getHatSprite() {
+		return store.getTile(ostore.getLayerSprite("hat", hat.getIndex()),
+				PLAYER_WIDTH, direction * PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_HEIGHT);
 	}
 
 	/**
@@ -340,9 +492,38 @@ public class OutfitDialog extends JDialog {
 	 * @return hair sprite
 	 */
 	private Sprite getHairSprite() {
-		return store.getTile(ostore.getHairSprite(hair.getIndex(), outfitColor),
-				PLAYER_WIDTH, direction * PLAYER_HEIGHT, PLAYER_WIDTH,
-				PLAYER_HEIGHT);
+		return store.getTile(ostore.getLayerSprite("hair", hair.getIndex(), outfitColor),
+				PLAYER_WIDTH, direction * PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_HEIGHT);
+	}
+
+	/**
+	 * Get the mask sprite.
+	 *
+	 * @return mask sprite
+	 */
+	private Sprite getMaskSprite() {
+		return store.getTile(ostore.getLayerSprite("mask", mask.getIndex()),
+				PLAYER_WIDTH, direction * PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_HEIGHT);
+	}
+
+	/**
+	 * Get the eyes sprite.
+	 *
+	 * @return eyes sprite
+	 */
+	private Sprite getEyesSprite() {
+		return store.getTile(ostore.getLayerSprite("eyes", eyes.getIndex(), outfitColor),
+				PLAYER_WIDTH, direction * PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_HEIGHT);
+	}
+
+	/**
+	 * Get the mouth sprite.
+	 *
+	 * @return mouth sprite
+	 */
+	private Sprite getMouthSprite() {
+		return store.getTile(ostore.getLayerSprite("mouth", mouth.getIndex()),
+				PLAYER_WIDTH, direction * PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_HEIGHT);
 	}
 
 	/**
@@ -351,18 +532,18 @@ public class OutfitDialog extends JDialog {
 	 * @return head sprite
 	 */
 	private Sprite getHeadSprite() {
-		return store.getTile(ostore.getHeadSprite(head.getIndex()), PLAYER_WIDTH,
-				direction * PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_HEIGHT);
+		return store.getTile(ostore.getLayerSprite("head", head.getIndex(), outfitColor),
+				PLAYER_WIDTH, direction * PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_HEIGHT);
 	}
 
 	/**
 	 * Get the body sprite.
-	 * 
+	 *
 	 * @return body sprite
 	 */
 	private Sprite getBodySprite() {
-		return store.getTile(ostore.getBaseSprite(body.getIndex()), PLAYER_WIDTH,
-				direction * PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_HEIGHT);
+		return store.getTile(ostore.getLayerSprite("body", body.getIndex(), outfitColor),
+				PLAYER_WIDTH, direction * PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_HEIGHT);
 	}
 
 	/**
@@ -371,61 +552,99 @@ public class OutfitDialog extends JDialog {
 	 * @return dress sprite
 	 */
 	private Sprite getDressSprite() {
-		return store.getTile(ostore.getDressSprite(dress.getIndex(), outfitColor), PLAYER_WIDTH,
-				direction * PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_HEIGHT);
+		return store.getTile(ostore.getLayerSprite("dress", dress.getIndex(), outfitColor,
+				getBodySlimIndex()),
+				PLAYER_WIDTH, direction * PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_HEIGHT);
+	}
+
+	private boolean getBodySlimIndex() {
+		return body.getIndex() >= 0 && body.getIndex() <= 2;
 	}
 
 	/**
 	 * Create a color selection component for an outfit part.
-	 * 
+	 *
 	 * @param niceName outfit part name that is capitalizes for user to see
 	 * @param key outfit part identifier
-	 * @param label outfit part display that should be kept up to date with the
-	 * 	color changes (in addition of the whole outfit display)
+	 * @param labels outfit part displays that should be kept up to date with
+	 *	the color changes (in addition of the whole outfit display)
 	 * @return color selection component
 	 */
-	private JComponent createColorSelector(final String niceName, final String key, final OutfitLabel label) {
+	private JComponent createColorSelector(String niceName, String key,
+			OutfitLabel... labels) {
+		return this.createColorSelector(niceName, key, false, labels);
+	}
+
+	/**
+	 * Create a color selection component for an outfit part optionally with
+	 * defined skin colors only.
+	 *
+	 * @param niceName
+	 * 		Outfit part name that is capitalizes for user to see
+	 * @param key
+	 * 		Outfit part identifier
+	 * @param labels
+	 * 		List of outfit part display that should be kept up to date with
+	 * 		the color changes (in addition of the whole outfit display)
+	 * @param skinPalette
+	 * 		Use skin colors only
+	 * @return
+	 * 		color selection component
+	 */
+	private JComponent createColorSelector(final String niceName, final String key,
+			boolean skinPalette, final OutfitLabel... labels) {
+
 		final JComponent container = SBoxLayout.createContainer(SBoxLayout.VERTICAL);
 		final JCheckBox enableToggle = new JCheckBox("Kolor " + niceName);
-		
+
 		container.add(enableToggle);
 		// get the current state
 		boolean colored = outfitColor.getColor(key) != null;
 		enableToggle.setSelected(colored);
-		final ColorSelector selector = new ColorSelector();
+
+		final AbstractColorSelector<?> selector;
+		if (skinPalette) {
+			selector = new SkinColorSelector();
+		} else {
+			selector = new ColorSelector();
+		}
 		selector.setEnabled(colored);
 		selector.setAlignmentX(CENTER_ALIGNMENT);
 		container.add(selector);
-		final ColorSelectionModel model = selector.getSelectionModel(); 
+		final ColorSelectionModel model = selector.getSelectionModel();
 		model.setSelectedColor(outfitColor.getColor(key));
-		selector.getSelectionModel().addChangeListener(new ChangeListener() {
+		model.addChangeListener(new ChangeListener() {
+			@Override
 			public void stateChanged(ChangeEvent ev) {
 				outfitColor.setColor(key, model.getSelectedColor());
-				label.changed();
+				for (OutfitLabel label : labels) {
+					label.changed();
+				}
 				outfitLabel.changed();
 			}
 		});
 
 		enableToggle.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				if (enableToggle.isSelected()) {
 					// restore previously selected color, if any
 					outfitColor.setColor(key, model.getSelectedColor());
-					label.changed();
-					outfitLabel.changed();
-					selector.setEnabled(true);
 				} else {
 					// use default coloring
 					outfitColor.setColor(key, null);
-					label.changed();
-					outfitLabel.changed();
-					selector.setEnabled(false);
 				}
+				selector.setEnabled(enableToggle.isSelected());
+				for (OutfitLabel label : labels) {
+					label.changed();
+				}
+				outfitLabel.changed();
 			}
 		});
 
 		// For restoring the state
 		resetListeners.add(new ResetListener() {
+			@Override
 			public void reset() {
 				Color color = outfitColor.getColor(key);
 				boolean colored = color != null;
@@ -434,10 +653,10 @@ public class OutfitDialog extends JDialog {
 					 * Changing the model triggers setting the color in
 					 * outfitColor, and null color is interpreted as grey in the
 					 * selector model, so avoid setting that.
-					 * 
+					 *
 					 * As a side effect, the color selector remembers the
 					 * previously selected color for non colored outfit parts.
-					 * That is likely a better default than mid grey anyway.  
+					 * That is likely a better default than mid grey anyway.
 					 */
 					model.setSelectedColor(color);
 				}
@@ -445,15 +664,14 @@ public class OutfitDialog extends JDialog {
 				enableToggle.setSelected(colored);
 			}
 		});
-		
+
 		return container;
 	}
 
 	/**
 	 * OK Button action.
-	 * @param evt
 	 */
-	private void okActionPerformed(final ActionEvent evt) {
+	private void okActionPerformed() {
 		sendAction();
 		this.dispose();
 	}
@@ -463,27 +681,61 @@ public class OutfitDialog extends JDialog {
 	 */
 	private void sendAction() {
 		StendhalClient client = StendhalClient.get();
-		if (client == null) {
-			/** If running standalone, just print the outfit */
-			System.out.println("OUTFIT is: "
-					+ (body.getIndex() + dress.getIndex() * 100 + head.getIndex() * 1000
-							* 100 + hair.getIndex() * 100 * 1000 * 100));
-			return;
+		Color color;
+
+		RPAction rpOutfitAction = new RPAction();
+
+		// server version compatibility
+		if (StendhalClient.serverVersionAtLeast("1.06")) {
+			final StringBuilder sb = new StringBuilder();
+			sb.append("body=" + Integer.toString(body.getIndex()) + ",");
+			sb.append("dress=" + Integer.toString(dress.getIndex()) + ",");
+			sb.append("head=" + Integer.toString(head.getIndex()) + ",");
+			if (StendhalClient.serverVersionAtLeast("1.15")) {
+				sb.append("mouth=" + Integer.toString(mouth.getIndex()) + ",");
+				sb.append("eyes=" + Integer.toString(eyes.getIndex()) + ",");
+			}
+			sb.append("mask=" + Integer.toString(mask.getIndex()) + ",");
+			sb.append("hair=" + Integer.toString(hair.getIndex()) + ",");
+			sb.append("hat=" + Integer.toString(hat.getIndex()) + ",");
+
+			rpOutfitAction.put(Actions.TYPE, Actions.OUTFIT);
+			rpOutfitAction.put(Actions.VALUE, sb.toString());
+		} else {
+			int code = body.getIndex();
+			code += dress.getIndex() * 100;
+			code += head.getIndex() * 10000;
+			code += hair.getIndex() * 1000000;
+
+			rpOutfitAction.put(Actions.TYPE, "outfit");
+			rpOutfitAction.put(Actions.VALUE, code);
 		}
 
-		final RPAction rpaction = new RPAction();
-		rpaction.put("type", "outfit");
-		rpaction.put("value", body.getIndex() + dress.getIndex() * 100 + head.getIndex()
-				* 1000 * 100 + hair.getIndex() * 100 * 1000 * 100);
-		Color color = outfitColor.getColor("hair");
+		/* hair color */
+		color = outfitColor.getColor(OutfitColor.HAIR);
 		if (color != null) {
-			rpaction.put(OutfitColor.HAIR, color.getRGB());
+			rpOutfitAction.put(OutfitColor.HAIR, color.getRGB());
 		}
+
+		/* dress color */
 		color = outfitColor.getColor(OutfitColor.DRESS);
 		if (color != null) {
-			rpaction.put(OutfitColor.DRESS, color.getRGB());
+			rpOutfitAction.put(OutfitColor.DRESS, color.getRGB());
 		}
-		client.send(rpaction);
+
+		/* body and head color */
+		color = outfitColor.getColor(OutfitColor.SKIN);
+		if (color != null) {
+			rpOutfitAction.put(OutfitColor.SKIN, color.getRGB());
+		}
+
+		/* eyes color */
+		color = outfitColor.getColor(OutfitColor.EYES);
+		if (color != null) {
+			rpOutfitAction.put(OutfitColor.EYES, color.getRGB());
+		}
+
+		client.send(rpOutfitAction);
 	}
 
 	/**
@@ -495,48 +747,92 @@ public class OutfitDialog extends JDialog {
 			// Labels (Images). Making all JLabels bordered would be undesired
 			bodyLabel.setBorder(style.getBorderDown());
 			dressLabel.setBorder(style.getBorderDown());
-			outfitLabel.setBorder(style.getBorderDown());
-			hairLabel.setBorder(style.getBorderDown());
 			headLabel.setBorder(style.getBorderDown());
+			mouthLabel.setBorder(style.getBorderDown());
+			eyesLabel.setBorder(style.getBorderDown());
+			maskLabel.setBorder(style.getBorderDown());
+			hairLabel.setBorder(style.getBorderDown());
+			hatLabel.setBorder(style.getBorderDown());
+			outfitLabel.setBorder(style.getBorderDown());
 		}
 	}
 
 	/**
 	 * Set the state of the selector.
-	 * 
-	 * @param outfit outfit code
-	 * @param colors color state. Unlike the one passed to the constructor, this
-	 * 	will not be modified
 	 */
-	void setState(int outfit, OutfitColor colors) {
+	void setState(final String strcode, final OutfitColor colors) {
 		// Copy the original colors
+		outfitColor.setColor(OutfitColor.SKIN, colors.getColor(OutfitColor.SKIN));
 		outfitColor.setColor(OutfitColor.DRESS, colors.getColor(OutfitColor.DRESS));
+		outfitColor.setColor(OutfitColor.EYES, colors.getColor(OutfitColor.EYES));
 		outfitColor.setColor(OutfitColor.HAIR, colors.getColor(OutfitColor.HAIR));
-		
-		// analyze the outfit code
-		int bodiesIndex = outfit % 100;
-		outfit = outfit / 100;
-		int clothesIndex = outfit % 1000;
-		outfit = outfit / 1000;
-		int headsIndex = outfit % 100;
-		outfit = outfit / 100;
-		int hairsIndex = outfit % 1000;
-		
+
+		final Map<String, Integer> layer_map = new HashMap<>();
+		for (String layer: strcode.split(",")) {
+			if (layer.contains("=")) {
+				final String[] key = layer.split("=");
+				layer_map.put(key[0], Integer.parseInt(key[1]));
+			}
+		}
+
+		Integer bodiesIndex = layer_map.get("body");
+		Integer clothesIndex = layer_map.get("dress");
+		Integer headsIndex = layer_map.get("head");
+		Integer mouthsIndex = layer_map.get("mouth");
+		Integer eyesIndex = layer_map.get("eyes");
+		Integer masksIndex = layer_map.get("mask");
+		Integer hairsIndex = layer_map.get("hair");
+		Integer hatsIndex = layer_map.get("hat");
+
+		// failsafes
+		if (bodiesIndex == null) {
+			bodiesIndex = 0;
+		}
+		if (clothesIndex == null) {
+			clothesIndex = 0;
+		}
+		if (headsIndex == null) {
+			headsIndex = 0;
+		}
+		if (mouthsIndex == null) {
+			mouthsIndex = 0;
+		}
+		if (eyesIndex == null) {
+			eyesIndex = 0;
+		}
+		if (masksIndex == null) {
+			masksIndex = 0;
+		}
+		if (hairsIndex == null) {
+			hairsIndex = 0;
+		}
+		if (hatsIndex == null) {
+			hatsIndex = 0;
+		}
+
+		// set current outfit; this will update labels as well
 		body.setIndex(bodiesIndex);
 		dress.setIndex(clothesIndex);
 		head.setIndex(headsIndex);
+		mouth.setIndex(mouthsIndex);
+		eyes.setIndex(eyesIndex);
+		mask.setIndex(masksIndex);
 		hair.setIndex(hairsIndex);
+		hat.setIndex(hatsIndex);
 
 		// Color selectors, and their toggles
 		for (ResetListener l : resetListeners) {
 			l.reset();
 		}
 	}
-	
+
+	/**
+	 * Interface for components that can be reseted to a default state.
+	 */
 	private interface ResetListener {
 		void reset();
 	}
-	
+
 	/**
 	 * An image label for outfit and outfit parts.
 	 */
@@ -545,7 +841,7 @@ public class OutfitDialog extends JDialog {
 
 		/**
 		 * Create a new OutfitLabel.
-		 * 
+		 *
 		 * @param retrievers sprite sources used to update the image, when
 		 *	changed() is called
 		 */
@@ -554,6 +850,7 @@ public class OutfitDialog extends JDialog {
 			this.retrievers = retrievers;
 		}
 
+		@Override
 		public void changed() {
 			// Update image
 			BufferedImage img = getGraphicsConfiguration().createCompatibleImage(PLAYER_WIDTH, PLAYER_HEIGHT);
@@ -579,7 +876,7 @@ public class OutfitDialog extends JDialog {
 
 		/**
 		 * Create a new SelectorModel. Valid indices are 0 to n - 1.
-		 * 
+		 *
 		 * @param n maximum value
 		 */
 		SelectorModel(int n) {
@@ -591,33 +888,24 @@ public class OutfitDialog extends JDialog {
 
 		/**
 		 * Add a new listener for value changes.
-		 * 
-		 * @param listener
+		 *
+		 * @param listener added listener
 		 */
 		void addListener(IndexChangeListener listener) {
 			listeners.add(listener);
 		}
 
 		/**
-		 * Get the number of elements. (maximum index + 1)
-		 * 
-		 * @return maximum index + 1
-		 */
-		int getN() {
-			return n;
-		}
-
-		/**
 		 * Set index.
-		 *  
-		 * @param index
+		 *
+		 * @param index new index
 		 */
 		void setIndex(int index) {
-			if ((index < 0) || (index >= n)) {
-				LOGGER.warn("Index out of allowed range [0-" + n + "]: " + index, 
+			if (!isAllowed(index)) {
+				LOGGER.warn("Index out of allowed range [0-" + n + "]: " + index,
 						new Throwable());
 				index = 0;
-			} 
+			}
 			this.index = index;
 			fire();
 		}
@@ -630,7 +918,7 @@ public class OutfitDialog extends JDialog {
 			index += n - 1;
 			index %= n;
 			fire();
-	} 
+		}
 
 		/**
 		 * Scroll the index value upwards.
@@ -643,11 +931,22 @@ public class OutfitDialog extends JDialog {
 
 		/**
 		 * Get the current index value.
-		 * 
+		 *
 		 * @return index
 		 */
 		int getIndex() {
 			return index;
+		}
+
+		/**
+		 * Check if an index is within allowed limits.
+		 *
+		 * @param index checked index
+		 * @return <code>true</code> if the index is valid, otherwise
+		 * 	<code>false</code>
+		 */
+		boolean isAllowed(int index) {
+			return (index >= 0) && (index < n);
 		}
 
 		/**
@@ -656,7 +955,7 @@ public class OutfitDialog extends JDialog {
 		private void fire() {
 			for (IndexChangeListener listener : listeners) {
 				listener.changed();
-			} 
+			}
 		}
 	}
 
@@ -666,7 +965,7 @@ public class OutfitDialog extends JDialog {
 	private interface SpriteRetriever {
 		/**
 		 * Get the sprite.
-		 * 
+		 *
 		 * @return sprite
 		 */
 		Sprite getSprite();
@@ -680,54 +979,5 @@ public class OutfitDialog extends JDialog {
 		 * Called when the model changes.
 		 */
 		void changed();
-	}
-
-	private void generateAllOutfits(final String baseDir) {
-		/** TEST METHOD: DON'T NO USE */
-		for (body.setIndex(0); body.getIndex() < body.getN(); body.setIndex(body.getIndex() + 1)) {
-			for (dress.setIndex(0); dress.getIndex() < dress.getN(); dress.setIndex(dress.getIndex() + 1)) {
-				for (head.setIndex(0); head.getIndex() < head.getN(); head.setIndex(head.getIndex() + 1)) {
-					for (hair.setIndex(0); hair.getIndex() < hair.getN(); hair.setIndex(hair.getIndex() + 1)) {
-						final String name = Integer.toString(body.getIndex()
-								+ dress.getIndex() * 100 + head.getIndex() * 1000 * 100
-								+ hair.getIndex() * 100 * 1000 * 100);
-						final File file = new File(baseDir + "outfits/" + name
-								+ ".png");
-
-						// for performance reasons only write new files.
-						if (!file.exists()) {
-							System.out.println("Creating " + name + ".png");
-							final Image image = new BufferedImage(PLAYER_WIDTH,
-									PLAYER_HEIGHT, BufferedImage.TYPE_INT_ARGB);
-							Graphics g = image.getGraphics();
-							getBodySprite().draw(g, 0, 0);
-							getDressSprite().draw(g, 0, 0);
-							getHeadSprite().draw(g, 0, 0);
-							getHairSprite().draw(g, 0, 0);
-							g.dispose();
-							try {
-								ImageIO.write((RenderedImage) image, "png",
-										file);
-							} catch (final Exception e) {
-								LOGGER.error(e, e);
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	public static void main(final String[] args) {
-		String baseDir = "";
-		if (args.length > 0) {
-			baseDir = args[0] + "/";
-		}
-
-		final OutfitDialog f = new OutfitDialog(null, "PolskaOnLine - Wybierz wygląd",
-				0, OutfitColor.PLAIN);
-		// show is required now, because getGraphics() returns null otherwise
-		f.setVisible(true);
-		f.generateAllOutfits(baseDir);
 	}
 }

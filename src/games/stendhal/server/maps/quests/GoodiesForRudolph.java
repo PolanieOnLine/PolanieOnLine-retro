@@ -1,6 +1,5 @@
-/* $Id: GoodiesForRudolph.java,v 1.5.2.1 2012/12/15 15:10:53 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2011 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,6 +11,12 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
+import games.stendhal.common.grammar.Grammar;
 import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
@@ -20,23 +25,23 @@ import games.stendhal.server.entity.npc.action.DropItemAction;
 import games.stendhal.server.entity.npc.action.EquipItemAction;
 import games.stendhal.server.entity.npc.action.IncreaseKarmaAction;
 import games.stendhal.server.entity.npc.action.IncreaseXPAction;
+import games.stendhal.server.entity.npc.action.InflictStatusOnNPCAction;
 import games.stendhal.server.entity.npc.action.MultipleActions;
 import games.stendhal.server.entity.npc.action.SetQuestAction;
 import games.stendhal.server.entity.npc.action.SetQuestAndModifyKarmaAction;
+import games.stendhal.server.entity.npc.action.SetQuestToTimeStampAction;
 import games.stendhal.server.entity.npc.condition.AndCondition;
 import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
 import games.stendhal.server.entity.npc.condition.NotCondition;
 import games.stendhal.server.entity.npc.condition.PlayerHasItemWithHimCondition;
-import games.stendhal.server.entity.npc.condition.QuestCompletedCondition;
 import games.stendhal.server.entity.npc.condition.QuestInStateCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotCompletedCondition;
+import games.stendhal.server.entity.npc.condition.QuestStateStartsWithCondition;
+import games.stendhal.server.entity.npc.condition.TimePassedCondition;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.Region;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import games.stendhal.server.maps.semos.city.RudolphNPC;
+import games.stendhal.server.util.ResetSpeakerNPC;
 
 /**
  * QUEST: Christmas Goodies For Rudolph
@@ -63,55 +68,42 @@ import java.util.List;
  *
  * REPETITIONS:
  * <ul>
- * <li>None</li>
+ * <li>Once every 11 months.</li>
  * </ul>
  */
 public class GoodiesForRudolph extends AbstractQuest {
-
 	private static final String QUEST_SLOT = "goodies_rudolph";
+	private final SpeakerNPC npc = npcs.get("Rudolph");
 
-	
+	private static final int REQUIRED_MONTHS = 11;
+	private static final int REQUIRED_MINUTES = 60 * 24 * 30 * REQUIRED_MONTHS;
 
-	@Override
-	public List<String> getHistory(final Player player) {
-		final List<String> res = new ArrayList<String>();
-		if (!player.hasQuest(QUEST_SLOT)) {
-			return res;
-		}
-		res.add("Spotkałem Rudolpha. Jest on Czerwononosym Reniferem biegającym w pobliżu Semos.");
-		final String questState = player.getQuest(QUEST_SLOT);
-		if ("rejected".equals(questState)) {
-			res.add("Zapytał mnie o znalezienie przysmaków dla niego, ale odrzuciłem jego prośbę.");
-		}
-		if (player.isQuestInState(QUEST_SLOT, "start", "done")) {
-			res.add("Przyrzekłem, że znajdę dla niego przysmaki ponieważ jest miłym reniferem.");
-		}
-		if (("start".equals(questState) && (player.isEquipped("mech renifera", 5)  && player.isEquipped("marchew", 10) && player.isEquipped("jabłko", 10))) || "done".equals(questState)) {
-			res.add("Mam wszystkie przysmaki, które zabiorę do Rudolpha.");
-		}
-		if ("done".equals(questState)) {
-			res.add("Wziąłem przysmaki do Rudolpha. Jako podziękowanie dał MI trochę przysmaków. :)");
-		}
-		return res;
-	}
+	private static final String RUDOLPH_TALK_QUEST_ACCEPT = "Słyszałem o wspaniałych #przysmakach, które masz tutaj w Semos. Jeśli zdobędziesz 5 mchów renifera, 10 jabłek i 10 marchew to dam ci nagrodę.";
+	private static final String RUDOLPH_TALK_QUEST_OFFER = "Chcę pyszne przysmaki tylko ty możesz mi pomóc je zdobyć. Czy możesz mi pomóc?";
 
 	private void prepareRequestingStep() {
-		final SpeakerNPC npc = npcs.get("Rudolph");
-
 		npc.add(
 			ConversationStates.ATTENDING,
 			ConversationPhrases.QUEST_MESSAGES,
 			new QuestNotCompletedCondition(QUEST_SLOT),
-			ConversationStates.QUEST_OFFERED, 
-			"Chcę pyszne przysmaki tylko ty możesz mi pomóc je zdobyć. Czy możesz mi pomóc?",
+			ConversationStates.QUEST_OFFERED,
+			RUDOLPH_TALK_QUEST_OFFER,
 			null);
 
 		npc.add(
 			ConversationStates.ATTENDING,
 			ConversationPhrases.QUEST_MESSAGES,
-			new QuestCompletedCondition(QUEST_SLOT),
-			ConversationStates.ATTENDING, 
-			"Dziękuję bardzo za przysmaki, ale nie mam więcej zadań dla ciebie w tym roku. Życzę wspaniałych świąt.",
+			new AndCondition(new NotCondition(new TimePassedCondition(QUEST_SLOT, 1, REQUIRED_MINUTES))),
+			ConversationStates.ATTENDING,
+			"Dziękuję bardzo za przysmaki, ale nie mam dla ciebie w tym roku żadnych zadań. Korzystaj ze wspaniałego sezonu wakacyjnego.",
+			null);
+
+		npc.add(
+			ConversationStates.ATTENDING,
+			ConversationPhrases.QUEST_MESSAGES,
+			new AndCondition(new QuestStateStartsWithCondition(QUEST_SLOT, "done"), new TimePassedCondition(QUEST_SLOT, 1, REQUIRED_MINUTES)),
+			ConversationStates.QUEST_OFFERED,
+			RUDOLPH_TALK_QUEST_OFFER,
 			null);
 
 		// player is willing to help
@@ -120,8 +112,8 @@ public class GoodiesForRudolph extends AbstractQuest {
 			ConversationPhrases.YES_MESSAGES,
 			null,
 			ConversationStates.ATTENDING,
-			"Słyszałem o wspaniałych #przysmakach, które masz tutaj w Semos. Jeśli zdobędziesz 5 mchów renifera, 10 jabłek i 10 marchew to dam ci nagrodę.",
-			new SetQuestAndModifyKarmaAction(QUEST_SLOT, "start", 5.0));
+			RUDOLPH_TALK_QUEST_ACCEPT,
+			new SetQuestAction(QUEST_SLOT, "start"));
 
 		// player is not willing to help
 		npc.add(
@@ -137,13 +129,11 @@ public class GoodiesForRudolph extends AbstractQuest {
 			Arrays.asList("goodies", "przysmakach"),
 			null,
 			ConversationStates.ATTENDING,
-			"Mech reniferów jest jasnozielony, który rośnie wokół tego miasta. Jabłka można znaleść na farmie na wschód od miasta, a marchew jest na północny-wschód od miasta.",
+			"Mech reniferów jest jasnozielony, który rośnie wokół tego miasta. Jabłka można znaleźć na farmie na wschód od miasta, a marchew jest na północny-wschód od miasta.",
 			null);
 	}
 
 	private void prepareBringingStep() {
-		final SpeakerNPC npc = npcs.get("Rudolph");
-
 		// player returns while quest is still active
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 			new AndCondition(new GreetingMatchesNameCondition(npc.getName()),
@@ -152,50 +142,47 @@ public class GoodiesForRudolph extends AbstractQuest {
 					new PlayerHasItemWithHimCondition("mech renifera", 5),
 					new PlayerHasItemWithHimCondition("jabłko", 10),
 					new PlayerHasItemWithHimCondition("marchew", 10))),
-			ConversationStates.QUEST_ITEM_BROUGHT, 
+			ConversationStates.QUEST_ITEM_BROUGHT,
 			"Przepraszam! Widzę, że masz pyszne smakołyki. Są one dla mnie?",
 			null);
 
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 			new AndCondition(new GreetingMatchesNameCondition(npc.getName()),
-				new QuestInStateCondition(QUEST_SLOT, "start"), 
+				new QuestInStateCondition(QUEST_SLOT, "start"),
 				new NotCondition(new AndCondition(
 					new PlayerHasItemWithHimCondition("mech renifera", 5),
 					new PlayerHasItemWithHimCondition("jabłko", 10),
 					new PlayerHasItemWithHimCondition("marchew", 10)))),
-			ConversationStates.ATTENDING, 
+			ConversationStates.ATTENDING,
 			"Oh nie mogę się doczekać tych przysmaków, o które cię prosiłem. Mam nadzieję, że nie będę czekał długo nim mi je przyniesiesz.",
 			null);
 
 		final List<ChatAction> reward = new LinkedList<ChatAction>();
+		reward.add(new DropItemAction("mech renifera", 5));
+		reward.add(new DropItemAction("marchew", 10));
+		reward.add(new DropItemAction("jabłko", 10));
 		reward.add(new EquipItemAction("money", 50));
 		reward.add(new EquipItemAction("zima zaklęta w kuli"));
 		reward.add(new IncreaseXPAction(100));
 		reward.add(new SetQuestAction(QUEST_SLOT, "done"));
 		reward.add(new IncreaseKarmaAction(60));
+		reward.add(new InflictStatusOnNPCAction("jabłko"));
+		reward.add(new SetQuestToTimeStampAction(QUEST_SLOT, 1));
+		reward.add(new SetQuestAction(QUEST_SLOT, 0, "done"));
 
-		final List<ChatAction> reward1 = new LinkedList<ChatAction>(reward);
-		reward1.add(new DropItemAction("mech renifera", 5));
-		reward1.add(new DropItemAction("marchew", 10));
-		reward1.add(new DropItemAction("jabłko", 10));
-
-		
-		
-		
-		
 		npc.add(
 			ConversationStates.QUEST_ITEM_BROUGHT,
 			ConversationPhrases.YES_MESSAGES,
 			// make sure the player isn't cheating by putting the goodies
 			// away and then saying "yes"
-			
+
 			new AndCondition(
 					new PlayerHasItemWithHimCondition("mech renifera", 5),
 					new PlayerHasItemWithHimCondition("jabłko", 10),
 					new PlayerHasItemWithHimCondition("marchew", 10)),
 
 			ConversationStates.ATTENDING, "Jestem tak podekscytowany! Tak chciałem je zjeść od dłuższego czasu. Dziękuję bardzo. Przytoczę powiedzenie Ho Ho Ho, Wesołych Świąt.",
-			new MultipleActions(reward1));
+			new MultipleActions(reward));
 
 
 		npc.add(
@@ -209,13 +196,47 @@ public class GoodiesForRudolph extends AbstractQuest {
 
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
-				"Przysmaki dla Rudolpha",
+				"Przysmaki Rudolpha",
 				"Rudolph jest ulubionym reniferem świętego Mikołaja, który rozpaczliwie chce przysmaków.",
 				false);
 		prepareRequestingStep();
 		prepareBringingStep();
+	}
+
+	@Override
+	public boolean removeFromWorld() {
+		return ResetSpeakerNPC.reload(new RudolphNPC(), getNPCName());
+	}
+
+	@Override
+	public List<String> getHistory(final Player player) {
+		final List<String> res = new ArrayList<String>();
+		if (!player.hasQuest(QUEST_SLOT)) {
+			return res;
+		}
+		res.add(Grammar.genderVerb(player.getGender(), "Spotkałem") + " Rudolpha. Jest on Czerwononosym Reniferem biegającym w pobliżu Semos.");
+		final String questStateFull = player.getQuest(QUEST_SLOT);
+		final String[] parts = questStateFull.split(";");
+		final String questState = parts[0];
+
+		if ("rejected".equals(questState)) {
+			res.add("Zapytał mnie o znalezienie przysmaków dla niego, ale odrzuciłem jego prośbę.");
+		}
+		if (player.isQuestInState(QUEST_SLOT, 0, "start", "done")) {
+			res.add(Grammar.genderVerb(player.getGender(), "Przyrzekłem") + ", że znajdę dla niego przysmaki ponieważ jest miłym reniferem.");
+		}
+		if ("start".equals(questState) && player.isEquipped("mech renifera", 5)  && player.isEquipped("marchew", 10) && player.isEquipped("jabłko", 10) || "done".equals(questState)) {
+			res.add("Mam wszystkie przysmaki, które zabiorę do Rudolpha.");
+		}
+		if (isCompleted(player)) {
+			if (isRepeatable(player)) {
+				res.add("Minął rok kiedy ostatnio pomogłem Rudolphowi. Powinienem go zapytać czy znów nie potrzebuje mojej pomocy.");
+			} else {
+				res.add(Grammar.genderVerb(player.getGender(), "Wziąłem") + " przysmaki do Rudolpha. Jako podziękowanie " + Grammar.genderVerb(player.getGender(), "otrzymałem") + " trochę przysmaków. :)");
+			}
+		}
+		return res;
 	}
 
 	@Override
@@ -225,21 +246,28 @@ public class GoodiesForRudolph extends AbstractQuest {
 
 	@Override
 	public String getName() {
-		return "GoodiesForRudolph";
+		return "Przysmaki Rudolpha";
 	}
-	
+
 	@Override
 	public int getMinLevel() {
 		return 0;
 	}
-	
+
 	@Override
 	public String getRegion() {
 		return Region.SEMOS_CITY;
 	}
-	
+
 	@Override
 	public String getNPCName() {
-		return "Rudolph";
+		return npc.getName();
+	}
+
+	@Override
+	public boolean isRepeatable(final Player player) {
+		return new AndCondition(
+				new QuestStateStartsWithCondition(QUEST_SLOT, "done"),
+				new TimePassedCondition(QUEST_SLOT, 1, REQUIRED_MINUTES)).fire(player, null, null);
 	}
 }

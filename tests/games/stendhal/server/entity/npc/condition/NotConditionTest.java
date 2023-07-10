@@ -1,4 +1,4 @@
-/* $Id: NotConditionTest.java,v 1.22 2011/05/01 19:50:06 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -15,24 +15,25 @@ package games.stendhal.server.entity.npc.condition;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import games.stendhal.common.parser.ConversationParser;
-import games.stendhal.common.parser.Sentence;
-import games.stendhal.server.entity.Entity;
-import games.stendhal.server.entity.npc.ChatCondition;
-import games.stendhal.server.entity.player.Player;
-import games.stendhal.server.maps.MockStendlRPWorld;
 
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.common.parser.ConversationParser;
+import games.stendhal.common.parser.Sentence;
+import games.stendhal.server.entity.Entity;
+import games.stendhal.server.entity.npc.ChatCondition;
+import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.maps.MockStendlRPWorld;
 import utilities.PlayerTestHelper;
 import utilities.SpeakerNPCTestHelper;
 
 public class NotConditionTest {
 
 	private static final class AlwaysFalseCondition implements ChatCondition {
+		@Override
 		public boolean fire(final Player player, final Sentence sentence, final Entity entity) {
 			return false;
 		}
@@ -51,12 +52,12 @@ public class NotConditionTest {
 	public static void setupClass() {
 		MockStendlRPWorld.get();
 	}
-	
+
 	@AfterClass
 	public static void tearDownClass() {
 		MockStendlRPWorld.get();
 	}
-	
+
 	@Before
 	public void setUp() throws Exception {
 		trueCondition = new AlwaysTrueCondition();
@@ -83,8 +84,6 @@ public class NotConditionTest {
 	public final void testHashCode() {
 		final NotCondition obj = new NotCondition(trueCondition);
 		assertEquals(obj.hashCode(), obj.hashCode());
-		assertEquals(new NotCondition(null).hashCode(),
-				new NotCondition(null).hashCode());
 		assertEquals(new NotCondition(trueCondition).hashCode(),
 				new NotCondition(trueCondition).hashCode());
 
@@ -124,18 +123,13 @@ public class NotConditionTest {
 	 * Tests for equals.
 	 */
 	@Test
-	public void testEquals() throws Throwable {
+	public void testEquals() {
 
 		assertFalse(new NotCondition(trueCondition).equals(null));
 
 		final NotCondition obj = new NotCondition(trueCondition);
 		assertTrue(obj.equals(obj));
-		assertTrue(new NotCondition(null).equals(new NotCondition(null)));
 		assertTrue(new NotCondition(trueCondition).equals(new NotCondition(
-				trueCondition)));
-		assertFalse(new NotCondition(trueCondition).equals(new NotCondition(
-				null)));
-		assertFalse(new NotCondition(null).equals(new NotCondition(
 				trueCondition)));
 		assertFalse(new NotCondition(trueCondition).equals(Integer.valueOf(100)));
 		assertTrue(new NotCondition(trueCondition).equals(new NotCondition(

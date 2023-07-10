@@ -1,4 +1,4 @@
-/* $Id: IntRingBufferTest.java,v 1.3 2010/09/19 01:28:56 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,7 +12,8 @@
  ***************************************************************************/
 package games.stendhal.server.util;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 

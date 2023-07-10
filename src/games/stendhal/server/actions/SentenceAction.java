@@ -1,4 +1,4 @@
-/* $Id: SentenceAction.java,v 1.9 2010/12/17 22:27:38 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -13,15 +13,15 @@
 package games.stendhal.server.actions;
 import static games.stendhal.common.constants.Actions.SENTENCE;
 import static games.stendhal.common.constants.Actions.VALUE;
-import games.stendhal.common.NotificationType;
-import games.stendhal.server.core.engine.GameEvent;
-import games.stendhal.server.entity.player.Player;
 
 import java.io.UnsupportedEncodingException;
 
-import marauroa.common.game.RPAction;
-
 import org.apache.log4j.Logger;
+
+import games.stendhal.common.NotificationType;
+import games.stendhal.server.core.engine.GameEvent;
+import games.stendhal.server.entity.player.Player;
+import marauroa.common.game.RPAction;
 
 /**
  * sets a sentences that is displayed on the character page of the website.
@@ -33,6 +33,7 @@ public class SentenceAction implements ActionListener {
 		CommandCenter.register(SENTENCE, new SentenceAction());
 	}
 
+	@Override
 	public void onAction(final Player player, final RPAction action) {
 		if (!action.has(VALUE)) {
 			player.sendPrivateText(NotificationType.ERROR, "Proszę użyj /sentence <sentencja>");

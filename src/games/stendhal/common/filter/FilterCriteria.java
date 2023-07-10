@@ -1,4 +1,4 @@
-/* $Id: FilterCriteria.java,v 1.7 2010/11/29 22:16:10 nhnb Exp $ */
+/* $Id$ */
 /* found on javaworld.com */
 package games.stendhal.common.filter;
 
@@ -29,7 +29,7 @@ public interface FilterCriteria<T> {
      * filter.addFilterCriteria(new ColorFilterCriteria());
      * 3) Now filter:
      * filter.filter(carCollection);
-     * @param o
+     * @param o object
      * @return true, if a given object in the collection
      * passes this filter.
      */

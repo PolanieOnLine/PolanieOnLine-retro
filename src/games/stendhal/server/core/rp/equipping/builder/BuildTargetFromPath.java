@@ -11,6 +11,9 @@
  ***************************************************************************/
 package games.stendhal.server.core.rp.equipping.builder;
 
+import java.util.Iterator;
+import java.util.List;
+
 import games.stendhal.common.MathHelper;
 import games.stendhal.common.constants.Actions;
 import games.stendhal.server.actions.equip.EquipUtil;
@@ -18,15 +21,12 @@ import games.stendhal.server.core.rp.equipping.EquipmentActionData;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.entity.slot.EntitySlot;
-
-import java.util.Iterator;
-import java.util.List;
-
 import marauroa.common.game.RPAction;
 import marauroa.common.game.RPObject;
 
 class BuildTargetFromPath implements PartialBuilder {
 
+	@Override
 	public void build(EquipmentActionData data, Player player, RPAction action) {
 		List<String> path = action.getList(Actions.TARGET_PATH);
 		Iterator<String> it = path.iterator();

@@ -1,6 +1,5 @@
-/* $Id: ArcheryDealerNPC.java,v 1.11 2012/08/23 20:05:44 yoriy Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,36 +11,27 @@
  ***************************************************************************/
 package games.stendhal.server.maps.nalwor.basement;
 
-import games.stendhal.server.core.config.ZoneConfigurator;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.core.pathfinder.FixedPath;
-import games.stendhal.server.core.pathfinder.Node;
-import games.stendhal.server.entity.npc.ShopList;
-import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.behaviour.adder.BuyerAdder;
-import games.stendhal.server.entity.npc.behaviour.impl.BuyerBehaviour;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import games.stendhal.server.core.config.ZoneConfigurator;
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.core.pathfinder.FixedPath;
+import games.stendhal.server.core.pathfinder.Node;
+import games.stendhal.server.entity.npc.SpeakerNPC;
+
 /**
  * Inside Nalwor Inn basement .
  */
-
 public class ArcheryDealerNPC implements ZoneConfigurator  {
-
-	private final ShopList shops = SingletonRepository.getShopList();
-
-	public void configureZone(StendhalRPZone zone,
-			Map<String, String> attributes) {
+	@Override
+	public void configureZone(StendhalRPZone zone, Map<String, String> attributes) {
 		buildNPC(zone);
 	}
 
 	private void buildNPC(StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Merenwen") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -59,12 +49,14 @@ public class ArcheryDealerNPC implements ZoneConfigurator  {
 				addHelp("Nie mogę zaoferować Tobie pomocy. Przykro mi.");
 				addOffer("Spójrz na tablicę i sprawdź ceny.");
 				addQuest("Nie mam dla Ciebie zadania.");
-				addGoodbye("Bądź szczęśliwy. Dowidzenia.");
-				new BuyerAdder().addBuyer(this, new BuyerBehaviour(shops.get("buyarcherstuff")), false);			    
-			}};
-			npc.setPosition(10, 5);
-			npc.setDescription("Oto piękna czarodziejka elfów Merenwen. Skupuje przedmioty związane z łucznictwem.");
-			npc.setEntityClass("mageelfnpc");
-			zone.add(npc);		
+				addGoodbye("Bądź szczęśliwy. Do widzenia.");
+			}
+		};
+
+		npc.setDescription("Oto piękna czarodziejka elfów Merenwen. Skupuje przedmioty związane z łucznictwem.");
+		npc.setEntityClass("mageelfnpc");
+		npc.setGender("F");
+		npc.setPosition(10, 5);
+		zone.add(npc);
    	}
 }

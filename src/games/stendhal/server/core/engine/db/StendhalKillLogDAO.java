@@ -1,5 +1,5 @@
 /***************************************************************************
- *                    (C) Copyright 2003-2009 - Stendhal                   *
+ *                    (C) Copyright 2003-2020 - Stendhal                   *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -11,22 +11,17 @@
  ***************************************************************************/
 package games.stendhal.server.core.engine.db;
 
-import games.stendhal.server.entity.Entity;
-import games.stendhal.server.entity.RPEntity;
-import games.stendhal.server.entity.creature.Creature;
-import games.stendhal.server.entity.player.Player;
-
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import marauroa.common.game.RPObject;
+import games.stendhal.server.entity.Entity;
+import games.stendhal.server.entity.Killer;
+import games.stendhal.server.entity.creature.Creature;
+import games.stendhal.server.entity.player.Player;
 import marauroa.server.db.DBTransaction;
-import marauroa.server.db.TransactionPool;
-
-import org.apache.log4j.Logger;
 
 /**
  * database access to the kill log
@@ -34,17 +29,15 @@ import org.apache.log4j.Logger;
  * @author hendrik
  */
 public class StendhalKillLogDAO {
-	private static Logger logger = Logger.getLogger(StendhalKillLogDAO.class);
-
-	
 	/**
 	 * Logs a kill.
 	 *
+	 * @param transaction transaction
 	 * @param killed killed entity
 	 * @param killer killer
-	 * @throws SQLException 
+	 * @throws SQLException in case of an database error
 	 */
-	public void logKill(final DBTransaction transaction, final Entity killed, final Entity killer) throws SQLException {
+	public void logKill(final DBTransaction transaction, final Entity killed, final Killer killer, Timestamp timestamp) throws SQLException {
 		// try update in case we already have this combination
 		String query = "UPDATE kills SET cnt = cnt+1"
 			+ " WHERE killed = '[killed]' AND killed_type = '[killed_type]'"
@@ -52,11 +45,11 @@ public class StendhalKillLogDAO {
 			+ " AND day = '[day]';";
 
 		Map<String, Object> params = new HashMap<String, Object>();
-		params.put("killed", getEntityName(killed));
-		params.put("killed_type",  entityToType(killed));
-		params.put("killer", getEntityName(killer));
-		params.put("killer_type",  entityToType(killer));
-		params.put("day", new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
+		params.put("killed", killed.getName());
+		params.put("killed_type", entityToType(killed));
+		params.put("killer", killer.getName());
+		params.put("killer_type", entityToType(killer));
+		params.put("day", new SimpleDateFormat("yyyy-MM-dd").format(timestamp));
 
 		final int rowCount = transaction.execute(query, params);
 
@@ -70,29 +63,12 @@ public class StendhalKillLogDAO {
 	}
 
 	/**
-	 * Logs a kill.
-	 *
-	 * @param killed killed entity
-	 * @param killer killer
-	 */
-	public void logKill(final Entity killed, final Entity killer) {
-		DBTransaction transaction = TransactionPool.get().beginWork();
-		try {
-			logKill(transaction, killed, killer);
-			TransactionPool.get().commit(transaction);
-		} catch (SQLException e) {
-			logger.error(e, e);
-			TransactionPool.get().rollback(transaction);
-		}
-	}
-	
-	/**
 	 * Creates a one letter type string based on the class of the entity.
 	 *
 	 * @param entity Entity
 	 * @return P for players, C for creatures, E for other entities
 	 */
-	public String entityToType(final Entity entity) {
+	public String entityToType(final Killer entity) {
 		if (entity instanceof Player) {
 			return "P";
 		} else if (entity instanceof Creature) {
@@ -102,20 +78,4 @@ public class StendhalKillLogDAO {
 		}
 	}
 
-	/**
-	 * gets the real name of an entity (not the changeable title). 
-	 *
-	 * @param entity Entity
-	 * @return name of entity
-	 */
-	public String getEntityName(final RPObject entity) {
-		String res = null;
-		if (entity instanceof RPEntity) {
-			res = ((RPEntity) entity).getName();
-		}
-		if ((res == null) || res.trim().equals("")) {
-			res = entity.getRPClass().getName();
-		}
-		return res;
-	}
 }

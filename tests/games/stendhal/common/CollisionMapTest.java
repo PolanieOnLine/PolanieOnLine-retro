@@ -1,6 +1,5 @@
-/* $Id: CollisionMapTest.java,v 1.8 2012/07/13 06:05:21 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -16,59 +15,45 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import games.stendhal.client.entity.Player;
-import games.stendhal.common.tiled.LayerDefinition;
-import games.stendhal.server.core.engine.StendhalRPRuleProcessor;
-import games.stendhal.server.maps.MockStendlRPWorld;
 
 import java.awt.geom.Rectangle2D;
 import java.util.BitSet;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.client.entity.Player;
+import games.stendhal.client.util.UserInterfaceTestHelper;
+import games.stendhal.common.tiled.LayerDefinition;
+import games.stendhal.server.core.engine.StendhalRPRuleProcessor;
+import games.stendhal.server.maps.MockStendlRPWorld;
 import utilities.PlayerTestHelper;
 
 public class CollisionMapTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-	}
-
-	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
-	}
-
-	@Before
-	public void setUp() throws Exception {
-	}
-
-	@After
-	public void tearDown() throws Exception {
+		UserInterfaceTestHelper.initUserInterface();
 	}
 
 	/**
 	 * Tests for collissionMap.
 	 */
 	@Test
-	public void testCollissionMap() throws Exception {
+	public void testCollissionMap() {
 		final CollisionMap map = new CollisionMap(1, 1);
 		assertThat(map.getWidth(), is(1));
 		assertThat(map.getHeight(), is(1));
 		final CollisionMap map2x2 = new CollisionMap(2, 2);
 		assertThat(map2x2.getWidth(), is(2));
 		assertThat(map2x2.getHeight(), is(2));
-
 	}
 
 	/**
 	 * Tests for collides.
 	 */
 	@Test
-	public void testcollides() throws Exception {
+	public void testcollides() {
 		final CollisionMap map = new CollisionMap(2, 2);
 		assertFalse(map.get(0, 0));
 		assertFalse(map.get(1, 0));
@@ -87,7 +72,7 @@ public class CollisionMapTest {
 	 * Tests for collides2.
 	 */
 	@Test
-	public void testcollides2() throws Exception {
+	public void testcollides2() {
 		final CollisionMap map = new CollisionMap(4, 4);
 		map.set(0, 0);
 		map.set(3, 0);
@@ -114,14 +99,13 @@ public class CollisionMapTest {
 		assertTrue("edge", map.collides(3, 1, 2, 2));
 		assertTrue("edge", map.collides(3, 2, 2, 2));
 		assertTrue("edge", map.collides(3, 3, 2, 2));
-
 	}
 
 	/**
 	 * Tests for collidesEdges.
 	 */
 	@Test
-	public void testcollidesEdges() throws Exception {
+	public void testcollidesEdges() {
 		final CollisionMap map = new CollisionMap(4, 4);
 		assertFalse(map.collides(0, 0, 2, 2));
 		assertFalse(map.collides(0, 1, 2, 2));
@@ -142,14 +126,13 @@ public class CollisionMapTest {
 		assertTrue("edge", map.collides(3, 1, 2, 2));
 		assertTrue("edge", map.collides(3, 2, 2, 2));
 		assertTrue("edge", map.collides(3, 3, 2, 2));
-
 	}
 
 	/**
 	 * Tests for bitsetlogic.
 	 */
 	@Test
-	public void testbitsetlogic() throws Exception {
+	public void testbitsetlogic() {
 		final BitSet setallfalse = new BitSet(7);
 		final BitSet invert = (BitSet) setallfalse.clone();
 		assertThat(invert.length(), is(0));
@@ -181,14 +164,13 @@ public class CollisionMapTest {
 		assertFalse(subset2.get(4));
 		assertTrue(subset2.get(5));
 		assertFalse(subset2.get(6));
-
 	}
 
 	/**
 	 * Tests for clear.
 	 */
 	@Test
-	public void testClear() throws Exception {
+	public void testClear() {
 		final CollisionMap map = new CollisionMap(4, 4);
 		map.set(0, 0);
 		map.set(3, 0);
@@ -197,14 +179,13 @@ public class CollisionMapTest {
 		assertTrue(map.collides(0, 0, 4, 4));
 		map.clear();
 		assertFalse(map.collides(0, 0, 4, 4));
-
 	}
-	
+
 	/**
 	 * Tests for setCollideRectangle2D2x1.
 	 */
 	@Test
-	public void testsetCollideRectangle2D2x1() throws Exception {
+	public void testsetCollideRectangle2D2x1() {
 		final CollisionMap map = new CollisionMap(4, 4);
 		Rectangle2D shape = new Rectangle2D.Double(1.0, 2.0, 2.0, 1.0);
 		map.set(shape);
@@ -212,28 +193,28 @@ public class CollisionMapTest {
 		assertFalse(map.get(0, 1));
 		assertFalse(map.get(0, 2));
 		assertFalse(map.get(0, 3));
-		
+
 		assertFalse(map.get(1, 0));
 		assertFalse(map.get(1, 1));
 		assertTrue(map.get(1, 2));
 		assertFalse(map.get(1, 3));
-		
+
 		assertFalse(map.get(2, 0));
 		assertFalse(map.get(2, 1));
 		assertTrue(map.get(2, 2));
 		assertFalse(map.get(2, 3));
-		
+
 		assertFalse(map.get(3, 0));
 		assertFalse(map.get(3, 1));
 		assertFalse(map.get(3, 2));
 		assertFalse(map.get(3, 3));
-
 	}
+
 	/**
 	 * Tests for setCollideRectangle2D2x3.
 	 */
 	@Test
-	public void testsetCollideRectangle2D2x3() throws Exception {
+	public void testsetCollideRectangle2D2x3() {
 		final CollisionMap map = new CollisionMap(4, 4);
 		Rectangle2D shape = new Rectangle2D.Double(1.0, 0.0, 2.0, 3.0);
 		map.set(shape);
@@ -241,22 +222,21 @@ public class CollisionMapTest {
 		assertFalse(map.get(0, 1));
 		assertFalse(map.get(0, 2));
 		assertFalse(map.get(0, 3));
-		
+
 		assertTrue(map.get(1, 0));
 		assertTrue(map.get(1, 1));
 		assertTrue(map.get(1, 2));
 		assertFalse(map.get(1, 3));
-		
+
 		assertTrue(map.get(2, 0));
 		assertTrue(map.get(2, 1));
 		assertTrue(map.get(2, 2));
 		assertFalse(map.get(2, 3));
-		
+
 		assertFalse(map.get(3, 0));
 		assertFalse(map.get(3, 1));
 		assertFalse(map.get(3, 2));
 		assertFalse(map.get(3, 3));
-
 	}
 
 
@@ -264,7 +244,7 @@ public class CollisionMapTest {
 	 * Tests for createLayerDefintion.
 	 */
 	@Test
-	public void testCreateLayerDefintion() throws Exception {
+	public void testCreateLayerDefintion() {
 		LayerDefinition layer;
 		final int width = 3;
 		final int height = 4;
@@ -289,7 +269,7 @@ public class CollisionMapTest {
 	 * Tests for collidesEntity.
 	 */
 	@Test
-	public void testCollidesEntity() throws Exception {
+	public void testCollidesEntity() {
 		final CollisionMap map = new CollisionMap(4, 4);
 		map.set(1, 1);
 		Player bob = new Player();
@@ -371,9 +351,6 @@ public class CollisionMapTest {
 		bob.initialize(serverbob);
 		assertFalse(map.collides((int) bob.getX(), (int) bob.getY(), (int) bob
 				.getWidth(), (int) bob.getHeight()));
-
 	}
-	
-	
 
 }

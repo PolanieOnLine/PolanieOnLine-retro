@@ -1,19 +1,18 @@
 package games.stendhal.server.script;
 
-import games.stendhal.common.MathHelper;
-import games.stendhal.server.core.scripting.ScriptImpl;
-import games.stendhal.server.entity.player.Player;
-
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
+import games.stendhal.common.MathHelper;
+import games.stendhal.server.core.scripting.ScriptImpl;
+import games.stendhal.server.entity.player.Player;
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPSlot;
 import marauroa.server.game.db.DAORegister;
 import marauroa.server.game.db.RPObjectDAO;
-
-import org.apache.log4j.Logger;
 
 /**
  * dumps characters that might be deleted
@@ -25,7 +24,7 @@ public class DumpDeletionCandidates extends ScriptImpl {
 
 	@Override
 	public void execute(Player admin, List<String> args) {
-	    admin.sendPrivateText("Ważne: <usisz wyedytować skrypt, aby zdefiniować najwyższy numer RPObject.");
+	    admin.sendPrivateText("Ważne: <musisz wyedytować skrypt, aby zdefiniować najwyższy numer RPObject.");
 		for (int i = 1; i < 0; i++) {
 			RPObject object = null;
 			try {
@@ -44,9 +43,9 @@ public class DumpDeletionCandidates extends ScriptImpl {
 	private void dumpObject(RPObject object) {
 		StringBuilder items = new StringBuilder();
 			final String[] slotsItems = { "bag", "rhand", "lhand", "head", "neck", "armor",
-				"legs", "glove", "feet", "finger", "cloak", "fingerb", "bank", "bank_ados",
-				"zaras_chest_ados", "bank_fado", "bank_nalwor", "bank_zakopane", "bank_tsoh",
-				"spells", "keyring", "money", "trade"};
+				"pas", "legs", "glove", "feet", "finger", "cloak", "fingerb", "bank", "bank_ados", "bank_deniran",
+				"zaras_chest_ados", "bank_fado", "bank_nalwor", "bank_zakopane", "bank_krakow", /*"bank_tsoh",*/
+				"bank_gdansk", "spells", "keyring", "money", "trade"};
 
 			for (final String slotName : slotsItems) {
 				final RPSlot slot = object.getSlot(slotName);

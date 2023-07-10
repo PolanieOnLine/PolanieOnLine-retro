@@ -1,4 +1,3 @@
-/* $Id: SayTimeRemainingAction.java,v 1.11 2012/09/09 12:19:56 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +11,10 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.action;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.common.MathHelper;
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
@@ -20,10 +23,6 @@ import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.util.TimeUtil;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.apache.log4j.Logger;
 
 /**
  * Tells the time remaining between the timestamp on quest slot + delay time, and now.
@@ -38,6 +37,7 @@ public class SayTimeRemainingAction implements ChatAction {
 
 	private final String questname;
 	private final String message;
+	private String secondMessage = null;
 	private final int delay;
 	private final int index;
 
@@ -56,8 +56,8 @@ public class SayTimeRemainingAction implements ChatAction {
 	 */
 	@Dev
 	public SayTimeRemainingAction(final String questname, @Dev(defaultValue="1") final int index, final int delay, final String message) {
-		this.questname = questname;
-		this.message = message;
+		this.questname = checkNotNull(questname);
+		this.message = checkNotNull(message);
 		this.delay = delay;
 		this.index = index;
 	}
@@ -74,14 +74,50 @@ public class SayTimeRemainingAction implements ChatAction {
 	 *
 	 */
 
-	public SayTimeRemainingAction(final String questname, final int delay,
-			final String message) {
-		this.questname = questname;
-		this.message = message;
+	public SayTimeRemainingAction(final String questname, final int delay, final String message) {
+		this.questname = checkNotNull(questname);
+		this.message = checkNotNull(message);
 		this.delay = delay;
 		this.index = 0;
 	}
 
+	/**
+	 *
+	 * @param questname
+	 * 		Name of quest slot to check.
+	 * @param index
+	 * 		Index of sub-state.
+	 * @param delay
+	 * 		Delay in minutes.
+	 * @param message
+	 * 		Message to come before statement of remaining time.
+	 * @param secondMessage
+	 * 		Message to come after statement of remaining time.
+	 */
+	@Dev
+	public SayTimeRemainingAction(final String questname, @Dev(defaultValue="1") final int index, final int delay, final String message,
+			final String secondMessage) {
+		this(questname, index, delay, message);
+		this.secondMessage = secondMessage;
+	}
+
+	/**
+	 *
+	 * @param questname
+	 * 		Name of quest slot to check.
+	 * @param delay
+	 * 		Delay in minutes.
+	 * @param message
+	 * 		Message to come before statement of remaining time.
+	 * @param secondMessage
+	 * 		Message to come after statement of remaining time.
+	 */
+	public SayTimeRemainingAction(final String questname, final int delay, final String message, final String secondMessage) {
+		this(questname, delay, message);
+		this.secondMessage = secondMessage;
+	}
+
+	@Override
 	public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 		if (!player.hasQuest(questname)) {
 			return;
@@ -99,7 +135,11 @@ public class SayTimeRemainingAction implements ChatAction {
 				- System.currentTimeMillis();
 			// MathHelper.parseLong will catch the number format exception in case tokens[arg] is no number and return 0
 			// we trim the message of whitespace so that if the developer added a space at the end we don't now duplicate it
-			raiser.say(message.trim() + " " + TimeUtil.approxTimeUntil((int) (timeRemaining / 1000L)) + ".");
+			String msg = message.trim() + " " + TimeUtil.approxTimeUntil((int) (timeRemaining / 1000L)) + ".";
+			if (secondMessage != null) {
+				msg += " " + secondMessage.trim();
+			}
+			raiser.say(msg);
 		}
 	}
 
@@ -109,18 +149,24 @@ public class SayTimeRemainingAction implements ChatAction {
 				 + "\"," + delay + ">";
 	}
 
-
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 5419 * (questname.hashCode() + 5431 * (message.hashCode() + 5437 * (index + 5441 * delay)));
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				SayTimeRemainingAction.class);
+		if (!(obj instanceof SayTimeRemainingAction)) {
+			return false;
+		}
+		SayTimeRemainingAction other = (SayTimeRemainingAction) obj;
+		return (index == other.index)
+			&& (delay == other.delay)
+			&& questname.equals(other.questname)
+			&& message.equals(other.message);
 	}
 
-
-
+	public static ChatAction sayTimeRemaining(String questName, int index, int delay, String message) {
+		return new SayTimeRemainingAction(questName, index, delay, message);
+	}
 }

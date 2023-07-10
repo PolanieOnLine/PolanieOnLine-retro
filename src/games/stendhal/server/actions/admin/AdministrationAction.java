@@ -1,6 +1,5 @@
-/* $Id: AdministrationAction.java,v 1.38 2012/09/02 11:40:50 kiheru Exp $ */
 /***************************************************************************
- *                      (C) Copyright 2003 - Marauroa                      *
+ *                   (C) Copyright 2003-2016 - Marauroa                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,18 +11,17 @@
  ***************************************************************************/
 package games.stendhal.server.actions.admin;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.common.constants.Actions;
 import games.stendhal.server.actions.ActionListener;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.util.EntityHelper;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import marauroa.common.game.RPAction;
-
-import org.apache.log4j.Logger;
 
 /**
  * Most /commands for admins are handled here.
@@ -32,7 +30,7 @@ public abstract class AdministrationAction implements ActionListener {
 
 	public static final int REQUIRED_ADMIN_LEVEL_FOR_SUPPORT = 1;
 	public static final int REQUIRED_ADMIN_LEVEL_FOR_SUPER = 5000;
-	
+
 	protected static final Logger logger = Logger.getLogger(AdministrationAction.class);
 
 	private static final Map<String, Integer> REQUIRED_ADMIN_LEVELS = new HashMap<String, Integer>();
@@ -42,12 +40,15 @@ public abstract class AdministrationAction implements ActionListener {
 		AdminNoteAction.register();
 		AlterAction.register();
 		AlterCreatureAction.register();
+		AlterKillAction.register();
 		AlterQuestAction.register();
 		CIDListAction.register();
 		DestroyAction.register();
 		GagAction.register();
 		GhostModeAction.register();
 		InspectAction.register();
+		InspectKillAction.register();
+		InspectQuestAction.register();
 		InvisibleAction.register();
 		JailAction.register();
 		JailReportAction.register();
@@ -57,6 +58,7 @@ public abstract class AdministrationAction implements ActionListener {
 		SupportAnswerAction.register();
 		TeleClickModeAction.register();
 		TeleportAction.register();
+		TeleportMeAction.register();
 		TeleportToAction.register();
 		TellAllAction.register();
 		WrapAction.register();
@@ -114,6 +116,7 @@ public abstract class AdministrationAction implements ActionListener {
 		return true;
 	}
 
+	@Override
 	public final void onAction(final Player player, final RPAction action) {
 		perform(player, action);
 	}
@@ -137,7 +140,7 @@ public abstract class AdministrationAction implements ActionListener {
 
 	/**
 	 * get the Entity-object of the specified target.
-	 * 
+	 *
 	 * @param player
 	 * @param action
 	 * @return the Entity or null if it does not exist
@@ -148,7 +151,7 @@ public abstract class AdministrationAction implements ActionListener {
 		if (entity == null) {
 			entity = EntityHelper.entityFromTargetName(action.get(Actions.TARGET), player);
 		}
-		
+
 		return entity;
 	}
 }

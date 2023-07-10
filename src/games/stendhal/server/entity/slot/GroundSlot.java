@@ -1,4 +1,4 @@
-/* $Id: GroundSlot.java,v 1.13 2011/04/30 11:36:33 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,14 +12,14 @@
  ***************************************************************************/
 package games.stendhal.server.entity.slot;
 
+import java.awt.Rectangle;
+import java.util.List;
+
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.Node;
 import games.stendhal.server.core.pathfinder.Path;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.player.Player;
-
-import java.awt.Rectangle;
-import java.util.List;
 
 
 /**
@@ -85,8 +85,8 @@ public class GroundSlot extends EntitySlot {
 			setErrorMessage("Jest zbyt daleko.");
 			return false;
 		}
-		
-		if (!isGamblingZoneAndIsDice(item)) {
+
+		if (!isGamblingZoneAndIsDice(item) && !isPlayingBilliardAndIsBall(item)) {
 			// and there is a path there
 			final List<Node> path = Path.searchPath(entity, zone,
 					entity.getX(), entity.getY(), new Rectangle(x, y, 1, 1),
@@ -100,21 +100,26 @@ public class GroundSlot extends EntitySlot {
 		return true;
 	}
 
-	/** 
-	 * returns true if zone is semos tavern and entity is dice
+	/**
+	 * Check if the entity is dice thrown on the gambling table.
 	 *
 	 * @param entity the item
+	 * @return <code>true</code>if zone is semos tavern and entity is dice
 	 */
 	private boolean isGamblingZoneAndIsDice(final Entity entity) {
 		return "int_semos_tavern_0".equals(zone.getName()) && ("kości do gry").equals(entity.getTitle());
 	}
 
-
+	private boolean isPlayingBilliardAndIsBall(final Entity entity) {
+		return "int_gdansk_tavern_1".equals(zone.getName()) && ("biała bila").equals(entity.getTitle());
+	}
 
 	/**
 	 * Checks whether the item is below <b>another</b> player.
-	 * 
+	 *
+	 * @param player the player in respect to whom the check is done
 	 * @return name of other player standing on the item or <code>null</code>
+	 * 	if nobody, or the player themselves is standing on the item
 	 */
 	private String getOtherPlayerStandingOnItem(final Entity player) {
 		if (item == null) {

@@ -1,4 +1,4 @@
-/* $Id: ClientInfoAction.java,v 1.7 2010/10/02 18:16:49 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -26,14 +26,15 @@ class ClientInfoAction implements SlashAction {
 
 	/**
 	 * Execute a chat command.
-	 * 
+	 *
 	 * @param params
 	 *            The formal parameters.
 	 * @param remainder
 	 *            Line content after parameters.
-	 * 
+	 *
 	 * @return <code>true</code> if command was handled.
 	 */
+	@Override
 	public boolean execute(final String[] params, final String remainder) {
 		final RPAction tell = new RPAction();
 
@@ -44,7 +45,7 @@ class ClientInfoAction implements SlashAction {
 		}
 
 		sb.append("\n");
-		sb.append("Stendhal: " + Debug.VERSION);
+		sb.append("PolanieOnLine: " + Debug.VERSION);
 		if (Debug.PRE_RELEASE_VERSION != null) {
 			sb.append(" - ");
 			sb.append(Debug.PRE_RELEASE_VERSION);
@@ -78,18 +79,20 @@ class ClientInfoAction implements SlashAction {
 
 	/**
 	 * Get the maximum number of formal parameters.
-	 * 
+	 *
 	 * @return The parameter count.
 	 */
+	@Override
 	public int getMaximumParameters() {
 		return 0;
 	}
 
 	/**
 	 * Get the minimum number of formal parameters.
-	 * 
+	 *
 	 * @return The parameter count.
 	 */
+	@Override
 	public int getMinimumParameters() {
 		return 0;
 	}

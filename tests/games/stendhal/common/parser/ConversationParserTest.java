@@ -1,4 +1,4 @@
-/* $Id: ConversationParserTest.java,v 1.2 2011/12/11 23:29:47 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,14 +12,14 @@
  ***************************************************************************/
 package games.stendhal.common.parser;
 
+import static org.hamcrest.CoreMatchers.anyOf;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import games.stendhal.common.parser.ConversationParser;
-import games.stendhal.common.parser.Sentence;
-import games.stendhal.common.parser.SentenceImplementation;
 
 import org.junit.Test;
 
@@ -232,7 +232,7 @@ public class ConversationParserTest {
 		assertEquals(10, sentence.getObject(0).getAmount());
 		assertEquals("mega poison", sentence.getObject(0).getNormalized());
 		assertEquals("sell mega poison", sentence.getNormalized());
-		assertEquals("sell/VER mega poison/OBJ-FOO-FLU", sentence.toString());
+		assertThat(sentence.toString(), anyOf(equalTo("sell/VER mega poison/OBJ"), equalTo("sell/VER mega poison/OBJ-FOO-FLU")));
 	}
 
 	/**

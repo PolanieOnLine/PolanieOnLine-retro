@@ -1,4 +1,4 @@
-/* $Id: PlayerIsWearingOutfitCondition.java,v 1.5 2012/09/09 12:33:24 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -20,9 +20,6 @@ import games.stendhal.server.entity.Outfit;
 import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.player.Player;
 
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
-
 /**
  * Does the player wear (at least a part of) the specified outfit?
  *
@@ -39,11 +36,21 @@ public class PlayerIsWearingOutfitCondition implements ChatCondition{
 	 * @param outfit
 	 * 			an outfit to be checked if it is worn by the player
 	 */
-
 	public PlayerIsWearingOutfitCondition(Outfit outfit) {
 		this.outfitToCheck = outfit;
 	}
 
+	/**
+	 * Creates a new PlayerIsWearingOutfitCondition.
+	 *
+	 * @param outfit
+	 *     String outfit representation.
+	 */
+	public PlayerIsWearingOutfitCondition(final String outfit) {
+		this.outfitToCheck = new Outfit(outfit);
+	}
+
+	@Override
 	public boolean fire(final Player player, final Sentence sentence, final Entity npc) {
 		final Outfit players_outfit = player.getOutfit();
 		return this.outfitToCheck.isPartOf(players_outfit);
@@ -51,17 +58,23 @@ public class PlayerIsWearingOutfitCondition implements ChatCondition{
 
 	@Override
 	public String toString() {
-		return "Player is wearing " + this.outfitToCheck.getCode() + " ?";
+		final String outfitCode;
+		outfitCode = Integer.toString(this.outfitToCheck.getCode());
+
+		return "Player is wearing " + outfitCode + " ?";
 	}
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 43987 * outfitToCheck.hashCode();
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				PlayerIsWearingOutfitCondition.class);
+		if (!(obj instanceof PlayerIsWearingOutfitCondition)) {
+			return false;
+		}
+		PlayerIsWearingOutfitCondition other = (PlayerIsWearingOutfitCondition) obj;
+		return outfitToCheck.equals(other.outfitToCheck);
 	}
 }

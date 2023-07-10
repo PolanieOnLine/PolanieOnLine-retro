@@ -1,5 +1,4 @@
-/* $Id: EmptyScroll.java,v 1.22 2010/04/11 12:50:42 kiheru Exp $
- /***************************************************************************
+/***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
  ***************************************************************************
@@ -12,23 +11,20 @@
  ***************************************************************************/
 package games.stendhal.server.entity.item.scroll;
 
+import java.util.Map;
+
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.entity.item.Item;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.Map;
-
 /**
  * Represents an empty/unmarked teleport scroll.
  */
 public class EmptyScroll extends Scroll {
-
-	// private static final Logger logger = Logger.getLogger(EmptyScroll.class);
-
 	/**
 	 * Creates a new empty scroll.
-	 * 
+	 *
 	 * @param name
 	 * @param clazz
 	 * @param subclass
@@ -41,7 +37,7 @@ public class EmptyScroll extends Scroll {
 
 	/**
 	 * Copy constructor.
-	 * 
+	 *
 	 * @param item
 	 *            item to copy
 	 */
@@ -51,7 +47,7 @@ public class EmptyScroll extends Scroll {
 
 	/**
 	 * Use a [empty] scroll.
-	 * 
+	 *
 	 * @param player
 	 * @return always true
 	 */
@@ -60,10 +56,8 @@ public class EmptyScroll extends Scroll {
 		final StendhalRPZone zone = player.getZone();
 
 		if (zone.isTeleportInAllowed(player.getX(), player.getY())) {
-			final Item markedScroll = SingletonRepository.getEntityManager().getItem(
-					"zwój zapisany");
-			markedScroll.setInfoString(player.getID().getZoneID() + " "
-					+ player.getX() + " " + player.getY());
+			final Item markedScroll = SingletonRepository.getEntityManager().getItem("zwój zapisany");
+			markedScroll.setInfoString(player.getID().getZoneID() + " " + player.getX() + " " + player.getY());
 			player.equipOrPutOnGround(markedScroll);
 			return true;
 		} else {

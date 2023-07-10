@@ -1,4 +1,4 @@
-/* $Id: DailyMonsterQuestTest.java,v 1.13 2010/12/27 14:27:21 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -19,6 +19,16 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+
+import java.util.Collections;
+import java.util.LinkedList;
+
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPWorld;
 import games.stendhal.server.core.engine.StendhalRPZone;
@@ -31,18 +41,7 @@ import games.stendhal.server.entity.npc.fsm.Engine;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.MockStendlRPWorld;
 import games.stendhal.server.maps.quests.DailyMonsterQuest.DailyQuestAction;
-
-import java.util.Collections;
-import java.util.LinkedList;
-
 import marauroa.server.game.db.DatabaseFactory;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import utilities.PlayerTestHelper;
 import utilities.SpeakerNPCTestHelper;
 import utilities.RPClass.CreatureTestHelper;
@@ -59,11 +58,11 @@ public class DailyMonsterQuestTest {
 		mayor = SpeakerNPCTestHelper.createSpeakerNPC("Mayor Sakhs");
 		NPCList.get().add(mayor);
 		dmq = new DailyMonsterQuest();
-	
+
 		dmq.addToWorld();
 		en = mayor.getEngine();
-		final StendhalRPWorld world = MockStendlRPWorld.get();	
-		final StendhalRPZone zone = new StendhalRPZone("int_semos_guard_house");		
+		final StendhalRPWorld world = MockStendlRPWorld.get();
+		final StendhalRPZone zone = new StendhalRPZone("int_semos_guard_house");
 		world.addRPZone(zone);
 	}
 
@@ -92,7 +91,7 @@ public class DailyMonsterQuestTest {
 
 		en.setCurrentState(ATTENDING);
 		CreatureTestHelper.generateRPClasses();
-		SingletonRepository.getEntityManager().getCreature("rat");
+		SingletonRepository.getEntityManager().getCreature("szczur");
 		assertThat(en.getCurrentState(), is(ATTENDING));
 		assertTrue(en.step(bob, "quest"));
 		assertThat(en.getCurrentState(), is(ATTENDING));
@@ -107,7 +106,7 @@ public class DailyMonsterQuestTest {
 		final Player bob = PlayerTestHelper.createPlayer("bob");
 		en.setCurrentState(ATTENDING);
 		CreatureTestHelper.generateRPClasses();
-		SingletonRepository.getEntityManager().getCreature("rat");
+		SingletonRepository.getEntityManager().getCreature("szczur");
 		assertThat(en.getCurrentState(), is(ATTENDING));
 		assertTrue(en.step(bob, "quest"));
 		assertThat(en.getCurrentState(), is(ATTENDING));
@@ -115,7 +114,7 @@ public class DailyMonsterQuestTest {
 		assertTrue(en.step(bob, "complete"));
 		assertTrue(bob.events().isEmpty());
 	}
-	
+
 	/**
 	 * Tests for pickIdealCreature.
 	 */
@@ -126,11 +125,11 @@ public class DailyMonsterQuestTest {
 		CreatureTestHelper.generateRPClasses();
 		assertNull("empty list", dmqpick.pickIdealCreature(-1, false, new LinkedList<Creature>()));
 		final LinkedList<Creature> creatureList = new LinkedList<Creature>();
-		creatureList.add(SingletonRepository.getEntityManager().getCreature("rat"));
-		assertThat("1 rat in list", dmqpick.pickIdealCreature(-1, false, creatureList).getName(), is("rat"));
-		assertThat("1 rat in list", dmqpick.pickIdealCreature(1000, false, creatureList).getName(), is("rat"));
+		creatureList.add(SingletonRepository.getEntityManager().getCreature("szczur"));
+		assertThat("1 rat in list", dmqpick.pickIdealCreature(-1, false, creatureList).getName(), is("szczur"));
+		assertThat("1 rat in list", dmqpick.pickIdealCreature(1000, false, creatureList).getName(), is("szczur"));
 		creatureList.add(SingletonRepository.getEntityManager().getCreature("balrog"));
-		assertThat("rat and balrog in list", dmqpick.pickIdealCreature(-1, false, creatureList).getName(), is("rat"));
+		assertThat("szczur and balrog in list", dmqpick.pickIdealCreature(-1, false, creatureList).getName(), is("szczur"));
 
 	}
 
@@ -161,7 +160,7 @@ public class DailyMonsterQuestTest {
 			creatureList.add(creat);
 		}
 
-		
+
 		for (int i = 80; i < 100; i++) {
 			creat = new Creature();
 			creat.setLevel(i);
@@ -172,7 +171,5 @@ public class DailyMonsterQuestTest {
 			assertThat("1 rat in list", dmqpick.pickIdealCreature(level, false, creatureList).getLevel(),
 					lessThanOrEqualTo(level + 5));
 		}
-
 	}
-
 }

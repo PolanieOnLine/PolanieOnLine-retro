@@ -1,5 +1,10 @@
-/* $Id: DumpTransitionsEx.java,v 1.19 2011/05/01 19:50:06 martinfuchs Exp $ */
+/* $Id$ */
 package games.stendhal.server.script;
+
+import java.util.List;
+import java.util.Map;
+
+import com.google.common.html.HtmlEscapers;
 
 import games.stendhal.common.parser.Expression;
 import games.stendhal.server.core.engine.SingletonRepository;
@@ -12,18 +17,12 @@ import games.stendhal.server.entity.npc.fsm.Transition;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.events.TransitionGraphEvent;
 import games.stendhal.server.util.UniqueIdentifierMap;
-
-import java.util.List;
-import java.util.Map;
-
 import marauroa.common.game.RPEvent;
-
-import org.apache.commons.lang.StringEscapeUtils;
 
 /**
  * Dumps the transition table of an NPC for "dot" http://www.graphviz.org/ to
  * display a nice graph.
- * 
+ *
  * @author hendrik
  */
 public class DumpTransitionsEx extends ScriptImpl {
@@ -54,11 +53,12 @@ public class DumpTransitionsEx extends ScriptImpl {
 		String data = dumpedTable.toString();
 		final RPEvent event = new TransitionGraphEvent(data);
 		admin.addEvent(event);
+		admin.notifyWorldAboutChanges();
 	}
 
 	/**
 	 * Returns the transition diagram as string.
-	 * 
+	 *
 	 * @param npc
 	 *            SpeakerNPC
 	 * @return transition diagram
@@ -94,6 +94,7 @@ public class DumpTransitionsEx extends ScriptImpl {
 				final String transitionName = getExtendedTransitionName(transition, expr.toString());
 
 				dumpedTable.append(" [ label = \"" + transitionName.replace("{", "\\{").replace("}", "\\}") + "\" ];\r\n");
+				break;
 			}
 		}
 	}
@@ -160,7 +161,7 @@ public class DumpTransitionsEx extends ScriptImpl {
 	private String captionEntryToString(final Object entry) {
 		final String prefix = "games.stendhal.server.";
 		String entryName = entry.toString();
-		entryName = StringEscapeUtils.escapeHtml(entryName);
+		entryName = HtmlEscapers.htmlEscaper().escape(entryName);
 		if (entryName.startsWith(prefix)) {
 			entryName = entryName.substring(prefix.length());
 		}

@@ -1,4 +1,3 @@
-/* $Id: MarketManagerNPC.java,v 1.25 2011/06/09 12:52:06 madmetzger Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,28 +11,35 @@
  ***************************************************************************/
 package games.stendhal.server.maps.semos.tavern.market;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
 import games.stendhal.common.Direction;
 import games.stendhal.server.entity.RPEntity;
-import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.npc.condition.NotCondition;
 import games.stendhal.server.entity.npc.condition.TextHasParameterCondition;
 import games.stendhal.server.entity.trade.Offer;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+public class MarketManagerNPC extends SpeakerNPC {
 
-public final class MarketManagerNPC extends SpeakerNPC {
-	
 	private Map<String,Offer> offers = new HashMap<String, Offer>();
-	
-	MarketManagerNPC(String name) {
+
+	/**
+	 * Create MarketManager
+	 *
+	 * @param name
+	 * 			The NPC name.
+	 * @param range
+	 * 			Sets the default perception range for player chatting.
+	 */
+	public MarketManagerNPC(String name, int range) {
 		super(name);
 		// Use smaller than normal range to not interfere players trying to talk
 		// to the other NPCs in the tavern.
-		setPerceptionRange(3);
+		setPerceptionRange(range);
 	}
 
 	@Override
@@ -50,20 +56,20 @@ public final class MarketManagerNPC extends SpeakerNPC {
 
 	@Override
 	protected void createDialog() {
-		addGreeting("Witam w centrum handlu w Semos. W czym mogę #pomóc?");
+		addGreeting("Witam w centrum handlu. W czym mogę #pomóc?");
 		addJob("Jestem tutaj, aby #pomóc Tobie w sprzedaży przedmiotów.");
 		addOffer("Aby wystawić ofertę na rynku powiedz #sprzedam #przedmiot #cena - wtedy każdy będzie mógł to kupić " +
                 "nawet, gdy Ciebie nie ma. W celu uzyskania szczegółów zapytaj o #pomoc.");
 		addHelp("Czy chciałbyś uzyskać pomoc w #kupowaniu lub #sprzedaży?");
 		addReply(Arrays.asList("buying", "kupowaniu", "kupić"),"Jeżeli chcesz coś kupić to powiedz #pokaż, a wtedy pojawią się aktualne oferty z " +
-				 "liczbą ofert. Jeżeli będziesz chciał wybrać jedną z ofert to powiedz #akceptuję #numer, aby kupić " +
+				 "liczbą ofert. Jeżeli będziesz chciał wybrać jedną z ofert to powiedz #'akceptuję numer', aby kupić " +
 				 "oferowany towar z tym numerem. Ciesze się, że mogę przefiltrować listę dla ciebie. Powiedz tylko " +
-				 "na przykład #pokaż #meat, aby zobaczyć tylko oferty z mięsem.");
-		addReply(Arrays.asList("selling", "sprzedaży"),"Powiedz #sprzedam #przedmiot #cena, aby wystawić przedmiot na rynku. Jeżeli chcesz zdjąć " +
-				 "ofertę z rynku to powiedz mi #'pokaż mine', a wtedy zobaczysz swoje oferty. Powiedz #usuń " +
-				 "#numer, a wtedy usunę ten przedmiot z ofert. Jeżeli masz wygaśnięte oferty to możesz o nie zapytać " +
-				 "mówiąc #pokaż #wygaśnięte. Możesz przedłużyć ważność wygaśniętych ofert mówiąc #przedłuż #numer. Jeżeli sprzedałeś jakieś przedmioty " +
-				 "to możesz powiedzieć mi #wypłata, a wtedy wypłacę Tobie twoje zarobki.");
+				 "na przykład #'pokaż mięso', aby zobaczyć tylko oferty z mięsem.");
+		addReply(Arrays.asList("selling", "sprzedaży"),"Powiedz #'sprzedam przedmiot cena', aby wystawić przedmiot na rynku. Jeżeli chcesz zobaczyć " +
+				 "swoją ofertę na rynku to powiedz mi #'pokaż moje'. Powiedz mi #'usuń numer', a " +
+				 "wtedy usunę ten przedmiot z ofert. Jeżeli masz wygaśnięte oferty to możesz o nie zapytać " +
+				 "mówiąc #'pokaż wygaśnięte'. Możesz również przedłużyć ważność wygaśniętych ofert mówiąc #'przedłuż numer'. Jeżeli sprzedałeś jakieś przedmioty " +
+				 "to możesz powiedzieć mi #wypłata, a wtedy wypłacę twoje zarobki.");
 		new PrepareOfferHandler().add(this);
 		add(ConversationStates.ATTENDING, Arrays.asList("show", "pokaż"), new NotCondition(new TextHasParameterCondition()),
 				ConversationStates.ATTENDING, null, new ShowOfferItemsChatAction());

@@ -1,6 +1,5 @@
-/* $Id: PopupImage.java,v 1.3 2010/04/26 05:17:10 nhnb Exp $ */
 /***************************************************************************
- *                    (C) Copyright 2003-2010 - Stendhal                   *
+ *                    (C) Copyright 2003-2016 - Stendhal                   *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -22,8 +21,8 @@ import games.stendhal.server.events.ExamineEvent;
  */
 public class PopupImage extends Sign implements UseListener {
 	private String image;
-	private String title;
-	private String caption;
+	private final String title;
+	private final String caption;
 
 	/**
 	 * Creates a new PopupImage
@@ -35,12 +34,17 @@ public class PopupImage extends Sign implements UseListener {
 	public PopupImage(final String image, final String title, final String caption) {
 		put(Actions.ACTION, Actions.LOOK_CLOSELY);
 		this.image = image;
+		if (!image.startsWith("http://") && !image.startsWith("https://")) {
+			this.image = "examine/" + image;
+		}
 		this.title = title;
 		this.caption = caption;
 	}
 
+	@Override
 	public boolean onUsed(RPEntity user) {
-		user.addEvent(new ExamineEvent("examine/" + image, title, caption));
+		user.addEvent(new ExamineEvent(image, title, caption));
+		user.notifyWorldAboutChanges();
 		return true;
 	}
 

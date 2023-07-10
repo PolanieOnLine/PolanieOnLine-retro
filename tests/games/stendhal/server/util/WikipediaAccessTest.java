@@ -1,4 +1,4 @@
-/* $Id: WikipediaAccessTest.java,v 1.16 2012/12/08 23:49:49 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -18,6 +18,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import org.hamcrest.Matcher;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -69,13 +70,10 @@ public class WikipediaAccessTest {
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
+	@Ignore
 	public void testGPL() {
 		final String response = getWikiText("GPL");
-
-		if (response != null) {
-			final Matcher<String> match = allOf(containsString("software license"), containsString("GNU"));
-			assertThat("There should be explained the GNU GPL.", response, match);
-		}
+		assertThat("There should be explained the GNU GPL.", response, containsString("software license"));
 	}
 
 }

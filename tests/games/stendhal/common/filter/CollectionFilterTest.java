@@ -1,4 +1,4 @@
-/* $Id: CollectionFilterTest.java,v 1.13 2010/11/24 22:30:55 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -14,13 +14,13 @@ package games.stendhal.common.filter;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
-import games.stendhal.server.entity.player.Player;
 
 import java.util.Collection;
 import java.util.LinkedList;
 
 import org.junit.Test;
 
+import games.stendhal.server.entity.player.Player;
 import utilities.PlayerTestHelper;
 
 public class CollectionFilterTest {
@@ -64,6 +64,7 @@ public class CollectionFilterTest {
 
 	private static class Adminfilter implements FilterCriteria<Player> {
 
+		@Override
 		public boolean passes(final Player o) {
 			return o.getAdminLevel() == 0;
 		}
@@ -72,6 +73,7 @@ public class CollectionFilterTest {
 
 	private static class NoAdminfilter implements FilterCriteria<Player> {
 
+		@Override
 		public boolean passes(final Player o) {
 			return o.getAdminLevel() > 0;
 		}

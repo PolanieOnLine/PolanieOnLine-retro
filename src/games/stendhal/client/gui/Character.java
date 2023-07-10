@@ -1,4 +1,3 @@
-/* $Id: Character.java,v 1.6 2012/05/28 14:34:44 kiheru Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,182 +11,287 @@
  ***************************************************************************/
 package games.stendhal.client.gui;
 
-import games.stendhal.client.GameObjects;
-import games.stendhal.client.entity.ContentChangeListener;
-import games.stendhal.client.entity.IEntity;
-import games.stendhal.client.entity.User;
-import games.stendhal.client.entity.factory.EntityMap;
-import games.stendhal.client.gui.layout.SBoxLayout;
-import games.stendhal.client.sprite.SpriteStore;
-
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 
+import org.apache.log4j.Logger;
+
+import games.stendhal.client.GameObjects;
+import games.stendhal.client.entity.ContentChangeListener;
+import games.stendhal.client.entity.IEntity;
+import games.stendhal.client.entity.Inspector;
+import games.stendhal.client.entity.User;
+import games.stendhal.client.entity.factory.EntityMap;
+import games.stendhal.client.gui.imageviewer.ImageViewWindow;
+import games.stendhal.client.gui.imageviewer.ViewPanel;
+import games.stendhal.client.gui.layout.SBoxLayout;
+import games.stendhal.client.listener.FeatureChangeListener;
+import games.stendhal.client.sprite.SpriteStore;
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPObject.ID;
 import marauroa.common.game.RPSlot;
 
-import org.apache.log4j.Logger;
-
 /**
  * Window for showing the equipment the player is wearing.
  */
-public class Character extends InternalManagedWindow implements ContentChangeListener {
+class Character extends InternalManagedWindow implements ContentChangeListener,
+Inspectable {
 	/**
-	 * serial version uid
+	 * serial version uid.
 	 */
 	private static final long serialVersionUID = -5585214190674481472L;
 
-	/** Padding between the ItemPanels */
+	/** Padding between the ItemPanels. */
 	private static final int PADDING = 1;
-	/** The pixel amount the hand slots should be below the armor slot */
-	private static final int HAND_YSHIFT = 10;
+	/** The pixel amount the hand slots should be below the armor slot. */
+	private static final int HAND_YSHIFT = 2; // before: 10
 	private static final Logger logger = Logger.getLogger(Character.class);
-	
-	/** ItemPanels searchable by the respective slot name */
+
+	/** ItemPanels searchable by the respective slot name. */
 	private final Map<String, ItemPanel> slotPanels = new HashMap<String, ItemPanel>();
 	private User player;
+
+	private JComponent specialSlots;
+
+	private static final List<FeatureChangeListener> featureChangeListeners = new ArrayList<>();
+
+	private static FeatureEnabledItemPanel pouch;
 
 	/**
 	 * Create a new character window.
 	 */
 	public Character() {
-		super("character", "Postać");
-		createLayout();
-		// Don't allow the user close this. There's no way to get it back. 
+		super("character", "Character");
+		createLayout(true);
+		// Don't allow the user close this. There's no way to get it back.
 		setCloseable(false);
 	}
 
 	/**
 	 * Sets the player entity. It is safe to call this method outside the event
 	 * dispatch thread.
-	 * 
-	 * @param userEntity
+	 *
+	 * @param userEntity new user
 	 */
 	public void setPlayer(final User userEntity) {
 		player = userEntity;
 		userEntity.addContentChangeListener(this);
+
+		final RPObject obj = userEntity.getRPObject();
+
+		// Compatibility. Show additional slots only if the user has those.
+		// This can be removed after a couple of releases (and specialSlots
+		// field moved to createLayout()).
+		if (obj.hasSlot("belt")) {
+			SwingUtilities.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					specialSlots.setVisible(true);
+				}
+			});
+		}
+
 		refreshContents();
 	}
 
-	/**
-	 * Create the content layout and add the ItemPanels.
-	 */
-	private void createLayout() {
-		// Layout containers
-		JComponent row = SBoxLayout.createContainer(SBoxLayout.HORIZONTAL, PADDING);
-		JComponent left = SBoxLayout.createContainer(SBoxLayout.VERTICAL, PADDING);
-		JComponent middle = SBoxLayout.createContainer(SBoxLayout.VERTICAL, PADDING);
-		JComponent right = SBoxLayout.createContainer(SBoxLayout.VERTICAL, PADDING);
-		left.setAlignmentY(CENTER_ALIGNMENT);
-		right.setAlignmentY(CENTER_ALIGNMENT);
-		row.add(left);
-		row.add(middle);
-		row.add(right);
+	private ImageViewWindow showPopup() {
+		final ViewPanel panel = new ViewPanel() {
+			private static final int PAD = 5;
 
-		Class itemClass = EntityMap.getClass("item", null, null);
+			@Override
+			public void prepareView(Dimension maxSize) {
+				JComponent content = SBoxLayout.createContainer(SBoxLayout.VERTICAL, PADDING);
+				JComponent row = SBoxLayout.createContainer(SBoxLayout.HORIZONTAL, PADDING);
+				JComponent left = SBoxLayout.createContainer(SBoxLayout.VERTICAL, PADDING);
+				JComponent middle = SBoxLayout.createContainer(SBoxLayout.VERTICAL, PADDING);
+				JComponent right = SBoxLayout.createContainer(SBoxLayout.VERTICAL, PADDING);
 
+				left.setAlignmentY(CENTER_ALIGNMENT);
+				right.setAlignmentY(CENTER_ALIGNMENT);
+				row.add(left);
+				row.add(middle);
+				row.add(right);
+				content.add(row);
+
+				Class<? extends IEntity> itemClass = EntityMap.getClass("item", null, null);
+				SpriteStore store = SpriteStore.get();
+
+				left.add(Box.createVerticalStrut(HAND_YSHIFT * 2));
+				ItemPanel panel = createItemPanel(itemClass, store, "neck", "data/gui/slot-neck.png");
+				left.add(panel);
+
+				JButton swapButton = new JButton("Zamień");
+				swapButton.addActionListener(e -> {
+				    // Tutaj umieść logikę zamiany przedmiotów między głównymi miejscami a dodatkowymi miejscami
+
+				    // Na przykład, możesz przenosić panele przedmiotów między odpowiednimi kontenerami
+				    // np. left.add(additionalItemPanels.get(0)) itd.
+				});
+				add(swapButton);
+
+				setContent(content);
+				//setVisible(true);
+			}
+		};
+		return new ImageViewWindow("Styl", panel);
+	}
+
+	private JButton createArrow() {
+		JButton arrowButton = new JButton("<");
+		arrowButton.setPreferredSize(new Dimension(12, 100));
+		arrowButton.setMinimumSize(new Dimension(12, 100));
+		arrowButton.setMaximumSize(new Dimension(12, 100));
+		arrowButton.addActionListener(e -> showPopup());
+
+		return arrowButton;
+	}
+	
+	private void createEquipmentPanels(JComponent left, JComponent middle, JComponent right,
+			Class<? extends IEntity> itemClass, SpriteStore store) {
 		/*
 		 * Fill the left column
 		 *
 		 * Add filler to shift the hand slots down. Shift * 2 because centering
 		 * the column uses the other half at the bottom.
 		 */
-		left.add(Box.createVerticalStrut(HAND_YSHIFT * 2)); 
-		SpriteStore store = SpriteStore.get();
-		ItemPanel panel = new ItemPanel("neck", store.getSprite("data/gui/neck-slot.png"));
-		slotPanels.put("neck", panel);
-		panel.setAcceptedTypes(itemClass);
+		left.add(Box.createVerticalStrut(HAND_YSHIFT * 2));
+		ItemPanel panel = createItemPanel(itemClass, store, "neck", "data/gui/slot-neck.png");
+		left.add(panel);
+		panel = createItemPanel(itemClass, store, "rhand", "data/gui/slot-weapon.png");
+		left.add(panel);
+		panel = createItemPanel(itemClass, store, "finger", "data/gui/slot-ring.png");
+		left.add(panel);
+		panel = createItemPanel(itemClass, store, "fingerb", "data/gui/slot-ringb.png");
 		left.add(panel);
 
-		panel = new ItemPanel("rhand", store.getSprite("data/gui/weapon-slot.png"));
-		slotPanels.put("rhand", panel);
-		panel.setAcceptedTypes(itemClass);
-		left.add(panel);
-		
-		panel = new ItemPanel("finger", store.getSprite("data/gui/ring-slot.png"));
-		slotPanels.put("finger", panel);
-		panel.setAcceptedTypes(itemClass);
-		left.add(panel);
-
-		panel = new ItemPanel("fingerb", store.getSprite("data/gui/ringb-slot.png"));
-		slotPanels.put("fingerb", panel);
-		panel.setAcceptedTypes(itemClass);
-		left.add(panel);
-		
 		// Fill the middle column
-		panel = new ItemPanel("head", store.getSprite("data/gui/helmet-slot.png"));
-		slotPanels.put("head", panel);
-		panel.setAcceptedTypes(itemClass);
+		panel = createItemPanel(itemClass, store, "head", "data/gui/slot-helmet.png");
 		middle.add(panel);
-		
-		panel = new ItemPanel("armor", store.getSprite("data/gui/armor-slot.png"));
-		slotPanels.put("armor", panel);
-		panel.setAcceptedTypes(itemClass);
+		panel = createItemPanel(itemClass, store, "armor", "data/gui/slot-armor.png");
 		middle.add(panel);
-		
-		panel = new ItemPanel("legs", store.getSprite("data/gui/legs-slot.png"));
-		slotPanels.put("legs", panel);
-		panel.setAcceptedTypes(itemClass);
+		panel = createItemPanel(itemClass, store, "pas", "data/gui/slot-belt.png");
 		middle.add(panel);
-		
-		panel = new ItemPanel("feet", store.getSprite("data/gui/boots-slot.png"));
-		slotPanels.put("feet", panel);
-		panel.setAcceptedTypes(itemClass);
+		panel = createItemPanel(itemClass, store, "legs", "data/gui/slot-legs.png");
 		middle.add(panel);
-	
+		panel = createItemPanel(itemClass, store, "feet", "data/gui/slot-boots.png");
+		middle.add(panel);
+
 		/*
 		 *  Fill the right column
 		 *
 		 * Add filler to shift the hand slots down. Shift * 2 because centering
 		 * the column uses the other half at the bottom.
 		 */
-		right.add(Box.createVerticalStrut(HAND_YSHIFT * 2)); 
-		panel = new ItemPanel("cloak", store.getSprite("data/gui/cloak-slot.png"));
-		slotPanels.put("cloak", panel);
-		panel.setAcceptedTypes(itemClass);
+		right.add(Box.createVerticalStrut(HAND_YSHIFT * 2));
+		panel = createItemPanel(itemClass, store, "cloak", "data/gui/slot-cloak.png");
 		right.add(panel);
-
-		panel = new ItemPanel("lhand", store.getSprite("data/gui/shield-slot.png"));
-		slotPanels.put("lhand", panel);
-		panel.setAcceptedTypes(itemClass);
+		panel = createItemPanel(itemClass, store, "lhand", "data/gui/slot-shield.png");
 		right.add(panel);
-	
-		panel = new ItemPanel("glove", store.getSprite("data/gui/gloves-slot.png"));
-		slotPanels.put("glove", panel);
-		panel.setAcceptedTypes(itemClass);
+		panel = createItemPanel(itemClass, store, "glove", "data/gui/slot-gloves.png");
 		right.add(panel);
-
-		panel = new ItemPanel("money", store.getSprite("data/gui/money-slot.png"));
-		slotPanels.put("money", panel);
-		panel.setAcceptedTypes(itemClass);
-		right.add(panel);
-		
-		setContent(row);
 	}
-	
+
+	private void createItemPanels(JComponent left, JComponent middle, JComponent right, JComponent content, boolean createSpecials) {
+		Class<? extends IEntity> itemClass = EntityMap.getClass("item", null, null);
+		SpriteStore store = SpriteStore.get();
+
+		createEquipmentPanels(left, middle, right, itemClass, store);
+
+		if (createSpecials) {
+			pouch = new FeatureEnabledItemPanel("pouch", SpriteStore.get().getSprite("data/gui/slot-pouch.png"));
+			slotPanels.put("pouch", pouch);
+			pouch.setAcceptedTypes(itemClass);
+			right.add(pouch);
+			featureChangeListeners.add(pouch);
+
+			// Bag, keyring, etc
+			specialSlots = SBoxLayout.createContainer(SBoxLayout.HORIZONTAL, PADDING);
+			specialSlots.setAlignmentX(CENTER_ALIGNMENT);
+			// Compatibility. See the note at setPlayer().
+			specialSlots.setVisible(false);
+			content.add(specialSlots);
+
+			ItemPanel panel = createItemPanel(itemClass, store, "belt", "data/gui/slot-key.png");
+			specialSlots.add(panel);
+		}
+	}
+
+	/**
+	 * Create the content layout and add the ItemPanels.
+	 */
+	private void createLayout(boolean specialSlots) {
+		// Layout containers
+		JComponent content = SBoxLayout.createContainer(SBoxLayout.VERTICAL, PADDING);
+		JComponent row = SBoxLayout.createContainer(SBoxLayout.HORIZONTAL, PADDING);
+		JComponent arrow = SBoxLayout.createContainer(SBoxLayout.VERTICAL, PADDING);
+		JComponent left = SBoxLayout.createContainer(SBoxLayout.VERTICAL, PADDING);
+		JComponent middle = SBoxLayout.createContainer(SBoxLayout.VERTICAL, PADDING);
+		JComponent right = SBoxLayout.createContainer(SBoxLayout.VERTICAL, PADDING);
+
+		arrow.add(createArrow());
+		arrow.setAlignmentY(CENTER_ALIGNMENT);
+
+		left.setAlignmentY(CENTER_ALIGNMENT);
+		right.setAlignmentY(CENTER_ALIGNMENT);
+		row.add(arrow);
+		row.add(left);
+		row.add(middle);
+		row.add(right);
+		content.add(row);
+
+		createItemPanels(left, middle, right, content, specialSlots);
+
+		setContent(content);
+	}
+
+	/**
+	 * Create an item panel to be placed to the character window.
+	 *
+	 * @param itemClass acceptable drops to the slot
+	 * @param store sprite store
+	 * @param id slot identifier
+	 * @param image empty slot image
+	 *
+	 * @return item panel
+	 */
+	private ItemPanel createItemPanel(Class<? extends IEntity> itemClass, SpriteStore store, String id, String image) {
+		ItemPanel panel = new ItemPanel(id, store.getSprite(image));
+		slotPanels.put(id, panel);
+		panel.setAcceptedTypes(itemClass);
+
+		return panel;
+	}
+
 	/**
 	 * Updates the player slot panels.
 	 */
 	private void refreshContents() {
-		// traverse all displayed slots
 		for (final Entry<String, ItemPanel> entry : slotPanels.entrySet()) {
-			final RPSlot slot = player.getSlot(entry.getKey());
-
-			if (slot == null) {
-				continue;
-			}
-
 			final ItemPanel entitySlot = entry.getValue();
 
 			if (entitySlot != null) {
+				// Set the parent entity for all slots, even if they are not
+				// visible. They may become visible without zone changes
 				entitySlot.setParent(player);
+
+				final RPSlot slot = player.getSlot(entry.getKey());
+				if (slot == null) {
+					continue;
+				}
 
 				final Iterator<RPObject> iter = slot.iterator();
 
@@ -207,19 +311,32 @@ public class Character extends InternalManagedWindow implements ContentChangeLis
 		 * Refresh gets called from outside the EDT.
 		 */
 		SwingUtilities.invokeLater(new Runnable() {
+			@Override
 			public void run() {
 				setTitle(player.getName());
 			}
 		});
 	}
 
+	@Override
 	public void contentAdded(RPSlot added) {
 		ItemPanel panel = slotPanels.get(added.getName());
 		if (panel == null) {
 			// Not a slot we are interested in
 			return;
 		}
-		
+
+		String slotName = added.getName();
+		if (("belt".equals(slotName) || "back".equals(slotName)) && !player.getRPObject().hasSlot(slotName)) {
+			// One of the new slots was added to the player. Set them visible.
+			SwingUtilities.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					specialSlots.setVisible(true);
+				}
+			});
+		}
+
 		for (RPObject obj : added) {
 			ID id = obj.getID();
 			IEntity entity = panel.getEntity();
@@ -234,10 +351,12 @@ public class Character extends InternalManagedWindow implements ContentChangeLis
 						new Throwable("here"));
 				return;
 			}
+
 			panel.setEntity(entity);
 		}
 	}
 
+	@Override
 	public void contentRemoved(RPSlot removed) {
 		ItemPanel panel = slotPanels.get(removed.getName());
 		if (panel == null) {
@@ -259,5 +378,22 @@ public class Character extends InternalManagedWindow implements ContentChangeLis
 						+ panel.getEntity(), new Throwable());
 			}
 		}
+	}
+
+	@Override
+	public void setInspector(Inspector inspector) {
+		for (ItemPanel panel : slotPanels.values()) {
+			panel.setInspector(inspector);
+		}
+	}
+
+	/**
+	 * Retrieves all the listeners for this panel.
+	 *
+	 * @return
+	 * 		<code>List<FeatureChangeListener></code>
+	 */
+	public List<FeatureChangeListener> getFeatureChangeListeners() {
+		return featureChangeListeners;
 	}
 }

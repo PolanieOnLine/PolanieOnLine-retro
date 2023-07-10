@@ -1,4 +1,4 @@
-/* $Id: WoodSource.java,v 1.3 2011/04/20 15:32:45 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -52,7 +52,7 @@ public class WoodSource extends PlayerActivityEntity {
 		this.itemName = itemName;
 		put("class", "source");
 		put("name", "wood_source");
-		setMenu("Wytnij");
+		setMenu("Wytnij|Użyj");
 		setDescription("To drzewo przeznaczone jest do wycięcia.");
 		setResistance(100);
 	}
@@ -106,7 +106,7 @@ public class WoodSource extends PlayerActivityEntity {
 	 * @return The time to perform the activity (in seconds).
 	 */
 	@Override
-	protected int getDuration() {
+	protected int getDuration(Player player) {
 		return 5 + Rand.rand(4);
 	}
 
@@ -152,7 +152,6 @@ public class WoodSource extends PlayerActivityEntity {
 
 			player.equipOrPutOnGround(item);
 			player.incHarvestedForItem(itemName, 1);
-		    SingletonRepository.getAchievementNotifier().onObtain(player);
 			player.sendPrivateText("Zdobyłeś drewno.");
 		} else {
 			player.sendPrivateText("Nie zdobyłeś drewna.");

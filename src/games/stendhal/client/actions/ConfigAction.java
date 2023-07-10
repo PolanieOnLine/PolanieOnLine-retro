@@ -1,4 +1,4 @@
-/* $Id: ConfigAction.java,v 1.1 2010/12/29 16:26:56 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -21,18 +21,19 @@ import games.stendhal.client.gui.wt.core.WtWindowManager;
  *
  * @author hendrik
  */
-public class ConfigAction implements SlashAction {
+class ConfigAction implements SlashAction {
 
 	/**
 	 * Execute a chat command.
-	 * 
+	 *
 	 * @param params
 	 *            The formal parameters.
 	 * @param remainder
 	 *            Line content after parameters.
-	 * 
+	 *
 	 * @return <code>true</code> if was handled.
 	 */
+	@Override
 	public boolean execute(String[] params, String remainder) {
 		String oldValue = WtWindowManager.getInstance().getProperty(params[0], "{undefined}");
 		if ((remainder == null) || remainder.equals("")) {
@@ -49,18 +50,20 @@ public class ConfigAction implements SlashAction {
 
 	/**
 	 * Get the maximum number of formal parameters.
-	 * 
+	 *
 	 * @return The parameter count.
 	 */
+	@Override
 	public int getMaximumParameters() {
 		return 1;
 	}
 
 	/**
 	 * Get the minimum number of formal parameters.
-	 * 
+	 *
 	 * @return The parameter count.
 	 */
+	@Override
 	public int getMinimumParameters() {
 		return 1;
 	}

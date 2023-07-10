@@ -1,4 +1,3 @@
-/* $Id: PlayerTransformer.java,v 1.24 2012/07/16 20:24:39 kiheru Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -14,6 +13,13 @@ package games.stendhal.server.core.engine.transformer;
 
 import static games.stendhal.common.constants.Actions.AWAY;
 import static games.stendhal.common.constants.Actions.GRUMPY;
+
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.common.Debug;
 import games.stendhal.common.FeatureList;
 import games.stendhal.common.Version;
@@ -23,44 +29,47 @@ import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.events.TutorialNotifier;
 import games.stendhal.server.core.rp.StendhalQuestSystem;
 import games.stendhal.server.core.rp.StendhalRPAction;
+import games.stendhal.server.entity.Outfit;
 import games.stendhal.server.entity.creature.DomesticAnimal;
+import games.stendhal.server.entity.creature.Goat;
 import games.stendhal.server.entity.creature.Pet;
 import games.stendhal.server.entity.creature.Sheep;
 import games.stendhal.server.entity.item.Item;
+import games.stendhal.server.entity.item.SlotActivatedItem;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.entity.player.UpdateConverter;
 import games.stendhal.server.entity.slot.BankSlot;
 import games.stendhal.server.entity.slot.Banks;
+import games.stendhal.server.entity.slot.PlayerBagSlot;
 import games.stendhal.server.entity.slot.PlayerKeyringSlot;
+import games.stendhal.server.entity.slot.PlayerMagicBagSlot;
+import games.stendhal.server.entity.slot.PlayerMoneyPouchSlot;
 import games.stendhal.server.entity.slot.PlayerSlot;
 import games.stendhal.server.entity.slot.PlayerTradeSlot;
 import games.stendhal.server.entity.spell.Spell;
-
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPSlot;
 
-import org.apache.log4j.Logger;
-
 public class PlayerTransformer implements Transformer {
 
+	@Override
 	public RPObject transform(final RPObject object) {
 		return create(object);
 	}
 
-	/** these items should be unbound.*/
+	/** these items should be unbound. */
 	private static final List<String> ITEMS_TO_UNBIND = Arrays.asList("zwój zapisany");
 
-	/** these items should be deleted for non admins */
-	private static final List<String> ITEMS_FOR_ADMINS = Arrays.asList("rod of the gm", "klucz GM");
+	/** these items should be deleted for non admins. */
+	private static final List<String> ITEMS_FOR_ADMINS = Arrays.asList("rózga GM", "klucz GM");
+
+	/** these items should be changed improve value if the current value is higher than "max_improves" attr. */
+	private static final List<String> ITEMS_TO_CHANGE_IMPROVE = Arrays.asList(/* Item list to change current improve value. Like: "skórzana zbroja", "czarne spodnie" */);
 
 	public Player create(final RPObject object) {
-		
+
 		removeVolatile(object);
-		
+
 		// add attributes and slots
 		UpdateConverter.updatePlayerRPObject(object);
 
@@ -71,7 +80,7 @@ public class PlayerTransformer implements Transformer {
 		loadItemsIntoSlots(player);
 		loadSpellsIntoSlots(player);
 		player.cancelTradeInternally(null);
-		
+
 		// buddy handling with maps
 		if(player.hasBuddies()) {
 			for(String buddyName : player.getBuddies()) {
@@ -90,6 +99,19 @@ public class PlayerTransformer implements Transformer {
 		StendhalQuestSystem.updatePlayerQuests(player);
 
 		UpdateConverter.updateQuests(player);
+		// Should be at least after converting the features list, as this
+		// depends on checking the keyring feature.
+
+		if (System.getProperty("stendhal.container") != null) {
+			UpdateConverter.updateKeyring(player);
+		}
+
+		UpdateConverter.updateMoneyPouch(player);
+
+		// update player with 'outfit_ext' attribute
+		if (!player.has("outfit_ext")) {
+			player.put("outfit_ext", new Outfit(player.get("outfit")).toString());
+		}
 
 		logger.debug("Finally player is :" + player);
 		return player;
@@ -110,7 +132,7 @@ public class PlayerTransformer implements Transformer {
 			player.remove(GRUMPY);
 		}
 	}
-	
+
 	public void convertOldfeaturesList(final Player player) {
 		if (player.has("features")) {
 			logger.info("Converting features for " + player.getName() + ": "
@@ -126,29 +148,45 @@ public class PlayerTransformer implements Transformer {
 			player.remove("features");
 		}
 	}
+
 	/**
 	 * Loads the items into the slots of the player on login.
-	 * 
+	 *
 	 * @param player
 	 *            Player
 	 */
 	void loadItemsIntoSlots(final Player player) {
-
 		// load items
 		final String[] slotsItems = { "bag", "rhand", "lhand", "neck", "head", "armor",
-				"legs", "feet", "finger", "fingerb", "glove", "cloak", "keyring", "money", "trade" };
+				"legs", "feet", "finger", "fingerb", "glove", "cloak", "back", "pas", "belt",
+				"keyring", "magicbag", /*"portfolio",*/ "trade", "pouch", "money" };
 
 		try {
 			for (final String slotName : slotsItems) {
+				if (!player.hasSlot(slotName)) {
+					continue;
+				}
 				final RPSlot slot = player.getSlot(slotName);
 				final PlayerSlot newSlot;
-				if (slotName.equals("keyring")) {
+
+				if (slotName.equals("bag")) {
+					newSlot = new PlayerBagSlot(slotName);
+				} else if (slotName.equals("keyring")) {
 					newSlot = new PlayerKeyringSlot(slotName);
+				} else if (slotName.equals("magicbag")) {
+					newSlot = new PlayerMagicBagSlot(slotName);
+				/*
+				} else if (slotName.equals("portfolio")) {
+					newSlot = new PlayerPortfolioSlot(slotName);
+				*/
 				} else if (slotName.equals("trade")) {
 					newSlot = new PlayerTradeSlot(slotName);
+				} else if (slotName.equals("pouch")) {
+					newSlot = new PlayerMoneyPouchSlot(slotName);
 				} else {
 					newSlot = new PlayerSlot(slotName);
 				}
+
 				loadSlotContent(player, slot, newSlot);
 			}
 
@@ -161,10 +199,10 @@ public class PlayerTransformer implements Transformer {
 			logger.error("cannot create player", e);
 		}
 	}
-	
+
 	/**
 	 * Transforms the RPObjects in the spells slots to the real spell objects
-	 * 
+	 *
 	 * @param player
 	 */
 	private void loadSpellsIntoSlots(Player player) {
@@ -192,13 +230,13 @@ public class PlayerTransformer implements Transformer {
 			}
 		}
 	}
-	
+
 	private static Logger logger = Logger.getLogger(PlayerTransformer.class);
-	
+
 	/**
 	 * Places the player (and his/her sheep if there is one) into the world on
 	 * login.
-	 * 
+	 *
 	 * @param object
 	 *            RPObject representing the player
 	 * @param player
@@ -258,8 +296,6 @@ public class PlayerTransformer implements Transformer {
 
 			zone.placeObjectAtEntryPoint(player);
 		}
-
-
 	}
 
 	public static void placeSheepAndPetIntoWorld(final Player player) {
@@ -284,6 +320,24 @@ public class PlayerTransformer implements Transformer {
 			sheep.notifyWorldAboutChanges();
 		}
 
+		// load goat
+		final Goat goat = player.getPetOwner().retrieveGoat();
+
+		if (goat != null) {
+			logger.debug("Player has a goat");
+			if (!goat.has("base_hp")) {
+				goat.initHP(10);
+			}
+			if (placeAnimalIntoWorld(goat, player)) {
+				player.setGoat(goat);
+			} else {
+				logger.warn("Could not place goat: " + goat);
+				player.sendPrivateText("You can not seem to locate your "
+						+ goat.getTitle() + ".");
+			}
+			goat.notifyWorldAboutChanges();
+		}
+
 		// load pet
 		final Pet pet = player.getPetOwner().retrievePet();
 
@@ -305,10 +359,10 @@ public class PlayerTransformer implements Transformer {
 			pet.notifyWorldAboutChanges();
 		}
 	}
-	
+
 	/**
 	 * Loads the items into the slots of the player on login.
-	 * 
+	 *
 	 * @param player
 	 *            Player
 	 * @param slot
@@ -330,35 +384,45 @@ public class PlayerTransformer implements Transformer {
 		for (final RPObject rpobject : objects) {
 			try {
 				// remove admin items the player does not deserve
-				if (ITEMS_FOR_ADMINS.contains(rpobject.get("name")) 
-						&& (!player.has("adminlevel") || player.getInt("adminlevel") < 20)) {
+				if (ITEMS_FOR_ADMINS.contains(rpobject.get("name"))
+						&& (!player.has("adminlevel") || player.getInt("adminlevel") < 14)) {
 					logger.warn("removed admin item " + rpobject.get("name") + " from player " + player.getName());
 					new ItemLogger().destroyOnLogin(player, slot, rpobject);
 
-						continue;
-					}
+					continue;
+				}
 
 				Item item = transformer.transform(rpobject);
-				
+
 				// log removed items
 				if (item == null) {
 					int quantity = 1;
 					if (rpobject.has("quantity")) {
 						quantity = rpobject.getInt("quantity");
 					}
-					
+
 					logger.warn("Cannot restore " + quantity + " " + rpobject.get("name")
 							+ " on login of " + player.getName()
 							+ " because this item"
 							+ " was removed from items.xml");
 					new ItemLogger().destroyOnLogin(player, slot, rpobject);
 
-							continue;
-						}
+					continue;
+				}
 
+				changeImproveValue(item);
 				boundOldItemsToPlayer(player, item);
-				
+
 				newSlot.add(item);
+
+				/* Check if item has attributes that can be activated by a slot.
+				 *
+				 * XXX: Perhaps onEquipped() should be run for all items when
+				 *      player is created.
+				 */
+				if (item instanceof SlotActivatedItem) {
+					item.onEquipped(player, newSlot.getName());
+				}
 			} catch (final Exception e) {
 				logger.error("Error adding " + rpobject + " to player slot" + slot,
 						e);
@@ -367,7 +431,7 @@ public class PlayerTransformer implements Transformer {
 	}
 	/**
 	 * binds special items to the player.
-	 * 
+	 *
 	 * @param player
 	 *            Player
 	 * @param item
@@ -382,8 +446,15 @@ public class PlayerTransformer implements Transformer {
 		item.autobind(player.getName());
 	}
 
+	private void changeImproveValue(final Item item) {
+		if (ITEMS_TO_CHANGE_IMPROVE.contains(item.getName())) {
+			if (item.getImprove() > item.getMaxImproves()) {
+				item.setImprove(item.getMaxImproves());
+				return;
+			}
+		}
+	}
 
-	
 	public static final String DEFAULT_ENTRY_ZONE = "int_zakopane_home";
 	public static final String RESET_ENTRY_ZONE = "int_zakopane_home";
 
@@ -404,12 +475,12 @@ public class PlayerTransformer implements Transformer {
 	/**
 	 * Places a domestic animal in the world. If it matches it's owner's zone,
 	 * then try to keep it's position.
-	 * 
+	 *
 	 * @param animal
 	 *            The domestic animal.
 	 * @param player
 	 *            The owner.
-	 * 
+	 *
 	 * @return <code>true</code> if placed.
 	 */
 	protected static boolean placeAnimalIntoWorld(final DomesticAnimal animal,
@@ -437,5 +508,4 @@ public class PlayerTransformer implements Transformer {
 		return StendhalRPAction.placeat(playerZone, animal, player.getX(),
 				player.getY());
 	}
-
 }

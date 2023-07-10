@@ -1,4 +1,4 @@
-/* $Id: GhostNPCBase.java,v 1.17 2011/05/01 19:50:07 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,19 +12,19 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc;
 
-import games.stendhal.common.parser.Sentence;
-import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
-import games.stendhal.server.entity.player.Player;
-import games.stendhal.server.maps.quests.FindGhosts;
-
 import java.util.Arrays;
 import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import games.stendhal.common.parser.Sentence;
+import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
+import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.maps.quests.FindGhosts;
+
 /**
  * Base class for ghost NPCs.
- * 
+ *
  * @author Martin Fuchs
  */
 //TODO: replace this base class with the normal way quests actions are written, join RatKidsNPCBase and GhostNPCBase, split XXXGreetingAction to use ChatConditions
@@ -49,27 +49,28 @@ public abstract class GhostNPCBase extends SpeakerNPC {
 
 	/**
 	 * ChatAction common to all ghost NPCs.
-	 * 
+	 *
 	 * @author Martin Fuchs
 	 */
 	private static class GhostGreetingAction implements ChatAction {
+		@Override
 		public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 			if (!player.hasQuest(QUEST_SLOT) || player.isQuestInState(QUEST_SLOT, "rejected")) {
 				player.setQuest(QUEST_SLOT, "looking:said");
 			}
 			final String npcQuestText = player.getQuest(QUEST_SLOT);
 			final String[] npcDoneText = npcQuestText.split(":");
-			// although all names our stored as lower case from now on, 
+			// although all names our stored as lower case from now on,
 			// older versions did not,
 			// so we have to be compatible with them
 			final String lookStr;
 			final String saidStr;
 			if (npcDoneText.length > 1) {
 				lookStr = npcDoneText[0].toLowerCase();
-				saidStr = npcDoneText[1].toLowerCase();			 
+				saidStr = npcDoneText[1].toLowerCase();
 
 				final List<String> list = Arrays.asList(lookStr.split(";"));
-				String npcName = npc.getName().toLowerCase();			
+				String npcName = npc.getName().toLowerCase();
 				if (list.contains(npcName) || player.isQuestCompleted(QUEST_SLOT)) {
 					npc.say("Proszę. Pozwól zmarłym spoczywać w spokoju.");
 				} else {

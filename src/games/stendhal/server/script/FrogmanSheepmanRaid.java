@@ -1,6 +1,5 @@
-/* $Id: FrogmanSheepmanRaid.java,v 1.2 2010/09/19 02:36:26 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -17,7 +16,7 @@ import java.util.Map;
 
 /**
  * @author kymara
- * 
+ *
  * Not safe for players below level 30
  */
 public class FrogmanSheepmanRaid extends CreateRaid {
@@ -34,7 +33,7 @@ public class FrogmanSheepmanRaid extends CreateRaid {
 		attackArmy.put("turoń elitarny", 1);
 		return attackArmy;
 	}
-	
+
 	@Override
 	protected String getInfo() {
 		return "Nie jest bezpieczny dla wojowników poniżej 30 poziomu";

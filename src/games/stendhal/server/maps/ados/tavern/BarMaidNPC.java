@@ -1,6 +1,5 @@
-/* $Id: BarMaidNPC.java,v 1.24 2011/11/17 18:26:38 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,18 +11,15 @@
  ***************************************************************************/
 package games.stendhal.server.maps.ados.tavern;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.behaviour.adder.SellerAdder;
-import games.stendhal.server.entity.npc.behaviour.impl.SellerBehaviour;
-
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Ados Tavern (Inside / Level 0).
@@ -31,20 +27,19 @@ import java.util.Map;
  * @author hendrik
  */
 public class BarMaidNPC implements ZoneConfigurator {
-
 	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
-		buildTavern(zone, attributes);
+		buildTavern(zone);
 	}
 
-	private void buildTavern(final StendhalRPZone zone, final Map<String, String> attributes) {
+	private void buildTavern(final StendhalRPZone zone) {
 		final SpeakerNPC tavernMaid = new SpeakerNPC("Coralia") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -64,24 +59,17 @@ public class BarMaidNPC implements ZoneConfigurator {
 
 			@Override
 			protected void createDialog() {
-				addGreeting("Oh witam czy nie przeszkodziłam czasem w podziwianiu mojego pięknego #kapelusza?");
+				addGreeting("Och witam! Czy nie przeszkodziłam czasem w podziwianiu mojego pięknego #kapelusza?");
 				addJob("Jestem kelnerką w tej oberży. Sprzedajemy zarówno importowane jak i lokalne piwo oraz dobre jedzenie.");
 				addHelp("Ta oberża jest świetnym miejscem na odpoczynek i poznanie nowych ludzi! Jeżeli chciałbyś poznać naszą #ofertę to daj znać.");
-				final Map<String, Integer> offerings = new HashMap<String, Integer>();
-				offerings.put("sok z chmielu", 15);
-				offerings.put("tarta", 160);
-				offerings.put("chleb", 50);
-				offerings.put("ser", 20);
-				offerings.put("pomidor", 30);
-				new SellerAdder().addSeller(this, new SellerBehaviour(offerings));
 				addGoodbye();
 			}
 		};
 
-		tavernMaid.setEntityClass("maidnpc");
-		tavernMaid.setPosition(13, 9);
-		tavernMaid.initHP(100);
 		tavernMaid.setDescription("Oto Coralia. Na kapeluszu nosi egzotyczne jedzenie.");
+		tavernMaid.setEntityClass("maidnpc");
+		tavernMaid.setGender("F");
+		tavernMaid.setPosition(13, 9);
 		zone.add(tavernMaid);
 	}
 }

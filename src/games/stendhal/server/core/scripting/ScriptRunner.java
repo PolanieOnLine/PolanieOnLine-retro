@@ -1,6 +1,39 @@
-/* $Id: ScriptRunner.java,v 1.20 2011/11/03 20:12:57 nhnb Exp $ */
-
+/***************************************************************************
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
+ ***************************************************************************
+ ***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
 package games.stendhal.server.core.scripting;
+
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.apache.log4j.Logger;
+
+import com.google.common.collect.ImmutableSet;
+import com.google.common.reflect.ClassPath;
+import com.google.common.reflect.ClassPath.ClassInfo;
 
 import games.stendhal.common.CommandlineParser;
 import games.stendhal.common.ErrorBuffer;
@@ -9,36 +42,28 @@ import games.stendhal.server.actions.ActionListener;
 import games.stendhal.server.actions.CommandCenter;
 import games.stendhal.server.actions.admin.AdministrationAction;
 import games.stendhal.server.core.engine.GameEvent;
+import games.stendhal.server.core.scripting.lua.LuaLoader;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.extension.StendhalServerExtension;
-
-import java.io.File;
-import java.io.FilenameFilter;
-import java.net.URL;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import marauroa.common.game.RPAction;
 
-import org.apache.log4j.Logger;
-
 /**
- * ServerExtension to load Groovy and Java scripts.
- * 
+ * ServerExtension to load Groovy, Lua, and Java scripts.
+ *
  * @author intensifly
  */
 public class ScriptRunner extends StendhalServerExtension implements
 		ActionListener {
 
-	private static final int REQUIRED_ADMINLEVEL = 20;
+	private static final int REQUIRED_ADMINLEVEL = 1000;
 
 	private final Map<String, ScriptingSandbox> scripts;
 
 	private final String scriptDir = "data/script/";
 
 	private static final Logger logger = Logger.getLogger(ScriptRunner.class);
+
+	private final String[] supported_ext = {"groovy", "lua"};
 
 	/**
 	 * Constructor for ScriptRunner.
@@ -54,17 +79,34 @@ public class ScriptRunner extends StendhalServerExtension implements
 		final URL url = getClass().getClassLoader().getResource(scriptDir);
 		if (url != null) {
 			final File dir = new File(url.getFile());
-			final String[] strs = dir.list(new FilenameFilter() {
-				public boolean accept(final File dir, final String name) {
-					return name.endsWith(".groovy");
-				}
-			});
+			List<String> strs = new ArrayList<>();
 
-			for (int i = 0; i < strs.length; i++) {
+			try {
+				final Stream<Path> paths = Files.walk(Paths.get(dir.toString())).filter(Files::isRegularFile);
+				for (String filepath: paths.map(s -> s.toString()).collect(Collectors.toList())) {
+					// trim absolute path prefix
+					filepath = filepath.substring(dir.toString().length() + 1);
+
+					for (String ext: supported_ext) {
+						ext = "." + ext;
+
+						if (filepath.endsWith(ext)) {
+							strs.add(filepath);
+							break;
+						}
+					}
+				}
+			} catch (final IOException e1) {
+				logger.error("Error while recursing scripts");
+				e1.printStackTrace();
+				return;
+			}
+
+			for (int i = 0; i < strs.size(); i++) {
 				try {
-					perform(strs[i]);
+					perform(strs.get(i));
 				} catch (final Exception e) {
-					logger.error("Error while loading " + strs[i] + ":", e);
+					logger.error("Error while loading " + strs.get(i) + ":", e);
 				}
 			}
 		}
@@ -76,7 +118,7 @@ public class ScriptRunner extends StendhalServerExtension implements
 		return perform(name, "load", null, null);
 	}
 
-	// need that function to filter scripts names 
+	// need that function to filter scripts names
 	public String searchTermToRegex(String searchTerm) {
 		final String metaSymbols = "*?()[]{}+-.^$|\\";
 		StringBuilder stringBuilder = new StringBuilder();
@@ -102,16 +144,18 @@ public class ScriptRunner extends StendhalServerExtension implements
 		}
 		return stringBuilder.toString();
 	}
-	
+
 	private synchronized boolean perform(final String name, final String mode,
 			final Player player, final List<String> args) {
 		boolean ret = false;
-		
+
+		final String rootDir = scriptDir;
+
 		// block exploit
 		if (name.indexOf("..") >= 0) {
 			return false;
 		}
-		
+
 		// list mode
 		if ("list".equals(mode)) {
 			return listScripts(player, args);
@@ -141,7 +185,10 @@ public class ScriptRunner extends StendhalServerExtension implements
 			// if we want to execute we'll also load it if needed
 			if (script == null) {
 				if (trimmedName.endsWith(".groovy")) {
-					script = new ScriptInGroovy(scriptDir + trimmedName);
+					script = new ScriptInGroovy(rootDir + trimmedName);
+					ignoreExecute = true;
+				} else if (trimmedName.endsWith(".lua")) {
+					script = LuaLoader.get().createScript(rootDir + trimmedName);
 					ignoreExecute = true;
 				} else if (trimmedName.endsWith(".class")) {
 					script = new ScriptInJava(trimmedName);
@@ -165,6 +212,29 @@ public class ScriptRunner extends StendhalServerExtension implements
 	}
 
 	/**
+	 * Fetch classes of available scripts.
+	 *
+	 * @param pckgname the package name of scripts
+	 * @return list of script classes
+	 * @throws ClassNotFoundException if getting the class loader or reading the
+	 * 	script resources fail
+	 */
+	private static ArrayList<Class<?>> getClasses(final String packageName) throws ClassNotFoundException {
+		final ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
+		try {
+			ClassLoader classLoader = ScriptRunner.class.getClassLoader();
+			ImmutableSet<ClassInfo> infos = ClassPath.from(classLoader).getTopLevelClasses(packageName);
+			for (ClassInfo info : infos) {
+				classes.add(info.load());
+			}
+			return classes;
+		} catch (IOException e) {
+			throw new ClassNotFoundException("failed to list classes");
+		}
+	}
+
+
+	/**
 	 * Lists the available scripts
 	 *
 	 * @param player player requesting the list
@@ -172,66 +242,112 @@ public class ScriptRunner extends StendhalServerExtension implements
 	 * @return true
 	 */
 	private boolean listScripts(final Player player, List<String> filterTerm) {
-		// *.groovy scripts is in data/script/
+
+		StringBuilder stringBuilder = new StringBuilder("Dostępne skrypty");
+		List<String> allScripts = new LinkedList<String>();
+
+		// *.groovy scripts in data/script/
 		final File dirGroovy = new File(scriptDir);
-		// *.class scripts is in data/script/games/stendhal/server/script/
-		final File dirClasses = new File(scriptDir+"games/stendhal/server/script/");
-		final String[] scriptsGroovy = dirGroovy.list(new FilenameFilter() {
+		List<String> scriptsGroovy;
+		final String[] lg = dirGroovy.list(new FilenameFilter() {
+				@Override
 				public boolean accept(final File dir, final String name) {
 					return (name.endsWith(".groovy") && (name.indexOf('$') == -1));
 				}
 			});
-		final String[] scriptsJava = dirClasses.list(new FilenameFilter(){
+		if(lg != null) {
+			scriptsGroovy = Arrays.asList(lg);
+		} else {
+			scriptsGroovy = new LinkedList<String>();
+		}
+
+		// *.lua scripts in data/script/
+		List<String> scriptsLua;
+		final String[] ll = dirGroovy.list(new FilenameFilter() {
+			@Override
+			public boolean accept(final File dir, final String name) {
+				return (name.endsWith(".lua") && (name.indexOf('$') == -1));
+			}
+		});
+		if (ll != null) {
+			scriptsLua = Arrays.asList(ll);
+		} else {
+			scriptsLua = new LinkedList<String>();
+		}
+
+		// *.class scripts could be in data/script/games/stendhal/server/script/
+		final File dirClasses = new File(scriptDir + "games/stendhal/server/script/");
+		List<String> scriptsJava;
+		final String[] lj = dirClasses.list(new FilenameFilter(){
+				@Override
 				public boolean accept(final File dir, final String name) {
 					// remove filenames with '$' inside because they are inner classes
 					return (name.endsWith(".class") && (name.indexOf('$') == -1));
 				}
 			});
-
-		int scriptsGroovyLength = 0;
-		if (scriptsGroovy!=null) {
-			scriptsGroovyLength=scriptsGroovy.length;
-		}
-		int scriptsJavaLength = 0;
-		if (scriptsJava!=null) {
-			scriptsJavaLength=scriptsJava.length;
-		}
-		final int scriptsLength = scriptsGroovyLength + scriptsJavaLength; 
-		// concatenating String arrays scriptsGroovy and scriptsJava to scripts
-		final String[] scripts= new String[scriptsLength];
-		
-		if (scriptsGroovy!=null) {
-		System.arraycopy(scriptsGroovy, 0, scripts, 0, scriptsGroovyLength);
-		}
-		
-		if (scriptsJava!=null) {
-		System.arraycopy(scriptsJava, 0, scripts, scriptsGroovyLength, scriptsJavaLength);
+		if(lj != null) {
+			scriptsJava = Arrays.asList(lj);
+		} else {
+			scriptsJava = new LinkedList<String>();
 		}
 
-		StringBuilder stringBuilder = new StringBuilder();
+
+		// precompiled java scripts
+		try {
+			ArrayList<Class<?>> dir = getClasses("games.stendhal.server.script");
+			Collections.sort(dir, new Comparator<Class<?>>() {
+				@Override
+				public int compare(Class<?> o1, Class<?> o2) {
+					return o1.getSimpleName().compareTo(o2.getSimpleName());
+				}
+			});
+
+			for (final Class<?> clazz : dir) {
+					scriptsJava.add(clazz.getSimpleName() + ".class");
+			}
+
+		} catch (final ClassNotFoundException e) {
+			logger.error(e, e);
+		} catch (final SecurityException e) {
+			logger.error(e, e);
+		}
+
+		allScripts.addAll(scriptsGroovy);
+		allScripts.addAll(scriptsLua);
+		allScripts.addAll(scriptsJava);
 
 		if (!filterTerm.isEmpty()) {
-			stringBuilder.append("results for /script ");
-			for (int i=0; i<filterTerm.size(); i++) {
-				stringBuilder.append(" "+ filterTerm.get(i));
+			stringBuilder.append(" (rezultat dla ");
+			for (int i = 0; i < filterTerm.size(); i++) {
+				stringBuilder.append(" " + filterTerm.get(i));
 			}
-			stringBuilder.append(":\n");
+			stringBuilder.append(")");
 		}
+		stringBuilder.append(":");
 
-		for (int i = 0; i < scriptsLength; i++) {
+		final List<String> scriptExcludes = Arrays.asList(
+			"package-info.class", "AbstractOfflineAction.class");
+
+		for (int i = 0; i < allScripts.size(); i++) {
+			final String scriptName = allScripts.get(i);
+			if (scriptExcludes.contains(scriptName)) {
+				continue;
+			}
+
 			// if arguments given, will look for matches.
 			if (!filterTerm.isEmpty()) {
-				int j = 0;					
+				int j = 0;
 				for (j = 0; j < filterTerm.size(); j++) {
-					if (scripts[i].matches(searchTermToRegex(filterTerm.get(j)))) {
-						stringBuilder.append(scripts[i]+"\n");
+					if (allScripts.get(i).matches(searchTermToRegex(filterTerm.get(j)))) {
+						stringBuilder.append("\n- " + scriptName);
 					}
 				}
 			} else {
-				stringBuilder.append(scripts[i]+"\n");
+				stringBuilder.append("\n- " + scriptName);
 			}
-		}	
-		stringBuilder.append("(end of listing).");
+		}
+
+		stringBuilder.append("\n(koniec listy).");
 		player.sendPrivateText(stringBuilder.toString());
 		return true;
 	}
@@ -245,6 +361,7 @@ public class ScriptRunner extends StendhalServerExtension implements
 		return (null);
 	}
 
+	@Override
 	public void onAction(final Player player, final RPAction action) {
 
 		if (!AdministrationAction.isPlayerAllowedToExecuteAdminCommand(player, "script", true)) {
@@ -268,7 +385,7 @@ public class ScriptRunner extends StendhalServerExtension implements
 			String mode = "execute";
 			String script = cmd;
 
-			/* 
+			/*
 			 // parse args if there is a space
 			 int pos = cmd.indexOf(' ');
 			 if (pos > -1) {
@@ -288,10 +405,10 @@ public class ScriptRunner extends StendhalServerExtension implements
 					}
 				}
 				script = temp;
-			}
+			 }
 			 */
-			
-			// parts of script command. 
+
+			// parts of script command.
 			final List<String> parts = Arrays.asList(cmd.split(" "));
 			cmd = "";
 			int scp = 0;
@@ -307,8 +424,8 @@ public class ScriptRunner extends StendhalServerExtension implements
 				}
 				StringBuilder sb = new StringBuilder(cmd);
 				// concatenating script arguments
-				for (int i = scp+1; i<parts.size(); i++) {
-					 sb.append(' ').append(parts.get(i));				
+				for (int i = scp + 1; i < parts.size(); i++) {
+					 sb.append(' ').append(parts.get(i));
 				}
 				cmd = sb.toString();
 				// for list mode we dont have script name
@@ -327,16 +444,21 @@ public class ScriptRunner extends StendhalServerExtension implements
 
 			// execute script
 			script = script.trim();
-			if ("list".equals(mode) || script.endsWith(".groovy") || script.endsWith(".class")) {
+			if ("list".equals(mode) || script.endsWith(".groovy") || script.endsWith(".lua") || script.endsWith(".class")) {
 				boolean res = false;
+				// remove mode from list of arguments
+				final int modeArgIdx = args.indexOf("-" + mode);
+				if (modeArgIdx >= 0) {
+					args.remove(modeArgIdx);
+				}
 				res = perform(script, mode, player, args);
 				if (res) {
 					StringBuilder stringBuilder = new StringBuilder();
 					if (!"list".equals(mode)) {
-						stringBuilder.append("Skrypt \"");
-						stringBuilder.append(script);
-						stringBuilder.append("\" został pomyślnie ");
-						//stringBuilder.append(mode);
+					stringBuilder.append("Skrypt \"");
+					stringBuilder.append(script);
+					stringBuilder.append("\" został pomyślnie ");
+					//stringBuilder.append(mode);
 					} else {
 						// we dont want spam messages.
 						//stringBuilder.append("script directories was successfully list");
@@ -361,7 +483,6 @@ public class ScriptRunner extends StendhalServerExtension implements
 						if ("execute".equals(mode)) {
 							stringBuilder.append("wykonania");
 						} else {
-							//stringBuilder.append(mode);
 							stringBuilder.append("anulowania");
 						}
 						stringBuilder.append(".");
@@ -369,11 +490,10 @@ public class ScriptRunner extends StendhalServerExtension implements
 					}
 				}
 			} else {
-				text = "Nieprawidłowa nazwa pliku: Powinna kończyć się na .groovy lub .class";
+				text = "Nieprawidłowa nazwa pliku: Powinna kończyć się na .groovy, .lua lub .class";
 			}
 		}
 
 		player.sendPrivateText(text);
 	}
-
 }

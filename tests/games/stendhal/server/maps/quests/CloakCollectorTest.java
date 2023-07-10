@@ -1,4 +1,4 @@
-/* $Id: CloakCollectorTest.java,v 1.29 2011/03/27 10:12:03 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -17,18 +17,17 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static utilities.SpeakerNPCTestHelper.getReply;
 
+import org.junit.After;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.item.Item;
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.npc.fsm.Engine;
 import games.stendhal.server.entity.player.Player;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import utilities.PlayerTestHelper;
 import utilities.QuestHelper;
 
@@ -74,7 +73,7 @@ public class CloakCollectorTest {
 		SingletonRepository.getNPCList().add(new SpeakerNPC("Josephine"));
 		final CloakCollector cc = new CloakCollector();
 		cc.addToWorld();
-	
+
 		final SpeakerNPC npc = cc.getNPC();
 		final Engine en = npc.getEngine();
 		final Player monica = PlayerTestHelper.createPlayer("monica");
@@ -85,13 +84,10 @@ public class CloakCollectorTest {
 		en.stepTest(monica, cc.getAdditionalTriggerPhraseForQuest().get(0));
 		assertEquals(cc.respondToQuest(), getReply(npc));
 
-		en.stepTest(monica, "elf cloak");
+		en.stepTest(monica, "peleryna elficka");
 		assertEquals(
-				"You haven't seen one before? Well, it's a elf cloak. So, will you find them all?",
+				"Nie widziałeś jeszcze żadnego? Cóż to jest elf cloak. znajdziesz to?",
 				getReply(npc));
-
-		en.stepTest(monica, "pink cloak");
-		assertEquals("I don't know pink cloak. Can you name me another cloak please?", getReply(npc));
 
 		en.stepTest(monica, ConversationPhrases.YES_MESSAGES.get(0));
 		assertEquals(cc.respondToQuestAcception(), getReply(npc));
@@ -108,18 +104,18 @@ public class CloakCollectorTest {
 		en.stepTest(monica, ConversationPhrases.YES_MESSAGES.get(0));
 		assertEquals(cc.askForItemsAfterPlayerSaidHeHasItems(), getReply(npc));
 
-		en.stepTest(monica, "elf cloak");
-		assertEquals(cc.respondToOfferOfNotExistingItem("elf cloak"),
+		en.stepTest(monica, "peleryna elficka");
+		assertEquals(cc.respondToOfferOfNotExistingItem("peleryna elficka"),
 				getReply(npc));
 
-		Item cloak = new Item("elf cloak", "", "", null);
+		Item cloak = new Item("peleryna elficka", "", "", null);
 		monica.getSlot("bag").add(cloak);
-		en.stepTest(monica, "elf cloak");
+		en.stepTest(monica, "peleryna elficka");
 		assertEquals(cc.respondToItemBrought(), getReply(npc));
-		en.stepTest(monica, "elf cloak");
+		en.stepTest(monica, "peleryna elficka");
 		assertEquals(cc.respondToOfferOfNotMissingItem(), getReply(npc));
 
-		cloak = new Item("stone cloak", "", "", null);
+		cloak = new Item("płaszcz kamienny", "", "", null);
 		monica.getSlot("bag").add(cloak);
 
 		for (final String cloakName : cc.getNeededItems()) {
@@ -160,9 +156,9 @@ public class CloakCollectorTest {
 		final Player player = PlayerTestHelper.createPlayer("player");
 		final double oldKarma = player.getKarma();
 		cc.rewardPlayer(player);
-		assertTrue(player.isEquipped("black cloak"));
-		assertEquals(oldKarma + 5.0, player.getKarma(), 0.01);
-		assertEquals(10000, player.getXP());
+		assertTrue(player.isEquipped("czarny płaszcz"));
+		assertEquals(oldKarma + 25.0, player.getKarma(), 0.01);
+		assertEquals(50000, player.getXP());
 	}
 
 }

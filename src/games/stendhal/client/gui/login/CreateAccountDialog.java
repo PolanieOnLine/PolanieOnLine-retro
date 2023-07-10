@@ -1,6 +1,5 @@
-/* $Id: CreateAccountDialog.java,v 1.15 2012/06/30 18:56:14 kiheru Exp $ */
 /***************************************************************************
- *                      (C) Copyright 2003 - Marauroa                      *
+ *                  (C) Copyright 2003 - 2015 Faiumoni e.V.                *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,28 +11,20 @@
  ***************************************************************************/
 package games.stendhal.client.gui.login;
 
-import games.stendhal.client.StendhalClient;
-import games.stendhal.client.stendhal;
-import games.stendhal.client.gui.ProgressBar;
-import games.stendhal.client.gui.WindowUtils;
-import games.stendhal.client.gui.layout.SBoxLayout;
-import games.stendhal.client.gui.layout.SLayout;
-import games.stendhal.client.update.ClientGameConfiguration;
-
 import java.awt.Frame;
 import java.awt.GridLayout;
-import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.Color;
-import java.util.Locale;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -41,45 +32,58 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.PlainDocument;
+import javax.swing.SwingConstants;
+import javax.swing.WindowConstants;
+import javax.swing.text.AbstractDocument;
 
+import org.apache.log4j.Logger;
+
+import games.stendhal.client.StendhalClient;
+import games.stendhal.client.stendhal;
+import games.stendhal.client.gui.NumberDocumentFilter;
+import games.stendhal.client.gui.ProgressBar;
+import games.stendhal.client.gui.WindowUtils;
+import games.stendhal.client.gui.layout.SBoxLayout;
+import games.stendhal.client.gui.layout.SLayout;
+import games.stendhal.client.update.ClientGameConfiguration;
 import marauroa.client.BannedAddressException;
 import marauroa.client.LoginFailedException;
 import marauroa.client.TimeoutException;
 import marauroa.common.game.AccountResult;
 import marauroa.common.net.InvalidVersionException;
 
-import org.apache.log4j.Logger;
-
-
+/**
+ * The account creation dialog. For requesting account name, password, and all
+ * other needed data.
+ */
 public class CreateAccountDialog extends JDialog {
+	/** Logger instance. */
+	private static final Logger LOGGER = Logger.getLogger(CreateAccountDialog.class);
 
-	private static final long serialVersionUID = 4436228792112530975L;
-
-	private static final Logger logger = Logger.getLogger(CreateAccountDialog.class);
-
-	// Variables declaration
-	private JLabel usernameLabel;
-	private JLabel serverLabel;
-	private JLabel serverPortLabel;
-	private JLabel passwordLabel;
-	private JLabel passwordretypeLabel;
-	private JLabel emailLabel;
+	/** User name input field. */
 	private JTextField usernameField;
+	/** Password input field. */
 	private JPasswordField passwordField;
+	/** Password verification field. */
 	private JPasswordField passwordretypeField;
+	/** Email input field. */
 	private JTextField emailField;
+	/** Server name input field. */
 	private JTextField serverField;
+	/** Server port input field. */
 	private JTextField serverPortField;
-	private JButton createAccountButton;
-	private JPanel contentPane;
 
-	// End of variables declaration
+	/** The client used for login. */
 	private StendhalClient client;
+	/** Descriptions of error conditions. */
 	private String badEmailTitle, badEmailReason, badPasswordReason;
 
+	/**
+	 * Create an CreateAccountDialog for a parent window, and specified client.
+	 *
+	 * @param owner parent frame
+	 * @param client client used for login
+	 */
 	public CreateAccountDialog(final Frame owner, final StendhalClient client) {
 		super(owner, true);
 		this.client = client;
@@ -89,54 +93,61 @@ public class CreateAccountDialog extends JDialog {
 		this.setVisible(true);
 	}
 
+	/**
+	 * A dumb constructor used only for tests.
+	 */
 	CreateAccountDialog() {
 		super();
 		initializeComponent(null);
 	}
 
+	/**
+	 * Create the dialog contents.
+	 *
+	 * @param owner parent window
+	 */
 	private void initializeComponent(final Frame owner) {
-		this.addWindowListener(new WindowAdapter() {
-			@Override
-			public void windowClosing(WindowEvent e) {
-				if (owner == null) {
-					System.exit(0);
+		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+		if (owner != null) {
+			addWindowListener(new WindowAdapter() {
+				@Override
+				public void windowClosing(WindowEvent e) {
+					owner.setEnabled(true);
 				}
-				owner.setEnabled(true);
-				dispose();
-			}
-		});
+			});
+		}
 
-		serverLabel = new JLabel("Nazwa serwera");
+		JLabel serverLabel = new JLabel("Nazwa serwera");
 		serverField = new JTextField(
 				ClientGameConfiguration.get("DEFAULT_SERVER"));
 		serverField.setEditable(true);
-		serverPortLabel = new JLabel("Port serwera");
+		JLabel serverPortLabel = new JLabel("Port serwera");
 		serverPortField = new JTextField(
 				ClientGameConfiguration.get("DEFAULT_PORT"));
+		((AbstractDocument) serverPortField.getDocument()).setDocumentFilter(new NumberDocumentFilter(serverPortField, false));
 
-		usernameLabel = new JLabel("Login");
+		JLabel usernameLabel = new JLabel("Wybierz imię wojownika");
 		usernameField = new JTextField();
-		//usernameField.setDocument(new LowerCaseLetterDocument());
 
-		passwordLabel = new JLabel("Hasło");
+		JLabel passwordLabel = new JLabel("Hasło (min. 6 znaków)");
 		passwordField = new JPasswordField();
 
-		passwordretypeLabel = new JLabel("Powtórz hasło");
+		JLabel passwordretypeLabel = new JLabel("Powtórz hasło");
 		passwordretypeField = new JPasswordField();
 
-		emailLabel = new JLabel("E-mail");
+		JLabel emailLabel = new JLabel("Adres e-mail (opcjonalnie)");
 		emailField = new JTextField();
 
 		// createAccountButton
 		//
-		createAccountButton = new JButton();
+		JButton createAccountButton = new JButton();
 		createAccountButton.setText("Utwórz Konto");
-		createAccountButton.setMnemonic(KeyEvent.VK_U);
+		createAccountButton.setMnemonic(KeyEvent.VK_A);
 		this.rootPane.setDefaultButton(createAccountButton);
 		createAccountButton.addActionListener(new ActionListener() {
-
+			@Override
 			public void actionPerformed(final ActionEvent e) {
-				createAccountButton_actionPerformed(e, false);
+				onCreateAccount();
 			}
 		});
 
@@ -144,12 +155,12 @@ public class CreateAccountDialog extends JDialog {
 		// contentPane
 		//
 		int padding = SBoxLayout.COMMON_PADDING;
-		contentPane = (JPanel) this.getContentPane();
+		JPanel contentPane = (JPanel) this.getContentPane();
 		contentPane.setLayout(new SBoxLayout(SBoxLayout.VERTICAL, padding));
 		contentPane.setBorder(BorderFactory.createEmptyBorder(padding, padding, padding, padding));
-		
-		JComponent grid = new JComponent() {private static final long serialVersionUID = 1L;};
-		grid.setLayout(new GridLayout(7, 2, padding, padding));
+
+		JComponent grid = new JComponent() {};
+		grid.setLayout(new GridLayout(0, 2, padding, padding));
 		contentPane.add(grid, SBoxLayout.constraint(SLayout.EXPAND_X, SLayout.EXPAND_Y));
 
 		// row 0
@@ -163,7 +174,7 @@ public class CreateAccountDialog extends JDialog {
 		// row 2
 		grid.add(usernameLabel);
 		grid.add(usernameField);
-	
+
 		// row 3
 		grid.add(passwordLabel);
 		grid.add(passwordField);
@@ -176,21 +187,52 @@ public class CreateAccountDialog extends JDialog {
 		grid.add(emailLabel);
 		grid.add(emailField);
 
+		// A toggle for showing the contents of the password fields
+		grid.add(new JComponent(){});
+		JCheckBox showPWToggle = new JCheckBox("Pokaż hasło");
+		showPWToggle.setHorizontalAlignment(SwingConstants.RIGHT);
+		final char normalEchoChar = passwordField.getEchoChar();
+		showPWToggle.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				char echoChar;
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					echoChar = (char) 0;
+				} else {
+					echoChar = normalEchoChar;
+				}
+				passwordField.setEchoChar(echoChar);
+				passwordretypeField.setEchoChar(echoChar);
+			}
+		});
+		grid.add(showPWToggle);
+
 		// Warning label
-		JLabel logLabel = new JLabel("<html><body><p><font size=\"-2\">Przy logowaniu będą zapisywane informacje, które będą identyfikować <br>Twój komputer w internecie w celu zapobiegania nadużyciom <br>(np. przy próbie odgadnięcia hasła w celu włamania się na konto <br>lub tworzeniu wielu kont w celu sprawiania problemów). <br>Ponadto wszystkie zdarzenia i akcje, które wydarzą się w grze <br>(np. rozwiązywanie zadań, atakowanie potworów) <br>są umieszczane w dzienniku. Te informacje będą wykorzystywane <br>w celu analizy luk i czasami w sprawach nadużyć.</font></p></body></html>");
-		// Add a bit more empty space around it
+		JLabel logLabel = new JLabel("<html><body><p><font size=\"-2\">Przy logowaniu będą zapisywane informacje, które będą identyfikować <br>Twój komputer w internecie w celu zapobiegania nadużyciom <br>(np. przy próbie odgadnięcia hasła w celu włamania się na konto <br>lub tworzeniu wielu kont w celu sprawiania problemów). <br>Ponadto wszystkie zdarzenia i akcje, które wydarzą się w grze <br>(np. rozwiązywanie zadań, atakowanie potworów) <br>są umieszczane w dzienniku. Te informacje będą wykorzystywane <br>w celu analizy luk i czasami w sprawach nadużyć.</font></p></body></html>");// Add a bit more empty space around it
 		logLabel.setBorder(BorderFactory.createEmptyBorder(padding, padding, padding, padding));
 		logLabel.setAlignmentX(CENTER_ALIGNMENT);
 		contentPane.add(logLabel, SBoxLayout.constraint(SLayout.EXPAND_X, SLayout.EXPAND_Y));
-		
-		createAccountButton.setAlignmentX(RIGHT_ALIGNMENT);
-		contentPane.add(createAccountButton);
+
+		// Button row
+		JComponent buttonRow = SBoxLayout.createContainer(SBoxLayout.HORIZONTAL, SBoxLayout.COMMON_PADDING);
+		buttonRow.setAlignmentX(RIGHT_ALIGNMENT);
+		JButton cancelButton = new JButton("Zamknij");
+		cancelButton.setMnemonic(KeyEvent.VK_C);
+		cancelButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				dispatchEvent(new WindowEvent(CreateAccountDialog.this, WindowEvent.WINDOW_CLOSING));
+			}
+		});
+		buttonRow.add(cancelButton);
+		buttonRow.add(createAccountButton);
+		contentPane.add(buttonRow);
 
 		// CreateAccountDialog
 		this.setTitle("Utwórz Nowe Konto");
 		this.setResizable(false);
 		// required on Compiz
-		this.pack(); 
+		this.pack();
 
 		usernameField.requestFocusInWindow();
 		if (owner != null) {
@@ -199,8 +241,10 @@ public class CreateAccountDialog extends JDialog {
 		}
 	}
 
-	private void createAccountButton_actionPerformed(final ActionEvent e,
-			final boolean saveLoginBoxStatus) {
+	/**
+	 * Run when the "Create account" button is activated.
+	 */
+	private void onCreateAccount() {
 		final String accountUsername = usernameField.getText();
 		final String password = new String(passwordField.getPassword());
 
@@ -219,19 +263,13 @@ public class CreateAccountDialog extends JDialog {
 		final String server = serverField.getText();
 		int port = 32160;
 
-		// standalone check
-		if (client == null) {
-			JOptionPane.showMessageDialog(this,
-					"Konto nie zostało utworzone!");
-			return;
-		}
 		// port couldn't be accessed from inner class
-		final int finalPort; 
+		final int finalPort;
 		final ProgressBar progressBar = new ProgressBar(this);
 
 		try {
 			port = Integer.parseInt(serverPortField.getText());
-		} catch (final Exception ex) {
+		} catch (final NumberFormatException ex) {
 			JOptionPane.showMessageDialog(getOwner(),
 					"Niewłaściwy numer portu. Spróbuj ponownie.",
 					"Niewłaściwy Port", JOptionPane.WARNING_MESSAGE);
@@ -239,88 +277,84 @@ public class CreateAccountDialog extends JDialog {
 		}
 		finalPort = port;
 
+		// standalone check
+		if (client == null) {
+			JOptionPane.showMessageDialog(this,
+					"Konto nie zostało utworzone!");
+			return;
+		}
+
 		/* separate thread for connection process added by TheGeneral */
 		// run the connection process in separate thread
-		final Thread m_connectionThread = new Thread() {
+		final Thread connectionThread = new Thread() {
 
 			@Override
 			public void run() {
 				// initialize progress bar
-				progressBar.start(); 
+				progressBar.start();
 				// disable this screen when attempting to connect
-				setEnabled(false); 
-	
+				setEnabled(false);
+
 
 				try {
 					client.connect(server, finalPort);
 					// for each major connection milestone call step()
-					progressBar.step(); 
+					progressBar.step();
 				} catch (final Exception ex) {
 					// if something goes horribly just cancel the progress bar
-					progressBar.cancel(); 
+					progressBar.cancel();
 					setEnabled(true);
 					JOptionPane.showMessageDialog(
 							getOwner(),
 							"Nie można się połączyć z serwerem w celu utworzenia konta. Serwer może nie działać, a jeśli korzystasz z innego serwera " +
 							"to sprawdź czy poprawnie wpisałeś nazwę i numer portu.");
 
-					logger.error(ex, ex);
+					LOGGER.error(ex, ex);
 
 					return;
 				}
 				final Window owner = getOwner();
 				try {
-					if (server.length() > 0 && accountUsername.length() > 0
-					&& password.length() > 0 && email.length() > 0) {
-
-						final AccountResult result = client.createAccount(
-								accountUsername, password, email);
-						if (result.failed()) {
-							/*
-							 * If the account can't be created, show an error
-							 * message and don't continue.
-							 */
-							progressBar.cancel();
-							setEnabled(true);
-							JOptionPane.showMessageDialog(owner,
-									result.getResult().getText(),
-									"Nie powiodło się tworzenie konta",
-									JOptionPane.ERROR_MESSAGE);
-						} else {
-
-							/*
-							 * Print username returned by server, as server can
-							 * modify it at will to match account names rules.
-							 */
-
-							progressBar.step();
-							progressBar.finish();
-
-							client.setAccountUsername(accountUsername);
-							client.setCharacter(accountUsername);
-
-							/*
-							 * Once the account is created, login into server.
-							 */
-							client.login(accountUsername, password);
-							progressBar.step();
-							progressBar.finish();
-
-							setEnabled(false);
-							if (owner != null) {
-								owner.setVisible(false);
-								owner.dispose();
-							}
-
-							stendhal.setDoLogin();
-						}
-					} else {
-						progressBar.cancel(); 
+					final AccountResult result = client.createAccount(
+							accountUsername, password, email);
+					if (result.failed()) {
+						/*
+						 * If the account can't be created, show an error
+						 * message and don't continue.
+						 */
+						progressBar.cancel();
 						setEnabled(true);
-						JOptionPane.showMessageDialog(
-								getOwner(),
-								"Nie wypełniłeś wymaganych pól.");
+						JOptionPane.showMessageDialog(owner,
+								result.getResult().getText(),
+								"Nie powiodło się tworzenie konta",
+								JOptionPane.ERROR_MESSAGE);
+					} else {
 
+						/*
+						 * Print username returned by server, as server can
+						 * modify it at will to match account names rules.
+						 */
+
+						progressBar.step();
+						progressBar.finish();
+
+						client.setAccountUsername(accountUsername);
+						client.setCharacter(accountUsername);
+
+						/*
+						 * Once the account is created, login into server.
+						 */
+						client.login(accountUsername, password);
+						progressBar.step();
+						progressBar.finish();
+
+						setEnabled(false);
+						if (owner != null) {
+							owner.setVisible(false);
+							owner.dispose();
+						}
+
+						stendhal.setDoLogin();
 					}
 				} catch (final TimeoutException e) {
 					progressBar.cancel();
@@ -334,24 +368,24 @@ public class CreateAccountDialog extends JDialog {
 					setEnabled(true);
 					JOptionPane.showMessageDialog(
 							owner,
-							"Uruchomiłeś starszą wersję PolskaOnLine. Proszę zaktualizuj swoją wersje",
+							"Uruchomiłeś starszą wersję gry. Proszę zaktualizuj swoją wersję",
 							"Starsza wersja", JOptionPane.ERROR_MESSAGE);
 				} catch (final BannedAddressException e) {
 					progressBar.cancel();
 					setEnabled(true);
 					JOptionPane.showMessageDialog(
 							owner,
-							"Twoje IP zostało zablokowane. Jeżeli nie zgadzasz się z decyzją to skontaktuj się z nami na http://www.gra.polskaonline.org/kontakt-gmgags",
+							"Twoje IP zostało zablokowane. Jeżeli nie zgadzasz się z decyzją to skontaktuj się z nami na https://s1.polanieonline.eu/kontakt-gmgags.html",
 							"Zablokowane IP", JOptionPane.ERROR_MESSAGE);
 				} catch (final LoginFailedException e) {
 					progressBar.cancel();
 					setEnabled(true);
 					JOptionPane.showMessageDialog(owner, e.getMessage(),
-							"Nieudane logowanie", JOptionPane.INFORMATION_MESSAGE);
+							"Błąd logowania", JOptionPane.INFORMATION_MESSAGE);
 				}
 			}
 		};
-		m_connectionThread.start();
+		connectionThread.start();
 	}
 
 	/**
@@ -397,78 +431,81 @@ public class CreateAccountDialog extends JDialog {
 		// Check the email
 		//
 		final String email = (emailField.getText()).trim();
-		if  (!validateEmail(email)){
-	        final String warning = badEmailReason + "Adres email jest tylko dla administratorów, aby mogli sprawdzić własciciela konta.\nJeżeli nie chcesz podać to nie będziesz mógł zmienić hasła do konta. Na przykład:\n- Zapomniałeś hasło.\n- Inny gracz w jakiś sposób zdobył twoje hasło i zmienił je.\nCzy chcesz kontynuować?";
-           	final int i = JOptionPane.showOptionDialog(owner, warning, badEmailTitle,
-				JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
-				null, null, 1);
-            if (i != 0) {
-			    // no, let me type a valid email
-                return false;
-			} 
-			// yes, continue anyway		
+		if  (!validateEmail(email)) {
+			final String warning = badEmailReason + "Adres e-mail jest jedynym sposobem, w jaki administratorzy mogą kontaktować się z prawowitym właścicielem konta.\n" + 
+					"Jeśli go nie dostarczysz, nie będziesz mógł uzyskać nowego hasła do tego konta, na przykład:\n" + 
+					"- Zapomniałeś hasła.\n" + 
+					"- Inny gracz w jakiś sposób dostaje hasło i zmienia je.\n" + 
+					"Czy mimo to chcesz kontynuować?";
+			final int i = JOptionPane.showOptionDialog(owner, warning, badEmailTitle,
+					JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
+					null, null, 1);
+			if (i != 0) {
+				// no, let me type a valid email
+				return false;
+			}
+			// yes, continue anyway
 		}
 		return true;
 	}
-
+	
+	/**
+	 * Validate email field format.
+	 *
+	 * @param email address to be validate
+	 * @return <code>true</code> if the email looks good enough, otherwise
+	 *	<code>false</code>
+	 */
 	private boolean validateEmail(final String email) {
-		if  (email.length() == 0){
-		    badEmailTitle = "Adres email jest pusty";
-			badEmailReason = "Nie wprowadziłeś adresu email.\n";
-		    return false;
+		if  (email.isEmpty()) {
+			badEmailTitle = "Pole adresu e-mail jest puste";
+			badEmailReason = "Nie podałeś adresu e-mail.\n";
+			return false;
 		} else {
-   		    if (!email.contains("@") || !email.contains(".") || (email.length() <= 5)) {
-		        badEmailTitle =  "Błędny adres email?";
-		        badEmailReason = "Adres email, który wpisałeś jest prawdopodobnie błędny.\n";
-		        return false;
+			if (!email.contains("@") || !email.contains(".") || (email.length() <= 5)) {
+				badEmailTitle =  "Błąd w adresie e-mail?";
+				badEmailReason = "Wpisany adres e-mail ma prawdopodobnie błąd.\n";
+				return false;
 			}
 		}
 		return true;
 	}
 
+
+	/**
+	 * Prints text only when running stand-alone.
+	 * @param text text to be printed
+	 */
+	private void debug(final String text) {
+		if (client == null) {
+			LOGGER.debug(text);
+		}
+	}
+
 	/**
 	 * Used to preview the CreateAccountDialog.
-	 * @param args 
+	 * @param args ignored
 	 */
 	public static void main(final String[] args) {
 		new CreateAccountDialog(null, null);
 	}
 
-	private static class LowerCaseLetterDocument extends PlainDocument {
-		private static final long serialVersionUID = -5123268875802709841L;
-
-		@Override
-		public void insertString(final int offs, final String str, final AttributeSet a)
-				throws BadLocationException {
-			final String lower = str.toLowerCase(Locale.ENGLISH);
-			boolean ok = true;
-			for (int i = lower.length() - 1; i >= 0; i--) {
-				final char chr = lower.charAt(i);
-				if (((chr < 'a') || (chr > 'z')) && ((chr < '0') || (chr > '9'))
-					&& (chr != 'ą') && (chr != 'ć') && (chr != 'ę') && (chr != 'ł')
-					&& (chr != 'ń') && (chr != 'ó') && (chr != 'ś') && (chr != 'ź')
-					&& (chr != 'ż') && (chr != '@') && (chr != '-') && (chr != '_')
-					&& (chr != '.')) {
-					ok = false;
-					break;
-				}
-			}
-			if (ok) {
-				super.insertString(offs, lower, a);
-			} else {
-				Toolkit.getDefaultToolkit().beep();
-			}
-		}
-	}
-
-	public boolean validatePassword(final String username, final String password) {
+	/**
+	 * Do some sanity checks for the password.
+	 *
+	 * @param username user name
+	 * @param password checked password
+	 * @return <code>true</code> if the password seems reasonable,
+	 *	<code>false</code> if the password should be rejected
+	 */
+	boolean validatePassword(final String username, final String password) {
 		if (password.length() > 5) {
 
 			// check for all numbers
 			boolean allNumbers = true;
 			try {
 				Integer.parseInt(password);
-			} catch (final Exception e) {
+			} catch (final NumberFormatException e) {
 				allNumbers = false;
 			}
 			if (allNumbers) {
@@ -486,18 +523,18 @@ public class CreateAccountDialog extends JDialog {
 				// now we'll do some more checks to see if the password
 				// contains more than three letters of the username
 				debug("Checking if password contains a derivative of the username, trimming from the back...");
-				final int min_user_length = 3;
+				final int minUserLength = 3;
 				for (int i = 1; i < username.length(); i++) {
 					final String subuser = username.substring(0, username.length()
 							- i);
-					debug("\tsprawdzam \"" + subuser + "\"...");
-					if (subuser.length() <= min_user_length) {
+					debug("\tsprawdzam for \"" + subuser + "\"...");
+					if (subuser.length() <= minUserLength) {
 						break;
 					}
 
 					if (password.contains(subuser)) {
 						hasUsername = true;
-						debug("Hasło zawiera imię wojownika!");
+						debug("Hasło zawiera nazwę konta!");
 						break;
 					}
 				}
@@ -507,13 +544,13 @@ public class CreateAccountDialog extends JDialog {
 					debug("Checking if password contains a derivative of the username, trimming from the front...");
 					for (int i = 0; i < username.length(); i++) {
 						final String subuser = username.substring(i);
-						debug("\tsprawdzam \"" + subuser + "\"...");
-						if (subuser.length() <= min_user_length) {
+						debug("\tsprawdzam for \"" + subuser + "\"...");
+						if (subuser.length() <= minUserLength) {
 							break;
 						}
 						if (password.contains(subuser)) {
 							hasUsername = true;
-							debug("Hasło zawiera imię wojownika!");
+							debug("Hasło zawiera nazwę konta!");
 							break;
 						}
 					}
@@ -521,7 +558,7 @@ public class CreateAccountDialog extends JDialog {
 			}
 
 			if (hasUsername) {
-				badPasswordReason = "W haśle użyłeś imienia wojownika lub jest do niej podobna. To jest kiepskie zabezpieczenie konta.\n"
+				badPasswordReason = "W haśle użyłeś nazwę konta lub jest do niej podobna. To jest kiepskie zabezpieczenie konta.\n"
 						+ " Jesteś pewien, że chcesz użyć tego hasła?";
 				return false;
 			}
@@ -531,22 +568,11 @@ public class CreateAccountDialog extends JDialog {
 			if (isVisible()) {
 				JOptionPane.showMessageDialog(getOwner(), text);
 			} else {
-				logger.warn(text);
+				LOGGER.warn(text);
 			}
 			return false;
 		}
 
 		return true;
-	}
-
-	/**
-	 * Prints text only when running stand-alone.
-	 * @param text 
-	 */
-	public void debug(final String text) {
-
-		if (client == null) {
-			logger.debug(text);
-		}
 	}
 }

@@ -1,4 +1,4 @@
-/* $Id: EntityView.java,v 1.13 2012/04/06 14:41:18 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,99 +12,81 @@
  ***************************************************************************/
 package games.stendhal.client.gui.j2d.entity;
 
-import games.stendhal.client.entity.ActionType;
-import games.stendhal.client.entity.IEntity;
-import games.stendhal.client.entity.Inspector;
-import games.stendhal.client.gui.styled.cursor.StendhalCursor;
-
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 
-//
-//
+import games.stendhal.client.entity.ActionType;
+import games.stendhal.client.entity.IEntity;
+import games.stendhal.client.gui.Inspectable;
+import games.stendhal.client.gui.styled.cursor.StendhalCursor;
 
 /**
  * The view of an entity.
- * 
+ *
  * @param <T> type of the entity
  */
-public interface EntityView<T extends IEntity> {
+public interface EntityView<T extends IEntity> extends Inspectable {
 	/**
 	 * Get the list of actions.
-	 * 
+	 *
 	 * @return The list of actions.
 	 */
-	public String[] getActions();
-
+	String[] getActions();
 	/**
 	 * Get the view's entity.
-	 * 
+	 *
 	 * @return The view's entity.
 	 */
-	public T getEntity();
-
+	T getEntity();
 	/**
 	 * Determine if this entity can be moved (e.g. via dragging).
-	 * 
+	 *
 	 * @return <code>true</code> if the entity is movable.
 	 */
-	public boolean isMovable();
-
+	boolean isMovable();
 	/**
 	 * Perform the default action.
 	 */
-	public void onAction();
-
+	void onAction();
 	/**
 	 * Perform an action.
-	 * 
+	 *
 	 * @param at
 	 *            The action.
 	 */
-	public void onAction(ActionType at);
-
+	void onAction(ActionType at);
 	/**
 	 * Perform the default action unless it is not safe.
 	 *
 	 * @return <code>true</code> if the action was performed, <code>false</code> if nothing was done
 	 */
-	public boolean onHarmlessAction();
-
+	boolean onHarmlessAction();
 	/**
 	 * Release any view resources. This view should not be used after this is
 	 * called.
 	 */
-	public void release();
-
-	public Rectangle getArea();
-	
-	public void draw(final Graphics2D g2d);
-
-	public int getZIndex();
-
-	public void drawTop(Graphics2D g2d);
-
-	public void setContained(boolean b);
-
-	public void initialize(T entity);
-
+	void release();
+	Rectangle getArea();
+	void draw(final Graphics2D g2d);
+	int getZIndex();
+	void drawTop(Graphics2D g2d);
+	void setContained(boolean b);
+	void setVisibleScreenArea(Rectangle area);
+	void initialize(T entity);
 	/**
 	 * is this entity interactive so that the player can click or move it?
-	 * 
+	 *
 	 * @return true if the player can interact with it, false otherwise.
 	 */
-	public boolean isInteractive();
-
+	boolean isInteractive();
 	/**
-	 * gets the mouse cursor image to use for this entity
+	 * gets the mouse cursor image to use for this entity.
 	 *
 	 * @return StendhalCursor
 	 */
-	public StendhalCursor getCursor();
+	StendhalCursor getCursor();
 	/**
-	 * Set the inspector the entity view should use.
-	 * 
-	 * @param inspector
+	 * Update the view with the changes in entity.
 	 */
-	public void setInspector(Inspector inspector);
+	void applyChanges();
 }

@@ -12,13 +12,22 @@
 package games.stendhal.server.actions;
 
 import static games.stendhal.common.constants.Actions.KNOCK;
-import static games.stendhal.common.constants.Actions.TARGET;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
+import games.stendhal.server.actions.validator.ActionData;
+import games.stendhal.server.actions.validator.ActionValidation;
+import games.stendhal.server.actions.validator.ExtractEntityValidator;
+import games.stendhal.server.actions.validator.ZoneNotChanged;
 import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.core.engine.StendhalRPWorld;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.mapstuff.portal.HousePortal;
 import games.stendhal.server.entity.player.Player;
-import games.stendhal.server.util.EntityHelper;
 import marauroa.common.game.RPAction;
 
 /**
@@ -28,18 +37,27 @@ import marauroa.common.game.RPAction;
  * @author kymara
  */
 public class KnockAction implements ActionListener {
+	private static final Logger logger = Logger.getLogger(KnockAction.class);
+
+	private static final ActionValidation VALIDATION = new ActionValidation();
+	static {
+		VALIDATION.add(new ZoneNotChanged());
+		VALIDATION.add(new ExtractEntityValidator());
+	}
 
 	public static void register() {
 		final KnockAction knock = new KnockAction();
 		CommandCenter.register(KNOCK, knock);
 	}
 
+	@Override
 	public void onAction(final Player player, final RPAction action) {
+		ActionData data = new ActionData();
+		if (!VALIDATION.validateAndInformPlayer(player, action, data)) {
+			return;
+		}
 
-		// evaluate the target parameter
-		final Entity entity = EntityHelper.entityFromTargetName(
-			action.get(TARGET), player);
-
+		Entity entity = data.getEntity();
 		if ((entity == null) || !(entity instanceof HousePortal)) {
 			// unlikely to happen since players can only see Knock on HousePortal right click menus, but you never know ...
 			player.sendPrivateText("To nie jest coś do pukania.");
@@ -60,14 +78,36 @@ public class KnockAction implements ActionListener {
 	 * @param houseportal HousePortal which was knocked
 	 */
 	private void knock(final Player player, final HousePortal houseportal) {
-		String message = player.getName() + " puka do drzwi!";
+		final String message = player.getName() + " puka do drzwi!";
+		boolean knocked = false;
 
-		// get the destination zone of the portal - that is where to shout to
-		final StendhalRPZone zone =  SingletonRepository.getRPWorld().getZone(houseportal.getDestinationZone());
-		if (zone != null) { 
-			for (Player houseplayer : zone.getPlayers()) {
-				houseplayer.sendPrivateText(message);
+		final StendhalRPWorld world = SingletonRepository.getRPWorld();
+		final List<StendhalRPZone> zList = new ArrayList<>();
+
+		final StendhalRPZone mainZone = world.getZone(houseportal.getDestinationZone());
+		if (mainZone != null) {
+			zList.add(mainZone);
+			for (final String zoneName: mainZone.getAssociatedZonesList()) {
+				final StendhalRPZone subZone = world.getZone(zoneName);
+				if (subZone != null) {
+					zList.add(subZone);
+				}
 			}
+		}
+
+		// get the destination & associated zones - that is where to shout to
+		for (final StendhalRPZone zone: zList) {
+			if (zone != null) {
+				knocked = true;
+				for (final Player houseplayer : zone.getPlayers()) {
+					houseplayer.sendPrivateText(message);
+				}
+			} else {
+				logger.debug("Invalid zone associated with " + mainZone.getName());
+			}
+		}
+
+		if (knocked) {
 			player.sendPrivateText("stuk puk-puk zapukałeś w drzwi! Mam nadzieje, że ktoś jest w domu ...");
 		} else {
 			// should not happen

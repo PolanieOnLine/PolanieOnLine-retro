@@ -1,4 +1,4 @@
-/* $Id: AccountCreator.java,v 1.6 2010/09/19 02:22:40 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,10 +12,13 @@
  ***************************************************************************/
 package games.stendhal.server.core.account;
 
-import games.stendhal.server.core.engine.SingletonRepository;
-
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.Date;
 
+import org.apache.log4j.Logger;
+
+import games.stendhal.server.core.engine.SingletonRepository;
 import marauroa.common.crypto.Hash;
 import marauroa.common.game.AccountResult;
 import marauroa.common.game.Result;
@@ -23,8 +26,6 @@ import marauroa.server.db.DBTransaction;
 import marauroa.server.db.TransactionPool;
 import marauroa.server.game.db.AccountDAO;
 import marauroa.server.game.db.DAORegister;
-
-import org.apache.log4j.Logger;
 
 /**
  * Creates a new account as requested by a client.
@@ -37,7 +38,7 @@ public class AccountCreator {
 
 	/**
 	 * creates a new AccountCreator.
-	 * 
+	 *
 	 * @param username
 	 *            name of the user
 	 * @param password
@@ -53,7 +54,7 @@ public class AccountCreator {
 
 	/**
 	 * tries to create this account.
-	 * 
+	 *
 	 * @return AccountResult
 	 */
 	public AccountResult create() {
@@ -67,7 +68,7 @@ public class AccountCreator {
 
 	/**
 	 * Checks the user provide parameters.
-	 * 
+	 *
 	 * @return null in case everything is ok, a Resul in case some validator
 	 *         failed
 	 */
@@ -81,7 +82,7 @@ public class AccountCreator {
 
 	/**
 	 * tries to create the player in the database.
-	 * 
+	 *
 	 * @return Result.OK_CREATED on success
 	 */
 	private AccountResult insertIntoDatabase() {
@@ -96,7 +97,7 @@ public class AccountCreator {
 				return new AccountResult(Result.FAILED_PLAYER_EXISTS, username);
 			}
 
-			accountDAO.addPlayer(transaction, username, Hash.hash(password), email);
+			accountDAO.addPlayer(transaction, username, Hash.hash(password), email, new Timestamp(new Date().getTime()));
 
 			transactionPool.commit(transaction);
 			return new AccountResult(Result.OK_CREATED, username);

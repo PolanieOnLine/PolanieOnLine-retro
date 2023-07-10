@@ -11,11 +11,6 @@
  ***************************************************************************/
 package games.stendhal.client.gui.j2d;
 
-import games.stendhal.client.gui.wt.core.WtWindowManager;
-import games.stendhal.client.sprite.DataLoader;
-import games.stendhal.client.sprite.ImageSprite;
-import games.stendhal.client.sprite.Sprite;
-
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Font;
@@ -23,7 +18,6 @@ import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsEnvironment;
 import java.awt.RenderingHints;
-import java.awt.Transparency;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -32,6 +26,12 @@ import java.util.Locale;
 import javax.imageio.ImageIO;
 
 import org.apache.log4j.Logger;
+
+import games.stendhal.client.gui.TransparencyMode;
+import games.stendhal.client.gui.wt.core.WtWindowManager;
+import games.stendhal.client.sprite.DataLoader;
+import games.stendhal.client.sprite.ImageSprite;
+import games.stendhal.client.sprite.Sprite;
 
 public class AchievementBoxFactory {
 	/** Default font name */
@@ -49,10 +49,10 @@ public class AchievementBoxFactory {
 	private static final int BOTTOM_MARGIN = 25;
 	/** Space to leave between the category image and text */
 	private static final int IMAGE_PAD = 5;
-	
+
 	/** Used for calculating the line metrics */
 	private static final Graphics2D graphics = (new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB)).createGraphics();
-	
+
 	/**
 	 * Create a sprite for a reached achievement
 	 * @param title
@@ -64,7 +64,7 @@ public class AchievementBoxFactory {
 		final GraphicsConfiguration gc = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
 		// Get the category image
 		// initialize category image with empty image in case loading the image fails
-		BufferedImage categoryImage = gc.createCompatibleImage(32, 32, Transparency.BITMASK);
+		BufferedImage categoryImage = gc.createCompatibleImage(32, 32, TransparencyMode.TRANSPARENCY);
 		String imageName = ACHIEVEMENT_IMAGE_FOLDER + category.toLowerCase(Locale.ENGLISH) + ".png";
 		try {
 			categoryImage = ImageIO.read(DataLoader.getResourceAsStream(imageName));
@@ -83,30 +83,30 @@ public class AchievementBoxFactory {
 		int height = (int) Math.max(categoryImage.getHeight(), (titleRect.getHeight() + textRect.getHeight()));
 		width += 2 * SIDE_MARGIN + IMAGE_PAD;
 		height += TOP_MARGIN + BOTTOM_MARGIN;
-		
+
 		// Create the background sprite
-		final BufferedImage image = gc.createCompatibleImage(width, height, Transparency.BITMASK);
+		final BufferedImage image = gc.createCompatibleImage(width, height, TransparencyMode.TRANSPARENCY);
 		final Graphics2D g2d = image.createGraphics();
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g2d.setComposite(AlphaComposite.Src);
 		BackgroundPainter bp = new BackgroundPainter(BACKGROUND);
 		bp.paint(g2d, width, height);
-		
+
 		// Draw the texts
-		g2d.setColor(Color.BLACK); 
+		g2d.setColor(Color.BLACK);
 		g2d.setFont(largeFont);
 		g2d.drawString(title, SIDE_MARGIN + IMAGE_PAD + categoryImage.getWidth(), TOP_MARGIN + (int) titleRect.getHeight());
-		
+
 		g2d.setFont(font);
 		g2d.drawString(description, SIDE_MARGIN + IMAGE_PAD + categoryImage.getWidth(), height - BOTTOM_MARGIN);
-		
+
 		// Draw the image (the usable height starts right from the top)
 		int y = (height - BOTTOM_MARGIN - categoryImage.getHeight()) / 2 + TOP_MARGIN;
 		g2d.setComposite(AlphaComposite.SrcOver);
 		g2d.drawImage(categoryImage, SIDE_MARGIN, y, null);
-		
+
 		g2d.dispose();
-		
+
 		return new ImageSprite(image);
 	}
 

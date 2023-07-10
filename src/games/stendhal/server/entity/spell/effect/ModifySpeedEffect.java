@@ -15,12 +15,13 @@ public class ModifySpeedEffect extends AbstractEffect {
 		super(nature, amount, atk, def, lifesteal, rate, regen, modifier);
 	}
 
+	@Override
 	public void act(final Player caster, final Entity target) {
 		actInternal(caster, (GuidedEntity) target);
 	}
 
 	private void actInternal(Player caster, GuidedEntity target) {
-		
+
 	}
 
 }

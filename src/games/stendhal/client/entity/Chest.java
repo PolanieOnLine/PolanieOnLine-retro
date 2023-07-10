@@ -1,4 +1,4 @@
-/* $Id: Chest.java,v 1.59 2010/07/27 19:37:16 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -46,7 +46,7 @@ public class Chest extends Entity {
 
 	/**
 	 * Get the chest contents.
-	 * 
+	 *
 	 * @return The contents slot.
 	 */
 	public RPSlot getContent() {
@@ -55,7 +55,7 @@ public class Chest extends Entity {
 
 	/**
 	 * Determine if the chest is open.
-	 * 
+	 *
 	 * @return <code>true</code> if the chest is open.
 	 */
 	public boolean isOpen() {
@@ -68,10 +68,10 @@ public class Chest extends Entity {
 
 	/**
 	 * Initialize this entity for an object.
-	 * 
+	 *
 	 * @param object
 	 *            The object.
-	 * 
+	 *
 	 * @see #release()
 	 */
 	@Override
@@ -93,7 +93,7 @@ public class Chest extends Entity {
 
 	/**
 	 * The object added/changed attribute(s).
-	 * 
+	 *
 	 * @param object
 	 *            The base object.
 	 * @param changes
@@ -111,7 +111,7 @@ public class Chest extends Entity {
 
 	/**
 	 * The object removed attribute(s).
-	 * 
+	 *
 	 * @param object
 	 *            The base object.
 	 * @param changes

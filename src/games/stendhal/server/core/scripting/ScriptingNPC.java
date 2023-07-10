@@ -1,4 +1,4 @@
-/* $Id: ScriptingNPC.java,v 1.4 2012/08/23 20:05:44 yoriy Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,16 +12,15 @@
  ***************************************************************************/
 package games.stendhal.server.core.scripting;
 
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.npc.behaviour.adder.BuyerAdder;
 import games.stendhal.server.entity.npc.behaviour.adder.HealerAdder;
-import games.stendhal.server.entity.npc.behaviour.adder.FreeHealerAdder;
 import games.stendhal.server.entity.npc.behaviour.adder.SellerAdder;
 import games.stendhal.server.entity.npc.behaviour.impl.BuyerBehaviour;
 import games.stendhal.server.entity.npc.behaviour.impl.SellerBehaviour;
-
-import java.util.List;
-import java.util.Map;
 
 public class ScriptingNPC extends SpeakerNPC {
 
@@ -76,7 +75,6 @@ public class ScriptingNPC extends SpeakerNPC {
 	public void behave(final String method, final int cost) throws NoSuchMethodException {
 		if ("heal".equalsIgnoreCase(method)) {
 			new HealerAdder().addHealer(this, cost);
-			new FreeHealerAdder().addHealer(this, cost);
 		} else {
 			throw new NoSuchMethodException("Behaviour.add(" + method
 					+ ") not supported.");

@@ -1,6 +1,5 @@
-/* $Id: SummonAtAction.java,v 1.14 2011/05/01 22:03:09 martinfuchs Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -17,12 +16,14 @@ import static games.stendhal.common.constants.Actions.ITEM;
 import static games.stendhal.common.constants.Actions.SLOT;
 import static games.stendhal.common.constants.Actions.SUMMONAT;
 import static games.stendhal.common.constants.Actions.TARGET;
+
 import games.stendhal.common.grammar.Grammar;
 import games.stendhal.server.actions.CommandCenter;
 import games.stendhal.server.core.engine.GameEvent;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.rule.EntityManager;
 import games.stendhal.server.entity.item.Item;
+import games.stendhal.server.entity.item.SlotActivatedItem;
 import games.stendhal.server.entity.item.StackableItem;
 import games.stendhal.server.entity.player.Player;
 import marauroa.common.game.RPAction;
@@ -30,7 +31,7 @@ import marauroa.common.game.RPAction;
 public class SummonAtAction extends AdministrationAction {
 
 	public static void register() {
-		CommandCenter.register(SUMMONAT, new SummonAtAction(), 15);
+		CommandCenter.register(SUMMONAT, new SummonAtAction(), 36);
 	}
 
 	@Override
@@ -86,6 +87,9 @@ public class SummonAtAction extends AdministrationAction {
 
 				if (!changed.equip(slotName, item)) {
 					player.sendPrivateText("Slot jest zajęty.");
+				} else if (item instanceof SlotActivatedItem) {
+					// enable effects of slot activated items
+					((SlotActivatedItem) item).onEquipped(player, slotName);
 				}
 			}
 		}

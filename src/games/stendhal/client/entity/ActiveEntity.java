@@ -1,4 +1,4 @@
-/* $Id: ActiveEntity.java,v 1.36 2012/12/14 21:27:04 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2012 - Stendhal                    *
  ***************************************************************************
@@ -43,13 +43,15 @@ public abstract class ActiveEntity extends Entity {
 	/** The current speed of this entity vertically (tiles?/sec) . */
 	private double dy;
 
+	/** If <code>true</code>, this entity is not blocked by FlyOverArea */
+	private boolean flying = false;
+
 	/**
 	 * Create an active (moving) entity.
 	 */
 	ActiveEntity() {
 		direction = Direction.DOWN;
-		dx = 0.0;
-		dy = 0.0;
+		setSpeed(0.0, 0.0);
 	}
 
 	//
@@ -58,7 +60,7 @@ public abstract class ActiveEntity extends Entity {
 
 	/**
 	 * Get the direction.
-	 * 
+	 *
 	 * @return The direction.
 	 */
 	public Direction getDirection() {
@@ -67,17 +69,27 @@ public abstract class ActiveEntity extends Entity {
 
 	/**
 	 * Set the direction.
-	 * 
+	 *
 	 * @param direction
 	 *            The direction.
 	 */
-	private void setDirection(final Direction direction) {
+	void setDirection(final Direction direction) {
+		boolean changed = this.direction != direction;
 		this.direction = direction;
+		if (changed) {
+			/*
+			 * Movement prediction can result in the client entities (User)
+			 * sometimes having the wrong direction, so we do the changed check
+			 * here instead of firing the property only when the RPObject
+			 * changes warrant so.
+			 */
+			fireChange(PROP_DIRECTION);
+		}
 	}
 
 	/**
 	 * Determine if this entity is not moving.
-	 * 
+	 *
 	 * @return <code>true</code> if not moving.
 	 */
 	public boolean stopped() {
@@ -86,7 +98,7 @@ public abstract class ActiveEntity extends Entity {
 
 	/**
 	 * Compares to floating point values.
-	 * 
+	 *
 	 * @param d1
 	 *            first value
 	 * @param d2
@@ -104,7 +116,7 @@ public abstract class ActiveEntity extends Entity {
 	 * calculates the movement if the server an client are out of sync. for some
 	 * milliseconds. (server turns are not exactly 300 ms) Most times this will
 	 * slow down the client movement
-	 * 
+	 *
 	 * @param clientPos
 	 *            the position the client has calculated
 	 * @param serverPos
@@ -122,7 +134,7 @@ public abstract class ActiveEntity extends Entity {
 
 	/**
 	 * When entity moves, it will be called with the data.
-	 * 
+	 *
 	 * @param x new x coordinate
 	 * @param y new y coordinate
 	 * @param direction new direction
@@ -133,11 +145,10 @@ public abstract class ActiveEntity extends Entity {
 
 		double oldx = this.x;
 		double oldy = this.y;
-		this.dx = direction.getdx() * speed;
-		this.dy = direction.getdy() * speed;
+		setSpeed(direction.getdx() * speed, direction.getdy() * speed);
 
-		if ((Direction.LEFT.equals(direction))
-				|| (Direction.RIGHT.equals(direction))) {
+		if ((Direction.LEFT == direction)
+				|| (Direction.RIGHT == direction)) {
 			this.y = y;
 			if (compareDouble(this.x, x, 1.0)) {
 				// make the movement look more nicely: + this.dx * 0.1
@@ -148,8 +159,8 @@ public abstract class ActiveEntity extends Entity {
 				this.x = x;
 			}
 			this.dy = 0;
-		} else if ((Direction.UP.equals(direction))
-				|| (Direction.DOWN.equals(direction))) {
+		} else if ((Direction.UP == direction)
+				|| (Direction.DOWN == direction)) {
 			this.x = x;
 			this.dx = 0;
 			if (compareDouble(this.y, y, 1.0)) {
@@ -185,10 +196,10 @@ public abstract class ActiveEntity extends Entity {
 
 	/**
 	 * Initialize this entity for an object.
-	 * 
+	 *
 	 * @param base
 	 *            The object.
-	 * 
+	 *
 	 * @see #release()
 	 */
 	@Override
@@ -207,13 +218,17 @@ public abstract class ActiveEntity extends Entity {
 			speed = 0.0;
 		}
 
+		if (base.has("flying")) {
+			flying = true;
+		}
+
 		dx = direction.getdx() * speed;
 		dy = direction.getdy() * speed;
 	}
 
 	/**
 	 * Update cycle.
-	 * 
+	 *
 	 * @param delta
 	 *            The time (in ms) since last call.
 	 */
@@ -244,7 +259,7 @@ public abstract class ActiveEntity extends Entity {
 	 * Process attribute changes that may affect positioning. This is needed
 	 * because different entities may want to process coordinate changes more
 	 * gracefully.
-	 * 
+	 *
 	 * @param base
 	 *            The previous values.
 	 * @param diff
@@ -271,7 +286,6 @@ public abstract class ActiveEntity extends Entity {
 		if (diff.has("dir")) {
 			tempDirection = Direction.build(diff.getInt("dir"));
 			setDirection(tempDirection);
-			fireChange(PROP_DIRECTION);
 		} else if (base.has("dir")) {
 			tempDirection = Direction.build(base.getInt("dir"));
 			setDirection(tempDirection);
@@ -281,9 +295,15 @@ public abstract class ActiveEntity extends Entity {
 
 		double speed;
 
+		/*
+		 * Speed change must be fired only after the new speed has been stored
+		 * (done in onMove())
+		 */
+		boolean speedChanged = false;
+
 		if (diff.has("speed")) {
 			speed = diff.getDouble("speed");
-			fireChange(PROP_SPEED);
+			speedChanged = true;
 		} else if (base.has("speed")) {
 			speed = base.getDouble("speed");
 		} else {
@@ -292,19 +312,23 @@ public abstract class ActiveEntity extends Entity {
 
 		onMove(newX, newY, tempDirection, speed);
 
-		boolean changed = false;
-		if ((Direction.STOP.equals(tempDirection)) || (speed == 0)) {
-			dx = 0.0;
-			dy = 0.0;
+		if (speedChanged) {
+			fireChange(PROP_SPEED);
+		}
+
+		boolean positionChanged = false;
+		if ((Direction.STOP == tempDirection) || (speed == 0)) {
+			setSpeed(0.0, 0.0);
 
 			/*
 			 * Try to ensure relocation in the case the client and server were
-			 * in disagreement about the position at tme moment of stopping.
+			 * in disagreement about the position at the moment of stopping.
 			 */
 			if (!(compareDouble(y, newY, EPSILON) && compareDouble(x, newX, EPSILON))) {
-				changed = true;
+				positionChanged = true;
 			}
 
+			// Store the new position before signaling it with onPosition().
 			x = newX;
 			y = newY;
 		}
@@ -312,8 +336,29 @@ public abstract class ActiveEntity extends Entity {
 		/*
 		 * Change in position?
 		 */
-		if (changed || ((oldx != newX) && (oldy != newY))) {
+		if (positionChanged || ((oldx != newX) && (oldy != newY))) {
 			onPosition(newX, newY);
 		}
+	}
+
+	/**
+	 * Set the current client side speed. This is used by the movement
+	 * prediction at key press. <b>Do not call unless you know what you're
+	 * doing. </b>
+	 *
+	 * @param dx horizontal speed
+	 * @param dy vertical speed
+	 */
+	final void setSpeed(double dx, double dy) {
+		this.dx = dx;
+		this.dy = dy;
+	}
+
+	/**
+	 * Checks if the entity is a flying entity.
+	 * @return
+	 */
+	public boolean isFlying() {
+		return flying;
 	}
 }

@@ -1,4 +1,3 @@
-/* $Id: LilJohnnnnyNPC.java,v 1.7 2010/09/19 02:31:20 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,50 +11,48 @@
  ***************************************************************************/
 package games.stendhal.server.maps.nalwor.assassinhq;
 
+import java.util.Arrays;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-
-import java.util.Map;
 
 /**
  * Inside assassin headquarters classroom area.
  */
 public class LilJohnnnnyNPC implements ZoneConfigurator {
-
 	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildLilJohnnnny(zone);
 	}
 
 	private void buildLilJohnnnny(final StendhalRPZone zone) {
 		final SpeakerNPC liljohnnnny = new SpeakerNPC("lil johnnnny") {
-
-			@Override
-			protected void createPath() {
-				setPath(null);
-			}
-
 			@Override
 			protected void createDialog() {
-				addGreeting("Nie chciałem go skrzywdzić.");
-				addJob("Śmiał się ze mnie.");
-				addHelp("Powiedział, że moja matka nosi wojskowe buty.");
+				addGreeting("Nie chciałem #go skrzywdzić.");
+				addJob("Praca? Teraz nie mogę o tym myśleć.");
+				addHelp("Powiedział, że moja matka nosi wojskowe #buty.");
 				addOffer("Chcę, aby przeprosił za to co powiedział!");
 				addGoodbye("Cóż jeżeli musisz odejść...");
 				addQuest("Nie. Nie mam nic dla Ciebie. Może później.");
+				addReply(Arrays.asList("him", "go"),"Robił sobie ze mnie #żarty.");
+				addReply(Arrays.asList("fun", "żarty"),"Powiedział, że moja mama nosi wojskowe #buty.");
+				addReply(Arrays.asList("boots", "buty"),"Pożałuje, że to powiedział!");
 			}
 		};
 
 		liljohnnnny.setDescription("Oto lil johnnnny, knujący swój następny plan.");
 		liljohnnnny.setEntityClass("liljohnnnnynpc");
+		liljohnnnny.setGender("M");
 		liljohnnnny.setPosition(23, 2);
-		liljohnnnny.initHP(100);
 		zone.add(liljohnnnny);
 	}
 }

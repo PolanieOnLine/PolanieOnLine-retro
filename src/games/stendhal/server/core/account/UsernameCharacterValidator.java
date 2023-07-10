@@ -1,4 +1,3 @@
-/* $Id: UsernameCharacterValidator.java,v 1.5 2012/05/22 22:55:40 edi18028 Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -21,6 +20,7 @@ import marauroa.common.game.Result;
  */
 public class UsernameCharacterValidator implements AccountParameterValidator {
 	private final String parameterValue;
+	private char[] badCharacters = new char[]{'\"', '\'', '\\', ' ', ';', '<', '>'};
 
 	/**
 	 * creates a UsernameCharacterValidator.
@@ -32,6 +32,7 @@ public class UsernameCharacterValidator implements AccountParameterValidator {
 		this.parameterValue = parameterValue;
 	}
 
+	@Override
 	public Result validate() {
 		if (!parameterValue.contains("@") || !parameterValue.contains(".") || (parameterValue.length() <= 5)) {
 			return Result.FAILED_INVALID_CHARACTER_USED;
@@ -40,6 +41,11 @@ public class UsernameCharacterValidator implements AccountParameterValidator {
 		// letters , numbers and few signs are allowed
 		for (int i = parameterValue.length() - 1; i >= 0; i--) {
 			final char chr = parameterValue.charAt(i);
+			for (char bad : badCharacters) {
+				if (chr == bad) {
+					return Result.FAILED_INVALID_CHARACTER_USED;
+				}
+			}
 			if (((chr < 'a') || (chr > 'z')) && ((chr < 'A') || (chr > 'Z'))
 					&& ((chr < '0') || (chr > '9')) && (chr != 'ą') && (chr != 'ć')
 					&& (chr != 'ę') && (chr != 'ł') && (chr != 'ń') && (chr != 'ó')

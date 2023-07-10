@@ -1,6 +1,5 @@
-/* $Id: Observer.java,v 1.1 2010/11/10 22:31:23 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,14 +11,15 @@
  ***************************************************************************/
 package games.stendhal.server.script;
 
+import java.util.List;
+
 import games.stendhal.common.NotificationType;
 import games.stendhal.server.actions.admin.GhostModeAction;
 import games.stendhal.server.core.engine.GameEvent;
 import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.core.engine.StendhalRPRuleProcessor;
 import games.stendhal.server.core.scripting.ScriptImpl;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.List;
 
 /**
  * moves the view to the specified coordinates
@@ -31,12 +31,12 @@ public class Observer extends ScriptImpl {
 	@Override
 	public void execute(Player admin, List<String> args) {
 		if (!Boolean.parseBoolean(System.getProperty("stendhal.observer", "false"))) {
-			admin.sendPrivateText(NotificationType.ERROR, "Script not allowed on this server");
+			admin.sendPrivateText(NotificationType.ERROR, "Skrypt nie jest dozwolony na tym serwerze");
 			return;
 		}
 
 		if (admin.getAdminLevel() < 2000) {
-			admin.sendPrivateText(NotificationType.ERROR, "adminlevel 2000 required,");
+			admin.sendPrivateText(NotificationType.ERROR, "wymagany jest 2000 poziom administratora,");
 			return;
 		}
 
@@ -56,7 +56,7 @@ public class Observer extends ScriptImpl {
 			admin.unhide();
 		}
 		admin.teleport(SingletonRepository.getRPWorld().getZone("int_semos_house"), 3, 3, null, admin);
-
+		StendhalRPRuleProcessor.get().notifyOnlineStatus(!admin.isGhost(), admin);
 	}
 
 }

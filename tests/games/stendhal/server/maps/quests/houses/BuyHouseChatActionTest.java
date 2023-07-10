@@ -1,4 +1,4 @@
-/* $Id: BuyHouseChatActionTest.java,v 1.12 2011/05/01 19:50:09 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -17,6 +17,13 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static utilities.SpeakerNPCTestHelper.getReply;
+
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import games.stendhal.common.parser.ConversationParser;
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.engine.StendhalRPZone;
@@ -29,13 +36,6 @@ import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.MockStendhalRPRuleProcessor;
 import games.stendhal.server.maps.MockStendlRPWorld;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import utilities.PlayerTestHelper;
 
 public class BuyHouseChatActionTest {
@@ -76,7 +76,7 @@ public class BuyHouseChatActionTest {
 				housePortal = null;
 			}
 		}
-		
+
 		if (chest != null) {
 			StendhalRPZone zone = chest.getZone();
 			if (zone != null) {
@@ -102,24 +102,24 @@ public class BuyHouseChatActionTest {
 		chest = new StoredChest();
 		ados.add(chest);
 		HouseUtilities.clearCache();
-		
+
 		SpeakerNPC engine = new SpeakerNPC("bob");
 		EventRaiser raiser = new EventRaiser(engine);
 		Player player = PlayerTestHelper.createPlayer("george");
 		Sentence sentence = ConversationParser.parse("51");
 		action.fire(player , sentence , raiser);
-		assertThat(getReply(engine), is("You do not have enough money to buy a house!"));
+		assertThat(getReply(engine), is("Nie masz wystarczająco dużo pieniędzy, aby kupić dom."));
 		housePortal.setOwner("jim");
-		
+
 		action.fire(player , sentence , raiser);
-		assertThat(getReply(engine), containsString("Sorry, house 51 is sold"));
-		
+		assertThat(getReply(engine), containsString("Przepraszam dom 51 został już sprzedany"));
+
 		PlayerTestHelper.equipWithMoney(player, 1);
-	
+
 		housePortal.setOwner("");
-		
+
 		action.fire(player , sentence , raiser);
-		assertThat(getReply(engine), containsString("Congratulation"));
+		assertThat(getReply(engine), containsString("Gratulacje"));
 		assertFalse(player.isEquipped("money"));
 	}
 

@@ -1,7 +1,7 @@
 /*
  * @(#) src/games/stendhal/server/entity/area/LifeHealArea.java
  *
- *$Id: LifeHealArea.java,v 1.5 2008/07/12 14:43:56 astridemma Exp $
+ * $Id$
  */
 
 package games.stendhal.server.entity.mapstuff.area;
@@ -10,7 +10,7 @@ import games.stendhal.server.entity.RPEntity;
 
 /**
  * An area that heals an RPEntity of HP while over it.
- * 
+ *
  */
 public class LifeHealArea extends OccupantArea {
 
@@ -26,7 +26,7 @@ public class LifeHealArea extends OccupantArea {
 
 	/**
 	 * Create a damaging area.
-	 * 
+	 *
 	 * @param width
 	 *            Width of this area.
 	 * @param height
@@ -54,10 +54,10 @@ public class LifeHealArea extends OccupantArea {
 
 	/**
 	 * Inflict damage on an entity.
-	 * 
+	 *
 	 * @param entity
 	 *            The entity to damage.
-	 * 
+	 *
 	 * @return <code>false</code> if this entity should be removed from
 	 *         further processing, <code>true</code> otherwise.
 	 */
@@ -91,10 +91,10 @@ public class LifeHealArea extends OccupantArea {
 	/**
 	 * An entity has entered the area. This should not apply any actions that
 	 * <code>handleMovement()</code> does.
-	 * 
+	 *
 	 * @param entity
 	 *            The RPEntity that was added.
-	 * 
+	 *
 	 * @return <code>false</code> if this entity should not be processed,
 	 *         <code>true</code> otherwise.
 	 */
@@ -110,10 +110,10 @@ public class LifeHealArea extends OccupantArea {
 
 	/**
 	 * Apply actions done at regular intervals.
-	 * 
+	 *
 	 * @param entity
 	 *            The RPEntity occupant.
-	 * 
+	 *
 	 * @return <code>false</code> if this entity should be removed from
 	 *         further processing, <code>true</code> otherwise.
 	 */
@@ -125,7 +125,7 @@ public class LifeHealArea extends OccupantArea {
 	/**
 	 * An entity has left the area. This should not apply any actions that
 	 * <code>handleMovement()</code> does.
-	 * 
+	 *
 	 * @param entity
 	 *            The RPEntity that was added.
 	 */

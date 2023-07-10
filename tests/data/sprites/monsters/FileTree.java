@@ -1,4 +1,4 @@
-/* $Id: FileTree.java,v 1.12 2012/04/29 13:47:46 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -30,7 +30,7 @@ import javax.swing.tree.TreePath;
 
 public class FileTree extends JTree {
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 1L;
 
@@ -74,9 +74,9 @@ public class FileTree extends JTree {
 	// Inner class that represents a node in this
 	// file system tree
 	protected class FileTreeNode extends DefaultMutableTreeNode {
-		
+
 		private static final long serialVersionUID = 3223106240309250204L;
-		
+
 		/**
 		 * File object for this node.
 		 */
@@ -100,9 +100,9 @@ public class FileTree extends JTree {
 		 */
 
 		protected boolean isDir;
-		
-		
-		
+
+
+
 
 		public FileTreeNode(final File parent, final String name) throws FileNotFoundException {
 			this.name = name;
@@ -194,11 +194,12 @@ public class FileTree extends JTree {
 			return addedNodes;
 		}
 
-		
+
 	}
 
 	// Inner class that handles Tree Expansion Events
 	protected static class TreeExpansionHandler implements TreeExpansionListener {
+		@Override
 		public void treeExpanded(final TreeExpansionEvent evt) {
 			// The expanded path
 			final TreePath path = evt.getPath();
@@ -213,6 +214,7 @@ public class FileTree extends JTree {
 			}
 		}
 
+		@Override
 		public void treeCollapsed(final TreeExpansionEvent evt) {
 			// Nothing to do
 		}

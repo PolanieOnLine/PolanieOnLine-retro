@@ -1,4 +1,4 @@
-/* $Id: ChatTestCreator.java,v 1.11 2011/06/11 21:49:10 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -13,15 +13,16 @@
 package games.stendhal.tools.test;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 
 /**
  * This program creates a simple NPC chat test based on a chat log copy&pasted
  * from the the client chat log window.
- * 
+ *
  * @author hendrik
  */
 public class ChatTestCreator {
@@ -53,9 +54,9 @@ public class ChatTestCreator {
 			writer.comment(analyser.getText());
 		} else if (analyser.isPlayerSpeaking()) {
 			lastPlayerText = analyser.getText();
-			writer.player(analyser.getProtagonist(), lastPlayerText);
+			writer.player(lastPlayerText);
 		} else if (analyser.isNPCSpeaking()) {
-			writer.npc(analyser.getProtagonist(), analyser.getText());
+			writer.npc(analyser.getText());
 
 			if (lastPlayerText.equals("bye")) {
 				writer.emptyLine();
@@ -67,7 +68,7 @@ public class ChatTestCreator {
 
 	/**
 	 * Converts a chat log into a test case.
-	 * 
+	 *
 	 * @param args
 	 *            chatlog.txt [test.java]
 	 * @throws IOException
@@ -80,7 +81,7 @@ public class ChatTestCreator {
 			System.exit(1);
 		}
 
-		final BufferedReader br = new BufferedReader(new FileReader(args[0]));
+		final BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(args[0]), "UTF-8"));
 		PrintStream out = System.out;
 		if (args.length > 1) {
 			out = new PrintStream(new FileOutputStream(args[1]));

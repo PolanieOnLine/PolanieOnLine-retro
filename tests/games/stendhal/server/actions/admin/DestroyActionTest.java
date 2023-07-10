@@ -1,4 +1,4 @@
-/* $Id: DestroyActionTest.java,v 1.5 2010/09/19 02:38:52 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -13,40 +13,40 @@
 package games.stendhal.server.actions.admin;
 
 import static org.junit.Assert.assertEquals;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.entity.item.Corpse;
-import games.stendhal.server.entity.player.Player;
-import games.stendhal.server.maps.MockStendlRPWorld;
-import marauroa.common.game.RPAction;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.entity.item.Corpse;
+import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.maps.MockStendlRPWorld;
+import marauroa.common.game.RPAction;
 import utilities.PlayerTestHelper;
 import utilities.RPClass.CorpseTestHelper;
 
 public class DestroyActionTest {
 
-	
+
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		MockStendlRPWorld.get();
 		CorpseTestHelper.generateRPClasses();
 	}
-	
+
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 		MockStendlRPWorld.reset();
 	}
-	
+
 	/**
 	 * Tests for perform.
 	 */
 	@Test
 	public void testPerform() {
 		DestroyAction destroyAction = new DestroyAction();
-		Corpse corpse = new Corpse("rat", 0, 0);
+		Corpse corpse = new Corpse("szczur", 0, 0);
 		Player player = PlayerTestHelper.createPlayer("bob");
 		StendhalRPZone zone = new StendhalRPZone("zone");
 		zone.add(corpse);
@@ -54,7 +54,7 @@ public class DestroyActionTest {
 		RPAction rpAction = new RPAction();
 		rpAction.put("target", "#" + corpse.getID().getObjectID());
 		destroyAction.perform(player , rpAction);
-		assertEquals("Removed  corpse with ID #1", player.events().get(0).get("text"));
+		assertEquals("Usunięto #'' o ID #1.", player.events().get(0).get("text"));
 	}
 
 }

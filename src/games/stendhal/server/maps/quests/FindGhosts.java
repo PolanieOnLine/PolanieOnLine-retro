@@ -1,6 +1,5 @@
-/* $Id: FindGhosts.java,v 1.53 2012/04/20 17:18:25 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2011 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,6 +11,13 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.common.grammar.Grammar;
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.entity.npc.ChatAction;
@@ -19,6 +25,7 @@ import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.npc.SpeakerNPC;
+import games.stendhal.server.entity.npc.action.SetQuestAction;
 import games.stendhal.server.entity.npc.action.SetQuestAndModifyKarmaAction;
 import games.stendhal.server.entity.npc.condition.AndCondition;
 import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
@@ -32,21 +39,14 @@ import games.stendhal.server.entity.npc.condition.TriggerInListCondition;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.Region;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-
-import org.apache.log4j.Logger;
-
 /**
  * QUEST: Find Ghosts
- * 
- * PARTICIPANTS: 
+ *
+ * PARTICIPANTS:
  * <ul>
  * <li> Carena</li>
  * </ul>
- * 
+ *
  * STEPS:
  * <ul>
  * <li> Carena asks you to find the 4 other spirits on Faiumoni</li>
@@ -55,33 +55,28 @@ import org.apache.log4j.Logger;
  * <li> Carena checks you have met them, then gives reward</li>
  * <li> Note: you can meet the ghosts before you started the quest with her</li>
  * </ul>
- * 
- * REWARD: 
+ *
+ * REWARD:
  * <ul>
- * <li> base HP bonus of 50</li>
+ * <li> base HP bonus of 100</li>
  * <li> 5000 XP</li>
  * <li> Karma: 15</li>
  * </ul>
- * 
- * REPETITIONS: 
+ *
+ * REPETITIONS:
  * <ul>
  * <li> None.</li>
  * </ul>
  */
 public class FindGhosts extends AbstractQuest {
+	public static final String QUEST_SLOT = "find_ghosts";
+	private final SpeakerNPC npc = npcs.get("Carena");
+
+	private static final List<String> NEEDED_SPIRITS =
+		Arrays.asList("mary", "ben", "zak", "goran");
 
 	private static Logger logger = Logger.getLogger(FindGhosts.class);
 
-	public static final String QUEST_SLOT = "find_ghosts";
-	
-	private static final List<String> NEEDED_SPIRITS = 
-		Arrays.asList("mary", "ben", "zak", "goran");
-
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
-	
 	private List<String> missingNames(final Player player) {
 		if (!player.hasQuest(QUEST_SLOT)) {
 			return NEEDED_SPIRITS;
@@ -106,8 +101,6 @@ public class FindGhosts extends AbstractQuest {
 	}
 
 	private void askingStep() {
-		final SpeakerNPC npc = npcs.get("Carena");
-
 		npc.add(ConversationStates.ATTENDING,
 			ConversationPhrases.QUEST_MESSAGES,
 			new OrCondition(new QuestNotStartedCondition(QUEST_SLOT), new QuestInStateCondition(QUEST_SLOT, "rejected")),
@@ -126,15 +119,15 @@ public class FindGhosts extends AbstractQuest {
 			ConversationPhrases.QUEST_MESSAGES,
 			new QuestCompletedCondition(QUEST_SLOT),
 			ConversationStates.ATTENDING,
-			"Dziękuję! Czuję się teraz lepiej znając imiona innych duchów na Faiumoni.",
+			"Dziękuję! Czuję się teraz lepiej znając imiona innych duchów w Faiumoni.",
 			null);
 
 		npc.add(ConversationStates.QUEST_OFFERED,
-			ConversationPhrases.YES_MESSAGES, 
+			ConversationPhrases.YES_MESSAGES,
 			null,
 			ConversationStates.ATTENDING,
 			"To wspaniale z twojej strony. Powodzenia w szukaniu ich.",
-			new SetQuestAndModifyKarmaAction(QUEST_SLOT, "looking:said", 5.0));
+			new SetQuestAction(QUEST_SLOT, "looking:said"));
 
 		npc.add(
 			ConversationStates.QUEST_OFFERED,
@@ -159,9 +152,6 @@ public class FindGhosts extends AbstractQuest {
 	}
 
 	private void tellingStep() {
-
-		final SpeakerNPC npc = npcs.get("Carena");
-
 		// the player returns to Carena after having started the quest, or found
 		// some ghosts.
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
@@ -174,10 +164,11 @@ public class FindGhosts extends AbstractQuest {
 			npc.add(ConversationStates.QUESTION_1, spiritName, null,
 				ConversationStates.QUESTION_1, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 						final String name = spiritName;
 
-						// although all names are stored as lower case from now on, 
+						// although all names are stored as lower case from now on,
 						// older versions did not,
 						// so we have to be compatible with them
 						final String npcQuestText = player.getQuest(QUEST_SLOT).toLowerCase();
@@ -213,7 +204,7 @@ public class FindGhosts extends AbstractQuest {
 							reply = "Nie wierzę, że rozmawiałeś z duchem o tym imieniu.";
 						} else if (!isMissing && said.contains(name)) {
 							// we have said the name so we are stupid!
-							reply = "Mówiłeś mi już o tym duchu.";
+							reply = "Już mi wyjawiłeś imię tego ducha, dziękuję.";
 						} else {
 							assert false;
 						}
@@ -225,8 +216,8 @@ public class FindGhosts extends AbstractQuest {
 							reply += " Jeżeli spotkasz inne duchy to proszę powiedz mi ich imiona.";
 							npc.say(reply);
 						} else {
-							player.setBaseHP(50 + player.getBaseHP());
-							player.heal(50, true);
+							player.setBaseHP(100 + player.getBaseHP());
+							player.heal(100, true);
 							player.addXP(5000);
 							player.addKarma(15);
 							reply += " Znam teraz 4 inne duchy. Może teraz będę mogła się skontaktować z nimi za pomocą telepatii. Nie mogłam dać Ci nic z materialnych rzeczy i dlatego zwiększyłam twoją żywotność. Będziesz mógł żyć dłużej.";
@@ -259,21 +250,20 @@ public class FindGhosts extends AbstractQuest {
 			Arrays.asList("spirits", "spirit", "duch", "duchy", "duchach"),
 			null,
 			ConversationStates.QUESTION_1,
-			"Szukam czegoś więcej o innych duchach, które są martwe i utknęły na ziemi właśnie jako duchy. Proszę wyjaw mi ich imiona.",
+			"Chcę dowiedzieć się więcej o innych duchach, które wędrują po ziemskim świecie jako duchy tak jak ja. Proszę, wyjaw mi ich imiona.",
 			null);
 
 		// the player goes to Carena and says hi, and has no quest or is completed.
-		npc.add(ConversationStates.IDLE, 
+		npc.add(ConversationStates.IDLE,
 				ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new GreetingMatchesNameCondition(npc.getName()),
 						new NotCondition(new QuestActiveCondition(QUEST_SLOT))),
-				ConversationStates.ATTENDING, "Ałłłuuuuuuu!", 
+				ConversationStates.ATTENDING, "Ałłłuuuuuuu!",
 				null);
 	}
 
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
 				"Poszukiwania Duchów",
 				"Pewnego razu paru podróżnych rozmawiało z duchami, które odwiedziły ich podczas podróży przez Faiumoni. Jeden z nich młody duch zwany Carena ukryty gdzieś w okolicach Ados potrzebuje pomocy...",
@@ -295,18 +285,23 @@ public class FindGhosts extends AbstractQuest {
 				return res;
 			}
 			if (!isCompleted(player)) {
-				res.add("Znalazłem " + missingNames(player).size() + " " + Grammar.plnoun(missingNames(player).size(), "ghost") + " aby powiedzieć Carenie.");
+				res.add(Grammar.genderVerb(player.getGender(), "Znalazłem") + " " + missingNames(player).size() + " " + Grammar.plnoun(missingNames(player).size(), "ghost") + " aby powiedzieć Carenie.");
 			} else {
 				res.add("Carena ucieszyła się, że są inne duchy na świecie. Za moje zaangażowanie podniosła moją żywotność.");
 			}
 			return res;
 	}
-	
+
+	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
+	}
+
 	@Override
 	public String getName() {
-		return "FindGhosts";
+		return "Poszukiwania Duchów";
 	}
-	
+
 	@Override
 	public int getMinLevel() {
 		return 10;
@@ -314,9 +309,9 @@ public class FindGhosts extends AbstractQuest {
 
 	@Override
 	public String getNPCName() {
-		return "Carena";
+		return npc.getName();
 	}
-	
+
 	@Override
 	public String getRegion() {
 		return Region.ADOS_CITY;

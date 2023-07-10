@@ -1,4 +1,4 @@
-/* $Id: UseableEntity.java,v 1.10 2010/10/30 15:39:16 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,10 +12,10 @@
  ***************************************************************************/
 package games.stendhal.server.entity.mapstuff.useable;
 
-import marauroa.common.game.RPClass;
-import marauroa.common.game.Definition.Type;
 import games.stendhal.server.core.events.UseListener;
 import games.stendhal.server.entity.Entity;
+import marauroa.common.game.Definition.Type;
+import marauroa.common.game.RPClass;
 
 /**
  * an entity that can be placed on the map and will allow the client to "use"
@@ -38,7 +38,7 @@ public abstract class UseableEntity extends Entity implements UseListener {
 	public static void generateRPClass() {
 		final RPClass rpclass = new RPClass("useable_entity");
 		rpclass.isA("entity");
-		
+
 		// class: source/switch
 		rpclass.addAttribute("class", Type.STRING);
 
@@ -47,9 +47,6 @@ public abstract class UseableEntity extends Entity implements UseListener {
 
 		// name of item: gold_source
 		rpclass.addAttribute("name", Type.STRING);
-
-		// menu (Make a wish,use)
-		rpclass.addAttribute("menu", Type.STRING);
 
 		// state (row in sprite image)
 		rpclass.addAttribute("state", Type.INT);
@@ -73,18 +70,4 @@ public abstract class UseableEntity extends Entity implements UseListener {
 		put("state", state);
 		notifyWorldAboutChanges();
 	}
-
-	/**
-	 * The menu to display on the client in the format:
-	 * <pre>
-	 *    Display Name 1|action1,
-	 *    Display Name 2|action2
-	 * </pre>
-	 *
-	 * @param menu menu string
-	 */
-	public void setMenu(String menu) {
-		put("menu", menu);
-	}
-
 }

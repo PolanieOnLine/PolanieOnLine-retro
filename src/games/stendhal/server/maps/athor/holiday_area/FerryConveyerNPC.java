@@ -1,6 +1,5 @@
-/* $Id: FerryConveyerNPC.java,v 1.21 2011/05/01 19:50:08 martinfuchs Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2020 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,11 +11,15 @@
  ***************************************************************************/
 package games.stendhal.server.maps.athor.holiday_area;
 
+import java.util.Arrays;
+import java.util.Map;
+
 import games.stendhal.common.Direction;
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.entity.RPEntity;
 import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
@@ -26,19 +29,13 @@ import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.athor.ship.AthorFerry;
 import games.stendhal.server.maps.athor.ship.AthorFerry.Status;
 
-import java.util.Arrays;
-import java.util.Map;
-
-
 /**
  * Factory for an NPC who brings players from the docks to Athor Ferry in a
  * rowing boat.
  */
-
 public class FerryConveyerNPC implements ZoneConfigurator  {
-
-	public void configureZone(StendhalRPZone zone,
-			Map<String, String> attributes) {
+	@Override
+	public void configureZone(StendhalRPZone zone, Map<String, String> attributes) {
 		buildNPC(zone);
 	}
 
@@ -54,16 +51,9 @@ public class FerryConveyerNPC implements ZoneConfigurator  {
 
 	private void buildNPC(StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Jessica") {
-
-			@Override
-			protected void createPath() {
-				setPath(null);
-			}
-
 			@Override
 			public void createDialog() {
-
-				addGoodbye("Dowidzenia!");
+				addGoodbye("Do widzenia!");
 				addGreeting("Witam w Athor #ferry service! W czym mogę #pomóc?");
 				addHelp("Możesz #wejść na prom tylko za "
 						+ AthorFerry.PRICE
@@ -74,13 +64,15 @@ public class FerryConveyerNPC implements ZoneConfigurator  {
 				"Prom żegluje regularnie pomiędzy tą wyspą, a stałym lądem Faiumoni. Możesz #wejść na statek tylko kiedy jest tutaj zacumowany. Zapytaj mnie o #status jeżeli chcesz sprawdzić gdzie aktualnie się znajduje.");
 				add(ConversationStates.ATTENDING, "status", null,
 						ConversationStates.ATTENDING, null, new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 						npc.say(ferrystate.toString());
 					}
 				});
 
-		add(ConversationStates.ATTENDING, Arrays.asList("board", "wejść", "wejdź"), null,
-				ConversationStates.ATTENDING, null, new ChatAction() {
+				add(ConversationStates.ATTENDING, Arrays.asList("board", "wejść", "wejdź"), null,
+						ConversationStates.ATTENDING, null, new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 
 						if (ferrystate == Status.ANCHORED_AT_ISLAND) {
@@ -98,6 +90,7 @@ public class FerryConveyerNPC implements ZoneConfigurator  {
 				add(ConversationStates.SERVICE_OFFERED,
 						ConversationPhrases.YES_MESSAGES, null,
 						ConversationStates.ATTENDING, null, new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 						if (player.drop("money", AthorFerry.PRICE)) {
 							player.teleport(getShipZone(), 27, 33, Direction.LEFT, null);
@@ -112,31 +105,36 @@ public class FerryConveyerNPC implements ZoneConfigurator  {
 						ConversationPhrases.NO_MESSAGES, null,
 						ConversationStates.ATTENDING,
 						"Nie wiesz co tracisz, szczurze lądowy!", null);
+			}
 
-			}};
+			@Override
+			protected void onGoodbye(final RPEntity player) {
+				setDirection(Direction.LEFT);
+			}
+		};
 
-			new AthorFerry.FerryListener() {
-
-		
-				public void onNewFerryState(final Status status) {
-					ferrystate = status;
-					switch (status) {
-					case ANCHORED_AT_ISLAND:
-						npc.say("Uwaga: Prom przybył do wybrzeża! Można #wejść na statek.");
-						break;
-					case DRIVING_TO_MAINLAND:
-						npc.say("Uwaga: Prom odpłynął. Nie można się już dostać na statek.");
-						break;
-					default:
-						break;
-					}
+		new AthorFerry.FerryListener() {
+			@Override
+			public void onNewFerryState(final Status status) {
+				ferrystate = status;
+				switch (status) {
+				case ANCHORED_AT_ISLAND:
+					npc.say("Uwaga: Prom przybył do wybrzeża! Można #wejść na statek.");
+					break;
+				case DRIVING_TO_MAINLAND:
+					npc.say("Uwaga: Prom odpłynął. Nie można się już dostać na statek.");
+					break;
+				default:
+					break;
 				}
-			};
+			}
+		};
 
-			npc.setPosition(16, 88);
-			npc.setEntityClass("woman_008_npc");
-			npc.setDirection(Direction.LEFT);
-			zone.add(npc);	
+		npc.setDescription ("Oto Jessica. Swoją łódką zabiera pasażerów na pokład statku.");
+		npc.setEntityClass("woman_008_npc");
+		npc.setGender("F");
+		npc.setPosition(16, 88);
+		npc.setDirection(Direction.LEFT);
+		zone.add(npc);
 	}
-
 }

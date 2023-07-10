@@ -22,6 +22,7 @@ import games.stendhal.server.entity.item.Item;
  */
 public class IsBoundStatusRespected implements Validator {
 
+	@Override
 	public boolean validate(EquipmentActionData data) {
 
 		// get boundTo, return on unbound items
@@ -33,15 +34,15 @@ public class IsBoundStatusRespected implements Validator {
 		// check that the player to whom this item is bound, performed
 		// the action
 		if (!data.getPlayer().getName().equals(boundTo)) {
-			data.setErrorMessage("Oto " + data.getItemName()
-						+ " jest specjalną nagrodą dla " + boundTo
-						+ ". Nie zasługujesz na to, aby jej używać.");
+			data.setErrorMessage("This " + data.getItemName()
+						+ " is a special reward for " + boundTo
+						+ ". You do not deserve to use it.");
 			return false;
 		}
 
 		// check that the target does not decline item bound to anyone
 		if (data.getTargetSlot().isTargetBoundCheckRequired()) {
-			data.setErrorMessage("Nie możesz połążyć tutaj tej specjalnej nagrody z zadania ponieważ wykorzystywana może być tylko przez Ciebie.");
+			data.setErrorMessage("You cannot put this special quest reward there because it can only be used by you.");
 			return false;
 		}
 		return true;

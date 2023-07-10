@@ -1,6 +1,5 @@
-/* $Id: ZoneCollisionCheck.java,v 1.6 2010/09/19 02:36:26 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -15,14 +14,13 @@ package games.stendhal.server.script;
 import java.util.LinkedList;
 import java.util.List;
 
-import marauroa.common.game.IRPZone;
-
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPWorld;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.scripting.ScriptImpl;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.player.Player;
+import marauroa.common.game.IRPZone;
 
 /**
  * Searches for inconsistencies in zone collisions. For every square
@@ -58,24 +56,24 @@ public class ZoneCollisionCheck extends ScriptImpl {
 				return EAST;
 			}
 		};
-		
-		
+
+
 		public abstract Border opposite();
 	}
-	
+
 	private Entity entity;
 	private Player admin;
 	private int badnessThreshold = 1;
-	
+
 	@Override
 	public void execute(final Player admin, final List<String> args) {
 		StendhalRPWorld world = SingletonRepository.getRPWorld();
 		this.admin = admin;
-		
+
 		entity = new Entity() {
 			// anon subclass to allow instantiation.
 		};
-		
+
 		if (args.size() > 1) {
 			usage();
 			return;
@@ -89,23 +87,23 @@ public class ZoneCollisionCheck extends ScriptImpl {
 				return;
 			}
 		}
-		
+
 		for (IRPZone izone : world) {
 			StendhalRPZone zone = (StendhalRPZone) izone;
 			checkZone(zone);
 		}
 	}
-	
+
 	private void usage() {
 		admin.sendPrivateText("Użyj: /script ZoneCollisionCheck.class [badness]\n\tParametr badness jest to minimalna liczba nieudanych sprawdzeń w stosunku do innych");
 	}
-	
+
 	private void checkZone(StendhalRPZone zone) {
 		for (Border border : Border.values()) {
 			report(checkBorder(zone, border));
 		}
 	}
-	
+
 	/**
 	 * Check a border
 	 * @param zone the to check
@@ -114,15 +112,15 @@ public class ZoneCollisionCheck extends ScriptImpl {
 	 */
 	private List<String> checkBorder(StendhalRPZone zone, Border border) {
 		LinkedList<String> problems = new LinkedList<String>();
-		
+
 		// the coordinates to check in zone
 		int zoneX = 0;
 		int zoneY = 0;
-		
+
 		// walking direction
 		int dx = 0;
 		int dy = 0;
-		
+
 		// for finding the neighbour
 		int tmpx = zone.getX();
 		int tmpy = zone.getY();
@@ -145,14 +143,14 @@ public class ZoneCollisionCheck extends ScriptImpl {
 			dy = 1;
 			tmpx--;
 		}
-		
+
 		final StendhalRPZone neighbour = SingletonRepository.getRPWorld().getZoneAt(
 				zone.getLevel(), tmpx, tmpy, entity);
 		if (neighbour != null) {
 			// find the starting coordinates for neighbour
 			int neighbourX = 0;
 			int neighbourY = 0;
-			
+
 			switch (border.opposite()) {
 			case NORTH:
 				neighbourX = zone.getX() - neighbour.getX();
@@ -164,13 +162,13 @@ public class ZoneCollisionCheck extends ScriptImpl {
 				break;
 			case SOUTH:
 				neighbourX = zone.getX() - neighbour.getX();
-				neighbourY = neighbour.getHeight() - 1; 
+				neighbourY = neighbour.getHeight() - 1;
 				break;
 			case WEST:
 				neighbourX = 0;
 				neighbourY = zone.getY() - neighbour.getY();
 			}
-	
+
 			// Walk through the border and check do the collisions match
 			int badness = 0;
 			while ((zoneX < zone.getWidth()) && (zoneY < zone.getHeight())) {
@@ -182,10 +180,10 @@ public class ZoneCollisionCheck extends ScriptImpl {
 					// done checking all of the border
 					break;
 				}
-				
+
 				boolean zCollides = zone.collides(zoneX, zoneY);
 				boolean nCollides = neighbour.collides(neighbourX, neighbourY);
-				
+
 				if (zCollides != nCollides) {
 					badness++;
 					if (badness >= badnessThreshold) {
@@ -196,17 +194,17 @@ public class ZoneCollisionCheck extends ScriptImpl {
 				} else {
 					badness = 0;
 				}
-				
+
 				zoneX += dx;
 				zoneY += dy;
 				neighbourX += dx;
 				neighbourY += dy;
 			}
 		}
-		
+
 		return problems;
 	}
-	
+
 	private String collidesMessage(String zone, int x, int y, boolean collides) {
 		if (collides) {
 			return zone + " has collision at [" + x + "," + y + "]";
@@ -214,10 +212,10 @@ public class ZoneCollisionCheck extends ScriptImpl {
 			return zone + " does not have collision at [" + x + "," + y + "]";
 		}
 	}
-	
+
 	/**
 	 * Send a problem report to the admin.
-	 * 
+	 *
 	 * @param problems the problems to include in this report
 	 */
 	private void report(List<String> problems) {
@@ -227,7 +225,7 @@ public class ZoneCollisionCheck extends ScriptImpl {
 				msg.append(problem);
 				msg.append("\n");
 			}
-			
+
 			admin.sendPrivateText(msg.toString());
 		}
 	}

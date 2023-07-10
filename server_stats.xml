@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<statistics time="1688818035">
+  <uptime value="187.28"/>
+  <memory total="262144" used="201198"/>
+<attrib name="Transfer content" value="1" />
+<attrib name="Transfer content cache" value="10" />
+<attrib name="Bytes recv" value="636" />
+<attrib name="Bytes send" value="14239" />
+<attrib name="Players logged" value="0" />
+<attrib name="Perceptions SYNC" value="1" />
+<attrib name="Message send" value="21" />
+<attrib name="Players online" value="0" />
+<attrib name="Players login" value="1" />
+<attrib name="Tranfer content size" value="158" />
+<attrib name="Players logout" value="1" />
+<attrib name="Actions added" value="1" />
+<attrib name="Players timeout" value="0" />
+<attrib name="Message recv" value="8" />
+<attrib name="Objects now" value="15967" />
+<attrib name="Actions invalid" value="1" />
+<attrib name="Ips online" value="0" />
+<attrib name="Perceptions DELTA" value="19" />
+</statistics>

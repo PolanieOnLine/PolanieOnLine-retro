@@ -1,4 +1,3 @@
-/* $Id: ExamineOfferChatAction.java,v 1.7 2011/05/01 19:50:07 martinfuchs Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +11,8 @@
  ***************************************************************************/
 package games.stendhal.server.maps.semos.tavern.market;
 
+import java.util.Map;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.entity.item.Item;
 import games.stendhal.server.entity.npc.EventRaiser;
@@ -19,9 +20,8 @@ import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.entity.trade.Offer;
 import games.stendhal.server.events.ExamineEvent;
 
-import java.util.Map;
-
 public class ExamineOfferChatAction extends KnownOffersChatAction {
+	@Override
 	public void fire(Player player, Sentence sentence, EventRaiser npc) {
 		if (sentence.hasError()) {
 			npc.say("Wybacz, ale nie rozumiem Ciebie. "
@@ -32,7 +32,7 @@ public class ExamineOfferChatAction extends KnownOffersChatAction {
 			handleSentence(player,sentence,npc);
 		}
 	}
-	
+
 	private void handleSentence(Player player, Sentence sentence, EventRaiser npc) {
 		MarketManagerNPC manager = (MarketManagerNPC) npc.getEntity();
 		try {
@@ -52,14 +52,15 @@ public class ExamineOfferChatAction extends KnownOffersChatAction {
 			}
 			npc.say("Wybacz, ale musisz wybrać liczbę z spośród tych, które ci podałem.");
 		} catch (NumberFormatException e) {
-			npc.say("Wybacz, ale musisz powiedzieć #akceptuję #numer");
+			npc.say("Wybacz, ale musisz powiedzieć #'akceptuję numer'.");
 		}
 	}
-	
+
 	private void showImage(Player player, Item item) {
 		String caption = item.getName();
 		String image = "items/" + item.getItemClass() + "/" + item.getItemSubclass() + ".png";
 		ExamineEvent event = new ExamineEvent(image, caption, "");
 		player.addEvent(event);
+		player.notifyWorldAboutChanges();
 	}
 }

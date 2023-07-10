@@ -1,4 +1,3 @@
-/* $Id: GroomAssistantNPC.java,v 1.22 2010/09/19 02:31:48 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +11,12 @@
  ***************************************************************************/
 package games.stendhal.server.maps.fado.dressingrooms;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
@@ -20,32 +25,25 @@ import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.npc.behaviour.adder.OutfitChangerAdder;
 import games.stendhal.server.entity.npc.behaviour.impl.OutfitChangerBehaviour;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 /**
  * Dressing rooms at fado hotel.
  *
  * @author kymara
  */
 public class GroomAssistantNPC implements ZoneConfigurator {
-
 	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
-		buildDressingRoom(zone, attributes);
+		buildDressingRoom(zone);
 	}
 
-	private void buildDressingRoom(final StendhalRPZone zone, final Map<String, String> attributes) {
+	private void buildDressingRoom(final StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Timothy") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -58,22 +56,22 @@ public class GroomAssistantNPC implements ZoneConfigurator {
 			protected void createDialog() {
 				// greeting in Marriage quest
 				addJob("Pomagam panom młodym w odpowiednim doborze ubrania na ich ślub.");
-				addHelp("Powiedz mi #ubierz jeżeli chciałbyś założyć #garnitur ( #suit ) na swój ślub.");
+				addHelp("Powiedz mi #ubierz jeżeli chciałbyś założyć #garnitur (#'suit') na swój ślub.");
 				addReply(Arrays.asList("garnitur", "suit"), "Jeżeli chcesz dobrze wyglądać musisz założyć #garnitur na swój ślub. Powiedz tylko #ubierz. Kosztuje to 50 monet.");
 				addQuest("Raczej powinieneś myśleć o swoim ślubie.");
-				addGoodbye("Dowidzenia. Mam nadzieje, że poszczęści Ci się w życiu.");
+				addGoodbye("Do widzenia. Mam nadzieje, że poszczęści Ci się w życiu.");
 
 				final Map<String, Integer> priceList = new HashMap<String, Integer>();
 				priceList.put("suit", 50);
-				final OutfitChangerBehaviour behaviour = new OutfitChangerBehaviour(priceList);
+				final OutfitChangerBehaviour behaviour = new OutfitChangerBehaviour(priceList, true);
 				new OutfitChangerAdder().addOutfitChanger(this, behaviour, Arrays.asList("wear", "ubierz"));
 			}
 		};
 
+		npc.setDescription("Oto Timothy. Czeka na osoby, ktore wkrótce ożenią się.");
 		npc.setEntityClass("executivenpc");
+		npc.setGender("M");
 		npc.setPosition(20, 10);
-		npc.initHP(100);
-		npc.setDescription("Widzisz Timothy. Czeka na osoby, ktore wkrótce ożenią się.");
 		zone.add(npc);
 	}
 }

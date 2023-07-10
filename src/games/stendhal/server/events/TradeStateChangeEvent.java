@@ -1,4 +1,4 @@
-/* $Id: TradeStateChangeEvent.java,v 1.2 2010/09/19 02:26:08 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -38,7 +38,7 @@ public class TradeStateChangeEvent extends RPEvent {
 
 	/**
 	 * Creates a new trade state change event.
-	 * 
+	 *
 	 * @param partnerId  id of partner
 	 * @param userTradeState    my state of the trade
 	 * @param partnerTradeState the state of the partner

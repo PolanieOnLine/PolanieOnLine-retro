@@ -1,4 +1,4 @@
-/* $Id: ImageScale2x.java,v 1.2 2010/09/19 01:28:52 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -16,7 +16,7 @@ import java.awt.image.BufferedImage;
 
 /**
  * A utility to perform the scale2x algorithm on an image.
- * 
+ *
  * @author Kevin Glass
  * @author johnnnny
  */

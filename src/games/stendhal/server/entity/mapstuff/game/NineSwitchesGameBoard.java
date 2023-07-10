@@ -1,6 +1,5 @@
-/* $Id: NineSwitchesGameBoard.java,v 1.11 2011/09/25 16:01:15 kiheru Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,15 +11,15 @@
  ***************************************************************************/
 package games.stendhal.server.entity.mapstuff.game;
 
+import java.util.ArrayList;
+
 import games.stendhal.common.Rand;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.events.TurnListener;
 import games.stendhal.server.core.events.TurnNotifier;
-import games.stendhal.server.entity.Outfit;
 import games.stendhal.server.entity.RPEntity;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-
-import java.util.ArrayList;
+import games.stendhal.server.entity.player.Player;
 
 /**
  * The game board for the 9 switches game.
@@ -68,23 +67,28 @@ public class NineSwitchesGameBoard implements TurnListener {
 	 */
 	public void usedSwitch(RPEntity user, NineSwitchesGameSwitch gameSwitch) {
 		if (playerName == null) {
-			npc.say(user.getName() + " porozmawiaj ze mną, aby rozpocząć grę.");
+			user.sendPrivateText(npc.getName() + " porozmawiaj ze mną, aby rozpocząć grę.");
 			return;
 		}
 
 		if (!user.getName().equals(playerName)) {
-			user.sendPrivateText("Hej " + user.getName() + ", teraz " + playerName + " gra. Poczekaj trochę.");
+			user.sendPrivateText("Hej " + npc.getName() + ", teraz " + playerName + " gra. Poczekaj trochę.");
 			return;
 		}
 
 		switchGameSwitch(gameSwitch);
 		boolean completed = checkBoard();
 		if (completed) {
-			npc.say("Gratulacje " + user.getName() + " wygrałeś! Proszę przyjmij ten balonik.");
-			Outfit balloonOutfit = new Outfit(null, null, null, null);
-			user.setOutfit(balloonOutfit);
-			user.put("outfit_colors", "detail", Rand.rand(balloonColors));
-			
+			if (user instanceof Player) {
+				npc.say("Gratulacje " + user.getName() + ", wygrana należy do ciebie! Proszę przyjmij ten balonik.");
+
+				final Player dressed = (Player) user;
+				dressed.setPerpetualOutfitLayer("detail", 1);
+				dressed.setPerpetualOutfitColor("detail", Rand.rand(balloonColors));
+			} else {
+				npc.say("Umm... Przepraszam, ale nie sądzę, że możesz nosić ten balon.");
+			}
+
 			playerName = null;
 			TurnNotifier.get().dontNotify(this);
 		}
@@ -187,6 +191,7 @@ public class NineSwitchesGameBoard implements TurnListener {
 		this.npc = npc;
 	}
 
+	@Override
 	public void onTurnReached(int currentTurn) {
 		npc.say("Przykro mi " + playerName + ", ale twój czas minął.");
 		setPlayerName(null);

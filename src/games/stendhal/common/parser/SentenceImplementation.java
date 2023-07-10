@@ -1,4 +1,4 @@
-/* $Id: SentenceImplementation.java,v 1.3 2011/12/11 23:32:05 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,10 +12,10 @@
  ***************************************************************************/
 package games.stendhal.common.parser;
 
+import java.util.Iterator;
+
 import games.stendhal.common.ErrorDrain;
 import games.stendhal.common.grammar.Grammar;
-
-import java.util.Iterator;
 
 /**
  * SentenceImplementation contains the implementation details of building Sentence objects.
@@ -28,6 +28,7 @@ public final class SentenceImplementation extends Sentence {
      * Create a SentenceImplementation object in preparation to parse a text phrase.
      *
      * @param ctx
+     * @param text phrase
      */
     SentenceImplementation(final ConversationContext ctx, String text) {
         super(ctx);
@@ -38,7 +39,7 @@ public final class SentenceImplementation extends Sentence {
     /**
      * Create a SentenceImplementation object for testing purposes.
      * note: This constructor does not set originalText.
-     * 
+     *
      * @param exprs
      */
     public SentenceImplementation(final Expression... exprs) {
@@ -159,40 +160,6 @@ public final class SentenceImplementation extends Sentence {
                 }
             }
 
-            // handle unknown words
-            if (!wordFound) {
-                // recognise declined verbs, e.g. "swimming"
-                final WordList.Verb verb = wl.normalizeVerb(original);
-
-                if (verb != null) {
-                    if (verb.isGerund) {
-                        w.setType(new ExpressionType(verb.entry.getTypeString() + ExpressionType.SUFFIX_GERUND));
-                        wordFound = true;
-                    } else if ((verb.entry.getType() != null) && verb.entry.getType().isVerb()) {
-                        w.setType(verb.entry.getType());
-                        wordFound = true;
-                    } else if (!verb.isPast) { // avoid cases like "rounded"
-                    	w.setType(new ExpressionType(ExpressionType.VERB));
-                        wordFound = true;
-                    }
-
-                    if (wordFound) {
-                    	w.setNormalized(verb.entry.getNormalized());
-                    }
-                }
-            }
-
-            if (!wordFound) {
-                // recognise derived adjectives, e.g. "magical", "nomadic" or "rounded"
-                final WordEntry adjective = wl.normalizeAdjective(original);
-
-                if (adjective != null) {
-                	w.setType(new ExpressionType(ExpressionType.ADJECTIVE));
-                    w.setNormalized(adjective.getNormalized());
-                    wordFound = true;
-                }
-            }
-
             if (!wordFound) {
                 w.setType(new ExpressionType(""));
                 w.setNormalized(original.toLowerCase());
@@ -273,7 +240,7 @@ public final class SentenceImplementation extends Sentence {
             sentenceType = SentenceType.IMPERATIVE;
         } else if (isYouGiveMe(subject1, verb1, subject2)) {
         	// the sentence matches "[you] give me(i)" -> "[I] buy"
-        	
+
             // remove the subjects and replace the verb with "buy" as first word
             // remove "you"
             expressions.remove(subject1);
@@ -351,7 +318,7 @@ public final class SentenceImplementation extends Sentence {
         final Iterator<Expression> it = expressions.iterator();
         SentenceType type = SentenceType.UNDEFINED;
         boolean negate = false;
-        
+
         // As words are not yet merged together at this stage, we have to use Expression.nextValid()
         // in this function to jump over words to ignore.
         Expression first = nextValid(it);
@@ -393,8 +360,9 @@ public final class SentenceImplementation extends Sentence {
                     		negate = true;
                     		expressions.remove(first);
                     	}
-                    } else
-                    	expressions.remove(first);
+                    } else {
+						expressions.remove(first);
+					}
                 } else if (first.getNormalized().equals("it") && second.getNormalized().equals("is")
                         && ((third != null) && (third.getType() != null) && third.getType().isGerund())) {
                     // statement begins with "it is <VER-GER>"
@@ -430,7 +398,7 @@ public final class SentenceImplementation extends Sentence {
     void mergeWords() {
         // use WordList.compoundNames to merge compound names
     	mergeCompoundNames();
- 
+
         // first merge three word expressions of the form "... of ..."
         mergeThreeWordExpressions();
 
@@ -473,7 +441,7 @@ public final class SentenceImplementation extends Sentence {
         	        changed = true;
                     break;
     			}
-        		
+
         		if (changed) {
         			++changes;
         			break;

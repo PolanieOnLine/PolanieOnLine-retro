@@ -1,4 +1,4 @@
-/* $Id: LoginNotifier.java,v 1.6 2010/09/19 02:22:51 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,71 +12,76 @@
  ***************************************************************************/
 package games.stendhal.server.core.events;
 
-import games.stendhal.server.entity.player.Player;
-
 import java.util.ArrayList;
 import java.util.List;
 
+import games.stendhal.server.entity.player.Player;
+
 /**
  * Other classes can register here to be notified when a player logs in.
- * 
+ *
  * It is the responsibility of the LoginListener to determine which players are
  * of interest for it, and to store this information persistently.
- * 
+ *
  * @author daniel
  */
 public final class LoginNotifier {
-
-	/** The Singleton instance. */
-	private static final LoginNotifier instance = new LoginNotifier();
+	/** The singleton instance. */
+	private static LoginNotifier instance;
 
 	/**
-	 * Holds a list of all registered listeners.
+	 * Holds a list of all registered LoginListeners.
 	 */
-	private final List<LoginListener> listeners;
-
-	// singleton
-	private LoginNotifier() {
-		listeners = new ArrayList<LoginListener>();
-	}
+	private final List<LoginListener> loginListeners;
 
 	/**
 	 * Returns the LoginNotifier instance.
-	 * 
+	 *
 	 * @return LoginNotifier the Singleton instance
 	 */
 	public static LoginNotifier get() {
+		if (instance == null) {
+			instance = new LoginNotifier();
+		}
+
 		return instance;
 	}
 
 	/**
+	 * Hidden singleton constructor.
+	 */
+	private LoginNotifier() {
+		loginListeners = new ArrayList<LoginListener>();
+	}
+
+	/**
 	 * Adds a LoginListener.
-	 * 
+	 *
 	 * @param listener
 	 *            LoginListener to add
 	 */
 	public void addListener(final LoginListener listener) {
-		listeners.add(listener);
+		loginListeners.add(listener);
 	}
 
 	/**
 	 * Removes a LoginListener.
-	 * 
+	 *
 	 * @param listener
 	 *            LoginListener to remove
 	 */
 	public void removeListener(final LoginListener listener) {
-		listeners.remove(listener);
+		loginListeners.remove(listener);
 	}
 
 	/**
 	 * This method is invoked by Player.create().
-	 * 
+	 *
 	 * @param player
 	 *            the player who logged in
 	 */
 	public void onPlayerLoggedIn(final Player player) {
-		for (final LoginListener listener : listeners) {
+		for (final LoginListener listener : loginListeners) {
 			listener.onLoggedIn(player);
 		}
 	}

@@ -13,8 +13,8 @@ package games.stendhal.client.gui;
 
 import java.awt.Color;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import org.apache.log4j.Logger;
 
@@ -24,28 +24,36 @@ import marauroa.common.game.RPObject;
  * A helper object for accessing players' outfit color data.
  */
 public class OutfitColor {
+	/** Identifier for hat color. */
+	public static final String HAT = "hat";
 	/** Identifier for hair color. */
 	public static final String HAIR = "hair";
+	/** Identifier for mask color. */
+	public static final String MASK = "mask";
+	/** Identifier for eyes color. */
+	public static final String EYES = "eyes";
 	/** Identifier for dress color. */
 	public static final String DRESS = "dress";
+	/** Identifier for skin color. */
+	public static final String SKIN = "skin";
 	/** Identifier for detail color. */
-	//public static final String DETAIL = "detail";
-	
-	private static final String[] parts = { DRESS, HAIR };
+	public static final String DETAIL = "detail";
+
+	private static final String[] parts = { DRESS, SKIN, HAIR, DETAIL, EYES, MASK, HAT };
 	public static final OutfitColor PLAIN = new OutfitColor();
 
 	private Map<String, Color> map = new TreeMap<String, Color>();
-	
+
 	/**
 	 * Create a new OutfitColor for no colors.
 	 */
 	private OutfitColor() {
 	}
-	
+
 	/**
 	 * Create a new OutfitColor for an RPObject. Usually you should use get()
 	 * instead.
-	 * 
+	 *
 	 * @param obj
 	 */
 	OutfitColor(RPObject obj) {
@@ -61,11 +69,11 @@ public class OutfitColor {
 			}
 		}
 	}
-	
+
 	/**
 	 * Get an OutfitColor for an RPObject. If the object has no colors
 	 * specified, PLAIN is returned.
-	 * 
+	 *
 	 * @param obj
 	 * @return outfit color
 	 */
@@ -88,7 +96,7 @@ public class OutfitColor {
 		if (obj instanceof OutfitColor) {
 			return map.equals(((OutfitColor) obj).map);
 		}
-		
+
 		return false;
 	}
 
@@ -106,7 +114,7 @@ public class OutfitColor {
 
 	/**
 	 * Get the color of a specific outfit part.
-	 * 
+	 *
 	 * @param key outfit part identifier
 	 * @return color, or <code>null</code> if the part does not have a specified
 	 * 	color
@@ -114,15 +122,15 @@ public class OutfitColor {
 	public Color getColor(String key) {
 		return map.get(key);
 	}
-	
+
 	/**
 	 * Set the color of a specific outfit part.
-	 * 
+	 *
 	 * @param key outfit part identifier
 	 * @param value color, or <code>null</code> if the default colors should be
 	 * 	used
 	 */
-	public void setColor(String key, Color value) {
+	void setColor(String key, Color value) {
 		if (value != null) {
 			map.put(key, value);
 		} else {

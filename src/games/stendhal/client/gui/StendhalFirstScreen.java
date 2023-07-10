@@ -1,4 +1,4 @@
-/* $Id: StendhalFirstScreen.java,v 1.84 2012/09/13 19:05:28 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -12,34 +12,39 @@
  ***************************************************************************/
 package games.stendhal.client.gui;
 
+import static games.stendhal.client.gui.layout.SBoxLayout.COMMON_PADDING;
+
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Image;
+import java.awt.Insets;
+import java.awt.MouseInfo;
+import java.awt.PointerInfo;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
+import java.net.URL;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.Box;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+
 import games.stendhal.client.StendhalClient;
 import games.stendhal.client.stendhal;
 import games.stendhal.client.gui.login.CreateAccountDialog;
 import games.stendhal.client.gui.login.LoginDialog;
 import games.stendhal.client.sprite.DataLoader;
 import games.stendhal.client.update.ClientGameConfiguration;
-
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.GraphicsConfiguration;
-import java.awt.Image;
-import java.awt.MouseInfo;
-import java.awt.PointerInfo;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.net.URL;
-
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-
 /**
  * Summary description for LoginGUI.
  *
@@ -47,23 +52,18 @@ import javax.swing.JFrame;
 @SuppressWarnings("serial")
 public class StendhalFirstScreen extends JFrame {
 	private static final long serialVersionUID = -7825572598938892220L;
-	private static final int BUTTON_WIDTH = 220;
-	private static final int BUTTON_HEIGHT = 32;
 
 	/** Name of the font used for the html areas. Should match the file name without .ttf */
-	private static final String FONT_NAME = "AntykwaTorunska";
+	private static final String FONT_NAME = "BlackChancery";
+	private static final int FONT_SIZE = 16;
 
 	private final StendhalClient client;
-
-	private final Image background;
 
 	private JButton loginButton;
 	private JButton createAccountButton;
 	private JButton helpButton;
-	private JButton wwwButton;
 	private JButton creditButton;
-	private JButton ruleButton;
-	
+
 	static {
 		// This is the initial window, when loaded at all.
 		Initializer.init();
@@ -77,16 +77,14 @@ public class StendhalFirstScreen extends JFrame {
 	 */
 	public StendhalFirstScreen(final StendhalClient client) {
 		super(detectScreen());
+		setLocationByPlatform(true);
+		WindowUtils.trackLocation(this, "main", true);
 		this.client = client;
 		client.setSplashScreen(this);
 
-		final URL url = DataLoader.getResource(ClientGameConfiguration.get("GAME_SPLASH_BACKGROUND"));
-		final ImageIcon imageIcon = new ImageIcon(url);
-		background = imageIcon.getImage();
-
 		initializeComponent();
 
-		this.setVisible(true);
+		setVisible(true);
 	}
 
 	/**
@@ -107,140 +105,119 @@ public class StendhalFirstScreen extends JFrame {
 	 * Setup the window contents.
 	 */
 	private void initializeComponent() {
-		setContentPane(new JComponent() {
-			{
-				setOpaque(true);
-				setPreferredSize(new Dimension(640, 480));
-			}
+		URL url = DataLoader.getResource(ClientGameConfiguration.get("GAME_SPLASH_BACKGROUND"));
+		ImageIcon icon = new ImageIcon(url);
 
+		JComponent contentPane = new ResizableLabel(icon);
+		setContentPane(contentPane);
+
+		Font font = new Font(FONT_NAME, Font.PLAIN, FONT_SIZE);
+
+		//
+		// Login
+		//
+		String gameName = ClientGameConfiguration.get("GAME_NAME");
+		Action loginAction = new AbstractAction("Zaloguj do gry") {
 			@Override
-			public void paintComponent(final Graphics g) {
-				g.drawImage(background, 0, 0, this);
+			public void actionPerformed(ActionEvent e) {
+				new LoginDialog(StendhalFirstScreen.this, client).setVisible(true);
 			}
-		});
+		};
+		loginAction.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_L);
+		loginAction.putValue(Action.SHORT_DESCRIPTION, "Naciśnij ten przycisk, aby zalogować sie na serwer "
+				+ gameName + ".");
 
-		Font font = new Font(FONT_NAME, Font.PLAIN, 16);
-
-		//
-		// loginButton
-		//
 		loginButton = new JButton();
+		loginButton.setAction(loginAction);
 		loginButton.setFont(font);
-		loginButton.setText("Zaloguj do "
-				+ ClientGameConfiguration.get("GAME_NAME"));
-		loginButton.setMnemonic(KeyEvent.VK_L);
-		loginButton.setToolTipText("Naciśnij ten przycisk, aby zalogować sie do serwera "
-				+ ClientGameConfiguration.get("GAME_NAME") + ".");
-		loginButton.addActionListener(new ActionListener() {
 
+		//
+		// Create account
+		//
+		Action createAccountAction = new AbstractAction("Utwórz konto") {
 			@Override
-			public void actionPerformed(final ActionEvent e) {
-				login();
+			public void actionPerformed(ActionEvent e) {
+				new CreateAccountDialog(StendhalFirstScreen.this, client);
 			}
-		});
-		//
-		// createAccountButton
-		//
+		};
+		createAccountAction.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_A);
+		createAccountAction.putValue(Action.SHORT_DESCRIPTION, "Naciśnij ten przycisk, aby utworzyć konto na serwerze "
+				+ gameName + ".");
+
 		createAccountButton = new JButton();
 		createAccountButton.setFont(font);
-		createAccountButton.setText("Utwórz konto");
-		createAccountButton.setMnemonic(KeyEvent.VK_U);
-		createAccountButton.setToolTipText("Naciśnij ten przycisk, aby utworzyć konto na serwerze "
-				+ ClientGameConfiguration.get("GAME_NAME") + ".");
-		createAccountButton.setEnabled(true);
-		createAccountButton.addActionListener(new ActionListener() {
+		createAccountButton.setAction(createAccountAction);
+
+		//
+		// Help
+		//
+		Action helpAction = new AbstractAction("Pomoc") {
 			@Override
-			public void actionPerformed(final ActionEvent e) {
-				createAccount();
+			public void actionPerformed(ActionEvent e) {
+				BareBonesBrowserLaunch.openURL(ClientGameConfiguration.get("DEFAULT_SERVER_WEB") + "/wprowadzenie.html");
 			}
-		});
-		//
-		// helpButton
-		//
+		};
+		helpAction.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_H);
+
 		helpButton = new JButton();
 		helpButton.setFont(font);
-		helpButton.setText("Pomoc");
-		helpButton.setMnemonic(KeyEvent.VK_P);
-		helpButton.addActionListener(new ActionListener() {
+		helpButton.setAction(helpAction);
+
+		//
+		// Credits
+		//
+		Action showCreditsAction = new AbstractAction("Wyróżnieni") {
 			@Override
-			public void actionPerformed(final ActionEvent e) {
-				showHelp();
+			public void actionPerformed(ActionEvent e) {
+				new CreditsDialog(StendhalFirstScreen.this);
 			}
-		});
-		//
-		// creaditButton
-		//
+		};
+		showCreditsAction.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_C);
+
 		creditButton = new JButton();
 		creditButton.setFont(font);
-		creditButton.setText("Wyróżnieni");
-		creditButton.setMnemonic(KeyEvent.VK_W);
-		creditButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				showCredits();
-			}
-		});
-		//
-		// ruleButton
-		//
-		ruleButton = new JButton();
-		ruleButton.setFont(font);
-		ruleButton.setText("Podstawowe zasady gry");
-		ruleButton.setMnemonic(KeyEvent.VK_Z);
-		ruleButton.setToolTipText("Naciśnij ten przycisk, aby poznać podstawowe zasady gry "
-				+ ClientGameConfiguration.get("GAME_NAME") + ".");
-		ruleButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				showRules();
-			}
-		});
-		//
-		// wwwButton
-		//
-		wwwButton = new JButton();
-		wwwButton.setFont(font);
-		wwwButton.setText("Odwiedź stronę");
-		wwwButton.setMnemonic(KeyEvent.VK_O);
-		wwwButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				showWww();
-			}
-		});
+		creditButton.setAction(showCreditsAction);
 
-		addWindowListener(new WindowAdapter() {
-			@Override
-			public void windowClosing(final WindowEvent e) {
-				System.exit(0);
-			}
-		});
+		setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-		//
-		// contentPane
-		//
-		final Container contentPane = this.getContentPane();
-		contentPane.setLayout(null);
+		// Add the buttons
+		contentPane.setLayout(new GridBagLayout());
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.gridx = 0;
+		gbc.gridy = 0;
+		// The buttons should be a bit larger than by default. We have enough
+		// space.
+		gbc.ipadx = 2 * COMMON_PADDING;
+		gbc.ipady = 2;
 
-		int x = (background.getWidth(null) - BUTTON_WIDTH) / 2; 
-		addComponent(contentPane, loginButton, x, 220, BUTTON_WIDTH, BUTTON_HEIGHT);
-		addComponent(contentPane, createAccountButton, x, 270, BUTTON_WIDTH, BUTTON_HEIGHT);
-		addComponent(contentPane, ruleButton, x, 310, BUTTON_WIDTH, BUTTON_HEIGHT);
-		addComponent(contentPane, helpButton, x, 350, BUTTON_WIDTH, BUTTON_HEIGHT);
-		addComponent(contentPane, wwwButton, x, 390, BUTTON_WIDTH, BUTTON_HEIGHT);
-		addComponent(contentPane, creditButton, x, 430, BUTTON_WIDTH, BUTTON_HEIGHT);
+		// All extra space should be abobe
+		gbc.weighty = 1.0;
+		contentPane.add(Box.createVerticalGlue(), gbc);
+		gbc.weighty = 0.0;
+
+		gbc.gridy++;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.insets = new Insets(COMMON_PADDING, COMMON_PADDING, COMMON_PADDING, COMMON_PADDING);
+
+		contentPane.add(loginButton, gbc);
+		gbc.gridy++;
+		contentPane.add(createAccountButton, gbc);
+		gbc.gridy++;
+		contentPane.add(helpButton, gbc);
+		gbc.gridy++;
+		contentPane.add(creditButton, gbc);
+		gbc.gridy++;
+		contentPane.add(Box.createVerticalStrut(2 * COMMON_PADDING), gbc);
 
 		getRootPane().setDefaultButton(loginButton);
 
 		//
 		// LoginGUI
 		//
-		setTitle(ClientGameConfiguration.get("GAME_NAME") + " "
-				+ stendhal.VERSION
-				+ " - darmowa gra MMORPG - www.gra.polskaonline.org");
-		this.setResizable(false);
+		setTitle(gameName + " " + stendhal.VERSION
+				+ " - darmowa gra MMORPG - polanieonline.eu");
 
-		final URL url = DataLoader.getResource(ClientGameConfiguration.get("GAME_ICON"));
+		url = DataLoader.getResource(ClientGameConfiguration.get("GAME_ICON"));
 		this.setIconImage(new ImageIcon(url).getImage());
 		pack();
 	}
@@ -254,44 +231,54 @@ public class StendhalFirstScreen extends JFrame {
 		creditButton.setEnabled(b);
 	}
 
-	private void login() {
-		new LoginDialog(StendhalFirstScreen.this, client).setVisible(true);
-	}
-
-	private void showCredits() {
-		new CreditsDialog(StendhalFirstScreen.this);
-	}
-
-	private void showRules() {
-		BareBonesBrowserLaunch.openURL("http://www.gra.polskaonline.org/regulamin-gry-polskaonline-mmorpg");
-	}
-
-	private void showHelp() {
-		BareBonesBrowserLaunch.openURL("http://www.gra.polskaonline.org/wprowadzenie");
-	}
-
-	private void showWww() {
-		BareBonesBrowserLaunch.openURL("http://www.gra.polskaonline.org/");
-	}
-
 	/**
-	 * Opens the create account dialog after checking the server version.
+	 * A Resizable label with an icon.
 	 */
-	public void createAccount() {
-		new CreateAccountDialog(StendhalFirstScreen.this, client);
-	}
+	private static class ResizableLabel extends JLabel {
+		private final Image image;
+		private Rectangle bounds;
 
-	/** Adds Component Without a Layout Manager (Absolute Positioning).
-	 * @param container
-	 * @param c
-	 * @param x
-	 * @param y
-	 * @param width
-	 * @param height */
-	private void addComponent(final Container container, final Component c, final int x, final int y,
-			final int width, final int height) {
-		c.setBounds(x, y, width, height);
-		container.add(c);
-	}
+		/**
+		 * Create a new ResizableLabel.
+		 *
+		 * @param icon initial icon. The image of the icon will be used as the
+		 *  template for any scaled versions
+		 */
+		ResizableLabel(ImageIcon icon) {
+			super(icon);
+			this.image = icon.getImage();
+		}
 
+		/*
+		 * A resize listener is run *after* the actual resizing happens, which
+		 * would result in layout being ready before the image is redrawn. The
+		 * effect looks ugly, so the resizing is done here instead for immediate
+		 * scaling.
+		 */
+		@Override
+		public void setBounds(int x, int y, int width, int height) {
+			super.setBounds(x, y, width, height);
+			scale();
+		}
+
+		/**
+		 * Scale the image to component size.
+		 */
+		private void scale() {
+			Rectangle newBounds = getBounds();
+			if (!newBounds.equals(bounds)) {
+				bounds = newBounds;
+				double scalingX = bounds.width / (double) image.getWidth(this);
+				double scalingY = bounds.height / (double) image.getHeight(this);
+				double scaling = Math.max(scalingX, scalingY);
+				BufferedImage copy = getGraphicsConfiguration().createCompatibleImage(bounds.width, bounds.height);
+				Graphics2D g = copy.createGraphics();
+				g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+				g.scale(scaling, scaling);
+				g.drawImage(image, 0, 0, this);
+				g.dispose();
+				setIcon(new ImageIcon(copy));
+			}
+		}
+	}
 }

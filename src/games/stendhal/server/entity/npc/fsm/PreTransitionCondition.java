@@ -1,4 +1,4 @@
-/* $Id: PreTransitionCondition.java,v 1.11 2011/05/01 19:50:05 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -18,14 +18,14 @@ import games.stendhal.server.entity.player.Player;
 
 /**
  * a condition to check before an transition is executed.
- * 
+ *
  * @author hendrik
  */
 public interface PreTransitionCondition {
 
 	/**
 	 * can the transition be done?
-	 * 
+	 *
 	 * @param player
 	 *            player who caused the transition
 	 * @param sentence

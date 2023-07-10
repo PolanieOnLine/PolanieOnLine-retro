@@ -1,4 +1,4 @@
-/* $Id: StendhalPerceptionListener.java,v 1.3 2010/10/04 19:44:31 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -14,31 +14,32 @@ package games.stendhal.client;
 
 import java.util.Map;
 
+import org.apache.log4j.Logger;
+
 import marauroa.client.net.IPerceptionListener;
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPObject.ID;
 
-import org.apache.log4j.Logger;
-
 class StendhalPerceptionListener implements IPerceptionListener {
-	static final Logger logger = Logger.getLogger(StendhalPerceptionListener.class);
+	private static final Logger logger = Logger.getLogger(StendhalPerceptionListener.class);
 
 	/**
-	 * 
+	 *
 	 */
 	private PerceptionDispatcher dispatch = new PerceptionDispatcher();
 
 	private final RPObjectChangeDispatcher rpobjDispatcher;
 
 	private final UserContext userContext;
-	
+
 	public StendhalPerceptionListener(final PerceptionDispatcher dispatch, final RPObjectChangeDispatcher rpobjDispatcher, final UserContext userContext, final Map<ID, RPObject> world_objects) {
 		this.userContext = userContext;
 		this.dispatch = dispatch;
 		this.rpobjDispatcher = rpobjDispatcher;
 		this.world_objects = world_objects;
 	}
-	
+
+	@Override
 	public boolean onAdded(final RPObject object) {
 		if (userContext.isUser(object)) {
 			userContext.setPlayer(object);
@@ -48,24 +49,28 @@ class StendhalPerceptionListener implements IPerceptionListener {
 		return false;
 	}
 
+	@Override
 	public boolean onModifiedAdded(final RPObject object, final RPObject changes) {
 		dispatch.onModifiedAdded(object, changes);
 		rpobjDispatcher.dispatchModifyAdded(object, changes);
 		return true;
 	}
 
+	@Override
 	public boolean onModifiedDeleted(final RPObject object, final RPObject changes) {
 		dispatch.onModifiedDeleted(object, changes);
 		rpobjDispatcher.dispatchModifyRemoved(object, changes);
 		return true;
 	}
 
+	@Override
 	public boolean onDeleted(final RPObject object) {
 		dispatch.onDeleted(object);
 		rpobjDispatcher.dispatchRemoved(object);
 		return false;
 	}
 
+	@Override
 	public boolean onMyRPObject(final RPObject added, final RPObject deleted) {
 		dispatch.onMyRPObject(added, deleted);
 		try {
@@ -84,7 +89,7 @@ class StendhalPerceptionListener implements IPerceptionListener {
 				return true;
 			}
 
-			
+
 			final RPObject object = world_objects.get(id);
 
 			userContext.setPlayer(object);
@@ -104,21 +109,24 @@ class StendhalPerceptionListener implements IPerceptionListener {
 		return true;
 	}
 
+	@Override
 	public void onSynced() {
 		dispatch.onSynced();
-		
 
-	
+
+
 	}
 
 
 	private final Map<ID, RPObject> world_objects;
 
+	@Override
 	public void onUnsynced() {
 		dispatch.onUnsynced();
-		
+
 	}
 
+	@Override
 	public void onException(final Exception e,
 			final marauroa.common.net.message.MessageS2CPerception perception) {
 		dispatch.onException(e, perception);
@@ -126,15 +134,18 @@ class StendhalPerceptionListener implements IPerceptionListener {
 		System.exit(-1);
 	}
 
+	@Override
 	public boolean onClear() {
 		dispatch.onClear();
 		return false;
 	}
 
+	@Override
 	public void onPerceptionBegin(final byte type, final int timestamp) {
 		dispatch.onPerceptionBegin(type, timestamp);
 	}
 
+	@Override
 	public void onPerceptionEnd(final byte type, final int timestamp) {
 		dispatch.onPerceptionEnd(type, timestamp);
 	}

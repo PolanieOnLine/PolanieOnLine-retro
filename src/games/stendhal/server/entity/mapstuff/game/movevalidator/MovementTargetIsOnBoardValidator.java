@@ -1,4 +1,4 @@
-/* $Id: MovementTargetIsOnBoardValidator.java,v 1.3 2010/09/19 02:24:37 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -23,6 +23,7 @@ import games.stendhal.server.entity.player.Player;
  */
 public class MovementTargetIsOnBoardValidator implements MoveValidator {
 
+	@Override
 	public boolean validate(GameBoard board, Player player, BoardToken token, int xIndex, int yIndex) {
 		if ((xIndex < 0) || (yIndex < 0)) {
 			player.sendPrivateText("Połóż krążek na planszy gry.");

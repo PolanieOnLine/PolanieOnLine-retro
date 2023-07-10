@@ -1,4 +1,4 @@
-/* $Id: MessageAction.java,v 1.6 2010/09/19 02:17:50 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -24,49 +24,55 @@ class MessageAction implements SlashAction {
 
 	/**
 	 * Execute a chat command.
-	 * 
+	 *
 	 * @param params
 	 *            The formal parameters.
 	 * @param remainder
 	 *            Line content after parameters.
-	 * 
+	 *
 	 * @return <code>true</code> if command was handled.
 	 */
+	@Override
 	public boolean execute(final String[] params, final String remainder) {
 		lastPlayerTell = params[0];
 
-		final RPAction tell = new RPAction();
+		if (!remainder.isEmpty()) {
+			RPAction tell = new RPAction();
 
-		tell.put("type", "tell");
-		tell.put("target", lastPlayerTell);
-		tell.put("text", remainder);
+			tell.put("type", "tell");
+			tell.put("target", lastPlayerTell);
+			tell.put("text", remainder);
 
-		ClientSingletonRepository.getClientFramework().send(tell);
+			ClientSingletonRepository.getClientFramework().send(tell);
+			return true;
+		}
 
-		return true;
+		return false;
 	}
 
 	/**
 	 * Get the maximum number of formal parameters.
-	 * 
+	 *
 	 * @return The parameter count.
 	 */
+	@Override
 	public int getMaximumParameters() {
 		return 1;
 	}
 
 	/**
 	 * Get the minimum number of formal parameters.
-	 * 
+	 *
 	 * @return The parameter count.
 	 */
+	@Override
 	public int getMinimumParameters() {
 		return 1;
 	}
 
 	/**
 	 * Gets the last player we have sent something using /tell.
-	 * 
+	 *
 	 * @return player name
 	 */
 	String getLastPlayerTell() {

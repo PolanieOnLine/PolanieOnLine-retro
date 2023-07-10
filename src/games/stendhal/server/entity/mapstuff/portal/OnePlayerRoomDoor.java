@@ -1,4 +1,4 @@
-/* $Id: OnePlayerRoomDoor.java,v 1.9 2012/03/11 15:17:31 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -20,7 +20,7 @@ import games.stendhal.server.entity.RPEntity;
 
 /**
  * A door to a zone which only one player may enter.
- * 
+ *
  * @author hendrik
  */
 public class OnePlayerRoomDoor extends Door {
@@ -31,6 +31,7 @@ public class OnePlayerRoomDoor extends Door {
 	 */
 	class PeriodicOpener implements TurnListener {
 
+		@Override
 		public void onTurnReached(final int currentTurn) {
 			if (!isOpen()) {
 				if (isAllowed(null)) {
@@ -44,7 +45,7 @@ public class OnePlayerRoomDoor extends Door {
 
 	/**
 	 * Creates a new OnePlayerRoomDoor.
-	 * 
+	 *
 	 * @param clazz
 	 *            clazz
 	 */

@@ -1,4 +1,4 @@
-/* $Id: CounterMap.java,v 1.3 2010/12/04 14:08:37 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -14,6 +14,8 @@ package games.stendhal.server.util;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.WeakHashMap;
 
 /**
@@ -23,7 +25,7 @@ import java.util.WeakHashMap;
  * @param <T> type of object
  */
 public class CounterMap<T> {
-	private Map<T, Integer> map = new HashMap<T, Integer>();
+	private final Map<T, Integer> map;
 
 	/**
 	 * creates a new counter map.
@@ -35,7 +37,7 @@ public class CounterMap<T> {
 	/**
 	 * creates a new counter map.
 	 *
-	 * @param weak <code>true</code> to create a weak key map, 
+	 * @param weak <code>true</code> to create a weak key map,
 	 *             <code>false</code> to create a normal map
 	 */
 	public CounterMap(boolean weak) {
@@ -115,5 +117,23 @@ public class CounterMap<T> {
 		} else {
 			return highestEntry.getKey();
 		}
+	}
+
+	/**
+	 * Get the set of counted objects and their counts.
+	 *
+	 * @return count entries
+	 */
+	public Set<Entry<T, Integer>> entrySet() {
+		return map.entrySet();
+	}
+
+	/**
+	 * Get the set of counted objects.
+	 *
+	 * @return counted objects
+	 */
+	public Set<T> keySet() {
+		return map.keySet();
 	}
 }

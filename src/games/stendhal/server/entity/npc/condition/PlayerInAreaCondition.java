@@ -1,4 +1,4 @@
-/* $Id: PlayerInAreaCondition.java,v 1.17 2012/09/09 12:33:23 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +12,8 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.condition;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
 import games.stendhal.server.core.config.annotations.Dev.Category;
@@ -19,9 +21,6 @@ import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.util.Area;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Is the player in the specified area?
@@ -38,9 +37,10 @@ public class PlayerInAreaCondition implements ChatCondition {
 	 *            Area
 	 */
 	public PlayerInAreaCondition(final Area area) {
-		this.area = area;
+		this.area = checkNotNull(area);
 	}
 
+	@Override
 	public boolean fire(final Player player, final Sentence sentence, final Entity entity) {
 		return area.contains(player);
 	}
@@ -52,12 +52,15 @@ public class PlayerInAreaCondition implements ChatCondition {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 43969 * area.hashCode();
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				PlayerInAreaCondition.class);
+		if (!(obj instanceof PlayerInAreaCondition)) {
+			return false;
+		}
+		PlayerInAreaCondition other = (PlayerInAreaCondition) obj;
+		return area.equals(other.area);
 	}
 }

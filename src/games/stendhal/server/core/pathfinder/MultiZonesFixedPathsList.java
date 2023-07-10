@@ -1,13 +1,24 @@
+/***************************************************************************
+ *                   Copyright (C) 2003-2022 - Arianne                     *
+ ***************************************************************************
+ ***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
 package games.stendhal.server.core.pathfinder;
-
-import games.stendhal.server.entity.npc.SpeakerNPC;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
 
 import org.apache.log4j.Logger;
+
+import games.stendhal.server.entity.npc.SpeakerNPC;
+import games.stendhal.server.util.Observable;
+import games.stendhal.server.util.Observer;
 
 
 /**
@@ -23,10 +34,11 @@ public class MultiZonesFixedPathsList implements Observer {
 	final Logger logger = Logger.getLogger(this.getClass());
 	int count;
 
-	
+
 	/**
 	 * a kind of iterator over list
 	 */
+	@Override
 	public void update(Observable arg0, Object arg1) {
 		count++;
 		logger.info("count: "+count);
@@ -37,7 +49,7 @@ public class MultiZonesFixedPathsList implements Observer {
 			end.update(null, null);
 		}
 	}
-	
+
 	/**
 	 * constructor
 	 * @param npc - npc to go
@@ -46,9 +58,9 @@ public class MultiZonesFixedPathsList implements Observer {
 	 * @param end - observer for notifying about road's end.
 	 */
 	public MultiZonesFixedPathsList(
-			 final SpeakerNPC npc, 
-			 final List<List<RPZonePath>> pathes, 
-			 final Observer middle, 
+			 final SpeakerNPC npc,
+			 final List<List<RPZonePath>> pathes,
+			 final Observer middle,
 			 final Observer end) {
 		this.npc = npc;
 		this.middle = middle;
@@ -56,8 +68,8 @@ public class MultiZonesFixedPathsList implements Observer {
 		count = -1;
 		fillMultiZonesList(pathes);
 	}
-	
-	
+
+
 	/**
 	 * filling MultiZonesFixedPath list by content of pathes list.
 	 * @param pathes - list of npc pathes
@@ -69,4 +81,3 @@ public class MultiZonesFixedPathsList implements Observer {
 		}
 	}
 }
-

@@ -1,6 +1,5 @@
-/* $Id: ServerDown.java,v 1.6 2011/06/15 18:57:54 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2011 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,6 +11,9 @@
  ***************************************************************************/
 package games.stendhal.server.script;
 
+import java.util.Arrays;
+import java.util.List;
+
 import games.stendhal.common.Direction;
 import games.stendhal.server.core.engine.StendhalRPWorld;
 import games.stendhal.server.core.engine.StendhalRPZone;
@@ -22,10 +24,6 @@ import games.stendhal.server.entity.mapstuff.portal.Portal;
 import games.stendhal.server.entity.npc.NPCList;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.Arrays;
-import java.util.List;
-
 import marauroa.common.game.RPObject;
 
 /**
@@ -118,8 +116,8 @@ public class ServerDown extends ScriptImpl {
 				addHelp("Dziękuję za twoją ofertę, ale teraz nie mam nic dla ciebie. Poczekaj i odpocznij");
 				addReply(Arrays.asList("place", "miejscu"), "To jest... Pomyśl o tym jak o teatrze. Przestrzeń i czas są poza rzeczywistością.");
 				addReply(Arrays.asList("reality", "rzeczywistością", "rzeczywistość"), "Aby zabrać ciebie w miejsce poza rzeczywistością muszę pozbyć się braku wiary.");
-				addReply("polskaonline", "Moce, które aktualnie przywracają rzeczywistość PolskaOnLine. Poczekaj i zrelaksuj się.");
-				
+				addReply("polanieonline", "Moce, które aktualnie przywracają rzeczywistość PolanieOnLine. Poczekaj i zrelaksuj się.");
+
 				addGoodbye();
 			}
 		};

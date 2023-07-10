@@ -1,4 +1,4 @@
-/* $Id: BuddyLabel.java,v 1.18 2012/12/02 21:40:16 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,8 +12,6 @@
  ***************************************************************************/
 package games.stendhal.client.gui.buddies;
 
-import games.stendhal.client.sprite.DataLoader;
-
 import java.awt.Color;
 import java.awt.Component;
 
@@ -22,15 +20,12 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
 
+import games.stendhal.client.sprite.DataLoader;
+
 /**
  * Rendering component for buddies in a JList.
  */
-class BuddyLabel extends JLabel implements ListCellRenderer {
-	/**
-	 * serial version uid.
-	 */
-	private static final long serialVersionUID = 4293696464719089570L;
-
+class BuddyLabel extends JLabel implements ListCellRenderer<Buddy> {
 	/**
 	 * The online icon image.
 	 */
@@ -42,22 +37,22 @@ class BuddyLabel extends JLabel implements ListCellRenderer {
 	private static ImageIcon offlineIcon = new ImageIcon(DataLoader.getResource("data/gui/buddy_offline.png"));
 
 	/**
-	 * Set the buddy online or away.
-	 * 
-	 * @param online <code>true</code> if the buddy is online,
-	 * <code>false</code> if away
-	 */
-	void setOnline(final boolean online) {
-		this.setEnabled(online);
-	}
-
-	/**
 	 * Create new BuddyLabel.
 	 */
 	public BuddyLabel() {
 		super();
 		initialize();
 		this.setText("bobbele");
+	}
+
+	/**
+	 * Set the buddy online or away.
+	 *
+	 * @param online <code>true</code> if the buddy is online,
+	 * <code>false</code> if away
+	 */
+	private void setOnline(final boolean online) {
+		this.setEnabled(online);
 	}
 
 	/**
@@ -72,14 +67,11 @@ class BuddyLabel extends JLabel implements ListCellRenderer {
 	}
 
 	@Override
-	public Component getListCellRendererComponent(JList list, Object value,
+	public Component getListCellRendererComponent(JList<? extends Buddy> list, Buddy buddy,
 			int index, boolean selected, boolean focused) {
 		// We ignore most of the parameters
-		if (value instanceof Buddy) {
-			Buddy buddy = (Buddy) value;
-			setText(buddy.getName());
-			setOnline(buddy.isOnline());
-		}
+		setText(buddy.getName());
+		setOnline(buddy.isOnline());
 		return this;
 	}
 }

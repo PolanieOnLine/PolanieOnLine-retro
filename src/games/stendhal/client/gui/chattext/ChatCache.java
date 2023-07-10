@@ -1,6 +1,5 @@
-/* $Id: ChatCache.java,v 1.6 2011/06/11 22:23:57 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2015 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -15,25 +14,23 @@ package games.stendhal.client.gui.chattext;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.util.LinkedList;
 import java.util.ListIterator;
-import java.util.NoSuchElementException;
 
 import org.apache.log4j.Logger;
 
-public class ChatCache {
+import games.stendhal.common.MathHelper;
 
+class ChatCache {
 	private final static Logger logger = Logger.getLogger(ChatCache.class);
 
 	private final String chatCacheFile;
 	private int current;
-	
 
-	public ChatCache(final String chatLogFile) {
+	ChatCache(final String chatLogFile) {
 		this.chatCacheFile = chatLogFile;
 	}
 
@@ -49,18 +46,18 @@ public class ChatCache {
 		}
 		try {
 			final File chatfile = new File(chatCacheFile);
-	
+
 			if (chatfile.exists()) {
 				final FileInputStream fis = new FileInputStream(chatfile);
-				final BufferedReader br = new BufferedReader(new InputStreamReader(fis));
-	
+				final BufferedReader br = new BufferedReader(new InputStreamReader(fis, "UTF-8"));
+
 				try {
-				String line = null;
-				while (null != (line = br.readLine())) {
-					lines.add(line);
-				}
+					String line = null;
+					while (null != (line = br.readLine())) {
+						lines.add(line);
+					}
 				} finally {
-				br.close();
+					br.close();
 				}
 				fis.close();
 			}
@@ -70,29 +67,29 @@ public class ChatCache {
 		}
 	}
 
-	public void save() {
+	/**
+	 * Save the contents of the cache.
+	 */
+	void save() {
 		if (chatCacheFile == null) {
 			return;
 		}
-		FileOutputStream fo;
 		try {
 			new File(chatCacheFile).getParentFile().mkdirs();
-			fo = new FileOutputStream(chatCacheFile);
-			final PrintStream ps = new PrintStream(fo);
-	
+			final PrintStream ps = new PrintStream(chatCacheFile, "UTF-8");
+
 			/*
 			 * Keep size of chat.log in a reasonable size.
 			 */
 			while (lines.size() > 200) {
 				lines.removeFirst();
 			}
-	
+
 			final ListIterator<String> iterator = lines.listIterator();
 			while (iterator.hasNext()) {
 				ps.println(iterator.next());
 			}
 			ps.close();
-			fo.close();
 		} catch (final IOException ex) {
 			logger.error(ex, ex);
 		}
@@ -109,47 +106,38 @@ public class ChatCache {
 	void addlinetoCache(final String text) {
 		getLines().add(text);
 		setCurrent(getLines().size());
-	
+
 		if (getLines().size() > 50) {
 			getLines().removeFirst();
 			setCurrent((getCurrent() - 1));
 		}
 	}
 
-	public String current() {
-		return getLines().get(current - 1);
+	String current() {
+		return getLines().get(current);
 	}
 
-	public boolean hasNext() {
+	boolean hasNext() {
 		return lines.size() > current;
 	}
 
-	public boolean hasPrevious() {
+	boolean hasPrevious() {
 		return current > 1;
 	}
 
-	public String previous() {
-		
-		try {
-			current--;
+	String previous() {
+		current = Math.max(current - 1, 0);
+		if (!lines.isEmpty()) {
 			return current();
-		} catch (final IndexOutOfBoundsException e) {
-			Logger.getLogger(ChatCache.class).error(e.getMessage());
-			current++;
-			throw new NoSuchElementException();
 		}
-		
+		return "";
 	}
 
-	public String next() {
-		
-		try {
-			current++;
+	String next() {
+		current = MathHelper.clamp(current + 1, 0, lines.size() - 1);
+		if (!lines.isEmpty()) {
 			return current();
-		} catch (final IndexOutOfBoundsException e) {
-			current--;
-			throw new NoSuchElementException();
 		}
+		return "";
 	}
-
 }

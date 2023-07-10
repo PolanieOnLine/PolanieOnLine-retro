@@ -1,4 +1,4 @@
-/* $Id: Group.java,v 1.14 2011/02/24 09:44:04 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2011 - Stendhal                    *
  ***************************************************************************
@@ -12,14 +12,6 @@
  ***************************************************************************/
 package games.stendhal.server.core.rp.group;
 
-import games.stendhal.common.NotificationType;
-import games.stendhal.server.core.engine.GameEvent;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.core.engine.StendhalRPRuleProcessor;
-import games.stendhal.server.entity.player.Player;
-import games.stendhal.server.events.GroupChangeEvent;
-import games.stendhal.server.events.GroupInviteEvent;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -29,10 +21,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import games.stendhal.common.NotificationType;
+import games.stendhal.server.core.engine.GameEvent;
+import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.core.engine.StendhalRPRuleProcessor;
+import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.events.GroupChangeEvent;
+import games.stendhal.server.events.GroupInviteEvent;
 import marauroa.common.game.RPEvent;
 
 /**
- * A group of players 
+ * A group of players
  *
  * @author hendrik
  */
@@ -122,6 +121,7 @@ public class Group {
 				Player invitedPlayer = ruleProcessor.getPlayer(entry.getKey());
 				if (invitedPlayer != null) {
 					invitedPlayer.addEvent(new GroupInviteEvent(leader, true));
+					invitedPlayer.notifyWorldAboutChanges();
 				}
 
 				itr.remove();
@@ -241,6 +241,7 @@ public class Group {
 	public void invite(Player player, Player targetPlayer) {
 		openInvites.put(targetPlayer.getName(), Long.valueOf(System.currentTimeMillis()));
 		targetPlayer.addEvent(new GroupInviteEvent(player.getName(), false));
+		targetPlayer.notifyWorldAboutChanges();
 	}
 
 	/**
@@ -261,7 +262,7 @@ public class Group {
 	 * sends a group chat message to all members
 	 *
 	 * @param name   name of sender
-	 * @param text message to send 
+	 * @param text message to send
 	 */
 	public void sendGroupMessage(String name, String text) {
 		StendhalRPRuleProcessor ruleProcessor = SingletonRepository.getRuleProcessor();
@@ -285,6 +286,7 @@ public class Group {
 			Player player = ruleProcessor.getPlayer(playerName);
 			if (player != null) {
 				player.addEvent(event);
+				player.notifyWorldAboutChanges();
 			}
 		}
 	}
@@ -298,6 +300,7 @@ public class Group {
 		List<String> members = new LinkedList<String>(membersAndLastSeen.keySet());
 		RPEvent event = new GroupChangeEvent(leader, members, lootmode);
 		player.addEvent(event);
+		player.notifyWorldAboutChanges();
 	}
 
 	/**
@@ -312,6 +315,7 @@ public class Group {
 			Player player = ruleProcessor.getPlayer(playerName);
 			if (player != null) {
 				player.addEvent(event);
+				player.notifyWorldAboutChanges();
 			}
 		}
 	}

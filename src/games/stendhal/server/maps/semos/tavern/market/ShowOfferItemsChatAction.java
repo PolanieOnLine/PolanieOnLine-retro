@@ -1,4 +1,3 @@
-/* $Id: ShowOfferItemsChatAction.java,v 1.7 2011/05/01 19:50:07 martinfuchs Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,18 +11,17 @@
  ***************************************************************************/
 package games.stendhal.server.maps.semos.tavern.market;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.entity.trade.Market;
 import games.stendhal.server.entity.trade.Offer;
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPSlot;
 
@@ -35,12 +33,13 @@ public class ShowOfferItemsChatAction implements ChatAction {
 	/**
 	 * show a list of all items for which offers exist.
 	 */
+	@Override
 	public void fire(Player player, Sentence sentence, EventRaiser npc) {
 		Market market = TradeCenterZoneConfigurator.getShopFromZone(player.getZone());
 		RPSlot offersSlot = market.getSlot(Market.OFFERS_SLOT_NAME);
 		List<Offer> offers = getOffers(offersSlot);
 		if (offers.isEmpty()) {
-			npc.say("Przykro mi, ale obecnie brak ofert:");
+			npc.say("Przykro mi, ale obecnie brak ofert.");
 		} else {
 			String text = buildItemListText(buildItemList(offers));
 			npc.say(text);
@@ -93,7 +92,7 @@ public class ShowOfferItemsChatAction implements ChatAction {
 			}
 			sb.append("#'" + item + "'");
 		}
-		sb.append("Powiedz #'pokaż <nazwa przedmiotu>', aby poznać cenę oraz ilość danego towaru.");
+		sb.append(" Powiedz #'pokaż <nazwa przedmiotu>', aby poznać cenę oraz ilość danego towaru.");
 		return sb.toString();
 	}
 }

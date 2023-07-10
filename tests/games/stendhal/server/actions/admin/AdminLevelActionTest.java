@@ -1,4 +1,4 @@
-/* $Id: AdminLevelActionTest.java,v 1.13 2010/09/19 02:38:52 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,18 +12,19 @@
  ***************************************************************************/
 package games.stendhal.server.actions.admin;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.After;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import games.stendhal.server.actions.CommandCenter;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.MockStendhalRPRuleProcessor;
 import games.stendhal.server.maps.MockStendlRPWorld;
 import marauroa.common.Log4J;
 import marauroa.common.game.RPAction;
-
-import org.junit.After;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import utilities.PlayerTestHelper;
 
 public class AdminLevelActionTest {
@@ -49,16 +50,16 @@ public class AdminLevelActionTest {
 		final Player bob = PlayerTestHelper.createPlayer("bob");
 		MockStendhalRPRuleProcessor.get().addPlayer(pl);
 		MockStendhalRPRuleProcessor.get().addPlayer(bob);
-	
+
 		pl.put("adminlevel", 5000);
-	
+
 		final RPAction action = new RPAction();
 		action.put("type", "adminlevel");
 		action.put("target", "bob");
 		action.put("newlevel", "0");
 		CommandCenter.execute(pl, action);
-		assertEquals("Changed adminlevel of bob from 0 to 0.", pl.events().get(0).get("text"));
-		assertEquals("player changed your adminlevel from 0 to 0.", bob.events().get(0).get("text"));
+		assertEquals("Zmieniono poziom administratora bob z 0 na 0.", pl.events().get(0).get("text"));
+		assertEquals("player zmienił Twój poziom administratora z 0 na 0.", bob.events().get(0).get("text"));
 	}
 
 	/**
@@ -68,16 +69,16 @@ public class AdminLevelActionTest {
 	public final void testAdminLevelActioncasterNotSuper() {
 		final Player pl = PlayerTestHelper.createPlayer("bob");
 		pl.put("adminlevel", 4999);
-	
+
 		MockStendhalRPRuleProcessor.get().addPlayer(pl);
-	
+
 		final RPAction action = new RPAction();
 		action.put("type", "adminlevel");
 		action.put("target", "bob");
 		action.put("newlevel", "0");
 		CommandCenter.execute(pl, action);
 		assertEquals(
-				"Sorry, but you need an adminlevel of 5000 to change adminlevel.",
+				"Potrzebujesz 5000 poziomu administratora, aby móc go zmieniać.",
 				pl.events().get(0).get("text"));
 	}
 
@@ -91,19 +92,19 @@ public class AdminLevelActionTest {
 		// bad bad
 		MockStendhalRPRuleProcessor.get().addPlayer(pl);
 		MockStendhalRPRuleProcessor.get().addPlayer(bob);
-	
+
 		pl.put("adminlevel", 5000);
-	
+
 		final RPAction action = new RPAction();
 		action.put("type", "adminlevel");
 		action.put("target", "bob");
 		action.put("newlevel", "5001");
 		CommandCenter.execute(pl, action);
-		assertEquals("Changed adminlevel of bob from 0 to 5000.", pl
+		assertEquals("Zmieniono poziom administratora bob z 0 na 5000.", pl
 				.events().get(0).get("text"));
 		assertEquals(5000, pl.getAdminLevel());
 		assertEquals(5000, bob.getAdminLevel());
-		assertEquals("player changed your adminlevel from 0 to 5000.", bob
+		assertEquals("player zmienił Twój poziom administratora z 0 na 5000.", bob
 				.events().get(0).get("text"));
 	}
 
@@ -114,19 +115,19 @@ public class AdminLevelActionTest {
 	public final void testAdminLevelActionPlayerFound() {
 		final Player pl = PlayerTestHelper.createPlayer("bob");
 		pl.put("adminlevel", 5000);
-	
+
 		MockStendhalRPRuleProcessor.get().addPlayer(pl);
-	
+
 		final RPAction action = new RPAction();
 		action.put("type", "adminlevel");
 		action.put("target", "bob");
 		CommandCenter.execute(pl, action);
-		assertEquals("bob has adminlevel 5000", pl.events().get(0).get("text"));
+		assertEquals("bob posiada 5000 poziom administratora", pl.events().get(0).get("text"));
 	}
 	/**
 	 * Tests for adminLevelActionPlayerGhosted.
 	 */
-	@Test 
+	@Test
 	public final void testAdminLevelActionPlayerGhosted() {
 		final Player pl = PlayerTestHelper.createPlayer("bob");
 		pl.put("adminlevel", 5000);
@@ -135,17 +136,17 @@ public class AdminLevelActionTest {
 		final Player nonAdmin = PlayerTestHelper.createPlayer("nonAdmin");
 		final Player admin = PlayerTestHelper.createPlayer("admin");
 		admin.setAdminLevel(5000);
-		
+
 		final RPAction action = new RPAction();
 		action.put("type", "adminlevel");
 		action.put("target", "bob");
-		
+
 		CommandCenter.execute(admin, action);
 		assertTrue(AdministrationAction.isPlayerAllowedToExecuteAdminCommand(admin, "ghostmode", false));
-		assertEquals("bob has adminlevel 5000", admin.events().get(0).get("text"));
-		
+		assertEquals("bob posiada 5000 poziom administratora", admin.events().get(0).get("text"));
+
 		CommandCenter.execute(nonAdmin, action);
-		assertEquals("Player \"bob\" not found", nonAdmin.events().get(0).get("text"));
+		assertEquals("Wojownik \"bob\" nie został znaleziony", nonAdmin.events().get(0).get("text"));
 
 	}
 
@@ -156,15 +157,15 @@ public class AdminLevelActionTest {
 	public final void testAdminLevelActionPlayerFoundNoInteger() {
 		final Player pl = PlayerTestHelper.createPlayer("bob");
 		pl.put("adminlevel", 5000);
-	
+
 		MockStendhalRPRuleProcessor.get().addPlayer(pl);
-	
+
 		final RPAction action = new RPAction();
 		action.put("type", "adminlevel");
 		action.put("target", "bob");
 		action.put("newlevel", "1.3");
 		CommandCenter.execute(pl, action);
-		assertEquals("The new adminlevel needs to be an Integer", pl
+		assertEquals("Poziom administratora musi być liczbą całkowitą", pl
 				.events().get(0).get("text"));
 	}
 
@@ -179,8 +180,8 @@ public class AdminLevelActionTest {
 		action.put("type", "adminlevel");
 		action.put("target", "bob");
 		CommandCenter.execute(pl, action);
-	
-		assertEquals("Player \"bob\" not found", pl.events().get(0).get("text"));
+
+		assertEquals("Wojownik \"bob\" nie został znaleziony", pl.events().get(0).get("text"));
 	}
 
 }

@@ -1,7 +1,7 @@
 /*
  * @(#) src/games/stendhal/server/entity/area/CreatureProtectionAreaFactory.java
  *
- * $Id: SoundSourceFactory.java,v 1.1 2010/02/06 00:19:36 nhnb Exp $
+ * $Id$
  */
 
 package games.stendhal.server.entity.mapstuff.sound;

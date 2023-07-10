@@ -1,4 +1,4 @@
-/* $Id: UniqueIdentifierMapTest.java,v 1.1 2010/12/02 21:26:37 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -21,7 +21,7 @@ import org.junit.Test;
 
 /**
  * Tests the CountingMap class.
- * 
+ *
  * @author Martin Fuchs
  */
 public class UniqueIdentifierMapTest {
@@ -41,7 +41,7 @@ public class UniqueIdentifierMapTest {
 		// count map entries
 		int size = 0;
 		for (final Map.Entry<String, String> it : a) {
-			it.toString(); 
+			it.toString();
 			++size;
 		}
 		assertEquals(2, size);

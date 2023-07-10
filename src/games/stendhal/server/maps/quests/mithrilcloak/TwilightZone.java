@@ -1,4 +1,4 @@
-/* $Id: TwilightZone.java,v 1.12 2011/05/01 19:50:07 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -78,6 +78,7 @@ class TwilightZone {
 				new TextHasNumberCondition(1, 5000),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 
                         final int required = (sentence.getNumeral().getAmount());
@@ -122,9 +123,8 @@ class TwilightZone {
 				null);
 
 
-		// Ida and lda look the same but one lives in her true home sewing room and one lives in the twilight zone 
-		// hence they need different names according to engine, but name will look the same on client
-		final SpeakerNPC npc2 = npcs.get("lda");
+		// use the clone of Ida for twilight zone
+		final SpeakerNPC npc2 = npcs.get("twilight_ida");
 
 		npc2.add(ConversationStates.IDLE, 
 				ConversationPhrases.GREETING_MESSAGES,

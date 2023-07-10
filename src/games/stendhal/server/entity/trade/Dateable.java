@@ -1,4 +1,4 @@
-/* $Id: Dateable.java,v 1.3 2010/09/19 02:26:12 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -14,7 +14,7 @@ package games.stendhal.server.entity.trade;
 
 /**
  * Interface for objects that can give information about a point of time
- * 
+ *
  * @author kiheru
  */
 public interface Dateable {

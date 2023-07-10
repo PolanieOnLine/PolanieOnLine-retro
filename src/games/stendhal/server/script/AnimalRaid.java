@@ -1,4 +1,4 @@
-/* $Id: AnimalRaid.java,v 1.3 2010/09/19 02:36:26 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -17,7 +17,7 @@ import java.util.Map;
 
 /**
  * @author kymara
- * 
+ *
  * Not safe for players below level 5
  */
 public class AnimalRaid extends CreateRaid {
@@ -40,7 +40,7 @@ public class AnimalRaid extends CreateRaid {
 
 		return attackArmy;
 	}
-	
+
 	@Override
 	protected String getInfo() {
 		return " * Niebezpieczny dla wojowników poniżej poziomu 5";

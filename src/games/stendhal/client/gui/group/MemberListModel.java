@@ -27,16 +27,13 @@ import javax.swing.event.ChangeListener;
  * A <code>ListModel</code> for group members. The group leader is always kept
  * first.
  */
-public class MemberListModel extends AbstractListModel implements Iterable<Member> {
-	// Keep FindBugs happy
-	private static final long serialVersionUID = -5983645746012160833L;
-	
+class MemberListModel extends AbstractListModel<Member> implements Iterable<Member> {
 	private List<Member> memberList = new ArrayList<Member>();
 	private Map<String, Member> memberMap = new HashMap<String, Member>();
 	private final MemberListHealthListener healthListener = new MemberListHealthListener();
 
 	@Override
-	public Object getElementAt(int index) {
+	public Member getElementAt(int index) {
 		return memberList.get(index);
 	}
 
@@ -44,12 +41,12 @@ public class MemberListModel extends AbstractListModel implements Iterable<Membe
 	public int getSize() {
 		return memberList.size();
 	}
-	
+
 	/**
 	 * Set the current leader. The leader must be a member of the group, thus
 	 * this method must not be called before setting the members.
-	 * 
-	 * @param name name of the leader 
+	 *
+	 * @param name name of the leader
 	 */
 	void setLeader(String name) {
 		Member leader = memberMap.get(name);
@@ -63,17 +60,17 @@ public class MemberListModel extends AbstractListModel implements Iterable<Membe
 					break;
 				}
 			}
-			
+
 			Collections.sort(memberList);
 			int index2 = memberList.indexOf(leader);
 			fireContentsChanged(this, index1, index2);
 		}
 	}
-	
+
 	/**
 	 * Set the list of current group members.
-	 * 
-	 * @param members
+	 *
+	 * @param members list of members
 	 */
 	void setMembers(List<String> members) {
 		if (members == null) {
@@ -83,7 +80,7 @@ public class MemberListModel extends AbstractListModel implements Iterable<Membe
 			if (size > 0) {
 				this.fireIntervalRemoved(this, 0, size - 1);
 			}
-			
+
 			return;
 		}
 		// Find out the added members
@@ -95,11 +92,11 @@ public class MemberListModel extends AbstractListModel implements Iterable<Membe
 		removedMembers.removeAll(members);
 		removeMembers(removedMembers);
 	}
-	
+
 	/**
 	 * Add a group of new members.
-	 * 
-	 * @param newMembers
+	 *
+	 * @param newMembers list of new members
 	 */
 	private void addMembers(List<String> newMembers) {
 		if (newMembers.isEmpty()) {
@@ -123,10 +120,10 @@ public class MemberListModel extends AbstractListModel implements Iterable<Membe
 		}
 		fireIntervalAdded(this, startIndex, endIndex);
 	}
-	
+
 	/**
 	 * Remove a group of members.
-	 * 
+	 *
 	 * @param members removed members
 	 */
 	private void removeMembers(List<String> members) {
@@ -149,12 +146,12 @@ public class MemberListModel extends AbstractListModel implements Iterable<Membe
 		}
 		fireIntervalRemoved(this, startIndex, endIndex);
 	}
-	
+
 	/**
 	 * To be called when a member changes a value that makes a difference in
 	 * drawing it.
-	 * 
-	 * @param member
+	 *
+	 * @param member member whose attributes changed
 	 */
 	void memberChanged(Member member) {
 		int index = memberList.indexOf(member);
@@ -162,10 +159,10 @@ public class MemberListModel extends AbstractListModel implements Iterable<Membe
 			this.fireContentsChanged(this, index, index);
 		}
 	}
-	
+
 	/**
 	 * Get data of a specified group member.
-	 *  
+	 *
 	 * @param name member name
 	 * @return member data, or <code>null</code> if there's no such player in
 	 * 	the group
@@ -178,7 +175,7 @@ public class MemberListModel extends AbstractListModel implements Iterable<Membe
 	public Iterator<Member> iterator() {
 		return memberList.iterator();
 	}
-	
+
 	/**
 	 * Listener significant HP ratio changes that happen in any of the members.
 	 */
@@ -197,7 +194,7 @@ public class MemberListModel extends AbstractListModel implements Iterable<Membe
 					SwingUtilities.invokeLater(new Runnable() {
 						@Override
 						public void run() {
-							memberChanged((Member) source);						
+							memberChanged((Member) source);
 						}
 					});
 				}

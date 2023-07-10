@@ -1,4 +1,4 @@
-/* $Id: GrainField.java,v 1.59 2009/08/13 21:14:33 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -22,11 +22,6 @@ import marauroa.common.game.RPObject;
  */
 public class GrainField extends Entity {
 	/**
-	 * Maximum ripeness property.
-	 */
-	public static final Property PROP_MAX_RIPENESS = new Property();
-
-	/**
 	 * Ripeness property.
 	 */
 	public static final Property PROP_RIPENESS = new Property();
@@ -34,8 +29,8 @@ public class GrainField extends Entity {
 	/**
 	 * The maximum ripeness.
 	 */
-	protected int maxRipeness;
-	
+	private int maxRipeness;
+
 	/**
 	 * Current ripeness.
 	 */
@@ -55,7 +50,7 @@ public class GrainField extends Entity {
 
 	/**
 	 * Get the maximum ripeness.
-	 * 
+	 *
 	 * @return The maximum ripeness.
 	 */
 	public int getMaximumRipeness() {
@@ -64,7 +59,7 @@ public class GrainField extends Entity {
 
 	/**
 	 * Get the ripeness.
-	 * 
+	 *
 	 * @return The ripeness.
 	 */
 	public int getRipeness() {
@@ -77,7 +72,7 @@ public class GrainField extends Entity {
 
 	/**
 	 * Get the area the entity occupies.
-	 * 
+	 *
 	 * @return A rectange (in world coordinate units).
 	 */
 	@Override
@@ -88,10 +83,10 @@ public class GrainField extends Entity {
 
 	/**
 	 * Initialize this entity for an object.
-	 * 
+	 *
 	 * @param object
 	 *            The object.
-	 * 
+	 *
 	 * @see #release()
 	 */
 	@Override
@@ -118,7 +113,7 @@ public class GrainField extends Entity {
 
 	/**
 	 * The object added/changed attribute(s).
-	 * 
+	 *
 	 * @param object
 	 *            The base object.
 	 * @param changes
@@ -135,7 +130,6 @@ public class GrainField extends Entity {
 
 		if (object.has("max_ripeness")) {
 			maxRipeness = object.getInt("max_ripeness");
-			fireChange(PROP_MAX_RIPENESS);
 		}
 	}
 }

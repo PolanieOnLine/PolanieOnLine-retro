@@ -1,4 +1,4 @@
-/* $Id: Profile.java,v 1.23 2010/10/04 19:44:33 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -16,15 +16,14 @@ package games.stendhal.client.gui.login;
  * User login profile.
  */
 public class Profile {
-
 	/** Default server port. */
 	static final int DEFAULT_SERVER_PORT = 32160;
-	
+
 	/** Old server names to remap. */
-	private static final String[] OLD_SERVER_HOSTS = { "81.21.202.170" };
+	private static final String[] OLD_SERVER_HOSTS = { "145.239.87.198" };
 
 	/** Default server name to replace old ones with. */
-	private static final String NEW_SERVER_HOST = "pol.polskaonline.org";
+	private static final String NEW_SERVER_HOST = "polanieonline.eu";
 
 	private String host;
 
@@ -42,17 +41,12 @@ public class Profile {
 		this("", DEFAULT_SERVER_PORT, "", "");
 	}
 
-	public Profile(final String host, final int port, final String user, final String password) {
+	private Profile(final String host, final int port, final String user, final String password) {
 		this.host = host;
 		this.port = port;
 		this.user = user;
 		this.password = password;
 
-	}
-
-	public Profile(final String host, final int port, final String user, final String password, String character) {
-		this(host, port, user, password);
-		this.character = character;
 	}
 
 	//
@@ -61,10 +55,10 @@ public class Profile {
 
 	/**
 	 * Encode the login profile as a string.
-	 * 
+	 *
 	 * @return A string excoded form (with newlines).
 	 */
-	public String encode() {
+	String encode() {
 		StringBuilder sbuf;
 
 		sbuf = new StringBuilder();
@@ -76,9 +70,9 @@ public class Profile {
 		sbuf.append('\n');
 		sbuf.append(getPort());
 		sbuf.append('\n');
-		
+
 		// TCP
-		sbuf.append(true); 
+		sbuf.append(true);
 
 		return sbuf.toString();
 	}
@@ -109,13 +103,13 @@ public class Profile {
 
 	/**
 	 * Decode a login profile from a string.
-	 * 
+	 *
 	 * @param info
 	 *            The string encoded profile.
-	 * 
+	 *
 	 * @return A login profile.
 	 */
-	public static Profile decode(final String info) {
+	static Profile decode(final String info) {
 		String[] params;
 		Profile profile;
 		String s;
@@ -174,7 +168,7 @@ public class Profile {
 				try {
 					profile.setPort(Integer.parseInt(s));
 				} catch (final NumberFormatException ex) {
-					// use default port if port is not a number number 
+					// use default port if port is not a number number
 				}
 			}
 		}
@@ -254,12 +248,12 @@ public class Profile {
 		this.user = user;
 	}
 
-	
+
 	public void setCharacter(String character) {
 		this.character = character;
 	}
 
-	
+
 	public void setSeed(String seed) {
 		this.seed = seed;
 	}
@@ -294,7 +288,7 @@ public class Profile {
 
 	/**
 	 * Get the label string. This label is used for the profile selection list.
-	 * 
+	 *
 	 * @return The label in the form of <em>user</em><strong>@</strong><em>server-host</em>[<strong>:</strong><em>port</em>].
 	 */
 	@Override

@@ -1,4 +1,4 @@
-/* $Id: PetOwner.java,v 1.9 2010/09/19 02:26:09 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,12 +12,13 @@
  ***************************************************************************/
 package games.stendhal.server.entity.player;
 
+import org.apache.log4j.Logger;
+
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.creature.Pet;
 import games.stendhal.server.entity.creature.Sheep;
+import games.stendhal.server.entity.creature.Goat;
 import marauroa.common.game.RPObject;
-
-import org.apache.log4j.Logger;
 
 /**
  * Handles ownership of pets and sheep.
@@ -25,7 +26,7 @@ import org.apache.log4j.Logger;
  * @author hendrik
  */
 public class PetOwner {
-	
+
 
 	/**
 	 * The pet ID attribute name.
@@ -36,21 +37,24 @@ public class PetOwner {
 	 * The sheep ID attribute name.
 	 */
 	protected static final String ATTR_SHEEP = "sheep";
-	
+	protected static final String ATTR_GOAT = "goat";
+
 	private static Logger LOGGER = Logger.getLogger(PetOwner.class);
-	
+
 	private final Player player;
 
 	private final PlayerSheepManager playerSheepManager;
+	private final PlayerGoatManager playerGoatManager;
 	private final PlayerPetManager playerPetManager;
 
 
 	public PetOwner(final Player player) {
 		this.player = player;
 		playerSheepManager = new PlayerSheepManager(player);
+		playerGoatManager = new PlayerGoatManager(player);
 		playerPetManager = new PlayerPetManager(player);
 	}
-	
+
 	public void removeSheep(final Sheep sheep) {
 		if (sheep != null) {
 			sheep.setOwner(null);
@@ -60,6 +64,18 @@ public class PetOwner {
 			player.remove(ATTR_SHEEP);
 		} else {
 			LOGGER.warn("Called removeSheep but player has not sheep: " + this);
+		}
+	}
+	
+	public void removeGoat(final Goat goat) {
+		if (goat != null) {
+			goat.setOwner(null);
+		}
+
+		if (player.has(ATTR_GOAT)) {
+			player.remove(ATTR_GOAT);
+		} else {
+			LOGGER.warn("Called removeGoat but player has not goat: " + this);
 		}
 	}
 
@@ -78,6 +94,10 @@ public class PetOwner {
 	public boolean hasSheep() {
 		return player.has(ATTR_SHEEP);
 	}
+	
+	public boolean hasGoat() {
+		return player.has(ATTR_GOAT);
+	}
 
 	public boolean hasPet() {
 		return player.has(ATTR_PET);
@@ -85,29 +105,43 @@ public class PetOwner {
 
 	/**
 	 * Set the player's pet. This will also set the pet's owner.
-	 * 
+	 *
 	 * @param pet
 	 *            The pet.
 	 */
 	public void setPet(final Pet pet) {
 		player.put(ATTR_PET, pet.getID().getObjectID());
+		SingletonRepository.getAchievementNotifier().onPet(player);
 		pet.setOwner(player);
 	}
 
 	/**
 	 * Set the player's sheep. This will also set the sheep's owner.
-	 * 
+	 *
 	 * @param sheep
 	 *            The sheep.
 	 */
 	public void setSheep(final Sheep sheep) {
 		player.put(ATTR_SHEEP, sheep.getID().getObjectID());
+		SingletonRepository.getAchievementNotifier().onPet(player);
 		sheep.setOwner(player);
 	}
 
 	/**
+	 * Set the player's goat. This will also set the goat's owner.
+	 *
+	 * @param goat
+	 *            The goat.
+	 */
+	public void setGoat(final Goat goat) {
+		player.put(ATTR_GOAT, goat.getID().getObjectID());
+		SingletonRepository.getAchievementNotifier().onPet(player);
+		goat.setOwner(player);
+	}
+
+	/**
 	 * Get the player's sheep.
-	 * 
+	 *
 	 * @return The sheep.
 	 */
 	public Sheep getSheep() {
@@ -125,6 +159,30 @@ public class PetOwner {
 
 				if (player.hasSlot("#flock")) {
 					player.removeSlot("#flock");
+				}
+
+				return null;
+			}
+		} else {
+			return null;
+		}
+	}
+	
+	public Goat getGoat() {
+		if (player.has(ATTR_GOAT)) {
+			try {
+				return (Goat) SingletonRepository.getRPWorld().get(
+						new RPObject.ID(player.getInt(ATTR_GOAT), player.get("zoneid")));
+			} catch (final Exception e) {
+				LOGGER.error("Pre 1.00 Marauroa goat bug. (player = "
+						+ player.getName() + ")", e);
+
+				if (player.has(ATTR_GOAT)) {
+					player.remove(ATTR_GOAT);
+				}
+
+				if (player.hasSlot("#goat")) {
+					player.removeSlot("#goat");
 				}
 
 				return null;
@@ -151,6 +209,7 @@ public class PetOwner {
 
 	public void destroy() {
 		final Sheep sheep = player.getSheep();
+		final Goat goat = player.getGoat();
 
 		if (sheep != null) {
 			sheep.getZone().remove(sheep);
@@ -163,6 +222,15 @@ public class PetOwner {
 			// Bug on pre 0.20 released
 			if (player.hasSlot("#flock")) {
 				player.removeSlot("#flock");
+			}
+		}
+
+		if (goat != null) {
+			goat.getZone().remove(goat);
+			playerGoatManager.storeGoat(goat);
+		} else {
+			if (player.hasSlot("#goat")) {
+				player.removeSlot("#goat");
 			}
 		}
 
@@ -184,5 +252,9 @@ public class PetOwner {
 
 	public Sheep retrieveSheep() {
 		return playerSheepManager.retrieveSheep();
+	}
+
+	public Goat retrieveGoat() {
+		return playerGoatManager.retrieveGoat();
 	}
 }

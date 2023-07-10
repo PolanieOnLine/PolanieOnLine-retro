@@ -1,6 +1,5 @@
-/* $Id: NewsFromHackim.java,v 1.51 2011/11/13 17:14:57 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2011 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,6 +11,11 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import games.stendhal.common.grammar.Grammar;
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.item.Item;
@@ -22,55 +26,42 @@ import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.npc.action.SetQuestAction;
 import games.stendhal.server.entity.npc.condition.AndCondition;
+import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
 import games.stendhal.server.entity.npc.condition.QuestCompletedCondition;
 import games.stendhal.server.entity.npc.condition.QuestInStateCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotCompletedCondition;
-import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.Region;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import games.stendhal.server.maps.semos.blacksmith.BlacksmithAssistantNPC;
+import games.stendhal.server.maps.semos.tavern.TraderNPC;
+import games.stendhal.server.util.ResetSpeakerNPC;
 
 /**
- * QUEST: News from Hackim PARTICIPANTS: - Hackim - Xin Blanca
+ * QUEST: News from Hackim
  * 
- * STEPS: - Hackim asks you to give a message to Xin Blanca. - Xin Blanca thanks
- * you with a pair of leather legs.
+ * PARTICIPANTS:
+ * <ul>
+ * <li> Hackim </li>
+ * <li> Xin Blanca </li>
+ * </ul>
  * 
- * REWARD: - 10 XP - a pair of leather legs
+ * STEPS:
+ * <ul>
+ * <li> Hackim asks you to give a message to Xin Blanca. </li>
+ * <li> Xin Blanca thanks you with a pair of leather legs. </li>
+ * </ul>
  * 
- * REPETITIONS: - None.
+ * REWARD:
+ * <ul>
+ * <li> 150 XP </li>
+ * <li> some karma (2) </li>
+ * <li> a pair of leather legs </li>
+ * </ul>
+ * 
+ * REPETITIONS: - None
  */
 public class NewsFromHackim extends AbstractQuest {
 	private static final String QUEST_SLOT = "news_hackim";
-
-
-
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
-	
-	@Override
-	public List<String> getHistory(final Player player) {
-		final List<String> res = new ArrayList<String>();
-		if (!player.hasQuest(QUEST_SLOT)) {
-			return res;
-		}
-				res.add("Hackim asystent kowala chce abym zaniósł tajną wiadomość do Xin Blanca w tawernie Semos.");
-		final String questState = player.getQuest(QUEST_SLOT);
-		if (questState.equals("rejected")) {
-			res.add("QUEST_REJECTED");
-			return res;
-		}
-			res.add("To zadanie było zbyt niebespieczne dla mnie i nie chciałem zrobić niczego nielegalnego.");
-		if (isCompleted(player)) {
-			res.add("Dostarczyłem wiadomości do Xin Blanca. W zamian dostałem spodnie.");
-		}
-		return res;
-	}
 
 	private void step_1() {
 		final SpeakerNPC npc = npcs.get("Hackim Easso");
@@ -124,12 +115,13 @@ public class NewsFromHackim extends AbstractQuest {
 					new QuestInStateCondition(QUEST_SLOT, "start")),
 			ConversationStates.ATTENDING, null,
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 					String answer;
 					if (player.isEquipped("skórzane spodnie")) {
-						answer = "Weź te nowe skórzane spodnie! Daj mi znać jeżeli będziesz czegoś potrzebował.";
+						answer = "Weź te nowe... aha już masz skórzane spodnie. Cóż, możesz je sprzedać lub wymienić.";
 					} else {
-						answer = "Weź te nowe... aha już masz skórzane spodnie. Cóż możesz je sprzedać lub wymienić.";
+						answer = "Weź te nowe skórzane spodnie! Daj mi znać jeżeli będziesz czegoś potrzebował.";
 					}
 					// player.say("Well, to make a long story short; I know
 					// your business with Hackim and I'm here to tell you
@@ -140,7 +132,8 @@ public class NewsFromHackim extends AbstractQuest {
 
 					final Item item = SingletonRepository.getEntityManager().getItem("skórzane spodnie");
 					player.equipOrPutOnGround(item);
-					player.addXP(10);
+					player.addXP(150);
+					player.addKarma(2);
 
 					player.notifyWorldAboutChanges();
 				}
@@ -149,7 +142,6 @@ public class NewsFromHackim extends AbstractQuest {
 
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
 				"Wiadomości od Hackima",
 				"Hackim Easso asystent kowala w Semos potrzebuje pomocy w przekazaniu wiadomości do kogoś. Muszę mu pomóc.",
@@ -159,8 +151,41 @@ public class NewsFromHackim extends AbstractQuest {
 	}
 
 	@Override
+	public boolean removeFromWorld() {
+		final boolean res = ResetSpeakerNPC.reload(new BlacksmithAssistantNPC(), getNPCName())
+			&& ResetSpeakerNPC.reload(new TraderNPC(), "Xin Blanca");
+		// reload other quests associated with Hackim
+		SingletonRepository.getStendhalQuestSystem().reloadQuestSlots("meet_hackim", "mrsyeti");
+		return res;
+	}
+	
+	@Override
+	public List<String> getHistory(final Player player) {
+		final List<String> res = new ArrayList<String>();
+		if (!player.hasQuest(QUEST_SLOT)) {
+			return res;
+		}
+				res.add("Hackim asystent kowala chce, abym " + Grammar.genderVerb(player.getGender(), "dostarczył") + " tajną wiadomość do Xin Blanca w tawernie Semos.");
+		final String questState = player.getQuest(QUEST_SLOT);
+		if (questState.equals("rejected")) {
+			res.add("QUEST_REJECTED");
+			return res;
+		}
+			res.add("To zadanie było zbyt niebezpieczne dla mnie i nie " + Grammar.genderVerb(player.getGender(), "chciałem") + " zrobić niczego nielegalnego.");
+		if (isCompleted(player)) {
+			res.add(Grammar.genderVerb(player.getGender(), "Dostarczyłem") + " wiadomości do Xin Blanca. W zamian " + Grammar.genderVerb(player.getGender(), "dostałem") + " spodnie.");
+		}
+		return res;
+	}
+
+	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
+	}
+
+	@Override
 	public String getName() {
-		return "NewsFromHackim";
+		return "Wiadomości od Hackima";
 	}
 	
 	@Override

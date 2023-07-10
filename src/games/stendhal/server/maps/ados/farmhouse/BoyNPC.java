@@ -1,4 +1,3 @@
-/* $Id: BoyNPC.java,v 1.3 2011/05/01 19:50:08 martinfuchs Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +11,8 @@
  ***************************************************************************/
 package games.stendhal.server.maps.ados.farmhouse;
 
+import java.util.Map;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.SingletonRepository;
@@ -23,51 +24,47 @@ import games.stendhal.server.entity.npc.NPCList;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.Map;
-
 /**
  * Boy NPC
  *
  * @author kymara
  */
 public class BoyNPC implements ZoneConfigurator {
-
 	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
-		buildNPC(zone, attributes);
+		buildNPC(zone);
 	}
 
-	private void buildNPC(final StendhalRPZone zone, final Map<String, String> attributes) {
+	private void buildNPC(final StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Hughie") {
-
-			@Override
-			protected void createPath() {
-				setPath(null);
-			}
-
 			@Override
 			protected void createDialog() {
 				// boy says nothing at all
 				// mother gets stressed
 				addGreeting(null,new ChatAction(){
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						final NPCList npcs = SingletonRepository.getNPCList();
-						final SpeakerNPC npc = npcs.get("Anastasia");
-						npc.say("Ciii! Proszę nie obudź go!");
+						final SpeakerNPC npcAnastasia = npcs.get("Anastasia");
+						if (npcAnastasia != null) {
+							npcAnastasia.say("Ciii! Proszę nie obudź go!");
+						}
 						raiser.setCurrentState(ConversationStates.IDLE);
 					}
 				});
 			}
 		};
+
+		npc.setDescription("Oto mały chłopiec o imieniu Hughie, który wygląda na jakby miał gorączkę.");
 		npc.setEntityClass("kid8npc");
+		npc.setGender("M");
 		npc.setPosition(33, 6);
-		npc.initHP(100);
-		npc.setDescription("Oto mały chłopiec, który wygląda na jakby miał gorączkę.");
 	    zone.add(npc);
 	}
 }

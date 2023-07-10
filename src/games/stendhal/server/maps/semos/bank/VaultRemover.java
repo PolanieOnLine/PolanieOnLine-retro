@@ -1,4 +1,3 @@
-/* $Id: VaultRemover.java,v 1.3 2010/09/19 02:35:29 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,11 +11,11 @@
  ***************************************************************************/
 package games.stendhal.server.maps.semos.bank;
 
-import marauroa.common.game.RPObject;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.events.TurnListener;
 import games.stendhal.server.entity.item.Corpse;
+import marauroa.common.game.RPObject;
 
 /**
  * removes the vault
@@ -29,12 +28,13 @@ public class VaultRemover implements TurnListener {
 	/**
 	 * creates a new VaultRemover
 	 *
-	 * @param zone StendhalRPZone 
+	 * @param zone StendhalRPZone
 	 */
 	public VaultRemover(StendhalRPZone zone) {
 		this.zone = zone;
 	}
 
+	@Override
 	public void onTurnReached(int currentTurn) {
 		// Tell all corpses they are to be removed
 		// (stops timers)
@@ -45,5 +45,4 @@ public class VaultRemover implements TurnListener {
 		}
 		SingletonRepository.getRPWorld().removeZone(zone);
 	}
-
 }

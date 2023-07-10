@@ -23,18 +23,19 @@ import games.stendhal.server.entity.Entity;
  * A configurator for <code>ExpirationTracker</code> objects.
  */
 public class ExpirationTrackerConfigurator implements ZoneConfigurator {
-	
+
+	@Override
 	public void configureZone(StendhalRPZone zone, Map<String, String> attributes) {
 		final int x = MathHelper.parseInt(attributes.get("x"));
 		final int y = MathHelper.parseInt(attributes.get("y"));
 
 		if (!trackerAt(zone, x, y)) {
 			final ExpirationTracker tracker = new ExpirationTracker();
-			
+
 			if (attributes.containsKey("identifier")) {
 				tracker.setIdentifier(attributes.get("identifier"));
-			}			
-			
+			}
+
 			tracker.setPosition(x, y);
 			zone.add(tracker);
 		}
@@ -42,12 +43,12 @@ public class ExpirationTrackerConfigurator implements ZoneConfigurator {
 
 	/**
 	 * Checks to see if an ExpirationTracker is already at a given coordinate to
-	 * prevent multiple one from accumulating in the database 
-	 * 
+	 * prevent multiple one from accumulating in the database
+	 *
 	 * @param zone The zone to check for trackers
 	 * @param x the x coordinate to check
 	 * @param y the y coordinate to check
-	 * 
+	 *
 	 * @return true if there is a tracker at the coordinates, false otherwise
 	 */
 	private boolean trackerAt(StendhalRPZone zone, int x, int y) {

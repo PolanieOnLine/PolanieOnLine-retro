@@ -1,4 +1,4 @@
-/* $Id: FieldListerTest.java,v 1.7 2012/04/18 15:15:19 madmetzger Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -17,9 +17,9 @@ import static org.junit.Assert.assertThat;
 
 import java.util.Map;
 
-import marauroa.common.Pair;
-
 import org.junit.Test;
+
+import marauroa.common.Pair;
 
 /**
  * tests for the field tester.
@@ -33,12 +33,12 @@ public class FieldListerTest {
 		FieldLister fl = new FieldLister(new MockChildClass());
 		fl.scan();
 		Map<String, Pair<String, String>> fields = fl.getResult();
-		
+
 		// fields created by ecl-emma to track coverage data
 		fields.remove("$VRc");
 		fields.remove("$jacocoData");
 
 		assertThat(fields.size(), is(5));
-		
+
 	}
 }

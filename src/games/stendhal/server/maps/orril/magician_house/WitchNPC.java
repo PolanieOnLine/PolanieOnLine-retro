@@ -1,6 +1,5 @@
-/* $Id: WitchNPC.java,v 1.23 2010/09/19 02:30:44 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,28 +11,23 @@
  ***************************************************************************/
 package games.stendhal.server.maps.orril.magician_house;
 
-import games.stendhal.server.core.config.ZoneConfigurator;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.core.pathfinder.FixedPath;
-import games.stendhal.server.core.pathfinder.Node;
-import games.stendhal.server.entity.npc.ConversationStates;
-import games.stendhal.server.entity.npc.ShopList;
-import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.behaviour.adder.HealerAdder;
-import games.stendhal.server.entity.npc.behaviour.adder.SellerAdder;
-import games.stendhal.server.entity.npc.behaviour.impl.SellerBehaviour;
-
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import games.stendhal.server.core.config.ZoneConfigurator;
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.core.pathfinder.FixedPath;
+import games.stendhal.server.core.pathfinder.Node;
+import games.stendhal.server.entity.npc.ConversationStates;
+import games.stendhal.server.entity.npc.SpeakerNPC;
+import games.stendhal.server.entity.npc.behaviour.adder.HealerAdder;
+
 /**
  * Configure Orril Jynath House (Inside/Level 0).
  */
 public class WitchNPC implements ZoneConfigurator {
-	private final ShopList shops = SingletonRepository.getShopList();
 	/**
 	 * Configure a zone.
 	 *
@@ -42,15 +36,13 @@ public class WitchNPC implements ZoneConfigurator {
 	 * @param attributes
 	 *            Configuration attributes.
 	 */
-	public void configureZone(final StendhalRPZone zone,
-			final Map<String, String> attributes) {
-		buildJynathHouse(zone, attributes);
+	@Override
+	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
+		buildJynathHouse(zone);
 	}
 
-	private void buildJynathHouse(final StendhalRPZone zone,
-			final Map<String, String> attributes) {
+	private void buildJynathHouse(final StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Jynath") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -82,11 +74,9 @@ public class WitchNPC implements ZoneConfigurator {
 				 * for me.");
 				 */
 				addHelp("Mogę Cię uleczyć. Powiedz tylko #ulecz.");
-				new SellerAdder().addSeller(this, new SellerBehaviour(shops.get("scrolls")));
 				new HealerAdder().addHealer(this, 1500);
-				add(
-				        ConversationStates.ATTENDING,
-				        Arrays.asList("magic", "scroll", "scrolls"),
+				add(ConversationStates.ATTENDING,
+				        Arrays.asList("magic", "scroll", "scrolls", "zwój", "zwoje"),
 				        null,
 				        ConversationStates.ATTENDING,
 				        "#Oferuję zwoje, które pomogą Tobie w podróży: #'zwój semos' i #'niezapisany zwój'. Dla bardziej doświadczonych klientów mam #'zwój przywołania'!",
@@ -94,28 +84,28 @@ public class WitchNPC implements ZoneConfigurator {
 				add(ConversationStates.ATTENDING, Arrays.asList("semos", "city", "zwój semos"), null,
 				        ConversationStates.ATTENDING,
 				        "Semos zwoje zabierają natychmiast do Semos. Dobry droga wyjścia z niebezpieczeństwa!", null);
-				add(
-				        ConversationStates.ATTENDING,
+				add(ConversationStates.ATTENDING,
 				        Arrays.asList("empty", "marked", "niezapisany zwój", "markable", "marked scroll"),
 				        null,
 				        ConversationStates.ATTENDING,
 				        "Puste zwoje są używane do oznaczania pozycji. Zaznaczone zwoje mogą Cię zabrać z powrotem do tej lokacji. Są trochę drogie.",
 				        null);
-				add(
-				        ConversationStates.ATTENDING,
+				add(ConversationStates.ATTENDING,
 				        "zwój przywołania",
 				        null,
 				        ConversationStates.ATTENDING,
 				        "Zwoje przywołania służą do przywoływania zwierząt. Doświadczeni magowie będą mogli przywoływać silniejsze potwory niż inni. Oczywiście te zwoje mogą być niebezpieczne jeżeli będą nadużywane.",
 				        null);
-				addGoodbye("Dowidzenia - ostrożnie nie dotykaj tej kuli. Prowadzi do bardzo niebezpiecznego miejsca!");
+				addGoodbye("Do widzenia - ostrożnie nie dotykaj tej kuli. Prowadzi do bardzo niebezpiecznego miejsca!");
 			}
 		};
 
+		npc.setDescription("Oto wiedźma zwana Jynath. Lata na miotle.");
 		npc.setEntityClass("witchnpc");
+		npc.setShadowStyle("48x64_floating");
+		npc.setGender("F");
 		npc.setPosition(24, 7);
-		npc.initHP(100);
-		npc.setDescription("Widzisz wiedźmę Jynath. Ona lata na miotle.");
+		npc.setSounds(Arrays.asList("witch-cackle-1"));
 		zone.add(npc);
 	}
 }

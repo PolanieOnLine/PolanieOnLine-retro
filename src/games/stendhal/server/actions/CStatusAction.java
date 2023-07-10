@@ -14,13 +14,13 @@ package games.stendhal.server.actions;
 import static games.stendhal.common.constants.Actions.CID;
 import static games.stendhal.common.constants.Actions.CSTATUS;
 import static games.stendhal.common.constants.Actions.ID;
-import games.stendhal.common.NotificationType;
-import games.stendhal.common.Version;
-import games.stendhal.server.entity.player.Player;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import games.stendhal.common.NotificationType;
+import games.stendhal.common.Version;
+import games.stendhal.server.entity.player.Player;
 import marauroa.common.game.RPAction;
 
 /**
@@ -40,6 +40,7 @@ public class CStatusAction implements ActionListener {
 		CommandCenter.register(CSTATUS, new CStatusAction());
 	}
 
+	@Override
 	public void onAction(final Player player, final RPAction action) {
 		final String pName = player.getName();
 		if (action.has(CID) || action.has(ID)) {
@@ -73,11 +74,11 @@ public class CStatusAction implements ActionListener {
 						"Mogą wystąpić problemy z kompatybilnością ponieważ serwer jest przestażały.");
 				} else {
 					player.sendPrivateText(NotificationType.ERROR,
-						"Twój klient może funkcjonować nieprawidłowo.\nWersja serwera jest "
-						+ serverVersion
-						+ ", a twój klient jest w wersji "
-						+ clientVersion
-						+ ".\nMożesz pobrać najnowszą wersję z http://polskaonline.org ");
+						"Twój klient może funkcjonować nieprawidłowo,\nponieważ serwer jest w wersji "
+								+ serverVersion
+								+ ", a twój klient jest w wersji "
+								+ clientVersion
+								+ ".\nMożesz pobrać najnowszą wersję z https://s1.polanieonline.eu ");
 				}
 			}
 		}

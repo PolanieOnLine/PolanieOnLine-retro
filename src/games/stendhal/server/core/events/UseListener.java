@@ -1,4 +1,4 @@
-/* $Id: UseListener.java,v 1.5 2011/09/06 17:29:51 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -21,7 +21,7 @@ public interface UseListener {
 
 	/**
 	 * Invoked when the object is used.
-	 * 
+	 *
 	 * @param user the RPEntity who uses the object
 	 * @return true if successful
 	 */

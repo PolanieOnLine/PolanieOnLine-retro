@@ -1,5 +1,5 @@
 /***************************************************************************
- *                    (C) Copyright 2003-2010 - Stendhal                   *
+ *                    (C) Copyright 2003-2020 - Stendhal                   *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -11,17 +11,17 @@
  ***************************************************************************/
 package games.stendhal.server.core.engine.db;
 
-import games.stendhal.server.entity.player.Player;
-
 import java.io.IOException;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 
+import org.apache.log4j.Logger;
+
+import games.stendhal.server.entity.player.Player;
 import marauroa.common.game.RPObject;
 import marauroa.server.db.DBTransaction;
 import marauroa.server.game.db.CharacterDAO;
 import marauroa.server.game.db.DAORegister;
-
-import org.apache.log4j.Logger;
 
 /**
  * Stendhal specific extensions to the normal CharacterDAO which will update
@@ -32,17 +32,17 @@ public class StendhalCharacterDAO extends CharacterDAO {
 
 	@Override
 	public void addCharacter(final DBTransaction transaction, final String username,
-			final String character, final RPObject player) throws SQLException, IOException {
+			final String character, final RPObject player, Timestamp timestamp) throws SQLException, IOException {
 
-		super.addCharacter(transaction, username, character, player);
+		super.addCharacter(transaction, username, character, player, timestamp);
 
 		// Here goes the Stendhal specific code.
 		try {
 			if (player instanceof Player) {
 				final Player instance = (Player) player;
 				DAORegister.get().get(StendhalHallOfFameDAO.class).setHallOfFamePoints(transaction, instance.getName(), "T", instance.getTradescore());
-				DAORegister.get().get(StendhalWebsiteDAO.class).insertIntoCharStats(transaction, instance);
-				DAORegister.get().get(StendhalBuddyDAO.class).saveBuddyList(transaction, character, instance.getBuddies());
+				DAORegister.get().get(StendhalWebsiteDAO.class).insertIntoCharStats(transaction, instance, timestamp);
+				DAORegister.get().get(StendhalBuddyDAO.class).saveRelations(transaction, character, instance);
 			} else {
 				logger.error("player no instance of Player but: " + player, new Throwable());
 			}
@@ -54,19 +54,19 @@ public class StendhalCharacterDAO extends CharacterDAO {
 
 	@Override
 	public void storeCharacter(final DBTransaction transaction, final String username,
-			final String character, final RPObject player) throws SQLException, IOException {
+			final String character, final RPObject player, Timestamp timestamp) throws SQLException, IOException {
 
-		super.storeCharacter(transaction, username, character, player);
+		super.storeCharacter(transaction, username, character, player, timestamp);
 
 		// Here goes the Stendhal specific code.
 		if (player instanceof Player) {
 			try {
 				final Player instance = (Player) player;
-				final int count = DAORegister.get().get(StendhalWebsiteDAO.class).updateCharStats(transaction, instance);
+				final int count = DAORegister.get().get(StendhalWebsiteDAO.class).updateCharStats(transaction, instance, timestamp);
 				if (count == 0) {
-					DAORegister.get().get(StendhalWebsiteDAO.class).insertIntoCharStats(transaction, instance);
+					DAORegister.get().get(StendhalWebsiteDAO.class).insertIntoCharStats(transaction, instance, timestamp);
 				}
-				DAORegister.get().get(StendhalBuddyDAO.class).saveBuddyList(transaction, character, instance.getBuddies());
+				DAORegister.get().get(StendhalBuddyDAO.class).saveRelations(transaction, character, instance);
 			} catch (final SQLException sqle) {
 				logger.warn("error storing character", sqle);
 				throw sqle;

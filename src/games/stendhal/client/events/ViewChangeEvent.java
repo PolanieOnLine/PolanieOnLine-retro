@@ -19,15 +19,16 @@ import games.stendhal.client.entity.Entity;
 /**
  * View center changing event.
  */
-public class ViewChangeEvent extends Event<Entity> {
+class ViewChangeEvent extends Event<Entity> {
 	@Override
 	public void execute() {
 		final int x = event.getInt("x");
 		final int y = event.getInt("y");
-		
+
 		SwingUtilities.invokeLater(new Runnable() {
+			@Override
 			public void run() {
-		GameScreen.get().positionChanged(x, y);
+				GameScreen.get().positionChanged(x, y);
 			}
 		});
 	}

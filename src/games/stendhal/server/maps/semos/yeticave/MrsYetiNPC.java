@@ -1,4 +1,3 @@
-/* $Id: MrsYetiNPC.java,v 1.9 2012/02/13 00:05:15 bluelads99 Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,22 +11,21 @@
  ***************************************************************************/
 package games.stendhal.server.maps.semos.yeticave;
 
-import games.stendhal.server.core.config.ZoneConfigurator;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.core.pathfinder.FixedPath;
-import games.stendhal.server.core.pathfinder.Node;
-import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.behaviour.adder.SellerAdder;
-import games.stendhal.server.entity.npc.behaviour.impl.QuestCompletedSellerBehaviour;
-
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import games.stendhal.server.core.config.ZoneConfigurator;
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.core.pathfinder.FixedPath;
+import games.stendhal.server.core.pathfinder.Node;
+import games.stendhal.server.entity.CollisionAction;
+import games.stendhal.server.entity.npc.SpeakerNPC;
+import games.stendhal.server.entity.npc.behaviour.adder.SellerAdder;
+import games.stendhal.server.entity.npc.behaviour.impl.QuestCompletedSellerBehaviour;
 
 public class MrsYetiNPC implements ZoneConfigurator {
-
 	public static final int BUYING_PRICE = 10;
  	private static final String QUEST_SLOT = "mrsyeti";
 
@@ -37,13 +35,13 @@ public class MrsYetiNPC implements ZoneConfigurator {
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildYeti(zone);
 	}
 
 	private void buildYeti(final StendhalRPZone zone) {
 		final SpeakerNPC yetifemale = new SpeakerNPC("Mrs. Yeti") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -74,11 +72,10 @@ public class MrsYetiNPC implements ZoneConfigurator {
 
 			@Override
 			protected void createDialog() {
-
 				final Map<String, Integer> items = new HashMap<String, Integer>();
 				items.put("płotka", BUYING_PRICE);
-
 				new SellerAdder().addSeller(this, new QuestCompletedSellerBehaviour(QUEST_SLOT, "Mam #zadanie dla Ciebie. Oddam ci wszystko tylko pomóż!", items));
+
 				// for quest see games.stendhal.server.maps.quest.HelpMrsYeti
 				addGreeting("Pozdrawiam, hmm dziwny cudzoziemiec!");
 				addJob("Idę na łowy po żywności, podczas gdy Pan Yeti ogląda, rzeźby ze śniegu.");
@@ -87,10 +84,11 @@ public class MrsYetiNPC implements ZoneConfigurator {
 			}
 		};
 
+		yetifemale.setDescription("Oto Mrs. Yeti, pani o białych włosach z dużymi stopami!");
 		yetifemale.setEntityClass("yetifemalenpc");
-		yetifemale.setDescription("Oto Mrs. Yeti pani o białych włosach z dużymi stopami!");
+		yetifemale.setGender("F");
 		yetifemale.setPosition(102, 19);
-		yetifemale.initHP(100);
+		yetifemale.setCollisionAction(CollisionAction.STOP);
 		zone.add(yetifemale);
 	}
 }

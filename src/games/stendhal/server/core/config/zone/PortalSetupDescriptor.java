@@ -1,19 +1,13 @@
-/*
- * @(#) src/games/stendhal/server/config/zone/PortalSetupDescriptor.java
- *
- * $Id: PortalSetupDescriptor.java,v 1.6 2009/03/09 23:09:54 kiheru Exp $
- */
-
 package games.stendhal.server.core.config.zone;
 
-//
-//
+import java.util.Arrays;
+
+import org.apache.log4j.Logger;
 
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.entity.EntityFactoryHelper;
+import games.stendhal.server.entity.mapstuff.portal.HousePortal;
 import games.stendhal.server.entity.mapstuff.portal.Portal;
-
-import org.apache.log4j.Logger;
 
 /**
  * A portal setup descriptor.
@@ -22,7 +16,7 @@ public class PortalSetupDescriptor extends EntitySetupDescriptor {
 	/**
 	 * Logger.
 	 */
-	private static final Logger LOGGER = Logger.getLogger(PortalSetupDescriptor.class);
+	private static final Logger logger = Logger.getLogger(PortalSetupDescriptor.class);
 
 	/**
 	 * The named portal identifier.
@@ -33,6 +27,8 @@ public class PortalSetupDescriptor extends EntitySetupDescriptor {
 	 * The destination zone name (if any).
 	 */
 	protected String destinationZone;
+
+	protected String associatedZones;
 
 	/**
 	 * The named destination portal (if any).
@@ -46,7 +42,7 @@ public class PortalSetupDescriptor extends EntitySetupDescriptor {
 
 	/**
 	 * Create a portal setup descriptor.
-	 * 
+	 *
 	 * @param x
 	 *            The X coordinate.
 	 * @param y
@@ -71,7 +67,7 @@ public class PortalSetupDescriptor extends EntitySetupDescriptor {
 
 	/**
 	 * Get the destination identifier.
-	 * 
+	 *
 	 * @return An identifier.
 	 */
 	public Object getDestinationIdentifier() {
@@ -80,7 +76,7 @@ public class PortalSetupDescriptor extends EntitySetupDescriptor {
 
 	/**
 	 * Get the destination zone.
-	 * 
+	 *
 	 * @return A zone name.
 	 */
 	public String getDestinationZone() {
@@ -89,7 +85,7 @@ public class PortalSetupDescriptor extends EntitySetupDescriptor {
 
 	/**
 	 * Get the identifier.
-	 * 
+	 *
 	 * @return An identifier.
 	 */
 	public Object getIdentifier() {
@@ -98,7 +94,7 @@ public class PortalSetupDescriptor extends EntitySetupDescriptor {
 
 	/**
 	 * Determine if existing portals are replaced.
-	 * 
+	 *
 	 * @return <code>true</code> if replacing an existing portal at that
 	 *         location.
 	 */
@@ -108,7 +104,7 @@ public class PortalSetupDescriptor extends EntitySetupDescriptor {
 
 	/**
 	 * Set the destination zone/identifier.
-	 * 
+	 *
 	 * @param zone
 	 *            The destination zone name.
 	 * @param identifier
@@ -121,7 +117,7 @@ public class PortalSetupDescriptor extends EntitySetupDescriptor {
 
 	/**
 	 * Set whether to replace any existing portal.
-	 * 
+	 *
 	 * @param replacing
 	 *            Whether replacing an existing portal at that location.
 	 */
@@ -129,13 +125,16 @@ public class PortalSetupDescriptor extends EntitySetupDescriptor {
 		this.replacing = replacing;
 	}
 
-	//
-	// SetupDescriptor
-	//
+	/**
+	 * For house portals.
+	 */
+	public void setAssociatedZones(final String zones) {
+		associatedZones = zones;
+	}
 
 	/**
 	 * Do appropriate zone setup.
-	 * 
+	 *
 	 * @param zone
 	 *            The zone.
 	 */
@@ -154,7 +153,7 @@ public class PortalSetupDescriptor extends EntitySetupDescriptor {
 			final Portal portal = (Portal) EntityFactoryHelper.create(className,
 					getParameters(), getAttributes());
 			if (portal == null) {
-				LOGGER.warn("Unable to create portal: " + className);
+				logger.warn("Unable to create portal: " + className);
 
 				return;
 			}
@@ -168,11 +167,30 @@ public class PortalSetupDescriptor extends EntitySetupDescriptor {
 				portal.setDestination(getDestinationZone(), destIdentifier);
 			}
 
+			if (portal instanceof HousePortal && associatedZones != null) {
+				((HousePortal) portal).setAssociatedZones(associatedZones);
+			}
+
+			// Set facing direction for portal used as destination.
+			if (portal.has("face")) {
+				portal.setFaceDirection(portal.get("face"));
+			}
+
 			// Check for an existing portal at the location
 			final Portal oportal = zone.getPortal(getX(), getY());
 			if (oportal != null) {
 				if (isReplacing()) {
-					LOGGER.debug("Replacing portal: " + oportal);
+					// copy owner attributes from old portal
+					if (oportal instanceof HousePortal) {
+						for (final String attr: Arrays.asList(
+								"owner", "lock_number", "expires")) {
+							final String atocopy = ((HousePortal) oportal).get(attr);
+							if (atocopy != null) {
+								((HousePortal) portal).put(attr, atocopy);
+							}
+						}
+					}
+					logger.debug("Replacing portal: " + oportal);
 					zone.remove(oportal);
 				} else {
 					// reserved, and told not to replace it. just discard the portal
@@ -182,7 +200,7 @@ public class PortalSetupDescriptor extends EntitySetupDescriptor {
 
 			zone.add(portal);
 		} catch (final IllegalArgumentException ex) {
-			LOGGER.error("Error with portal factory", ex);
+			logger.error("Error with portal factory", ex);
 		}
 	}
 }

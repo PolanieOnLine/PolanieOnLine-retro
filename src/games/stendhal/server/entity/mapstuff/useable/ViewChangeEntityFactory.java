@@ -18,11 +18,12 @@ import games.stendhal.server.core.config.factory.ConfigurableFactoryContext;
  * Factory for ViewChangeEntities
  */
 public class ViewChangeEntityFactory implements ConfigurableFactory {
+	@Override
 	public Object create(ConfigurableFactoryContext ctx) {
 		int x = ctx.getRequiredInt("x");
 		int y = ctx.getRequiredInt("y");
 		ViewChangeEntity entity = new ViewChangeEntity(x, y);
-		
+
 		return entity;
 	}
 }

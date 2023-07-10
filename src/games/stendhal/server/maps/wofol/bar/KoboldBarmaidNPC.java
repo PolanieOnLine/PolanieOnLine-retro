@@ -1,4 +1,3 @@
-/* $Id: KoboldBarmaidNPC.java,v 1.17 2012/04/25 14:12:06 nylon0700 Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -11,6 +10,12 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.maps.wofol.bar;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import games.stendhal.common.grammar.Grammar;
 import games.stendhal.common.grammar.ItemParserResult;
@@ -26,12 +31,6 @@ import games.stendhal.server.entity.npc.behaviour.adder.SellerAdder;
 import games.stendhal.server.entity.npc.behaviour.impl.SellerBehaviour;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 /**
   * Provides Wrviliza, the kobold barmaid in Wo'fol.
   * She's Wrvil's wife.
@@ -41,21 +40,19 @@ import java.util.Map;
   * @author omero
   */
 public class KoboldBarmaidNPC implements ZoneConfigurator {
-
 	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildNPC(zone);
 	}
 
 	private void buildNPC(final StendhalRPZone zone) {
-
 		final SpeakerNPC npc = new SpeakerNPC("Wrviliza") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -71,7 +68,6 @@ public class KoboldBarmaidNPC implements ZoneConfigurator {
 			}
 
 			@Override
-
 			protected void createDialog() {
 				class TorcibudSellerBehaviour extends SellerBehaviour {
 					TorcibudSellerBehaviour(final Map<String, Integer> items) {
@@ -100,7 +96,7 @@ public class KoboldBarmaidNPC implements ZoneConfigurator {
 						if (player.isBadBoy()) {
 						        price = (int) (BAD_BOY_BUYING_PENALTY * price);
 						}
-						
+
 						if ("wąska butelka".equals(requiredContainer) || "butla czwórniaczka".equals(requiredContainer)) {
 							if (!player.isEquipped(requiredContainer, amount) || !player.isEquipped("money", price)) {
 								seller.say("Hau! Mogę sprzedać Tobie tylko "
@@ -115,7 +111,7 @@ public class KoboldBarmaidNPC implements ZoneConfigurator {
 									+ " jeżeli masz wystarczająco dużo money.");
 						        return false;
 						}
-						
+
                         /**
                          * If the user tries to buy several of a non-stackable item,
                          * he is forced to buy only one.
@@ -125,29 +121,30 @@ public class KoboldBarmaidNPC implements ZoneConfigurator {
                         } else {
                             res.setAmount(1);
                         }
-						
+
 						if (player.equipToInventoryOnly(item)) {
 							player.drop("money", price);
 							if (!"".equals(requiredContainer)) {
 						               	player.drop(requiredContainer, amount);
 							}
 							seller.say("Hau! Oto "
-									+ Grammar.isare(amount) + " your "
+									+ Grammar.isare(amount) + " twoje "
 									+ Grammar.plnoun(amount, chosenItemName) + "!");
+							updatePlayerTransactions(player, seller.getName(), res);
 							return true;
-					        } else {
-					                seller.say("Hau.. W tej chwili nie możesz dodać więcej "
- 					                       + Grammar.plnoun(amount, chosenItemName)
-                    				       + " do plecaka.");
-					                return false;
-					        }
+						} else {
+							seller.say("Hau.. W tej chwili nie możesz dodać więcej "
+									+ Grammar.plnoun(amount, chosenItemName)
+									+ " do plecaka.");
+							return false;
+						}
 					}
 				}
 
                 // edit prices here and they'll be correct everywhere else
                 final int MILD_KOBOLDISH_TORCIBUD_PRICE = 95;
                 final int STRONG_KOBOLDISH_TORCIBUD_PRICE = 195;
-                
+
 				final Map<String, Integer> items = new HashMap<String, Integer>();
 				//beer and wine have higher than average prices here.
 				items.put("sok z chmielu", 18);
@@ -163,7 +160,7 @@ public class KoboldBarmaidNPC implements ZoneConfigurator {
 						+ " Jeżeli chcesz, abym #zaoferowała trochę napojów to daj znać!");
 				addJob("Hau! Oferuję napój z winogron, sok z chmielu i mój specjał #'nalewka litworowa' lub #'mocna nalewka litworowa'.");
 				addHelp("Hau... Jeżeli jesteś spragniony to mogę #zaoferować trochę napojów. Jeżeli nie zauważałeś to jest pub!");
-				addGoodbye("Hau... DOwidzenia i powodzenia!");
+				addGoodbye("Hau... Do widzenia i powodzenia!");
 
 				addReply(Arrays.asList("wine","beer","napój z winogron","sok z chmielu"),
 						"Hau! Ugasi twoje pragnienie za kilka monet...");
@@ -188,10 +185,10 @@ public class KoboldBarmaidNPC implements ZoneConfigurator {
 			}
 		};
 
+		npc.setDescription("Oto Wrviliza, kelnerka kobold.");
 		npc.setEntityClass("koboldbarmaidnpc");
+		npc.setGender("F");
 		npc.setPosition(9, 3);
-		npc.initHP(100);
-		npc.setDescription("Oto Wrviliza kelnerka kobold.");
 		zone.add(npc);
 
 	}

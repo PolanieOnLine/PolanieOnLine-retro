@@ -1,6 +1,5 @@
-/* $Id: DeepInspect.java,v 1.17 2011/08/21 07:33:02 yoriy Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2020 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,16 +11,27 @@
  ***************************************************************************/
 package games.stendhal.server.script;
 
-import games.stendhal.common.NotificationType;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.core.scripting.ScriptImpl;
-import games.stendhal.server.entity.player.Player;
+import static games.stendhal.server.entity.player.PlayerLootedItemsHandler.LOOTED_ITEMS;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 
+import games.stendhal.common.NotificationType;
+import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.core.events.TurnListener;
+import games.stendhal.server.core.events.TurnNotifier;
+import games.stendhal.server.core.scripting.ScriptImpl;
+import games.stendhal.server.entity.item.Item;
+import games.stendhal.server.entity.npc.behaviour.journal.ProducerRegister;
+import games.stendhal.server.entity.player.Player;
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPSlot;
 import marauroa.server.game.db.CharacterDAO;
@@ -29,7 +39,7 @@ import marauroa.server.game.db.DAORegister;
 
 /**
  * Deep inspects a player and all his/her items.
- * 
+ *
  * @author hendrik
  */
 public class DeepInspect extends ScriptImpl {
@@ -38,7 +48,7 @@ public class DeepInspect extends ScriptImpl {
 	public void execute(final Player admin, final List<String> args) {
 		super.execute(admin, args);
 		if ((args.size() != 2) || (!(args.get(0).equals("character") || args.get(0).equals("username")))) {
-			admin.sendPrivateText("użyj: {\"postać\" | \"nazwaużytkownika\"} <nazwa>.");
+			admin.sendPrivateText("użyj: {\"character\" | \"username\"} <nazwa>.");
 			admin.sendPrivateText("postać zrobi inspekcję dostępnej w grze postaci.");
 			admin.sendPrivateText("nazwa użytkownika zrobi inspekcję wszystkim postaciom należącym do tego konta czyli tym, które są powiązane w bazie danych.");
 			return;
@@ -54,7 +64,7 @@ public class DeepInspect extends ScriptImpl {
 	 * inspect an online character
 	 *
 	 * @param admin  Inspector
-	 * @param character name of online character to inspect
+	 * @param charname name of online character to inspect
 	 */
 	private void inspectOnline(final Player admin, final String charname) {
 		Player player = SingletonRepository.getRuleProcessor().getPlayer(charname);
@@ -74,8 +84,16 @@ public class DeepInspect extends ScriptImpl {
 	private void inspectOffline(final Player admin, final String username) {
 		try {
 			Map<String, RPObject> characters = DAORegister.get().get(CharacterDAO.class).loadAllActiveCharacters(username);
+			int i = 0;
 			for (RPObject object : characters.values()) {
-				inspect(admin, object);
+				i++;
+				TurnNotifier.get().notifyInSeconds(i, new TurnListener() {
+
+					@Override
+					public void onTurnReached(int currentTurn) {
+						inspect(admin, object);
+					}
+				});
 			}
 		} catch (SQLException e) {
 			admin.sendPrivateText(NotificationType.ERROR, e.toString());
@@ -87,23 +105,46 @@ public class DeepInspect extends ScriptImpl {
 
 	/**
 	 * Inspects a player
-	 * 
+	 *
 	 * @param admin  Inspector
-	 * @param player player being inspected
+	 * @param target player being inspected
 	 */
-	private void inspect(final Player admin, final RPObject player) {
+	private void inspect(final Player admin, final RPObject target) {
 		final StringBuilder sb = new StringBuilder();
-		sb.append("Badam " + player.get("name") + "\n");
+		sb.append("Badam " + target.get("name") + "\n");
 
-		for (final String value : player) {
-			sb.append(value + ": " + player.get(value) + "\n");
+		final List<String> locationSlots = Arrays.asList("zoneid", "x", "y");
+
+		for (final String value : target) {
+			// skip attributes used on the location info section below
+			if (!locationSlots.contains(value)) {
+				sb.append(value + ": " + target.get(value) + "\n");
+			}
+		}
+
+		// location info
+		if (target.has("zoneid") && target.has("x") && target.has("y")) {
+			final StendhalRPZone zone = SingletonRepository.getRPWorld().getZone(target.get("zoneid"));
+			final int zoneX = zone.getX();
+			final int zoneY = zone.getY();
+			final int zoneZ = zone.getLevel();
+			final int X = target.getInt("x");
+			final int Y = target.getInt("y");
+			final String absolutePos = Integer.toString(zoneX + X) + "," + Integer.toString(zoneY + Y) + "," + Integer.toString(zoneZ);
+		
+			sb.append("\nInformacje o lokalizacji:\n");
+			sb.append("  Zone ID:\t\t" + zone.getName() + "\n");
+			
+			sb.append("  Współrzędne miejsca:\t" + Integer.toString(zone.getX()) + "," + Integer.toString(zone.getY()) + "," + Integer.toString(zone.getLevel()) + "\n");
+			sb.append("  Względna poz:\t" + target.get("x") + "," + target.get("y") + "\n");
+			sb.append("  Absoluta poz:\t" + absolutePos + "\n");
 		}
 
 		admin.sendPrivateText(sb.toString());
 		sb.setLength(0);
 
-		// inspect slots
-		for (final RPSlot slot : player.slots()) {
+		// Inspect slots
+		for (final RPSlot slot : target.slots()) {
 			// don't return buddy-list for privacy reasons
 			if (slot.getName().equals("!buddy")
 					|| slot.getName().equals("!ignore")) {
@@ -116,6 +157,142 @@ public class DeepInspect extends ScriptImpl {
 				sb.append("   " + object + "\n");
 			}
 
+			sb.append("\n");
+			admin.sendPrivateText(sb.toString());
+			sb.setLength(0);
+		}
+
+		if (target instanceof Player) {
+			Player player = (Player) target;
+
+			// Produced items
+			sb.append("Produkcja:\n   ");
+			final ProducerRegister producerRegister = SingletonRepository.getProducerRegister();
+		    final List<String> produceList = new LinkedList<String>();
+
+		    for (String food : producerRegister.getProducedItemNames("food")) {
+		    	produceList.add(food);
+		    }
+		    for (String drink : producerRegister.getProducedItemNames("drink")) {
+		    	produceList.add(drink);
+		    }
+		    for (String resource : producerRegister.getProducedItemNames("resource")) {
+		    	produceList.add(resource);
+		    }
+
+			for (String product : produceList) {
+				int quant = player.getQuantityOfProducedItems(product);
+				if (quant > 0) {
+					sb.append("[" + product + "=" + Integer.toString(quant) + "]");
+				}
+			}
+
+			sb.append("\n");
+			admin.sendPrivateText(sb.toString());
+			sb.setLength(0);
+
+
+			Collection<Item> itemList = SingletonRepository.getEntityManager().getItems();
+
+			// all production
+			sb.append("All Production (excludes items above):");
+
+			final Map<String, Map<String, String>> allProduced = new TreeMap<>(); // TreeMap keeps items sorted alphabetically
+			Map<String, String> loots = player.getMap(LOOTED_ITEMS);
+			loots = loots != null ? loots : new TreeMap<>();
+			for (final Entry<String, String> e: loots.entrySet()) {
+				String prefix = "misc";
+				String itemName = e.getKey();
+				final String itemQuantity = e.getValue();
+
+				if (itemName.contains(".")) {
+					prefix = itemName.substring(0,itemName.indexOf("."));
+					itemName = itemName.replace(prefix + ".", "");
+				}
+
+				// exclude items from "Production" section
+				if (!produceList.contains(itemName)) {
+					final Map<String, String> tmp;
+					if (!allProduced.containsKey(prefix)) {
+						tmp = new TreeMap<>();
+					} else {
+						tmp = allProduced.get(prefix);
+					}
+
+					tmp.put(itemName, itemQuantity);
+					allProduced.put(prefix, tmp);
+				}
+			}
+
+			for (final String category: allProduced.keySet()) {
+				sb.append("\n   " + category + ":\n      ");
+				for (final Entry<String, String> e: allProduced.get(category).entrySet()) {
+					sb.append("[" + e.getKey() + "=" + e.getValue() + "]");
+				}
+			}
+
+			sb.append("\n");
+			admin.sendPrivateText(sb.toString());
+			sb.setLength(0);
+
+			// Looted items
+			sb.append("Loots:\n   ");
+
+			int itemCount = 0;
+			for (Item item : itemList) {
+				itemCount = player.getNumberOfLootsForItem(item.getName());
+				if (itemCount > 0) {
+					sb.append("[" + item.getName() + "=" + Integer.toString(itemCount) + "]");
+				}
+			}
+
+			sb.append("\n");
+			admin.sendPrivateText(sb.toString());
+			sb.setLength(0);
+
+
+			// Harvested items
+			sb.append("Harvested Items (FishSource, FlowerGrower, VegetableGrower):\n   ");
+			itemCount = 0;
+			for (Item item : itemList) {
+				itemCount = player.getQuantityOfHarvestedItems(item.getName());
+				if (itemCount > 0) {
+					sb.append("[" + item.getName() + "=" + Integer.toString(itemCount) + "]");
+				}
+			}
+
+			sb.append("\n");
+			admin.sendPrivateText(sb.toString());
+			sb.setLength(0);
+
+			// commerce: money spent & gained
+			sb.append("\nPurchases from NPCs:\n");
+			Map<String, String> commerceInfo = player.getMap("npc_purchases");
+			boolean addedCInfo = false;
+			if (commerceInfo != null) {
+				for (final String npcName: commerceInfo.keySet()) {
+					if (!addedCInfo) {
+						sb.append("    ");
+						addedCInfo = true;
+					}
+					sb.append("[" + npcName + ":" + commerceInfo.get(npcName) + "]");
+				}
+			}
+
+			sb.append("\n\nSales to NPCs:\n");
+			commerceInfo = player.getMap("npc_sales");
+			addedCInfo = false;
+			if (commerceInfo != null) {
+				for (final String npcName: commerceInfo.keySet()) {
+					if (!addedCInfo) {
+						sb.append("    ");
+						addedCInfo = true;
+					}
+					sb.append("[" + npcName + ":" + commerceInfo.get(npcName) + "]");
+				}
+			}
+
+			sb.append("\n");
 			admin.sendPrivateText(sb.toString());
 			sb.setLength(0);
 		}

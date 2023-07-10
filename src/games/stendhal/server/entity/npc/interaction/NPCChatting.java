@@ -1,14 +1,24 @@
+/***************************************************************************
+ *                   Copyright (C) 2003-2022 - Arianne                     *
+ ***************************************************************************
+ ***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
 package games.stendhal.server.entity.npc.interaction;
+
+import java.util.List;
 
 import games.stendhal.server.core.events.TurnListener;
 import games.stendhal.server.core.events.TurnNotifier;
 import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-
-import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
-
+import games.stendhal.server.util.Observable;
+import games.stendhal.server.util.Observer;
 
 /**
  * chatting between 2 NPCs
@@ -18,22 +28,24 @@ public final class NPCChatting implements Observer, TurnListener {
 	private final SpeakerNPC first;
 	private final SpeakerNPC second;
 	private int count=0;
-	private final List<String> conversations; 
+	private final List<String> conversations;
 	final private Observer next;
 	final String explainations;
 
-	
+
 	/**
 	 * constructor
 	 * @param first - first npc (who strarting conversation)
 	 * @param second - second npc
+	 * @param conversations
+	 * @param explainations
 	 * @param n - observer n
 	 */
 	public NPCChatting(
-			SpeakerNPC first, 
-			SpeakerNPC second, 
-			List<String> conversations, 
-			String explainations, 
+			SpeakerNPC first,
+			SpeakerNPC second,
+			List<String> conversations,
+			String explainations,
 			Observer n) {
 		this.first=first;
 		this.second=second;
@@ -42,7 +54,7 @@ public final class NPCChatting implements Observer, TurnListener {
 		this.next=n;
 
 	}
-	
+
 	private void setupDialog() {
 		if(second.isTalking()) {
 			second.say("Przepraszam "+second.getAttending().getName()+
@@ -54,7 +66,8 @@ public final class NPCChatting implements Observer, TurnListener {
 		second.stop();
 		onTurnReached(0);
 	}
-	
+
+	@Override
 	public void update(Observable o, Object arg) {
 		first.clearPath();
 		first.pathnotifier.deleteObservers();
@@ -62,6 +75,7 @@ public final class NPCChatting implements Observer, TurnListener {
 		setupDialog();
 	}
 
+	@Override
 	public void onTurnReached(int currentTurn) {
 		first.faceToward(second);
 		second.faceToward(first);
@@ -82,6 +96,4 @@ public final class NPCChatting implements Observer, TurnListener {
 		TurnNotifier.get().dontNotify(this);
 		TurnNotifier.get().notifyInSeconds(8, this);
 	}
-}	
-
-
+}

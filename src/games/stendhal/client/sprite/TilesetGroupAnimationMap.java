@@ -1,6 +1,5 @@
-/* $Id: TilesetGroupAnimationMap.java,v 1.17 2012/06/12 20:03:01 kiheru Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2022 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,12 +11,12 @@
  ***************************************************************************/
 package games.stendhal.client.sprite;
 
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
@@ -37,7 +36,7 @@ public class TilesetGroupAnimationMap {
 	/**
 	 * The map of tileset animation maps.
 	 */
-	protected Map<String, TilesetAnimationMap> tilesets;
+	private Map<String, TilesetAnimationMap> tilesets;
 
 	/**
 	 * Create a map of tileset animation maps.
@@ -46,19 +45,15 @@ public class TilesetGroupAnimationMap {
 		tilesets = new HashMap<String, TilesetAnimationMap>();
 	}
 
-	//
-	// TilesetGroupAnimationMap
-	//
-
 	/**
 	 * Acquire a named tileset map. If it does not exists, it will be created.
-	 * 
+	 *
 	 * @param name
 	 *            The name of the tileset.
-	 * 
+	 *
 	 * @return An tileset animation map.
 	 */
-	protected TilesetAnimationMap acquire(final String name) {
+	private TilesetAnimationMap acquire(final String name) {
 		TilesetAnimationMap map = tilesets.get(name);
 
 		if (map == null) {
@@ -71,10 +66,10 @@ public class TilesetGroupAnimationMap {
 
 	/**
 	 * Add a mapping of a tile index to animation frame indexes.
-	 * 
+	 *
 	 * <strong>NOTE: The array of frame indexes/delays passed is not copied, and
 	 * should not be altered after this is called.</strong>
-	 * 
+	 *
 	 * @param name
 	 *            The name of the tileset.
 	 * @param index
@@ -84,7 +79,7 @@ public class TilesetGroupAnimationMap {
 	 * @param frameDelays
 	 *            The delays of frame tiles.
 	 */
-	public void add(final String name, final int index,
+	private void add(final String name, final int index,
 			final int[] frameIndexes, final int[] frameDelays) {
 		acquire(name).add(index, frameIndexes, frameDelays);
 	}
@@ -93,10 +88,10 @@ public class TilesetGroupAnimationMap {
 	 * Add mappings of tile indexes to animation frame indexes. For each frame,
 	 * a mapping will be created with the remaining indexes as it's frames (in
 	 * order, starting with it's index).
-	 * 
+	 *
 	 * <strong>NOTE: The array of frame indexes/delays passed is not copied, and
 	 * should not be altered after this is called.</strong>
-	 * 
+	 *
 	 * @param name
 	 *            The name of the tileset.
 	 * @param frameIndexes
@@ -104,20 +99,20 @@ public class TilesetGroupAnimationMap {
 	 * @param frameDelays
 	 *            The delays of frame tiles.
 	 */
-	public void add(final String name, final int[] frameIndexes,
+	private void add(final String name, final int[] frameIndexes,
 			final int[] frameDelays) {
 		acquire(name).add(frameIndexes, frameDelays);
 	}
 
 	/**
 	 * Parse and add a configuration line.
-	 * 
+	 *
 	 * @param line
 	 *            The configuration line.
-	 * 
+	 *
 	 * @see #load(InputStream)
 	 */
-	protected void addConfig(final String line) {
+	private void addConfig(final String line) {
 
 		int defaultDelay;
 
@@ -225,18 +220,11 @@ public class TilesetGroupAnimationMap {
 	}
 
 	/**
-	 * Clear the map.
-	 */
-	public void clear() {
-		tilesets.clear();
-	}
-
-	/**
 	 * Get a named tileset map.
-	 * 
+	 *
 	 * @param name
 	 *            The name of the tileset.
-	 * 
+	 *
 	 * @return An tileset animation map, or <code>null</code> if one does not
 	 *         exists.
 	 */
@@ -249,13 +237,13 @@ public class TilesetGroupAnimationMap {
 	 * Load tileset mappings from a file. This doesn't not first clear any
 	 * existing entries.
 	 * </p>
-	 * 
+	 *
 	 * <p>
 	 * The file format consists of one line per entry. Blank lines and those
 	 * starting with '#' (a comment) are ignored. The line format is as follows:<br>
 	 * <em>tileset</em> <em>index</em> <em>frame:frame[:frame]...</em>
 	 * </p>
-	 * 
+	 *
 	 * <p>
 	 * Spaces may be any whitespace. The <em>index</em> may also be
 	 * <code>*</code>, which indicates that an entry should be added using
@@ -263,15 +251,14 @@ public class TilesetGroupAnimationMap {
 	 * appended by <code>@</code><em>delay</em>, where <em>delay</em> is
 	 * a value in milliseconds of for the duration of the frame (or the default
 	 * for all frames, if specified for mapped index).
-	 * 
+	 *
 	 * @param in
 	 *            The input stream.
-	 * 
+	 *
 	 * @throws IOException
 	 *             If an I/O error occurred.
-	 * 
-	 * @see #clear()
 	 */
+	@Deprecated
 	public void load(final InputStream in) throws IOException {
 		final BufferedReader r = new BufferedReader(new InputStreamReader(in, "UTF-8"));
 		String line;
@@ -289,6 +276,18 @@ public class TilesetGroupAnimationMap {
 			}
 
 			addConfig(line);
+		}
+	}
+
+	/**
+	 * Load tileset mappings from list.
+	 *
+	 * @param lines
+	 *     List of lines to be loaded.
+	 */
+	public void load(final List<String> lines) {
+		for (final String li: lines) {
+			addConfig(li);
 		}
 	}
 }

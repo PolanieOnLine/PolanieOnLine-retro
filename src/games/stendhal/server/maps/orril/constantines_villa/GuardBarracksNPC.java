@@ -1,4 +1,3 @@
-/* $Id: GuardBarracksNPC.java,v 1.1 2012/01/17 01:29:26 bluelads99 Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2012 - Stendhal                    *
  ***************************************************************************
@@ -10,8 +9,11 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-
 package games.stendhal.server.maps.orril.constantines_villa;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
@@ -19,28 +21,20 @@ import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 /**
  * Builds a npc in Constantines Villa (name:Cameron) who is a librarian
- * 
- * @author storyteller (idea) and Vanessa Julius (implemented)
  *
+ * @author storyteller (idea) and Vanessa Julius (implemented)
  */
-
 public class GuardBarracksNPC implements ZoneConfigurator {
-    
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildNPC(zone);
 	}
 
 	private void buildNPC(final StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Silvester") {
-		    
-			
-			//NPC walks around in the barracks of Constantines villa 
+			//NPC walks around in the barracks of Constantines villa
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -107,22 +101,19 @@ public class GuardBarracksNPC implements ZoneConfigurator {
 				nodes.add(new Node(28,22));
 				nodes.add(new Node(30,22));
 				nodes.add(new Node(30,27));
-
                	setPath(new FixedPath(nodes, true));
-
 			}
 
+			@Override
 			protected void createDialog() {
 				addGreeting("Hej [name]! Dlaczego tutaj szukasz? Odejdź stąd NATYCHMIAST!");
-				
 			}
-
 		};
 
-		npc.setDescription("Oto silny strażnik Constantines Silvester. Lepiej nie wchodź mu w drogę!");
+		npc.setDescription("Oto silny strażnik Konstantyna, Silvester. Lepiej nie wchodź mu w drogę!");
 		npc.setEntityClass("nightguardbownpc");
+		npc.setGender("M");
 		npc.setPosition(14, 27);
-		npc.initHP(100);
 		zone.add(npc);
 	}
 }

@@ -1,4 +1,4 @@
-/* $Id: Corpse2DView.java,v 1.54 2012/10/12 17:00:20 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +12,11 @@
  ***************************************************************************/
 package games.stendhal.client.gui.j2d.entity;
 
+
+import java.awt.Graphics2D;
+import java.util.List;
+
+import javax.swing.SwingUtilities;
 
 import games.stendhal.client.IGameScreen;
 import games.stendhal.client.ZoneInfo;
@@ -28,18 +33,12 @@ import games.stendhal.client.gui.styled.cursor.StendhalCursor;
 import games.stendhal.client.gui.wt.core.WtWindowManager;
 import games.stendhal.client.sprite.Sprite;
 import games.stendhal.client.sprite.SpriteStore;
-
-import java.awt.Graphics2D;
-import java.util.List;
-
-import javax.swing.SwingUtilities;
-
 import marauroa.common.game.RPSlot;
 
 /**
  * The 2D view of a corpse.
- * 
- * @param <T> corpse type 
+ *
+ * @param <T> corpse type
  */
 class Corpse2DView<T extends Corpse> extends Entity2DView<T> {
 
@@ -63,11 +62,11 @@ class Corpse2DView<T extends Corpse> extends Entity2DView<T> {
 	 */
 	private volatile SlotWindow slotWindow;
 
-	/** 
+	/**
 	 * Has the corpse been opened once on an auto raise?
 	 */
 	private boolean autoOpenedAlready = false;
-	
+
 	/**
 	 * Create a 2D view of an entity.
 	 */
@@ -101,17 +100,16 @@ class Corpse2DView<T extends Corpse> extends Entity2DView<T> {
 	 */
 	@Override
 	protected void buildRepresentation(T entity) {
-		final String imageName = entity.getRPObject().get("image");
-		Sprite sprite = null;
 		ZoneInfo info = ZoneInfo.get();
-		boolean showBlood = Boolean.parseBoolean(WtWindowManager.getInstance().getProperty("gamescreen.blood", "true"));
+		boolean showBlood = WtWindowManager.getInstance().getPropertyBoolean("gamescreen.blood", true);
+		String imageName;
 		if (showBlood) {
-			sprite = SpriteStore.get().getModifiedSprite(translate("corpse/"  + imageName),
-					info.getZoneColor(), info.getColorMethod());
+			imageName = entity.getRPObject().get("image");
 		} else {
-			sprite = SpriteStore.get().getModifiedSprite(translate("corpse/harmless"),
-					info.getZoneColor(), info.getColorMethod());
+			imageName = entity.getRPObject().get("harmless_image");
 		}
+		Sprite sprite = SpriteStore.get().getModifiedSprite(translate("corpse/"  + imageName),
+				info.getZoneColor(), info.getColorMethod());
 
 		width = sprite.getWidth();
 		height = sprite.getHeight();
@@ -166,21 +164,9 @@ class Corpse2DView<T extends Corpse> extends Entity2DView<T> {
 		this.inspector = inspector;
 	}
 
-	//
-	// EntityChangeListener
-	//
-
-	/**
-	 * An entity was changed.
-	 *
-	 * @param entity
-	 *            The entity that was changed.
-	 * @param property
-	 *            The property identifier.
-	 */
 	@Override
-	public void entityChanged(final T entity, final Object property) {
-		super.entityChanged(entity, property);
+	void entityChanged(final Object property) {
+		super.entityChanged(property);
 
 		if (property == IEntity.PROP_CLASS) {
 			representationChanged = true;
@@ -224,7 +210,14 @@ class Corpse2DView<T extends Corpse> extends Entity2DView<T> {
 		case INSPECT:
 			boolean addListener = slotWindow == null;
 			RPSlot content = entity.getContent();
-			slotWindow = inspector.inspectMe(entity, content, slotWindow, 2, 2);
+
+			int content_row = 2;
+			final int content_col = 2;
+			if (content.size() > 4) {
+				content_row = 3;
+			}
+
+			slotWindow = inspector.inspectMe(entity, content, slotWindow, content_row, content_col);
 			SlotWindow window = slotWindow;
 			if (window != null) {
 				window.setTitle(entity.getTitle());
@@ -262,11 +255,11 @@ class Corpse2DView<T extends Corpse> extends Entity2DView<T> {
 			break;
 		}
 	}
-	
+
 	/**
 	 * Attach a listener to the inspector window, so that the window will be
 	 * closed when all of the contents of the inspected slot are removed.
-	 * 
+	 *
 	 * @param window inspector window
 	 * @param entity inspected entity
 	 * @param slot inspected slot
@@ -345,7 +338,7 @@ class Corpse2DView<T extends Corpse> extends Entity2DView<T> {
 		autoRaiseWindowIfDesired();
 	}
 
-	/** 
+	/**
 	 * Immediately opens the corpse window if the player deserves the kill
 	 * (is corpse owner) and has that setting specified.
 	 */
@@ -354,21 +347,22 @@ class Corpse2DView<T extends Corpse> extends Entity2DView<T> {
 		// be auto inspected anyway
 		if (!autoOpenedAlready && inspector != null) {
 			autoOpenedAlready = true;
-			boolean autoRaiseCorpse = Boolean.parseBoolean(WtWindowManager.getInstance().getProperty("gamescreen.autoinspectcorpses", "true"));
-			if (autoRaiseCorpse) {
-				if ((entity.getCorpseOwner() != null) && entity.getCorpseOwner().equals(User.getCharacterName()) && !entity.isEmpty()) {
-					/*
-					 * We are in mid-draw of the screen. Defer auto inspect to
-					 * avoid messing with the component layout while drawing.
-					 * Fixes flicker in certain situations (bug #3302772).
-					 */
-					SwingUtilities.invokeLater(new Runnable() {
-						@Override
-						public void run() {
-							onAction(ActionType.INSPECT);
-						}
-					});
-				}
+			boolean autoRaiseCorpse = WtWindowManager.getInstance().getPropertyBoolean("gamescreen.autoinspectcorpses", true);
+			if (autoRaiseCorpse
+					&& (entity.getCorpseOwner() != null)
+					&& entity.getCorpseOwner().equals(User.getCharacterName())
+					&& !entity.isEmpty()) {
+				/*
+				 * We are in mid-draw of the screen. Defer auto inspect to
+				 * avoid messing with the component layout while drawing.
+				 * Fixes flicker in certain situations (bug #3302772).
+				 */
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						onAction(ActionType.INSPECT);
+					}
+				});
 			}
 		}
 	}

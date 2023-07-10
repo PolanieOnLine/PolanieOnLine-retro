@@ -1,4 +1,4 @@
-/* $Id: PerceptionToObjectTest.java,v 1.10 2010/09/19 02:37:52 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -14,7 +14,6 @@ package games.stendhal.client;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import marauroa.common.game.RPObject;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -22,26 +21,31 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import marauroa.common.game.RPObject;
+
 public class PerceptionToObjectTest {
 
 	private class ObjectChangeListenerAdapter implements
 			ObjectChangeListener {
-		
+
 
 		private ObjectChangeListenerAdapter() {
-			
+
 		}
 
+		@Override
 		public void deleted() {
-			
+
 		}
 
+		@Override
 		public void modifiedAdded(final RPObject changes) {
-			
+
 		}
 
+		@Override
 		public void modifiedDeleted(final RPObject changes) {
-			
+
 		}
 	}
 
@@ -68,7 +72,7 @@ public class PerceptionToObjectTest {
 	public final void testOnClear2Listeners1Object() {
 		final PerceptionToObject pto = new PerceptionToObject();
 		final RPObject testvalues = new RPObject();
-		
+
 		final ObjectChangeListener listener1 = new ObjectChangeListenerAdapter() {
 			@Override
 			public void deleted() {
@@ -82,29 +86,29 @@ public class PerceptionToObjectTest {
 				testvalues.put("listener2", "");
 			}
 		};
-		
+
 		RPObject observed = new RPObject();
 		observed.setID(new RPObject.ID(1, "zone"));
 		assertFalse(testvalues.has("listener1"));
 		assertFalse(testvalues.has("listener2"));
-		
+
 		pto.register(observed, listener1);
 		pto.register(observed, listener2);
-		
+
 		assertTrue(pto.map.get(observed.getID()).contains(listener2));
 		assertTrue(pto.map.get(observed.getID()).contains(listener1));
-		
+
 		pto.onClear();
-		
-		
+
+
 		assertTrue(testvalues.has("listener2"));
 		assertTrue(testvalues.has("listener1"));
 	}
-	
+
 	// TODO: remove listener from pto must remove all references
-	
-	
-	
+
+
+
 	/**
 	 * Tests for onClear.
 	 */
@@ -120,7 +124,7 @@ public class PerceptionToObjectTest {
 			public void deleted() {
 				object.put(attribute, "");
 			}
-			
+
 		};
 		final RPObject object2 = new RPObject();
 		object2.setID(new RPObject.ID(2, "zone"));
@@ -128,7 +132,7 @@ public class PerceptionToObjectTest {
 		pto.register(object, listener);
 		pto.register(object2, listener);
 		assertTrue("object is contained in map after register of listener", pto.map.containsKey(object.getID()));
-		
+
 		assertFalse("deleted not yet called", object.has(attribute));
 
 		assertTrue(pto.map.containsKey(object2.getID()));
@@ -138,7 +142,7 @@ public class PerceptionToObjectTest {
 
 		assertTrue(object.has(attribute));
 		assertFalse(object2.has(attribute));
-		
+
 		assertFalse(pto.map.containsKey(object.getID()));
 		assertFalse(pto.map.containsKey(object2.getID()));
 	}
@@ -158,7 +162,7 @@ public class PerceptionToObjectTest {
 			public void deleted() {
 				object.put(attribute, "");
 			}
-			
+
 		};
 		final RPObject object2 = new RPObject();
 		object2.setID(new RPObject.ID(2, "zone"));
@@ -166,7 +170,7 @@ public class PerceptionToObjectTest {
 		pto.register(object, listener);
 		pto.register(object2, listener);
 		assertTrue(pto.map.containsKey(object.getID()));
-		
+
 		assertFalse(object.has(attribute));
 
 		assertTrue(pto.map.containsKey(object2.getID()));
@@ -195,7 +199,7 @@ public class PerceptionToObjectTest {
 			public void deleted() {
 				object.put(attribute, "");
 			}
-			
+
 		};
 		final RPObject object2 = new RPObject();
 		object2.setID(new RPObject.ID(2, "zone"));
@@ -203,7 +207,7 @@ public class PerceptionToObjectTest {
 		pto.register(object, listener);
 		pto.register(object2, listener);
 		assertTrue(pto.map.containsKey(object.getID()));
-		
+
 		assertFalse(object.has(attribute));
 
 		assertTrue(pto.map.containsKey(object2.getID()));
@@ -232,7 +236,7 @@ public class PerceptionToObjectTest {
 				object.add(attribute, 1);
 			}
 		};
-		
+
 		final RPObject changes = new RPObject();
 		changes.setID(new RPObject.ID(object.getID().getObjectID(), object.getID().getZoneID()));
 		final RPObject object2 = new RPObject();
@@ -264,13 +268,13 @@ public class PerceptionToObjectTest {
 		object.setID(new RPObject.ID(1, "zone"));
 		final String attribute = "modifieddeleted";
 		final ObjectChangeListener listener = new ObjectChangeListenerAdapter() {
-			
+
 			@Override
 			public void modifiedDeleted(final RPObject changes) {
 				object.add(attribute, 1);
 			}
 		};
-		
+
 		final RPObject changes = new RPObject();
 		changes.setID(new RPObject.ID(object.getID().getObjectID(), object.getID().getZoneID()));
 		final RPObject object2 = new RPObject();
@@ -303,18 +307,13 @@ public class PerceptionToObjectTest {
 		object.setID(new RPObject.ID(1, "zone"));
 		final String attribute = "modifieddeleted";
 		final ObjectChangeListener listener = new ObjectChangeListenerAdapter() {
-			
+
 			@Override
 			public void modifiedDeleted(final RPObject changes) {
 				object.add(attribute, 1);
 			}
-			@Override
-			public void modifiedAdded(final RPObject arg0) {
-			
-				
-			}
 		};
-		
+
 		final RPObject changes = new RPObject();
 		changes.setID(new RPObject.ID(object.getID().getObjectID(), object.getID().getZoneID()));
 		final RPObject object2 = new RPObject();
@@ -336,7 +335,7 @@ public class PerceptionToObjectTest {
 		assertFalse(object2.has(attribute));
 	}
 
-	
+
 	/**
 	 * Tests for registerUnregister.
 	 */
@@ -346,7 +345,7 @@ public class PerceptionToObjectTest {
 		final RPObject object = new RPObject();
 		object.setID(new RPObject.ID(1, "zone"));
 		final ObjectChangeListener listener = new ObjectChangeListenerAdapter();
-		
+
 		final RPObject changes = new RPObject();
 		changes.setID(new RPObject.ID(object.getID().getObjectID(), object.getID().getZoneID()));
 		final RPObject object2 = new RPObject();
@@ -366,9 +365,9 @@ public class PerceptionToObjectTest {
 		assertTrue(pto.map.get(object.getID()).isEmpty());
 		assertTrue(pto.map.get(object2.getID()).isEmpty());
 		assertFalse(pto.map.get(object3.getID()).isEmpty());
-		
+
 	}
-	
+
 	/**
 	 * Tests for absentObject.
 	 */
@@ -378,7 +377,7 @@ public class PerceptionToObjectTest {
 		assertTrue(pto.map.isEmpty());
 		RPObject object = new RPObject();
 		object.setID(new RPObject.ID(1, "ZONE"));
-		
+
 		pto.onClear();
 		pto.onDeleted(object);
 		pto.onException(null, null);
@@ -387,7 +386,7 @@ public class PerceptionToObjectTest {
 		pto.onMyRPObject(object, null);
 		pto.onMyRPObject(null, object);
 
-		
+
 	}
 
 }

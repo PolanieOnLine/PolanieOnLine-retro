@@ -1,4 +1,4 @@
-/* $Id: FishermansDaughterSellingNPC.java,v 1.5 2012/10/06 09:23:17 kymara Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -19,17 +19,17 @@ import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.entity.RPEntity;
 import games.stendhal.server.entity.npc.NPCList;
-import games.stendhal.server.entity.npc.ShopList;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.npc.behaviour.adder.SellerAdder;
 import games.stendhal.server.entity.npc.behaviour.impl.SellerBehaviour;
+import games.stendhal.server.entity.npc.shop.ShopsList;
 import games.stendhal.server.maps.ados.market.FishermansDaughterNPC;
 
 /**
  * Caroline during the Mine Town Revival Weeks
  */
 public class FishermansDaughterSellingNPC implements LoadableContent {
-	private final ShopList shops = SingletonRepository.getShopList();
+	private final ShopsList shops = SingletonRepository.getShopsList();
 	private void createFishermansDaughterSellingNPC() {
 		final StendhalRPZone zone2 = SingletonRepository.getRPWorld().getZone("0_semos_mountain_n2");
 		final SpeakerNPC npc2 = new SpeakerNPC("Caroline") {
@@ -49,10 +49,11 @@ public class FishermansDaughterSellingNPC implements LoadableContent {
 				addReply("susi", "Oh jest kochanym dzieckiem! Spotkałam ją tutaj. Jest taka szczęśliwa, że może świętować ze wszystkimi!");
 				addOffer("Sprzedaję przekąski i napoje podczas Mine Town Weeks. Zobacz na listę.");
 				addQuest("Słyszałam, że #Susi lubi poznawać nowych przyjaciół. Jest w domku. Lub możesz zapytać Fidorea o małe bieganie.");
-				addGoodbye("Dowidzenia mam nadzieje, że będziesz się dobrze bawił!");
+				addGoodbye("Do widzenia mam nadzieje, że będziesz się dobrze bawił!");
 				new SellerAdder().addSeller(this, new SellerBehaviour(shops.get("sellrevivalweeks")), false);
 			}
-			
+
+			@Override
 			protected void onGoodbye(RPEntity player) {
 				setDirection(Direction.DOWN);
 			}
@@ -79,6 +80,7 @@ public class FishermansDaughterSellingNPC implements LoadableContent {
 		npc.getZone().remove(npc);
 	}
 
+	@Override
 	public void addToWorld() {
 		removeNPC("Caroline");
 		createFishermansDaughterSellingNPC();
@@ -90,6 +92,7 @@ public class FishermansDaughterSellingNPC implements LoadableContent {
 	 *
 	 * @return <code>true</code>, if the content was removed, <code>false</code> otherwise
 	 */
+	@Override
 	public boolean removeFromWorld() {
 		removeNPC("Caroline");
 

@@ -1,4 +1,4 @@
-/* $Id: OrCondition.java,v 1.15 2012/09/09 21:19:55 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,18 +12,17 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.condition;
 
+import java.util.Arrays;
+import java.util.List;
+
+import com.google.common.collect.ImmutableList;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
 import games.stendhal.server.core.config.annotations.Dev.Category;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * An or condition.
@@ -43,6 +42,17 @@ public class OrCondition implements ChatCondition {
 		this.conditions = Arrays.asList(condition);
 	}
 
+	/**
+	 * Creates a new "or"-condition.
+	 *
+	 * @param conditions
+	 *            list of condition which should be or-ed.
+	 */
+	public OrCondition(final List<ChatCondition> conditions) {
+		this.conditions = ImmutableList.copyOf(conditions);
+	}
+
+	@Override
 	public boolean fire(final Player player, final Sentence sentence, final Entity entity) {
 		for (final ChatCondition condition : conditions) {
 			final boolean res = condition.fire(player, sentence, entity);
@@ -60,12 +70,15 @@ public class OrCondition implements ChatCondition {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 43781 * conditions.hashCode();
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				OrCondition.class);
+		if (!(obj instanceof OrCondition)) {
+			return false;
+		}
+		OrCondition other = (OrCondition) obj;
+		return conditions.equals(other.conditions);
 	}
 }

@@ -1,4 +1,4 @@
-/* $Id: GettingTools.java,v 1.21 2011/08/21 10:10:58 yoriy Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -49,26 +49,22 @@ import java.util.Map;
 /**
  * @author kymara
 */
-
 class GettingTools {
 
 	private MithrilCloakQuestInfo mithrilcloak;
-	
+
 	private final NPCList npcs = SingletonRepository.getNPCList();
 
 	public GettingTools(final MithrilCloakQuestInfo mithrilcloak) {
 		this.mithrilcloak = mithrilcloak;
 	}
 
-
 	private static final int REQUIRED_MINUTES_SCISSORS = 10;
 
 	private static final int REQUIRED_HOURS_SEWING = 24;
 
 	private void getScissorsStep() {
-
 		// Careful not to overlap with any states from VampireSword quest
-
 		final SpeakerNPC npc = npcs.get("Hogart");
 
 		// player asks about scissors. they will need a random number of eggshells plus the metal
@@ -78,6 +74,7 @@ class GettingTools {
 			ConversationStates.ATTENDING,
 			null,
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 					final int neededEggshells = Rand.randUniform(2, 4);
 					raiser.say("Ach tak, Ida wysłała mi wiadomość o magicznych nożyczkach. Potrzebuję żelaza i sztabki mithrilu, a także " + Integer.toString(neededEggshells) + " magiczne #skorupki. Zapytaj mnie o #nożyczki, gdy wrócisz i będziesz miał wszystkie przedmioty.");
@@ -96,7 +93,7 @@ class GettingTools {
 		// player asks about eggshells, hint to find terry
 		npc.add(
 			ConversationStates.ATTENDING,
-			"skorupki", 
+			"skorupki",
 			null,
 			ConversationStates.ATTENDING,
 			"Muszą być ze smoczych jaj. Sądzę, że powinieneś znaleźć kogoś kto zajmuje się wykluwaniem smoków!",
@@ -106,11 +103,12 @@ class GettingTools {
 		// we can't use the nice ChatActions here because the needed number is stored in the quest slot i.e. we need a fire
 		npc.add(
 			ConversationStates.SERVICE_OFFERED,
-			ConversationPhrases.YES_MESSAGES, 
+			ConversationPhrases.YES_MESSAGES,
 			new QuestStateStartsWithCondition(mithrilcloak.getQuestSlot(), "need_eggshells"),
 			ConversationStates.ATTENDING,
 			null,
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					final String[] questslot = player.getQuest(mithrilcloak.getQuestSlot()).split(";");
 					final int neededEggshells = Integer.valueOf(questslot[1]);
@@ -120,13 +118,13 @@ class GettingTools {
 							player.drop("żelazo");
 							player.drop("sztabka mithrilu");
 							player.drop("magiczne skorupki", neededEggshells);
-							npc.say("Dobrze. Zajmie mi to trochę czasu. Wróć za " 
+							npc.say("Dobrze. Zajmie mi to trochę czasu. Wróć za "
 									   + REQUIRED_MINUTES_SCISSORS + " minutę" + ", aby odebrać nożyczki.");
 							player.addXP(100);
 							player.setQuest(mithrilcloak.getQuestSlot(), "makingscissors;" + System.currentTimeMillis());
 							player.notifyWorldAboutChanges();
 						} else {
-							npc.say("Kłamca nie masz wszystkiego czego potrzebuję. Zapytaj mnie o #nożyczki, gdy będziesz miał żelazo, sztabkę mithrilu i " 
+							npc.say("Kłamca nie masz wszystkiego czego potrzebuję. Zapytaj mnie o #nożyczki, gdy będziesz miał żelazo, sztabkę mithrilu i "
 									+ questslot[1] + " magiczne skorupki i nie marnuj mojego cennego czasu!");
 						}
 				}
@@ -135,22 +133,23 @@ class GettingTools {
 		// player says they didn't bring the stuff yet
 		npc.add(
 			ConversationStates.SERVICE_OFFERED,
-			ConversationPhrases.NO_MESSAGES, 
+			ConversationPhrases.NO_MESSAGES,
 			null,
 			ConversationStates.ATTENDING,
 			"Czemu wciąż tu jesteś? Idź zdobądź je!",
 			null);
 
 		// player returns while hogart is making scissors or has made them
-		npc.add(ConversationStates.ATTENDING, 
-			Arrays.asList("scissors", "magical", "zaczarowane nożyczki", "ida", "mithril", "cloak", "mithril cloak"),
+		npc.add(ConversationStates.ATTENDING,
+			Arrays.asList("scissors", "magical", "zaczarowane nożyczki", "nożyczki", "ida", "mithril", "cloak", "mithril cloak"),
 			new QuestStateStartsWithCondition(mithrilcloak.getQuestSlot(), "makingscissors;"),
 			ConversationStates.ATTENDING, null, new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					final String[] tokens = player.getQuest(mithrilcloak.getQuestSlot()).split(";");
 					// minutes -> milliseconds
 					final long delay = REQUIRED_MINUTES_SCISSORS * MathHelper.MILLISECONDS_IN_ONE_MINUTE;
-					final long timeRemaining = (Long.parseLong(tokens[1]) + delay)
+					final long timeRemaining = Long.parseLong(tokens[1]) + delay
 							- System.currentTimeMillis();
 					if (timeRemaining > 0L) {
 						npc.say("Pff jesteś niecierpliwy? Jeszcze nie skończyłem Twoich nożyc. Wróć za "
@@ -168,13 +167,10 @@ class GettingTools {
 					player.notifyWorldAboutChanges();
 				}
 			});
-
 	}
 
 	private void getEggshellsStep() {
-
 		final int REQUIRED_POISONS = 6;
-
 		final SpeakerNPC npc = npcs.get("Terry");
 
 		// offer eggshells when prompted
@@ -192,6 +188,7 @@ class GettingTools {
 				new TextHasNumberCondition(1, 5000),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 
                         final int required = (sentence.getNumeral().getAmount());
@@ -211,11 +208,9 @@ class GettingTools {
 				ConversationStates.ATTENDING,
 				"Nie ma problemu. Gdy będziesz potrzebował pomocy to mów.",
 				null);
-
  	}
 
 	private void giveScissorsStep() {
-
 		final SpeakerNPC npc = npcs.get("Ida");
 
 		// take scissors and ask for needle now
@@ -225,8 +220,8 @@ class GettingTools {
 				ConversationStates.ATTENDING,
 				"Przyniosłeś magiczne nożyczki! Doskonale! Teraz mogę ciąć tkaninę. Potrzebuję teraz magiczną igłę. Możesz je kupić od handlarza w opuszczonej warowni w górach Ados. Nazywa się #Ritati Dragon lub jakoś inaczej. Idź do niego i zapytaj o 'specjały'.",
 				new MultipleActions(
-									 new DropItemAction("zaczarowane nożyczki"), 
-									 new SetQuestAndModifyKarmaAction(mithrilcloak.getQuestSlot(), "need_needle;", 10.0), 
+									 new DropItemAction("zaczarowane nożyczki"),
+									 new SetQuestAndModifyKarmaAction(mithrilcloak.getQuestSlot(), "need_needle;", 10.0),
 									 new IncreaseXPAction(100)
 									 )
 				);
@@ -248,14 +243,10 @@ class GettingTools {
 		npc.addReply("Ritati", "Jest gdzieś w opuszczonej warowni w górach na północny-wschód stąd.");
 	}
 
-
-
 	private void getNeedleStep() {
-
 		final int NEEDLE_COST = 1500;
-		
 		final Map<Integer, String> jokes = new HashMap<Integer, String>();
-		
+
 			jokes.put(1, "Jeżeli pośrodku lasu stoi mężczyzna, który rozmawia i nie ma kobiety, która mogłaby go słuchać to wciąż się myli?");
 			jokes.put(2, "Każdy ma fotograficzną pamięć, ale nie którzy zapomnieli załadować karty pamięci.");
 			jokes.put(3, "Orły szybują, wolne i dumne, ale łasice nigdy nie wpadają do silników odrzutowców.");
@@ -265,8 +256,6 @@ class GettingTools {
 			jokes.put(7, "Zawsze pamiętaj, że jesteś wyjątkowy tak jak każdy inny.");
 			jokes.put(8, "Połowa ludzi na świecie jest poniżej średniej wieku.");
 
-
-		
 		final SpeakerNPC npc = npcs.get("Ritati Dragontracker");
 
 		// ask for joke when prompted for needle
@@ -274,10 +263,10 @@ class GettingTools {
 				Arrays.asList("needle", "magical", "magical needle","igła", "ida", "cloak", "mithril cloak", "specials", "specjały"),
 				new QuestStateStartsWithCondition(mithrilcloak.getQuestSlot(), "need_needle"),
 				ConversationStates.ATTENDING,
-				"Dobrze mam małą zasadę. Nigdy nie robię poważnych interesów z kimś dopóki" 
+				"Dobrze mam małą zasadę. Nigdy nie robię poważnych interesów z kimś dopóki"
 				+ "mnie nie rozśmieszy. Przyjdź do mnie i opowiedz mi #dowcip, a ja sprzedam Ci igłę.",
 				null);
-		
+
 		// ask for joke when player says joke
 		npc.add(ConversationStates.ATTENDING,
 				Arrays.asList("joke", "dowcip"),
@@ -289,6 +278,7 @@ class GettingTools {
 		npc.add(ConversationStates.QUESTION_1, "", null,
 				ConversationStates.QUEST_ITEM_QUESTION, null,
 					new ChatAction() {
+						@Override
 						public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 							for (int i = 1; i < 9; i++) {
 								String joke = jokes.get(i);
@@ -303,7 +293,7 @@ class GettingTools {
 										int needles = Integer.parseInt(questslot[1]);
 										int saidjoke = Integer.parseInt(questslot[2]);
 										if (i == saidjoke) {
-											npc.say("Ostatnio opowiedziałeś mi ten dowcip. Wróć z nowym! Dowidzenia.");
+											npc.say("Ostatnio opowiedziałeś mi ten dowcip. Wróć z nowym! Do widzenia.");
 											npc.setCurrentState(ConversationStates.IDLE);
 //											// stop looking through the joke list
 											return;
@@ -330,11 +320,11 @@ class GettingTools {
 								}
 							}
 							if (ConversationPhrases.GOODBYE_MESSAGES.contains(sentence.getTriggerExpression().getNormalized())) {
-									npc.say("Dobrze, dowidzenia.");
+									npc.say("Dobrze, do widzenia.");
 										npc.setCurrentState(ConversationStates.IDLE);
 							} else if (sentence.getTriggerExpression().getNormalized().equals("none")
 												|| sentence.getTriggerExpression().getNormalized().equals("nic")) {
-								npc.say("Dobrze, dowidzenia.");
+								npc.say("Dobrze, do widzenia.");
 								npc.setCurrentState(ConversationStates.IDLE);
 							} else {
 								npc.say("Ten dowcip nie jest śmieszny. Wróć do biblioteki w Nalwor i znajdź inny.");
@@ -342,8 +332,7 @@ class GettingTools {
 							}
 			}
 		});
-		
-		
+
 		// offer needle when prompted if they already told a joke
 		npc.add(ConversationStates.ATTENDING,
 				Arrays.asList("needle", "magical", "zaczarowana igła","igła", "ida", "cloak", "mithril cloak", "specials", "specjały"),
@@ -355,20 +344,20 @@ class GettingTools {
 
 		// agrees to buy 1 needle
 		npc.add(ConversationStates.QUEST_ITEM_QUESTION,
-				ConversationPhrases.YES_MESSAGES, 
+				ConversationPhrases.YES_MESSAGES,
 				new PlayerHasItemWithHimCondition("money", NEEDLE_COST),
 				ConversationStates.IDLE,
 				"Dobrze. Oto one. Bądź z nimi ostrożny, bo łatwo się łamią. "+
 				"Jeżeli złamiesz to inne igły, które kupiłeś ode mnie stracą swoją magię. "+
-				"Teraz odejdź, bo za długo tu przesiadujesz.",				
+				"Teraz odejdź, bo za długo tu przesiadujesz.",
 				new MultipleActions(
-					new DropItemAction("money", NEEDLE_COST), 
+					new DropItemAction("money", NEEDLE_COST),
 					new EquipItemAction("zaczarowana igła", 1, true)
 					));
 
 		// said he had money but he didn't
 		npc.add(ConversationStates.QUEST_ITEM_QUESTION,
-				ConversationPhrases.YES_MESSAGES, 
+				ConversationPhrases.YES_MESSAGES,
 				new NotCondition(new PlayerHasItemWithHimCondition("money", NEEDLE_COST)),
 				ConversationStates.ATTENDING,
 				"Co jest ... nie masz pieniędzy! Odejdź stąd!",
@@ -376,16 +365,16 @@ class GettingTools {
 
 		// doesn't want to buy needle
 		npc.add(ConversationStates.QUEST_ITEM_QUESTION,
-				ConversationPhrases.NO_MESSAGES, 
+				ConversationPhrases.NO_MESSAGES,
 				null,
 				ConversationStates.ATTENDING,
 				"Dobrze nie ma pośpiechu. Może chciałbyś skorzystać z innych #ofert.",
 				null);
-		
+
 		// specials response for if the queststate condition is not met
 		npc.add(ConversationStates.ATTENDING,
 				Arrays.asList("needle", "magical", "zaczarowana igła","igła", "ida", "cloak", "mithril cloak", "specials", "specjały"),
-				null, 
+				null,
 				ConversationStates.ATTENDING,
 				"Przyjdzie czas gdy będziesz potrzebował specjaów, ale nie teraz.",
 				null);
@@ -393,7 +382,6 @@ class GettingTools {
 	}
 
 	private void giveNeedleStep() {
-
 		final SpeakerNPC npc = npcs.get("Ida");
 
 		// player brings needle for first or subsequent time
@@ -404,21 +392,22 @@ class GettingTools {
 				null,
 				new MultipleActions(
 					new ChatAction() {
+						@Override
 						public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
-							final String[] questslot = player.getQuest(mithrilcloak.getQuestSlot()).split(";");		
+							final String[] questslot = player.getQuest(mithrilcloak.getQuestSlot()).split(";");
 							int needles = 1;
 							int saidjoke = 1;
 							if (questslot.length > 2) {
 								// if the split works, we had stored a needle number before
 								needles = Integer.parseInt(questslot[1]);
 								saidjoke = Integer.parseInt(questslot[2]);
-								npc.say("Bardzo przepraszam za złamanie poprzednich igieł. Zacznę od nowa pracę nad Twoim płaszczem. " 
+								npc.say("Bardzo przepraszam za złamanie poprzednich igieł. Zacznę od nowa pracę nad Twoim płaszczem. "
 										+ "Wróć za " + REQUIRED_HOURS_SEWING + " godzinę.");
 							 } else if (questslot.length > 1) {
 								// it wasn't split with a needle number, only joke
 								// so this is the first time we brought a needle
 								saidjoke = Integer.parseInt(questslot[1]);
-								npc.say("Wygląda na to, że znalazłeś Ritattiego. Dobrze. Zacznę pracę nad płaszczem!" 
+								npc.say("Wygląda na to, że znalazłeś Ritattiego. Dobrze. Zacznę pracę nad płaszczem!"
 										 + " Szwaczka potrzebuje trochę czasu. Wróć za " + REQUIRED_HOURS_SEWING + " godzinę.");
 								// ida breaks needles - she will need 1 - 3
 								needles = Rand.randUniform(1, 3);
@@ -445,21 +434,20 @@ class GettingTools {
 	}
 
 	private void sewingStep() {
-
 		final SpeakerNPC npc = npcs.get("Ida");
 
 		// the quest slot that starts with sewing is the form "sewing;number;number" where the first number is the time she started sewing
 		// the second number is the number of needles that she's still going to use - player doesn't know number
-
-		npc.add(ConversationStates.ATTENDING, 
+		npc.add(ConversationStates.ATTENDING,
 				Arrays.asList("magical", "mithril", "cloak", "mithril cloak", "task", "quest", "zadanie", "misja"),
 				new QuestStateStartsWithCondition(mithrilcloak.getQuestSlot(), "sewing;"),
 				ConversationStates.ATTENDING, null, new ChatAction() {
+						@Override
 						public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 							final String[] tokens = player.getQuest(mithrilcloak.getQuestSlot()).split(";");
 							// hours -> milliseconds
 							final long delay = REQUIRED_HOURS_SEWING * MathHelper.MILLISECONDS_IN_ONE_HOUR;
-							final long timeRemaining = (Long.parseLong(tokens[1]) + delay)
+							final long timeRemaining = Long.parseLong(tokens[1]) + delay
 								- System.currentTimeMillis();
 							if (timeRemaining > 0L) {
 								npc.say("Wciąż szyję twój płaszcz. Wróć za "
@@ -476,7 +464,7 @@ class GettingTools {
 								final int needles = Integer.parseInt(tokens[2]) - 1;
 								int saidjoke = Integer.parseInt(tokens[3]);
 								player.setQuest(mithrilcloak.getQuestSlot(), "need_needle;" + needles + ";" + saidjoke);
-							}							
+							}
 				}
 			});
 	}
@@ -489,5 +477,4 @@ class GettingTools {
 		giveNeedleStep();
 		sewingStep();
 	}
-
 }

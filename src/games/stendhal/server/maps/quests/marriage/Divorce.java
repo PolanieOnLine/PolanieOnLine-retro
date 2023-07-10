@@ -1,4 +1,4 @@
-/* $Id: Divorce.java,v 1.13 2012/05/30 18:50:04 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2011 - Stendhal                    *
  ***************************************************************************
@@ -33,7 +33,6 @@ import java.util.Arrays;
 
 class Divorce {
 	private final NPCList npcs = SingletonRepository.getNPCList();
-	private SpeakerNPC clerk;
 	private MarriageQuestInfo marriage;
 
 	public Divorce(final MarriageQuestInfo marriage) {
@@ -44,29 +43,31 @@ class Divorce {
 
 		/**
 		 * Creates a clerk NPC who can divorce couples.
-		 * 
+		 *
 		 * Note: in this class, the Player variables are called husband and
 		 * wife. However, the game doesn't know the concept of genders. The
 		 * player who initiates the divorce is just called husband, the other
 		 * wife.
-		 * 
+		 *
 		 * @author immibis
-		 * 
+		 *
 		 */
 
-		clerk = npcs.get("Wilfred");
+		SpeakerNPC clerk = npcs.get("Wilfred");
 
-		clerk.add(ConversationStates.ATTENDING, 
+		clerk.add(ConversationStates.ATTENDING,
 				Arrays.asList("divorce", "rozwód"),
 				new ChatCondition() {
+					@Override
 					public boolean fire(final Player player, final Sentence sentence, final Entity npc) {
 						return (player.isQuestCompleted(marriage.getQuestSlot()))
 								&& player.isEquipped("obrączka ślubna") && player.isEquipped("money",200*player.getLevel());
 					}
-				}, 
+				},
 				ConversationStates.QUESTION_3,
 				null,
 			   	new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 						Player husband;
 						Player wife;
@@ -90,17 +91,19 @@ class Divorce {
 					}
 				});
 
-		clerk.add(ConversationStates.ATTENDING, 
+		clerk.add(ConversationStates.ATTENDING,
 				  Arrays.asList("divorce", "rozwód"),
 				  new ChatCondition() {
+					  @Override
 					  public boolean fire(final Player player, final Sentence sentence, final Entity npc) {
 						  return (player.isQuestCompleted(marriage.getQuestSlot()))
 							  && player.isEquipped("obrączka ślubna") && !player.isEquipped("money",200*player.getLevel());
 					}
-				}, 
+				},
 				ConversationStates.QUESTION_3,
 				null,
 			   	new ChatAction() {
+					  @Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 						Player husband;
 						Player wife;
@@ -123,10 +126,10 @@ class Divorce {
 					}
 				});
 
-
 		clerk.add(ConversationStates.ATTENDING,
 					Arrays.asList("divorce", "rozwód"),
 					new ChatCondition() {
+						@Override
 						public boolean fire(final Player player, final Sentence sentence, final Entity npc) {
 							return (player.hasQuest(marriage.getQuestSlot())
                                     && player.getQuest(marriage.getQuestSlot()).equals("just_married"))
@@ -143,6 +146,7 @@ class Divorce {
 				new NotCondition(
 					// isMarriedCondition()
 					new ChatCondition() {
+						@Override
 						public boolean fire(final Player player, final Sentence sentence, final Entity npc) {
 							return (player.isQuestCompleted(marriage.getQuestSlot()) ||
 									(player.hasQuest(marriage.getQuestSlot()) && player.getQuest(marriage.getQuestSlot()).equals("just_married")));
@@ -157,31 +161,33 @@ class Divorce {
 				new AndCondition(
 					// isMarriedCondition()
 					new ChatCondition() {
+						@Override
 						public boolean fire(final Player player, final Sentence sentence, final Entity npc) {
 							return (player.isQuestCompleted(marriage.getQuestSlot()) ||
 									(player.hasQuest(marriage.getQuestSlot()) && player.getQuest(marriage.getQuestSlot()).equals("just_married")));
 						}
 					},
-					new NotCondition(new PlayerHasItemWithHimCondition("wedding ring"))),
+					new NotCondition(new PlayerHasItemWithHimCondition("obrączka ślubna"))),
 				ConversationStates.ATTENDING,
 				"Przepraszam, ale potrzebuje Twojej obrączki ślubnej, aby dać Tobie rozwód.",
 				null);
 
 		// If they say no
 		clerk.add(ConversationStates.QUESTION_3,
-				ConversationPhrases.NO_MESSAGES, 
+				ConversationPhrases.NO_MESSAGES,
 				null,
 				ConversationStates.ATTENDING,
-				"Mam nadzieje, że miałeś szczęśliwe małżeństwo.", 
+				"Mam nadzieje, że miałeś szczęśliwe małżeństwo.",
 				null);
 
 		// If they say yes
 		clerk.add(ConversationStates.QUESTION_3,
-				ConversationPhrases.YES_MESSAGES, 
+				ConversationPhrases.YES_MESSAGES,
 				null,
-				ConversationStates.ATTENDING, 
+				ConversationStates.ATTENDING,
 				null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 						Player husband;
 						Player wife;
@@ -206,8 +212,8 @@ class Divorce {
 							}
 							wife.removeQuest(marriage.getQuestSlot());
 							wife.removeQuest(marriage.getSpouseQuestSlot());
-							wife.sendPrivateText(husband.getName() + " has divorced from you.");
-							npc.say("Co za szkoda...co za szkoda.... byliście tak szczęśliwi...");
+							wife.sendPrivateText(husband.getName() + " rozwiódł się z tobą.");
+							npc.say("Co za szkoda... Co za szkoda..., a byliście tak szczęśliwi...");
 						} else {
 							DBCommandQueue.get().enqueue(new StoreMessageCommand("Wilfred", partnerName, husband.getName() + " rozwiódł się z Tobą!" , "N"));
 						}
@@ -220,7 +226,7 @@ class Divorce {
 						husband.drop("obrączka ślubna");
 						husband.removeQuest(marriage.getQuestSlot());
 						husband.removeQuest(marriage.getSpouseQuestSlot());
-						npc.say("Co za szkoda...co za szkoda..., a byliście tak szczęśliwi...");
+						npc.say("Co za szkoda... Co za szkoda..., a byliście tak szczęśliwi...");
 					}
 				});
 	}

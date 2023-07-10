@@ -1,4 +1,4 @@
-/* $Id: SimplePathfinder.java,v 1.2 2010/09/19 02:22:58 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -23,10 +23,10 @@ import games.stendhal.server.core.engine.StendhalRPZone;
  */
 public class SimplePathfinder extends Pathfinder {
 	final CollisionDetection collision;
-	
+
 	/**
 	 * Create a new <code>SimplePathfinder</code>.
-	 * 
+	 *
 	 * @param zone The zone used for path finding
 	 * @param startX Starting point x coordinate
 	 * @param startY Starting point y coordinate

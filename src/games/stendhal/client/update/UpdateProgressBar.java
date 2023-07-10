@@ -12,6 +12,7 @@
 package games.stendhal.client.update;
 
 import java.awt.Dimension;
+import java.awt.MouseInfo;
 import java.io.IOException;
 import java.net.URL;
 
@@ -30,7 +31,7 @@ import javax.swing.SwingUtilities;
 /**
  * A progress bar for the download progress.
  */
-public class UpdateProgressBar extends JFrame implements
+class UpdateProgressBar extends JFrame implements
 		HttpClient.ProgressListener {
 	private static final long serialVersionUID = -1607102841664745919L;
 
@@ -49,9 +50,6 @@ public class UpdateProgressBar extends JFrame implements
 	/** the size of the downloaded files */
 	private int sizeOfLastFiles;
 
-	/** content pane which manages the components */
-	private JPanel contentPane;
-
 	/** bar showing the download progress */
 	private JProgressBar progressBar;
 
@@ -61,14 +59,15 @@ public class UpdateProgressBar extends JFrame implements
 
 	/**
 	 * Creates update progress bar.
-	 * 
+	 *
 	 * @param max max file size
 	 * @param urlBase base url for the browser
 	 * @param fromVersion the version the update is based on, may be <code>null</code>
 	 * @param toVersion the version the download leads to
 	 */
-	public UpdateProgressBar(final int max, final String urlBase, final String fromVersion, final String toVersion) {
-		super("Pobieram...");
+	UpdateProgressBar(final int max, final String urlBase, final String fromVersion, final String toVersion) {
+		super("Pobieram...", MouseInfo.getPointerInfo().getDevice().getDefaultConfiguration());
+		setLocationByPlatform(true);
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 		addWindowListener(new UpdateProgressBarWindowListener());
 
@@ -91,7 +90,7 @@ public class UpdateProgressBar extends JFrame implements
 	}
 
 	private void initializeComponents() {
-		contentPane = (JPanel) this.getContentPane();
+		JPanel contentPane = (JPanel) this.getContentPane();
 
 		contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.PAGE_AXIS));
 		contentPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -118,7 +117,7 @@ public class UpdateProgressBar extends JFrame implements
 			browser.setPreferredSize(dim);
 			browser.addPropertyChangeListener("page", new UpdateProgressBarMetaRefreshSupport());
 			browser.addHyperlinkListener(new UpdateProgressBarHyperLinkListener());
-			
+
 			Dimension windowSize = new Dimension(640, 480);
 			setPreferredSize(windowSize);
 			// TODO: load page async?
@@ -134,19 +133,23 @@ public class UpdateProgressBar extends JFrame implements
 		}
 	}
 
+	@Override
 	public void onDownloading(final int downloadedBytes) {
 		// The updater will not be running in EDT
 		SwingUtilities.invokeLater(new Runnable() {
+			@Override
 			public void run() {
 				progressBar.setValue(sizeOfLastFiles + downloadedBytes);
 			}
 		});
 	}
 
+	@Override
 	public void onDownloadCompleted(final int byteCounter) {
 		sizeOfLastFiles = sizeOfLastFiles + byteCounter;
 		// The updater will not be running in EDT
 		SwingUtilities.invokeLater(new Runnable() {
+			@Override
 			public void run() {
 				progressBar.setValue(sizeOfLastFiles);
 			}
@@ -159,7 +162,7 @@ public class UpdateProgressBar extends JFrame implements
 	 * @param args ignored
 	 */
 	public static void main(String[] args) {
-		UpdateProgressBar updateProgressBar = new UpdateProgressBar(100, "http://arianne.sourceforge.net/stendhal/greeting/", null, "0.88");
+		UpdateProgressBar updateProgressBar = new UpdateProgressBar(100, "https://arianne-project.org/stendhal/greeting/", null, "0.88");
 		updateProgressBar.onDownloading(50);
 		updateProgressBar.setVisible(true);
 	}

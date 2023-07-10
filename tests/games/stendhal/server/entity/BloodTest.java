@@ -1,4 +1,4 @@
-/* $Id: BloodTest.java,v 1.10 2010/09/19 02:39:45 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -15,18 +15,19 @@ package games.stendhal.server.entity;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.maps.MockStendlRPWorld;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.maps.MockStendlRPWorld;
 
 public class BloodTest {
 
 	@BeforeClass
 	public static void setUp() throws Exception {
 		MockStendlRPWorld.get();
-		
+
 	}
 
 	/**
@@ -35,7 +36,7 @@ public class BloodTest {
 	@Test
 	public final void testDescribe() {
 		final Blood bl = new Blood();
-		assertEquals("You see a pool of blood.", bl.describe());
+		assertEquals("Karmazynowa plama krwi zbrukała to miejsce.", bl.describe());
 	}
 
 	/**

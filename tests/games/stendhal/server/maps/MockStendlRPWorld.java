@@ -1,4 +1,4 @@
-/* $Id: MockStendlRPWorld.java,v 1.17 2010/09/19 01:29:02 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -25,19 +25,15 @@ public class MockStendlRPWorld extends StendhalRPWorld {
 	protected void createRPClasses() {
 		new RPClassGenerator().createRPClasses();
 	}
-	
+
 	public static StendhalRPWorld get() {
 		if (!(instance instanceof MockStendlRPWorld)) {
 			instance = new MockStendlRPWorld();
-			((MockStendlRPWorld) instance).createRPClasses();
+			((MockStendlRPWorld) instance).initialize();
 		}
 		return instance;
 	}
 
-	@Override
-	protected void initialize() {
-	}
-	
 	public static void  reset() {
 		instance = null;
 	}

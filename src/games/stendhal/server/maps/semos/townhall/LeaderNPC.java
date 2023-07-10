@@ -1,4 +1,3 @@
-/* $Id: LeaderNPC.java,v 1.15 2012/02/13 00:08:30 bluelads99 Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +11,8 @@
  ***************************************************************************/
 package games.stendhal.server.maps.semos.townhall;
 
+import java.util.Map;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
@@ -23,8 +24,6 @@ import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.npc.behaviour.impl.MonologueBehaviour;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.Map;
-
 public class LeaderNPC implements ZoneConfigurator {
 	/**
 	 * Configure a zone.
@@ -32,9 +31,14 @@ public class LeaderNPC implements ZoneConfigurator {
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
-		final String[] text = {"Super Trainer posłuchaj mnie. Twoje osiągnięcia są znakomite, ale rzadko polujesz na potwory. Brakuje Ci doświadczenia. Od współczynnika poziomu zależy jak mocno bijesz. Nie osiągnąłeś w pełni swojego potencjału.","XP Hunter uczyłem też Ciebie. Twoje przyzwyczajenie zawsze pozwala innym żołnierzom bronić się przed potworami. Oznacza to, że Twoje umiejętności nigdy się nie zwiększają. Tak, masz dobry poziom, ale Twoje umiejętności też od tego zależą!", "Cóż odpowiedni. Muszę powiedzieć, że masz dobry poziom i umiejętności. Oba są ważne, aby bić mocno potwory, a także możesz się sam bronić. Bardzo dobrze!"};
-	  new MonologueBehaviour(buildSemosTownhallAreaLeader(zone), text, 1);
+		final String[] text = {
+				"Super Trainer posłuchaj mnie. Twoje osiągnięcia są znakomite, ale rzadko polujesz na potwory. Brakuje Ci doświadczenia. Od współczynnika poziomu zależy jak mocno bijesz. Nie osiągnąłeś w pełni swojego potencjału.",
+				"XP Hunter uczyłem też Ciebie. Twoje przyzwyczajenie zawsze pozwala innym żołnierzom bronić się przed potworami. Oznacza to, że Twoje umiejętności nigdy się nie zwiększają. Tak, masz dobry poziom, ale Twoje umiejętności też od tego zależą!",
+				"Cóż odpowiedni. Muszę powiedzieć, że masz dobry poziom i umiejętności. Oba są ważne, aby bić mocno potwory, a także możesz się sam bronić. Bardzo dobrze!"
+		};
+		new MonologueBehaviour(buildSemosTownhallAreaLeader(zone), text, 1);
 	}
 
 	/**
@@ -43,15 +47,7 @@ public class LeaderNPC implements ZoneConfigurator {
 	 * @return the built NPC
 	 */
 	private SpeakerNPC buildSemosTownhallAreaLeader(final StendhalRPZone zone) {
-		// We create an NPC
 		final SpeakerNPC npc = new SpeakerNPC("Lieutenant Drilenun") {
-
-			@Override
-			protected void createPath() {
-				// doesn't move
-				setPath(null);
-			}
-
 			@Override
 			protected void createDialog() {
 				addGreeting("Och cześć. Rozmawialiśmy o przerwie. Moi trzej kadeci dostali właśnie nagrodę od Mayora za pomoc w obronie Semos.");
@@ -63,6 +59,7 @@ public class LeaderNPC implements ZoneConfigurator {
 				add(ConversationStates.ATTENDING, "weapon", null, ConversationStates.ATTENDING,
 				        null, new ChatAction() {
 
+					        @Override
 					        public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 					        	final Item weapon = player.getWeapon();
 					        	if (weapon != null) {
@@ -99,18 +96,19 @@ public class LeaderNPC implements ZoneConfigurator {
 					        		// player didn't have a weapon, as getWeapon returned null.
 					        		raiser.say("Och, nie mogę nic opowiedzieć o Twojej broni o ile jakieś nie będziesz używał. To niezbyt mądre w dzisiejszych czasach!");
 					        	}
-							} 
+							}
 					    }
 				);
 			}
 		};
-		npc.setLevel(150);
+
 		npc.setDescription("Oto Lieutenant Drilenun, który rozmawia ze swoimi trzema kadetami.");
 		npc.setEntityClass("bossmannpc");
+		npc.setGender("M");
 		npc.setPosition(23, 15);
-		npc.initHP(100);
+		npc.setLevel(150);
 		zone.add(npc);
-		
+
 		return npc;
 	}
 }

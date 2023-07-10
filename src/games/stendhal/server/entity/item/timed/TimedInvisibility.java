@@ -1,4 +1,4 @@
-/* $Id: TimedInvisibility.java,v 1.5 2010/09/19 02:23:50 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,9 +12,9 @@
  ***************************************************************************/
 package games.stendhal.server.entity.item.timed;
 
-import games.stendhal.server.entity.player.Player;
-
 import java.util.Map;
+
+import games.stendhal.server.entity.player.Player;
 
 public class TimedInvisibility extends TimedStackableItem {
 

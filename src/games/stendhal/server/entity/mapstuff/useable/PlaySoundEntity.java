@@ -1,4 +1,4 @@
-/* $Id: PlaySoundEntity.java,v 1.2 2010/09/01 16:03:28 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -42,6 +42,7 @@ public class PlaySoundEntity extends UseableEntity {
 	/**
 	 * plays a sound
 	 */
+	@Override
 	public boolean onUsed(RPEntity user) {
 		if (!nextTo(user)) {
 			user.sendPrivateText("Stąd nie możesz dosięgnąć.");

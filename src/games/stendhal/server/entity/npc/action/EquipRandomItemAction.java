@@ -1,4 +1,4 @@
-/* $Id: EquipRandomItemAction.java,v 1.4 2012/09/09 12:19:56 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +12,11 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.action;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.common.Rand;
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
@@ -19,11 +24,6 @@ import games.stendhal.server.core.config.annotations.Dev.Category;
 import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.log4j.Logger;
 
 /**
  * Chooses and equips the specified item from a list
@@ -98,6 +98,7 @@ public class EquipRandomItemAction implements ChatAction {
 		this.bind = bind;
 	}
 
+	@Override
 	public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 		final String itemName = Rand.rand(items.keySet());
 		final Integer amount = items.get(itemName);

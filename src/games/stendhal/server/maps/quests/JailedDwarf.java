@@ -1,6 +1,5 @@
-/* $Id: JailedDwarf.java,v 1.25 2012/04/24 17:01:18 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,9 +11,14 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import games.stendhal.common.grammar.Grammar;
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.SpeakerNPC;
+import games.stendhal.server.entity.npc.action.IncreaseKarmaAction;
 import games.stendhal.server.entity.npc.action.IncreaseXPAction;
 import games.stendhal.server.entity.npc.action.MultipleActions;
 import games.stendhal.server.entity.npc.action.SetQuestAction;
@@ -27,36 +31,34 @@ import games.stendhal.server.entity.npc.condition.QuestNotCompletedCondition;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.Region;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * QUEST: Jailed Dwarf
- * 
+ *
  * PARTICIPANTS: - Hunel, the guard of the Dwarf Kingdom's Prison
- * 
- * STEPS: - You see Hunel locked in the cell - You get the key by killing the
- * Duergar King - You speak to Hunel when you have the key. - Hunel wants to
- * stay in, he is afraid. - You can then sell chaos equipment to Hunel.
- * 
- * REWARD: - 2000 XP - everlasting place to sell chaos equipment
- * 
+ *
+ * STEPS:
+ * <ul>
+ * <li> You see Hunel locked in the cell. </li>
+ * <li> Gget the key by killing the duergar king. </li>
+ * <li> Speak to Hunel when you have the key. </li>
+ * <li> Hunel wants to stay in, he is afraid. </li>
+ * <li> You can then sell chaos equipment to Hunel. </li>
+ * </ul>
+ *
+ * REWARD:
+ * <ul>
+ * <li> 8,000 XP </li>
+ * <li> some karma (20) </li>
+ * <li> everlasting place to sell chaos equipment </li>
+ * </ul>
+ *
  * REPETITIONS: - None.
  */
 public class JailedDwarf extends AbstractQuest {
-
 	private static final String QUEST_SLOT = "jailed_dwarf";
-
-
-
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
+	private final SpeakerNPC npc = npcs.get("Hunel");
 
 	private void step_1() {
-		final SpeakerNPC npc = npcs.get("Hunel");
-
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new GreetingMatchesNameCondition(npc.getName()),
 						new QuestCompletedCondition(QUEST_SLOT)),
@@ -79,19 +81,19 @@ public class JailedDwarf extends AbstractQuest {
 				ConversationStates.ATTENDING,
 				"Masz klucz, aby mnie wypuścić! *mamrocze*  Errrr ... nie wygląda, aby było tam dla mnie bezpiecznie ... Chyba zostanę tutaj ... może ktoś #zaoferuje mi dobry ekwipunek ... ",
 				new MultipleActions(new SetQuestAction(QUEST_SLOT, "done"),
-						 			 new IncreaseXPAction(2000)));
+						 			 new IncreaseXPAction(8000),
+						 			 new IncreaseKarmaAction(20)));
 	}
 
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
 				"Uwięziony Krasnal",
 				"Na dole Kanmararn znajdziesz przrażonego, uwięzionego w celi krasnala czekającego na odwiedziny. Powinien być strażnikiem, ale duergary napadły na więzienie. Może potrzebować zbroi do ucieczki.",
 				true);
 		step_1();
 	}
-	
+
 	@Override
 	public List<String> getHistory(final Player player) {
 			final List<String> res = new ArrayList<String>();
@@ -100,16 +102,21 @@ public class JailedDwarf extends AbstractQuest {
 			}
 			res.add("Muszę zdobyć klucz aby uwolnić Hunela.");
 			if (isCompleted(player)) {
-				res.add("Zabiłem króla Duergars i zdobyłem klucz do celi Hunela. Teraz jest zbyt przestraszony aby wyjść. Kupi każdą ilość zbroi. Biedny Hunel.");
+				res.add(Grammar.genderVerb(player.getGender(), "Zabiłem") + " króla Duergars i zdobyłem klucz do celi Hunela. Teraz jest zbyt przestraszony aby wyjść. Kupi każdą ilość zbroi. Biedny Hunel.");
 			}
 			return res;
 	}
-	
+
+	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
+	}
+
 	@Override
 	public String getName() {
-		return "JailedDwarf";
+		return "Uwięziony Krasnal";
 	}
-	
+
 	@Override
 	public int getMinLevel() {
 		return 60;
@@ -117,9 +124,9 @@ public class JailedDwarf extends AbstractQuest {
 
 	@Override
 	public String getNPCName() {
-		return "Hunel";
+		return npc.getName();
 	}
-	
+
 	@Override
 	public String getRegion() {
 		return Region.SEMOS_DUNGEONS;

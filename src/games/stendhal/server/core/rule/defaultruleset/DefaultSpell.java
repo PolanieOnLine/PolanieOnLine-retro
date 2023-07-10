@@ -1,4 +1,4 @@
-/* $Id: DefaultSpell.java,v 1.13 2011/11/19 16:44:45 madmetzger Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,52 +12,52 @@
  ***************************************************************************/
 package games.stendhal.server.core.rule.defaultruleset;
 
+import java.lang.reflect.Constructor;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.common.constants.Nature;
 import games.stendhal.server.core.rule.EntityManager;
 import games.stendhal.server.core.rule.defaultruleset.creator.AbstractCreator;
 import games.stendhal.server.core.rule.defaultruleset.creator.FullSpellCreator;
 import games.stendhal.server.entity.spell.Spell;
-
-import java.lang.reflect.Constructor;
-
-import org.apache.log4j.Logger;
 /**
  * Spell information are loaded from XML into a {@link DefaultSpell}.
  * The {@link EntityManager} uses this information to instantiate objects of
  * the right type.
- * 
+ *
  * @author madmetzger
  */
 public class DefaultSpell {
-	
+
 	private static final Logger logger = Logger.getLogger(DefaultSpell.class);
-	
+
 	private AbstractCreator<Spell> creator;
-	
+
 	private String name;
-	
+
 	private Nature nature;
-	
+
 	private Class<?> implementationClass;
-	
+
 	private int mana;
-	
+
 	private int cooldown;
-	
+
 	private int minimumLevel;
-	
+
 	private int range;
-	
+
 	private int atk;
-	
+
 	private int def;
-	
+
 	private int amount;
-	
+
 	private int regen;
-	
+
 	private int rate;
-	
+
 	private double lifesteal;
 
 	private double modifier;
@@ -65,17 +65,18 @@ public class DefaultSpell {
 	/**
 	 * Creates a new {@link DefaultSpell}
 	 * @param name the name of that spell
+	 * @param clazzName class name
 	 */
 	public DefaultSpell(String name, String clazzName) {
 		try {
 			this.name = name;
-			this.implementationClass = (Class<?>) Class.forName(clazzName);
+			this.implementationClass = Class.forName(clazzName);
 			this.buildCreator(implementationClass);
 		} catch (ClassNotFoundException e) {
 			logger.error("Error while creating DefaultSpell", e);
 		}
 	}
-	
+
 	private void buildCreator(final Class< ? > implementation) {
 		try {
 			Constructor< ? > construct;
@@ -88,12 +89,12 @@ public class DefaultSpell {
 		} catch (final NoSuchMethodException ex) {
 			logger.error("No matching full constructor for Spell found.", ex);
 		}
-		
+
 	}
-	
+
 	/**
 	 * Creates a new instance using the configured implementation class of that spell
-	 *  
+	 *
 	 * @return an instance of the specified implementation class
 	 */
 	public Spell getSpell() {
@@ -102,7 +103,7 @@ public class DefaultSpell {
 		}
 		return creator.create();
 	}
-	
+
 
 	/**
 	 * @return the name
@@ -112,7 +113,7 @@ public class DefaultSpell {
 	}
 
 	/**
-	 * @return the class object specified in the xml configuration 
+	 * @return the class object specified in the xml configuration
 	 */
 	public Class<?> getImplementationClass() {
 		return implementationClass;

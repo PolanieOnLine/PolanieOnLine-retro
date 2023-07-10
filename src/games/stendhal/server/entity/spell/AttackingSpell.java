@@ -1,4 +1,4 @@
-/* $Id: AttackingSpell.java,v 1.5 2011/11/19 15:18:55 madmetzger Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -14,13 +14,13 @@ package games.stendhal.server.entity.spell;
 
 import games.stendhal.common.constants.Nature;
 import games.stendhal.server.entity.Entity;
-import games.stendhal.server.entity.RPEntity;
+import games.stendhal.server.entity.creature.Creature;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.entity.spell.effect.DamageEffect;
 import marauroa.common.game.RPObject;
 /**
  * A spell to attack an entity
- * 
+ *
  * @author madmetzger
  */
 public class AttackingSpell extends Spell {
@@ -31,14 +31,16 @@ public class AttackingSpell extends Spell {
 		super(name, nature, amount, atk, cooldown, def, lifesteal, mana, minimumlevel,
 				range, rate, regen, modifier);
 	}
-	
+
 	public AttackingSpell(RPObject object) {
 		super(object);
 	}
 
 	@Override
 	protected boolean isTargetValid(Entity caster, Entity target) {
-		return target instanceof RPEntity;
+        final boolean targetIsCreature = target instanceof Creature;
+        final boolean targetIsPlayer = target instanceof Player;
+        return targetIsCreature || targetIsPlayer;
 	}
 
 	@Override

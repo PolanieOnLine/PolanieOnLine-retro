@@ -1,6 +1,5 @@
-/* $Id: TutorialNotifier.java,v 1.26 2010/09/19 02:22:51 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2015 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -14,11 +13,13 @@ package games.stendhal.server.core.events;
 
 import games.stendhal.common.NotificationType;
 import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.entity.item.Item;
+import games.stendhal.server.entity.item.StackableItem;
 import games.stendhal.server.entity.player.Player;
 
 /**
  * manages the tutorial based on events created all over the game.
- * 
+ *
  * @author hendrik
  */
 public class TutorialNotifier {
@@ -26,7 +27,7 @@ public class TutorialNotifier {
 	/**
 	 * If the specified event is unknown, add it to the list and send the text
 	 * to the player.
-	 * 
+	 *
 	 * @param player
 	 *            Player
 	 * @param type
@@ -42,13 +43,13 @@ public class TutorialNotifier {
 			// but we delay it for 2 seconds so that the player has some time to
 			// recognize the event
 			new DelayedPlayerTextSender(player, "Przewodnik: " + type.getMessage(), NotificationType.TUTORIAL, 2);
-			
+
 		}
 	}
 
 	/**
 	 * Login.
-	 * 
+	 *
 	 * @param player
 	 *            Player
 	 */
@@ -58,14 +59,14 @@ public class TutorialNotifier {
 
 	/**
 	 * moving.
-	 * 
+	 *
 	 * @param player
 	 *            Player
 	 */
 	public static void move(final Player player) {
 		final StendhalRPZone zone = player.getZone();
 		if (zone != null) {
-			if (zone.getName().equals("int_semos_guard_house") || zone.getName().equals("int_zakopane_home")) {
+			if (zone.getName().equals("int_zakopane_home")) {
 				process(player, TutorialEventType.FIRST_MOVE);
 			}
 		}
@@ -73,7 +74,7 @@ public class TutorialNotifier {
 
 	/**
 	 * Zone changes.
-	 * 
+	 *
 	 * @param player
 	 *            Player
 	 * @param sourceZone
@@ -84,7 +85,7 @@ public class TutorialNotifier {
 	public static void zoneChange(final Player player, final String sourceZone,
 			final String destinationZone) {
 		if (sourceZone.equals("0_zakopane_s") && destinationZone.equals("int_zakopane_home")) {
-			process(player, TutorialEventType.RETURN_HOME);
+			process(player, TutorialEventType.RETURN_GUARDHOUSE);
 		} else if (destinationZone.equals("0_semos_city")) {
 			process(player, TutorialEventType.VISIT_SEMOS_CITY);
 		} else if (destinationZone.equals("int_semos_tavern_0")) {
@@ -102,7 +103,7 @@ public class TutorialNotifier {
 
 	/**
 	 * player got attacked.
-	 * 
+	 *
 	 * @param player
 	 *            Player
 	 */
@@ -112,7 +113,7 @@ public class TutorialNotifier {
 
 	/**
 	 * player killed something.
-	 * 
+	 *
 	 * @param player
 	 *            Player
 	 */
@@ -122,7 +123,7 @@ public class TutorialNotifier {
 
 	/**
 	 * player killed another player.
-	 * 
+	 *
 	 * @param player
 	 *            Player
 	 */
@@ -133,7 +134,7 @@ public class TutorialNotifier {
 
 	/**
 	 * player got poisoned.
-	 * 
+	 *
 	 * @param player
 	 *            Player
 	 */
@@ -141,9 +142,13 @@ public class TutorialNotifier {
 		process(player, TutorialEventType.FIRST_POISONED);
 	}
 
+	public static void bleeding(final Player player) {
+		process(player, TutorialEventType.FIRST_BLEEDING);
+	}
+
 	/**
 	 * a player who stayed another minute in game.
-	 * 
+	 *
 	 * @param player
 	 *            Player
 	 * @param age
@@ -155,7 +160,7 @@ public class TutorialNotifier {
 		} else if (age >= 45) {
 			process(player, TutorialEventType.TIMED_PASSWORD);
 		} else if (age >= 30) {
-			// this is a new tutorial event, so we check isNew, 
+			// this is a new tutorial event, so we check isNew,
 			// as our older players don't need to know how to change outfit
 			if (player.isNew()) {
 				process(player, TutorialEventType.TIMED_OUTFIT);
@@ -163,40 +168,45 @@ public class TutorialNotifier {
 		} else if (age >= 15) {
 			// players less likely to get this event now that they do not start naked
 			// but keep it anyway as it's a cute feature to notice that players are naked
-			if (player.getOutfit().isNaked()) {
+			if (player.isNaked()) {
 				process(player, TutorialEventType.TIMED_NAKED);
-			} 
+			}
 		} else if (age >= 5) {
 			process(player, TutorialEventType.TIMED_HELP);
 		}
 	}
 	/**
 	 * player > level 2 logged in for new release.
-	 * 
+	 *
 	 * @param player
 	 *            Player
 	 */
 	public static void newrelease(final Player player) {
-		// process(player, TutorialEventType.NEW_RELEASE);
+		process(player, TutorialEventType.NEW_RELEASE);
 	}
-	
+
 	/**
 	 * player got private messaged
-	 * 
+	 *
 	 * @param player
 	 *            Player
 	 */
 	public static void messaged(final Player player) {
 		process(player, TutorialEventType.FIRST_PRIVATE_MESSAGE);
 	}
-	
+
 	/**
 	 * player got something given from an equip item action of an npc
-	 * 
+	 *
 	 * @param player
 	 *            Player
 	 */
-	public static void equipped(final Player player) {
-		process(player, TutorialEventType.FIRST_EQUIPPED);
+	public static void equippedByNPC(final Player player, final Item item) {
+		// do not trigger on Stackable items, as it may be confusing to players
+		// that already own an item of that type. It is far less discoverable
+		// that the number have increased compared to a new item showing up
+		if (!(item instanceof StackableItem)) {
+			process(player, TutorialEventType.FIRST_EQUIPPED);
+		}
 	}
 }

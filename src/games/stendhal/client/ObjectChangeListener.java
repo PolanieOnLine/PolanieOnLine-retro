@@ -1,4 +1,4 @@
-/* $Id: ObjectChangeListener.java,v 1.2 2010/09/19 02:17:49 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -15,17 +15,15 @@ package games.stendhal.client;
 import marauroa.common.game.RPObject;
 
 /**
- * is used by {@link PerceptionToObject}. 
- * 
+ * is used by {@link PerceptionToObject}.
+ *
  * Any Class implementing this can be used to listen to changes in RPObjects.
- * 
+ *
  * @author astrid
  *
  */
-public interface ObjectChangeListener {
-
+interface ObjectChangeListener {
 	void deleted();
 	void modifiedAdded(RPObject changes);
 	void modifiedDeleted(RPObject changes);
-
 }

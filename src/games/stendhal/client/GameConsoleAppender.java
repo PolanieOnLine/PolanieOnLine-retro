@@ -1,4 +1,4 @@
-/* $Id: GameConsoleAppender.java,v 1.20 2010/10/04 19:44:31 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,17 +12,17 @@
  ***************************************************************************/
 package games.stendhal.client;
 
-import games.stendhal.client.gui.j2DClient;
-import games.stendhal.client.gui.chatlog.HeaderLessEventLine;
-import games.stendhal.common.NotificationType;
-
 import org.apache.log4j.AppenderSkeleton;
 import org.apache.log4j.spi.LoggingEvent;
 import org.apache.log4j.spi.ThrowableInformation;
 
+import games.stendhal.client.gui.j2DClient;
+import games.stendhal.client.gui.chatlog.HeaderLessEventLine;
+import games.stendhal.common.NotificationType;
+
 /**
  * Log4J appender which logs to the game console.
- * 
+ *
  * @author Matthias Totz
  */
 public class GameConsoleAppender extends AppenderSkeleton {
@@ -44,11 +44,13 @@ public class GameConsoleAppender extends AppenderSkeleton {
 		j2DClient.get().addEventLine(new HeaderLessEventLine(buf.toString(), NotificationType.CLIENT));
 	}
 
+	@Override
 	public void close() {
 		// implementation of abstract method
 		// yet nothing do to
 	}
 
+	@Override
 	public boolean requiresLayout() {
 		return true;
 	}

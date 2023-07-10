@@ -1,4 +1,4 @@
-/* $Id: ActionAttributesExist.java,v 1.4 2012/09/13 20:54:45 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -12,15 +12,14 @@
  ***************************************************************************/
 package games.stendhal.server.actions.validator;
 
-import games.stendhal.server.entity.player.Player;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 
-import marauroa.common.game.RPAction;
-
 import org.apache.log4j.Logger;
+
+import games.stendhal.server.entity.player.Player;
+import marauroa.common.game.RPAction;
 
 /**
  * checks the the required attribute are part of the action.
@@ -48,6 +47,7 @@ public class ActionAttributesExist implements ActionValidator {
 	 * @param data   data about this action
 	 * @return <code>null</code> if the action is valid; an error message otherwise
 	 */
+	@Override
 	public String validate(Player player, RPAction action, ActionData data) {
 		for (String attribute : attributes) {
 			if (!action.has(attribute)) {

@@ -1,4 +1,4 @@
-/* $Id: PlayerVisitedZonesCondition.java,v 1.7 2012/09/09 12:33:24 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +12,9 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.condition;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
 import games.stendhal.server.core.config.annotations.Dev.Category;
@@ -20,12 +23,6 @@ import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.LinkedList;
-import java.util.List;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 /**
  * Checks if player has visited a list of certain zones
  *
@@ -48,6 +45,7 @@ public class PlayerVisitedZonesCondition implements ChatCondition {
 		}
 	}
 
+	@Override
 	public boolean fire(Player player, Sentence sentence, Entity npc) {
 		for(String zone : zoneNames) {
 			StendhalRPZone zoneObject = SingletonRepository.getRPWorld().getZone(zone);
@@ -62,13 +60,16 @@ public class PlayerVisitedZonesCondition implements ChatCondition {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 44029 * zoneNames.hashCode();
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				PlayerVisitedZonesCondition.class);
+		if (!(obj instanceof PlayerVisitedZonesCondition)) {
+			return false;
+		}
+		PlayerVisitedZonesCondition other = (PlayerVisitedZonesCondition) obj;
+		return zoneNames.equals(other.zoneNames);
 	}
 
 	@Override

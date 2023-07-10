@@ -1,4 +1,4 @@
-/* $Id: ProgressBar.java,v 1.31 2011/08/21 16:08:30 yoriy Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -47,11 +47,11 @@ public class ProgressBar extends JDialog {
 
 	/**
 	 * Create a new ProgressBar.
-	 * 
+	 *
 	 * @param w parent dialog
 	 */
 	public ProgressBar(final JDialog w) {
-		super(w, "Łącze...", true);
+		super(w, "Łączenie...", true);
 		initializeComponents();
 		this.pack();
 		setLocationRelativeTo(w);
@@ -63,7 +63,7 @@ public class ProgressBar extends JDialog {
 		contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.PAGE_AXIS));
 		contentPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-		contentPane.add(new JLabel("Łącze..."));
+		contentPane.add(new JLabel("Łączenie..."));
 		contentPane.add(Box.createVerticalStrut(5));
 
 		progressBar = new JProgressBar(0, MAX_VALUE);
@@ -77,35 +77,36 @@ public class ProgressBar extends JDialog {
 	private class Updater implements ActionListener {
 		private int counter = 0;
 
+		@Override
 		public void actionPerformed(ActionEvent arg0) {
 			counter += STEP_SIZE * stepSizeMultiplier;
 			progressBar.setValue(counter);
 			if (stepCounter >= 0) {
 				if (stepCounter == 0) {
 					stepSizeMultiplier = 1;
-							}
+				}
 				stepCounter--;
-						}
+			}
 			if (counter > 100) {
 				cancel();
-					}
-				}
 			}
+		}
+	}
 
 	/** Start updating the progress bar */
 	public void start() {
 		timer.start();
 		setVisible(true);
 	}
-	
-	/** 
+
+	/**
 	 * Temporarily speeds up the bar.
 	 */
-	public void step() { 
+	public void step() {
 		stepCounter = 3;
 		stepSizeMultiplier = 3;
 	}
-	
+
 	/**
 	 *  Speeds up to quickly finish.
 	 */
@@ -114,15 +115,15 @@ public class ProgressBar extends JDialog {
 		stepSizeMultiplier = 3;
 		timer.setDelay(15);
 	}
-	
+
 	/**
 	 * Exits quickly.
 	 */
-	public void cancel() { 
+	public void cancel() {
 		timer.stop();
 		// workaround near failures in AWT at openjdk (tested on openjdk-1.6.0.0)
 		try {
-		this.dispose();
+		    this.dispose();
 		} catch(NullPointerException npe) {
 			return;
 		}

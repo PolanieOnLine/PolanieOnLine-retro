@@ -1,4 +1,4 @@
-/* $Id: WeddingRingTest.java,v 1.9 2010/09/19 02:39:48 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -18,16 +18,16 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.entity.player.Player;
-import games.stendhal.server.maps.MockStendlRPWorld;
-import marauroa.common.Log4J;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.maps.MockStendlRPWorld;
+import marauroa.common.Log4J;
 import utilities.PlayerTestHelper;
 import utilities.RPClass.ItemTestHelper;
 
@@ -37,51 +37,65 @@ public class WeddingRingTest {
 		Log4J.init();
 		MockStendlRPWorld.get();
 		ItemTestHelper.generateRPClasses();
-		
+
 		MockStendlRPWorld.get().addRPZone(new StendhalRPZone("int_semos_guard_house", 100, 100));
 	}
-	
+
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 		PlayerTestHelper.removeAllPlayers();
 	}
-	
+
 	/**
 	 * Tests for describe.
 	 */
 	@Test
 	public void testDescribe() {
-		final WeddingRing ring = (WeddingRing) SingletonRepository.getEntityManager().getItem("wedding ring");
-		assertThat(ring.describe(), is("You see a wedding ring."));
+		final WeddingRing ring = (WeddingRing) SingletonRepository.getEntityManager().getItem("obrączka ślubna");
+		assertThat(ring.describe(), is("Oto §'obrączka ślubna'."));
 		ring.setInfoString("juliet");
-		assertThat(ring.describe(), is("You see a wedding ring. Its engraving says: \"In eternal love to juliet\"."));
+		assertThat(ring.describe(), is("Oto §'obrączka ślubna'. Wygrawerowano na nim: \"W imię wiecznej miłości dla juliet\"."));
 	}
-	
+
+	/**
+	 * Test when player attempts to use ring without equipping it to slot.
+	 */
+	@Test
+	public void testOnUsedOnGround() {
+		final Player romeo = PlayerTestHelper.createPlayer("romeo");
+		final WeddingRing ring = (WeddingRing) SingletonRepository.getEntityManager().getItem("obrączka ślubna");
+
+		assertFalse(ring.onUsed(romeo));
+		assertEquals("Powinieneś podnieść swoją obrączkę ślubną, by go użyć.", romeo.events().get(0).get("text"));
+	}
+
 	/**
 	 * Tests for onUsedNotMarried.
 	 */
 	@Test
 	public void testOnUsedNotMarried() {
 		final Player romeo = PlayerTestHelper.createPlayer("romeo");
-		final WeddingRing ring = (WeddingRing) SingletonRepository.getEntityManager().getItem("wedding ring");
-		
+		final WeddingRing ring = (WeddingRing) SingletonRepository.getEntityManager().getItem("obrączka ślubna");
+		romeo.equip("finger", ring);
+
 		assertFalse(ring.onUsed(romeo));
-		assertEquals("This wedding ring hasn't been engraved yet.", romeo.events().get(0).get("text"));
+		assertEquals("Oto obrączka ślubna, która jeszcze nie została wygrawerowana imieniem ukochanej osoby.", romeo.events().get(0).get("text"));
 	}
-	
+
 	/**
 	 * Tests for onUsedNotOnline.
 	 */
 	@Test
 	public void testOnUsedNotOnline() {
 		final Player romeo = PlayerTestHelper.createPlayer("romeo");
-		final WeddingRing ring = (WeddingRing) SingletonRepository.getEntityManager().getItem("wedding ring");
-		
+		final WeddingRing ring = (WeddingRing) SingletonRepository.getEntityManager().getItem("obrączka ślubna");
+
 		ring.setInfoString("juliet");
+		romeo.equip("finger", ring);
 		assertFalse(ring.onUsed(romeo));
-		assertEquals("juliet is not online.", romeo.events().get(0).get("text"));
+		assertEquals("juliet nie ma w grze.", romeo.events().get(0).get("text"));
 	}
-	
+
 	/**
 	 * Tests for onUsedOnlineButNotWearingTheRing.
 	 */
@@ -89,15 +103,16 @@ public class WeddingRingTest {
 	public void testOnUsedOnlineButNotWearingTheRing() {
 		final Player romeo = PlayerTestHelper.createPlayer("romeo");
 		final Player juliet = PlayerTestHelper.createPlayer("juliet");
-		final WeddingRing ring = (WeddingRing) SingletonRepository.getEntityManager().getItem("wedding ring");
-		
+		final WeddingRing ring = (WeddingRing) SingletonRepository.getEntityManager().getItem("obrączka ślubna");
+
 		PlayerTestHelper.registerPlayer(juliet);
-		
+
 		ring.setInfoString("juliet");
+		romeo.equip("finger", ring);
 		assertFalse(ring.onUsed(romeo));
-		assertEquals("juliet is not wearing the wedding ring.", romeo.events().get(0).get("text"));
+		assertEquals("juliet nie nosi pierścionka ślubnego.", romeo.events().get(0).get("text"));
 	}
-	
+
 	/**
 	 * Tests for onUsedOnlineButEngaged.
 	 */
@@ -106,18 +121,19 @@ public class WeddingRingTest {
 		final Player romeo = PlayerTestHelper.createPlayer("romeo");
 		final Player juliet = PlayerTestHelper.createPlayer("juliet");
 		PlayerTestHelper.registerPlayer(juliet);
-		
-		final WeddingRing ring = (WeddingRing) SingletonRepository.getEntityManager().getItem("wedding ring");
+
+		final WeddingRing ring = (WeddingRing) SingletonRepository.getEntityManager().getItem("obrączka ślubna");
 		ring.setInfoString("juliet");
-		
-		final WeddingRing ring2 = (WeddingRing) SingletonRepository.getEntityManager().getItem("wedding ring");
+		romeo.equip("finger", ring);
+
+		final WeddingRing ring2 = (WeddingRing) SingletonRepository.getEntityManager().getItem("obrączka ślubna");
 		juliet.equipToInventoryOnly(ring2);
-		
+
 		assertFalse(ring.onUsed(romeo));
-		
-		assertEquals("Sorry, juliet has divorced you and is now engaged to someone else.", romeo.events().get(0).get("text"));
+
+		assertEquals("Przepraszam, ale juliet rozwiódł się z tobą i jest teraz zaręczony z kimś innym.", romeo.events().get(0).get("text"));
 	}
-	
+
 	/**
 	 * Tests for onUsedOnlineButRemarried.
 	 */
@@ -126,19 +142,20 @@ public class WeddingRingTest {
 		final Player romeo = PlayerTestHelper.createPlayer("romeo");
 		final Player juliet = PlayerTestHelper.createPlayer("juliet");
 		PlayerTestHelper.registerPlayer(juliet);
-		
-		final WeddingRing ring = (WeddingRing) SingletonRepository.getEntityManager().getItem("wedding ring");
+
+		final WeddingRing ring = (WeddingRing) SingletonRepository.getEntityManager().getItem("obrączka ślubna");
 		ring.setInfoString("juliet");
-		
-		final WeddingRing ring2 = (WeddingRing) SingletonRepository.getEntityManager().getItem("wedding ring");
+		romeo.equip("finger", ring);
+
+		final WeddingRing ring2 = (WeddingRing) SingletonRepository.getEntityManager().getItem("obrączka ślubna");
 		ring2.setInfoString("paris");
 		juliet.equipToInventoryOnly(ring2);
-		
+
 		assertFalse(ring.onUsed(romeo));
-		
-		assertEquals("Sorry, juliet has divorced you and is now remarried.", romeo.events().get(0).get("text"));
+
+		assertEquals("Przepraszam, ale juliet rozwiódł się z tobą i jest teraz zaręczony z kimś innym.", romeo.events().get(0).get("text"));
 	}
-	
+
 	/**
 	 * Tests for noTeleportOut.
 	 */
@@ -148,24 +165,25 @@ public class WeddingRingTest {
 		final Player juliet = PlayerTestHelper.createPlayer("juliet");
 		PlayerTestHelper.registerPlayer(romeo, "int_semos_guard_house");
 		PlayerTestHelper.registerPlayer(juliet, "int_semos_guard_house");
-		
-		final StendhalRPZone zone = (StendhalRPZone) MockStendlRPWorld.get().getRPZone("int_semos_guard_house"); 
+
+		final StendhalRPZone zone = (StendhalRPZone) MockStendlRPWorld.get().getRPZone("int_semos_guard_house");
 		zone.disallowOut();
-				
-		final WeddingRing ring = (WeddingRing) SingletonRepository.getEntityManager().getItem("wedding ring");
+
+		final WeddingRing ring = (WeddingRing) SingletonRepository.getEntityManager().getItem("obrączka ślubna");
 		ring.setInfoString("juliet");
-		
-		final WeddingRing ring2 = (WeddingRing) SingletonRepository.getEntityManager().getItem("wedding ring");
+		romeo.equip("finger", ring);
+
+		final WeddingRing ring2 = (WeddingRing) SingletonRepository.getEntityManager().getItem("obrączka ślubna");
 		ring2.setInfoString("romeo");
 		juliet.equipToInventoryOnly(ring2);
-		
+
 		assertFalse(ring.onUsed(romeo));
-		assertEquals(romeo.events().get(0).get("text"), "The strong anti magic aura in this area prevents the wedding ring from working!");
+		assertEquals(romeo.events().get(0).get("text"), "Silna antymagiczna aura w tym obszarze blokuje działanie pierścionka ślubnego!");
 		// no such thing as removing teleport restrictions
 		MockStendlRPWorld.get().removeZone(zone);
 		MockStendlRPWorld.get().addRPZone(new StendhalRPZone("int_semos_guard_house", 100, 100));
 	}
-	
+
 	/**
 	 * Tests for noTeleportIn.
 	 */
@@ -175,24 +193,25 @@ public class WeddingRingTest {
 		final Player juliet = PlayerTestHelper.createPlayer("juliet");
 		PlayerTestHelper.registerPlayer(romeo, "int_semos_guard_house");
 		PlayerTestHelper.registerPlayer(juliet, "int_semos_guard_house");
-		
-		final StendhalRPZone zone = (StendhalRPZone) MockStendlRPWorld.get().getRPZone("int_semos_guard_house"); 
+
+		final StendhalRPZone zone = (StendhalRPZone) MockStendlRPWorld.get().getRPZone("int_semos_guard_house");
 		zone.disallowIn();
-				
-		final WeddingRing ring = (WeddingRing) SingletonRepository.getEntityManager().getItem("wedding ring");
+
+		final WeddingRing ring = (WeddingRing) SingletonRepository.getEntityManager().getItem("obrączka ślubna");
 		ring.setInfoString("juliet");
-		
-		final WeddingRing ring2 = (WeddingRing) SingletonRepository.getEntityManager().getItem("wedding ring");
+		romeo.equip("finger", ring);
+
+		final WeddingRing ring2 = (WeddingRing) SingletonRepository.getEntityManager().getItem("obrączka ślubna");
 		ring2.setInfoString("romeo");
 		juliet.equipToInventoryOnly(ring2);
-		
+
 		assertFalse(ring.onUsed(romeo));
-		assertEquals(romeo.events().get(0).get("text"), "The strong anti magic aura in the destination area prevents the wedding ring from working!");
+		assertEquals(romeo.events().get(0).get("text"), "Silna antymagiczna aura w docelowym obszarze blokuje działanie pierścionka ślubnego!");
 		// no such thing as removing teleport restrictions
 		MockStendlRPWorld.get().removeZone(zone);
 		MockStendlRPWorld.get().addRPZone(new StendhalRPZone("int_semos_guard_house", 100, 100));
 	}
-	
+
 	/**
 	 * Tests for notVisited.
 	 */
@@ -203,18 +222,19 @@ public class WeddingRingTest {
 		final Player juliet = PlayerTestHelper.createPlayer("juliet");
 		PlayerTestHelper.registerPlayer(romeo, "int_semos_guard_house");
 		PlayerTestHelper.registerPlayer(juliet, "moon");
-						
-		final WeddingRing ring = (WeddingRing) SingletonRepository.getEntityManager().getItem("wedding ring");
+
+		final WeddingRing ring = (WeddingRing) SingletonRepository.getEntityManager().getItem("obrączka ślubna");
 		ring.setInfoString("juliet");
-		
-		final WeddingRing ring2 = (WeddingRing) SingletonRepository.getEntityManager().getItem("wedding ring");
+		romeo.equip("finger", ring);
+
+		final WeddingRing ring2 = (WeddingRing) SingletonRepository.getEntityManager().getItem("obrączka ślubna");
 		ring2.setInfoString("romeo");
 		juliet.equipToInventoryOnly(ring2);
-		
+
 		assertFalse(ring.onUsed(romeo));
-		assertEquals(romeo.events().get(0).get("text"), "Although you have heard a lot of rumors about the destination, you cannot join juliet there because it is still an unknown place for you.");
+		assertEquals(romeo.events().get(0).get("text"), "Słyszałeś wiele plotek o miejscu docelowym. Nie możesz dołączyć do juliet ponieważ znajduje się w nieznany dla Ciebie miejscu.");
 	}
-	
+
 	/**
 	 * Tests for onUsedSuccesfull.
 	 */
@@ -224,17 +244,18 @@ public class WeddingRingTest {
 		final Player juliet = PlayerTestHelper.createPlayer("juliet");
 		PlayerTestHelper.registerPlayer(romeo, "int_semos_guard_house");
 		PlayerTestHelper.registerPlayer(juliet, "int_semos_guard_house");
-		
-		final WeddingRing ring = (WeddingRing) SingletonRepository.getEntityManager().getItem("wedding ring");
+
+		final WeddingRing ring = (WeddingRing) SingletonRepository.getEntityManager().getItem("obrączka ślubna");
 		ring.setInfoString("juliet");
-		
-		final WeddingRing ring2 = (WeddingRing) SingletonRepository.getEntityManager().getItem("wedding ring");
+		romeo.equip("finger", ring);
+
+		final WeddingRing ring2 = (WeddingRing) SingletonRepository.getEntityManager().getItem("obrączka ślubna");
 		ring2.setInfoString("romeo");
 		juliet.equipToInventoryOnly(ring2);
-		
+
 		assertTrue(ring.onUsed(romeo));
 	}
-	
+
 	/**
 	 * Tests for coolingTime.
 	 */
@@ -244,19 +265,20 @@ public class WeddingRingTest {
 		final Player juliet = PlayerTestHelper.createPlayer("juliet");
 		PlayerTestHelper.registerPlayer(romeo, "int_semos_guard_house");
 		PlayerTestHelper.registerPlayer(juliet, "int_semos_guard_house");
-				
-		final WeddingRing ring = (WeddingRing) SingletonRepository.getEntityManager().getItem("wedding ring");
+
+		final WeddingRing ring = (WeddingRing) SingletonRepository.getEntityManager().getItem("obrączka ślubna");
 		ring.setInfoString("juliet");
-		
-		final WeddingRing ring2 = (WeddingRing) SingletonRepository.getEntityManager().getItem("wedding ring");
+		romeo.equip("finger", ring);
+
+		final WeddingRing ring2 = (WeddingRing) SingletonRepository.getEntityManager().getItem("obrączka ślubna");
 		ring2.setInfoString("romeo");
 		juliet.equipToInventoryOnly(ring2);
-		
+
 		assertTrue(ring.onUsed(romeo));
 		assertFalse(ring.onUsed(romeo));
-		assertTrue(romeo.events().get(0).get("text").startsWith("The ring has not yet regained its power."));
+		assertTrue(romeo.events().get(0).get("text").startsWith("Pierścień jeszcze nie odzyskał w pełni swojej mocy."));
 	}
-	
+
 	/**
 	 * Tests for coolingTimePassed.
 	 */
@@ -266,53 +288,54 @@ public class WeddingRingTest {
 		final Player juliet = PlayerTestHelper.createPlayer("juliet");
 		PlayerTestHelper.registerPlayer(romeo, "int_semos_guard_house");
 		PlayerTestHelper.registerPlayer(juliet, "int_semos_guard_house");
-				
-		final WeddingRing ring = (WeddingRing) SingletonRepository.getEntityManager().getItem("wedding ring");
+
+		final WeddingRing ring = (WeddingRing) SingletonRepository.getEntityManager().getItem("obrączka ślubna");
 		ring.setInfoString("juliet");
-		
-		final WeddingRing ring2 = (WeddingRing) SingletonRepository.getEntityManager().getItem("wedding ring");
+		romeo.equip("finger", ring);
+
+		final WeddingRing ring2 = (WeddingRing) SingletonRepository.getEntityManager().getItem("obrączka ślubna");
 		ring2.setInfoString("romeo");
 		juliet.equipToInventoryOnly(ring2);
-		
+
 		ring.onUsed(romeo);
 		// a time well in the past
 		ring.put("amount", 0);
 		assertTrue(ring.onUsed(romeo));
 	}
-	
+
 	/**
 	 * Tests for addToSlotUnmarked.
 	 */
 	@Test
 	public void testAddToSlotUnmarked() {
 		final Player frodo = PlayerTestHelper.createPlayer("frodo");
-		final WeddingRing ring = (WeddingRing) SingletonRepository.getEntityManager().getItem("wedding ring");
-		final WeddingRing ring2 = (WeddingRing) SingletonRepository.getEntityManager().getItem("wedding ring");
-		
+		final WeddingRing ring = (WeddingRing) SingletonRepository.getEntityManager().getItem("obrączka ślubna");
+		final WeddingRing ring2 = (WeddingRing) SingletonRepository.getEntityManager().getItem("obrączka ślubna");
+
 		frodo.equip("bag", ring);
 		frodo.equip("bag", ring2);
-		
-		assertNotNull(frodo.getAllEquipped("wedding ring"));
-		assertEquals(frodo.getAllEquipped("wedding ring").size(), 2);
+
+		assertNotNull(frodo.getAllEquipped("obrączka ślubna"));
+		assertEquals(frodo.getAllEquipped("obrączka ślubna").size(), 2);
 	}
-	
+
 	/**
 	 * Tests for addToSlotOneMarked.
 	 */
 	@Test
 	public void testAddToSlotOneMarked() {
 		final Player frodo = PlayerTestHelper.createPlayer("frodo");
-		final WeddingRing ring = (WeddingRing) SingletonRepository.getEntityManager().getItem("wedding ring");
-		final WeddingRing ring2 = (WeddingRing) SingletonRepository.getEntityManager().getItem("wedding ring");
-		
+		final WeddingRing ring = (WeddingRing) SingletonRepository.getEntityManager().getItem("obrączka ślubna");
+		final WeddingRing ring2 = (WeddingRing) SingletonRepository.getEntityManager().getItem("obrączka ślubna");
+
 		ring.setBoundTo("frodo");
 		frodo.equip("bag", ring);
 		frodo.equip("bag", ring2);
-		
-		assertNotNull(frodo.getAllEquipped("wedding ring"));
-		assertEquals(frodo.getAllEquipped("wedding ring").size(), 2);
+
+		assertNotNull(frodo.getAllEquipped("obrączka ślubna"));
+		assertEquals(frodo.getAllEquipped("obrączka ślubna").size(), 2);
 	}
-	
+
 	/**
 	 * Tests for addToSlotTwoMarkedSame.
 	 */
@@ -320,44 +343,44 @@ public class WeddingRingTest {
 	public void testAddToSlotTwoMarkedSame() {
 		final Player frodo = PlayerTestHelper.createPlayer("frodo");
 		final Player galadriel = PlayerTestHelper.createPlayer("galadriel");
-		final WeddingRing ring = (WeddingRing) SingletonRepository.getEntityManager().getItem("wedding ring");
-		final WeddingRing ring2 = (WeddingRing) SingletonRepository.getEntityManager().getItem("wedding ring");
-		final WeddingRing ring3 = (WeddingRing) SingletonRepository.getEntityManager().getItem("wedding ring");
-		
+		final WeddingRing ring = (WeddingRing) SingletonRepository.getEntityManager().getItem("obrączka ślubna");
+		final WeddingRing ring2 = (WeddingRing) SingletonRepository.getEntityManager().getItem("obrączka ślubna");
+		final WeddingRing ring3 = (WeddingRing) SingletonRepository.getEntityManager().getItem("obrączka ślubna");
+
 		PlayerTestHelper.registerPlayer(frodo, "int_semos_guard_house");
 		PlayerTestHelper.registerPlayer(galadriel, "int_semos_guard_house");
-		
+
 		ring.setBoundTo("frodo");
 		ring2.setBoundTo("frodo");
 		ring2.setInfoString("galadriel");
 		frodo.equip("bag", ring);
 		frodo.equip("bag", ring2);
-		
-		assertNotNull(frodo.getAllEquipped("wedding ring"));
-		assertEquals("one should be destroyed", frodo.getAllEquipped("wedding ring").size(), 1);
-		
+
+		assertNotNull(frodo.getAllEquipped("obrączka ślubna"));
+		assertEquals("one should be destroyed", frodo.getAllEquipped("obrączka ślubna").size(), 1);
+
 		ring3.setInfoString("frodo");
 		galadriel.equipToInventoryOnly(ring3);
-		
-		assertFalse(((WeddingRing) frodo.getFirstEquipped("wedding ring")).onUsed(frodo));
-		assertTrue("Should use up the energy at destruction", frodo.events().get(0).get("text").startsWith("The ring has not yet regained its power."));
+
+		assertFalse(((WeddingRing) frodo.getFirstEquipped("obrączka ślubna")).onUsed(frodo));
+		assertTrue("Should use up the energy at destruction", frodo.events().get(0).get("text").startsWith("Pierścień jeszcze nie odzyskał w pełni swojej mocy."));
 	}
-	
+
 	/**
 	 * Tests for addToSlotTwoMarkedDifferent.
 	 */
 	@Test
 	public void testAddToSlotTwoMarkedDifferent() {
 		final Player frodo = PlayerTestHelper.createPlayer("frodo");
-		final WeddingRing ring = (WeddingRing) SingletonRepository.getEntityManager().getItem("wedding ring");
-		final WeddingRing ring2 = (WeddingRing) SingletonRepository.getEntityManager().getItem("wedding ring");
-		
+		final WeddingRing ring = (WeddingRing) SingletonRepository.getEntityManager().getItem("obrączka ślubna");
+		final WeddingRing ring2 = (WeddingRing) SingletonRepository.getEntityManager().getItem("obrączka ślubna");
+
 		ring.setBoundTo("frodo");
 		ring2.setBoundTo("gollum");
 		frodo.equip("bag", ring);
 		frodo.equip("bag", ring2);
-		
-		assertNotNull(frodo.getAllEquipped("wedding ring"));
-		assertEquals(frodo.getAllEquipped("wedding ring").size(), 2);
+
+		assertNotNull(frodo.getAllEquipped("obrączka ślubna"));
+		assertEquals(frodo.getAllEquipped("obrączka ślubna").size(), 2);
 	}
 }

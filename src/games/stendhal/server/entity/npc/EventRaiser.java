@@ -1,4 +1,4 @@
-/* $Id: EventRaiser.java,v 1.3 2010/12/29 22:08:27 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2010 - Stendhal                      *
  ***************************************************************************
@@ -23,7 +23,7 @@ import marauroa.common.game.RPEvent;
  * @author hendrik
  */
 public class EventRaiser {
-	private Entity entity;
+	private final Entity entity;
 
 	/**
 	 * creates a new EventRaiser
@@ -80,6 +80,19 @@ public class EventRaiser {
 	}
 
 	/**
+	 * Gets gender of the entity.
+	 *
+	 * @return gender
+	 */
+	public String getGender() {
+		if (entity instanceof RPEntity) {
+			return ((RPEntity) entity).getGender();
+		} else {
+			return entity.get("gender");
+		}
+	}
+
+	/**
 	 * sets the state of the FSM used by SpeakerNPCs
 	 *
 	 * @param stateAfterCompletion new state
@@ -102,7 +115,7 @@ public class EventRaiser {
 			((SpeakerNPC) entity).setAttending(rpentity);
 		}
 	}
-	
+
 	/**
 	 * adds an RPEvent
 	 *
@@ -110,6 +123,7 @@ public class EventRaiser {
 	 */
 	public void addEvent(RPEvent event) {
 		entity.addEvent(event);
+		entity.notifyWorldAboutChanges();
 	}
 
 	/**
@@ -138,5 +152,4 @@ public class EventRaiser {
 	public StendhalRPZone getZone() {
 		return entity.getZone();
 	}
-
 }

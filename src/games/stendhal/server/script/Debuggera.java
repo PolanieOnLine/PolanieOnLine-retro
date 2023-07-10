@@ -1,6 +1,5 @@
-/* $Id: Debuggera.java,v 1.39 2011/05/01 19:50:06 martinfuchs Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -11,6 +10,13 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.script;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
+
+import org.apache.log4j.Logger;
 
 import games.stendhal.common.Direction;
 import games.stendhal.common.parser.Sentence;
@@ -30,15 +36,7 @@ import games.stendhal.server.entity.npc.condition.AdminCondition;
 import games.stendhal.server.entity.npc.condition.QuestInStateCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotInStateCondition;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
-
 import marauroa.common.game.IRPZone;
-
-import org.apache.log4j.Logger;
 
 /**
  * code for abstract/int_admin_playground which creates a NPC to help testers.
@@ -73,6 +71,7 @@ public class Debuggera extends ScriptImpl {
 			this.sandbox = sandbox;
 		}
 
+		@Override
 		public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 			// list quest
 			final StringBuilder sb = new StringBuilder("Stan twoich zadań:");
@@ -105,9 +104,10 @@ public class Debuggera extends ScriptImpl {
 			this.sandbox = sandbox;
 		}
 
+		@Override
 		public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 			SingletonRepository.getTurnNotifier().notifyInTurns(0,
-					new TeleportScriptAction(player, (SpeakerNPC) raiser.getEntity(), sentence, sandbox));
+					new TeleportScriptAction(player, (SpeakerNPC) raiser.getEntity(), sandbox));
 		}
 	}
 
@@ -133,14 +133,14 @@ public class Debuggera extends ScriptImpl {
 		// syntax-error: private final String[] MAGIC_PHRASE = {"Across the
 		// land,", "Across the sea.", "Friends forever,", "We will always be."};
 
-		public TeleportScriptAction(final Player player, final SpeakerNPC engine,
-				final Sentence sentence, final ScriptingSandbox sandbox) {
+		public TeleportScriptAction(final Player player, final SpeakerNPC engine, final ScriptingSandbox sandbox) {
 			this.player = player;
 			this.engine = engine;
 			// this.sentence = sentence;
 			this.sandbox = sandbox;
 		}
 
+		@Override
 		public void onTurnReached(final int currentTurn) {
 			boolean keepRunning = true;
 			counter++;
@@ -222,7 +222,7 @@ public class Debuggera extends ScriptImpl {
 
 		private int counter;
 
-		public SightseeingAction(final ScriptingSandbox sandbox, final StendhalRPWorld world) {
+		public SightseeingAction(final StendhalRPWorld world) {
 			// this.sandbox = sandbox;
 
 			zones = new ArrayList<String>();
@@ -233,6 +233,7 @@ public class Debuggera extends ScriptImpl {
 			}
 		}
 
+		@Override
 		public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 			this.player = player;
 			counter = 0;
@@ -240,6 +241,7 @@ public class Debuggera extends ScriptImpl {
 			SingletonRepository.getTurnNotifier().notifyInTurns(10, this);
 		}
 
+		@Override
 		public void onTurnReached(final int currentTurn) {
 			try {
 				final String zoneName = zones.get(counter);
@@ -306,7 +308,7 @@ public class Debuggera extends ScriptImpl {
 				"greetings", "hola", "cześć", "witaj", "witam",
 				"hej", "dzień dobry", "dobry wieczór"), null, ConversationStates.IDLE,
 				"Moja mama powiedziała, że nie powinnam rozmawiać z obcymi.", null);
-		npc.behave("bye", "Dowidzenia.");
+		npc.behave("bye", "Do widzenia.");
 
 		// Greating and admins may enable or disable her
 		npc.add(ConversationStates.IDLE, Arrays.asList("hi", "hello",
@@ -388,14 +390,13 @@ public class Debuggera extends ScriptImpl {
 		final StendhalRPWorld world = SingletonRepository.getRPWorld();
 		npc.add(ConversationStates.ATTENDING, Arrays.asList("sightseeing",
 				"memory", "memoryhole"), new AdminCondition(),
-				ConversationStates.IDLE, null, new SightseeingAction(sandbox,
-						world));
+				ConversationStates.IDLE, null, new SightseeingAction(world));
 	}
 	/*
 	 * Make new friends, but keep the old. One is silver, And the other gold,
-	 * 
+	 *
 	 * You help me, And I'll help you. And together, We will see it through.
-	 * 
+	 *
 	 * The sky is blue, The Earth Earth is green. I can help, To keep it clean.
 	 */
 

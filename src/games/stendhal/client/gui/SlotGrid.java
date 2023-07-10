@@ -1,4 +1,4 @@
-/* $Id: SlotGrid.java,v 1.13 2012/09/05 21:11:37 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,12 +12,6 @@
  ***************************************************************************/
 package games.stendhal.client.gui;
 
-import games.stendhal.client.GameLoop;
-import games.stendhal.client.GameObjects;
-import games.stendhal.client.entity.ContentChangeListener;
-import games.stendhal.client.entity.IEntity;
-import games.stendhal.client.entity.Inspector;
-
 import java.awt.GridLayout;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,62 +20,70 @@ import java.util.List;
 
 import javax.swing.JComponent;
 
+import org.apache.log4j.Logger;
+
+import games.stendhal.client.GameLoop;
+import games.stendhal.client.GameObjects;
+import games.stendhal.client.entity.ContentChangeListener;
+import games.stendhal.client.entity.IEntity;
+import games.stendhal.client.entity.Inspector;
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPObject.ID;
 import marauroa.common.game.RPSlot;
 
-import org.apache.log4j.Logger;
-
 /**
  * A view of an RPSlot in a grid of ItemPanels.
  */
-public class SlotGrid extends JComponent implements ContentChangeListener {
-	/**
-	 * serial version uid
-	 */
-	private static final long serialVersionUID = -1822952960582728997L;
-
+public class SlotGrid extends JComponent implements ContentChangeListener, Inspectable {
 	private static final int PADDING = 1;
 	private static final Logger logger = Logger.getLogger(SlotGrid.class);
-	
-	/** All shown item panels */
+
+	/** All shown item panels. */
 	private final List<ItemPanel> panels;
-	/** The parent entity of the shown slot */
+	/** The parent entity of the shown slot. */
 	private IEntity parent;
-	/** Name of the shown slot */
+	/** Name of the shown slot. */
 	private String slotName;
 
-	
-	public SlotGrid(int width, int height) {
-		setLayout(new GridLayout(height, width, PADDING, PADDING));
+	public SlotGrid(final int width, final int height) {
 		panels = new ArrayList<ItemPanel>();
-		
+		setSlotsLayout(width, height);
+	}
+
+	public void setSlotsLayout(final int width, final int height) {
+		setLayout(new GridLayout(height, width, PADDING, PADDING));
+
+		for (ItemPanel panel : panels) {
+			remove(panel);
+		}
+		panels.clear();
 		for (int i = 0; i < width * height; i++) {
-			ItemPanel panel = new ItemPanel(null, null);
+			final ItemPanel panel = new ItemPanel(null, null);
 			panel.setItemNumber(i);
 			panels.add(panel);
 			add(panel);
 		}
 	}
-	
+
 	/**
 	 * Set the types the panels can accept.
-	 * 
-	 * @param types
+	 *
+	 * @param types accepted types
 	 */
-	public void setAcceptedTypes(Class ... types) {
+	@SafeVarargs
+	public final void setAcceptedTypes(Class<? extends IEntity> ... types) {
 		// Reuse the same set for all the panels
-		List<Class> list = Arrays.asList(types);
+		List<Class<? extends IEntity>> list = Arrays.asList(types);
 		for (ItemPanel panel : panels) {
 			panel.setAcceptedTypes(list);
 		}
 	}
-	
+
 	/**
 	 * Sets the parent entity of the window.
-	 * 
-	 * @param parent
-	 * @param slot
+	 *
+	 * @param parent entity owning the slot represented by the grid
+	 * @param slot the slot represented by the grid
 	 */
 	public void setSlot(final IEntity parent, final String slot) {
 		if (!GameLoop.isGameLoop()) {
@@ -95,11 +97,11 @@ public class SlotGrid extends JComponent implements ContentChangeListener {
 			});
 			return;
 		}
-		
+
 		if (this.parent != null) {
 			this.parent.removeContentChangeListener(this);
 		}
-		
+
 		this.parent = parent;
 		this.slotName = slot;
 
@@ -114,27 +116,28 @@ public class SlotGrid extends JComponent implements ContentChangeListener {
 		parent.addContentChangeListener(this);
 		scanSlotContent();
 	}
-	
+
 	/**
-	 * Get the name of the slot this grid represents
-	 * 
+	 * Get the name of the slot this grid represents.
+	 *
 	 * @return name of the slot
 	 */
 	public String getSlotName() {
 		return slotName;
 	}
-	
+
 	/**
 	 * Set the inspector the contained entities should use.
-	 * 
-	 * @param inspector
+	 *
+	 * @param inspector used inspector
 	 */
-	void setInspector(Inspector inspector) {
+	@Override
+	public void setInspector(Inspector inspector) {
 		for (ItemPanel panel : panels) {
 			panel.setInspector(inspector);
 		}
 	}
-	
+
 	/**
 	 * Clear the grid and detach it from the slot it shows.
 	 */
@@ -143,7 +146,7 @@ public class SlotGrid extends JComponent implements ContentChangeListener {
 			parent.removeContentChangeListener(SlotGrid.this);
 		}
 		// Ensure that parent & slotName do not change in the middle of
-		// scanSlotContent() 
+		// scanSlotContent()
 		GameLoop.get().runOnce(new Runnable() {
 			@Override
 			public void run() {
@@ -155,7 +158,7 @@ public class SlotGrid extends JComponent implements ContentChangeListener {
 			}
 		});
 	}
-	
+
 	/**
 	 * Scans the content of the slot.
 	 */
@@ -175,6 +178,11 @@ public class SlotGrid extends JComponent implements ContentChangeListener {
 
 	@Override
 	public void contentAdded(RPSlot added) {
+		if (added == null) {
+			logger.debug("RPSlot for " + slotName + " is null", new Throwable());
+			return;
+		}
+
 		// We are interested only in one slot
 		if (slotName.equals(added.getName())) {
 			for (RPObject obj : added) {
@@ -182,10 +190,10 @@ public class SlotGrid extends JComponent implements ContentChangeListener {
 			}
 		}
 	}
-	
+
 	/**
 	 * Handle an added or modified item.
-	 * 
+	 *
 	 * @param obj changed or added object
 	 */
 	private void handleAdded(RPObject obj) {
@@ -199,7 +207,7 @@ public class SlotGrid extends JComponent implements ContentChangeListener {
 		}
 		// Actually added. Get the corresponding entity
 		IEntity entity = GameObjects.getInstance().get(obj);
-		
+
 		// Tuck it in the first free slot
 		for (ItemPanel panel : panels) {
 			if (panel.getEntity() == null) {
@@ -207,7 +215,7 @@ public class SlotGrid extends JComponent implements ContentChangeListener {
 				return;
 			}
 		}
-		
+
 		logger.error("More objects than slots: " + slotName);
 	}
 
@@ -231,7 +239,7 @@ public class SlotGrid extends JComponent implements ContentChangeListener {
 			compressSlots();
 		}
 	}
-	
+
 	/**
 	 * Shift item panel contents so that the empty ones are last.
 	 */

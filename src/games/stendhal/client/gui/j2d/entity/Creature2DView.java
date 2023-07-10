@@ -1,4 +1,4 @@
-/* $Id: Creature2DView.java,v 1.30 2012/11/25 08:59:43 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2012 - Stendhal                    *
  ***************************************************************************
@@ -13,6 +13,9 @@
 package games.stendhal.client.gui.j2d.entity;
 
 
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.client.ZoneInfo;
 import games.stendhal.client.entity.ActionType;
 import games.stendhal.client.entity.Creature;
@@ -21,16 +24,13 @@ import games.stendhal.client.gui.styled.cursor.StendhalCursor;
 import games.stendhal.client.sprite.Sprite;
 import games.stendhal.client.sprite.SpriteStore;
 
-import java.util.List;
-import java.util.Map;
-
 /**
  * The 2D view of a creature.
  */
 class Creature2DView extends RPEntity2DView<Creature> {
 	/**
 	 * Populate named state sprites.
-	 * 
+	 *
 	 * @param map
 	 *            The map to populate.
 	 * @param tiles
@@ -51,7 +51,7 @@ class Creature2DView extends RPEntity2DView<Creature> {
 
 	/**
 	 * Get the full directional animation tile set for this entity.
-	 * 
+	 *
 	 * @return A tile sprite containing all animation images.
 	 */
 	@Override
@@ -63,8 +63,8 @@ class Creature2DView extends RPEntity2DView<Creature> {
 		}
 
 		ZoneInfo info = ZoneInfo.get();
-		
-		return SpriteStore.get().getModifiedSprite(translate(resource), info.getZoneColor(), info.getColorMethod());
+
+		return addShadow(SpriteStore.get().getModifiedSprite(translate(resource), info.getZoneColor(), info.getColorMethod()));
 	}
 
 	//
@@ -75,7 +75,7 @@ class Creature2DView extends RPEntity2DView<Creature> {
 
 	/**
 	 * Reorder the actions list (if needed). Please use as last resort.
-	 * 
+	 *
 	 * @param list
 	 *            The list to reorder.
 	 */
@@ -88,10 +88,10 @@ class Creature2DView extends RPEntity2DView<Creature> {
 
 	/**
 	 * Translate a resource name into it's sprite image path.
-	 * 
+	 *
 	 * @param name
 	 *            The resource name.
-	 * 
+	 *
 	 * @return The full resource name.
 	 */
 	@Override
@@ -99,21 +99,9 @@ class Creature2DView extends RPEntity2DView<Creature> {
 		return "data/sprites/monsters/" + name + ".png";
 	}
 
-	//
-	// EntityChangeListener
-	//
-
-	/**
-	 * An entity was changed.
-	 * 
-	 * @param entity
-	 *            The entity that was changed.
-	 * @param property
-	 *            The property identifier.
-	 */
 	@Override
-	public void entityChanged(final Creature entity, final Object property) {
-		super.entityChanged(entity, property);
+	void entityChanged(final Object property) {
+		super.entityChanged(property);
 
 		if (property == IEntity.PROP_CLASS) {
 			representationChanged = true;

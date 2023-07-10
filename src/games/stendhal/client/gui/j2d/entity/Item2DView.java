@@ -1,4 +1,4 @@
-/* $Id: Item2DView.java,v 1.38 2012/10/18 18:04:54 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -13,6 +13,10 @@
 package games.stendhal.client.gui.j2d.entity;
 
 
+import javax.swing.SwingUtilities;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.client.IGameScreen;
 import games.stendhal.client.ZoneInfo;
 import games.stendhal.client.entity.ActionType;
@@ -26,17 +30,12 @@ import games.stendhal.client.gui.styled.cursor.StendhalCursor;
 import games.stendhal.client.sprite.Sprite;
 import games.stendhal.client.sprite.SpriteStore;
 import games.stendhal.common.MathHelper;
-
-import javax.swing.SwingUtilities;
-
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPSlot;
 
-import org.apache.log4j.Logger;
-
 /**
  * The 2D view of an item.
- * 
+ *
  * @param <T> item type
  */
 class Item2DView<T extends Item> extends Entity2DView<T> {
@@ -76,15 +75,12 @@ class Item2DView<T extends Item> extends Entity2DView<T> {
 
 		/*
 		 * Items are always 1x1 (they need to fit in entity slots). Extra
-		 * columns are animation. Extra rows are ignored.
+		 * columns are animation.
 		 */
 		final int width = sprite.getWidth();
 
 		if (width > IGameScreen.SIZE_UNIT_PIXELS) {
-			sprite = store.getAnimatedSprite(sprite, 0, 0, width
-					/ IGameScreen.SIZE_UNIT_PIXELS,
-					IGameScreen.SIZE_UNIT_PIXELS, IGameScreen.SIZE_UNIT_PIXELS,
-					100);
+			sprite = store.getAnimatedSprite(sprite, 100);
 		} else if (sprite.getHeight() > IGameScreen.SIZE_UNIT_PIXELS) {
 			sprite = store.getTile(sprite, 0, 0, IGameScreen.SIZE_UNIT_PIXELS,
 					IGameScreen.SIZE_UNIT_PIXELS);
@@ -98,9 +94,9 @@ class Item2DView<T extends Item> extends Entity2DView<T> {
 	 * Determines on top of which other entities this entity should be drawn.
 	 * Entities with a high Z index will be drawn on top of ones with a lower Z
 	 * index.
-	 * 
+	 *
 	 * Also, players can only interact with the topmost entity.
-	 * 
+	 *
 	 * @return The drawing index.
 	 */
 	@Override
@@ -110,10 +106,10 @@ class Item2DView<T extends Item> extends Entity2DView<T> {
 
 	/**
 	 * Translate a resource name into it's sprite image path.
-	 * 
+	 *
 	 * @param name
 	 *            The resource name.
-	 * 
+	 *
 	 * @return The full resource name.
 	 */
 	@Override
@@ -125,17 +121,9 @@ class Item2DView<T extends Item> extends Entity2DView<T> {
 	// EntityChangeListener
 	//
 
-	/**
-	 * An entity was changed.
-	 * 
-	 * @param entity
-	 *            The entity that was changed.
-	 * @param property
-	 *            The property identifier.
-	 */
 	@Override
-	public void entityChanged(final T entity, final Object property) {
-		super.entityChanged(entity, property);
+	void entityChanged(final Object property) {
+		super.entityChanged(property);
 
 		if (property == IEntity.PROP_CLASS) {
 			representationChanged = true;
@@ -148,7 +136,7 @@ class Item2DView<T extends Item> extends Entity2DView<T> {
 
 	/**
 	 * Determine if this entity can be moved (e.g. via dragging).
-	 * 
+	 *
 	 * @return <code>true</code> if the entity is movable.
 	 */
 	@Override
@@ -168,10 +156,10 @@ class Item2DView<T extends Item> extends Entity2DView<T> {
 	public boolean onHarmlessAction() {
 		return false;
 	}
-	
+
 	/**
 	 * Set the content inspector for this entity.
-	 * 
+	 *
 	 * @param inspector
 	 *            The inspector.
 	 */
@@ -191,7 +179,7 @@ class Item2DView<T extends Item> extends Entity2DView<T> {
 
 	/**
 	 * Perform an action.
-	 * 
+	 *
 	 * @param at
 	 *            The action.
 	 */
@@ -215,11 +203,11 @@ class Item2DView<T extends Item> extends Entity2DView<T> {
 			break;
 		}
 	}
-	
+
 
 	/**
 	 * Inspect the item. Show the slot contents.
-	 * 
+	 *
 	 * @param inspector inspector
 	 */
 	private void inspect(Inspector inspector) {
@@ -228,8 +216,8 @@ class Item2DView<T extends Item> extends Entity2DView<T> {
 			int capacity = getSlotCapacity(slot);
 			calculateWindowProportions(capacity);
 		}
-		
-		boolean addListener = slotWindow == null; 
+
+		boolean addListener = slotWindow == null;
 		SlotWindow window = inspector.inspectMe(entity, slot,
 				slotWindow, slotWindowWidth, slotWindowHeight);
 		slotWindow = window;
@@ -251,20 +239,20 @@ class Item2DView<T extends Item> extends Entity2DView<T> {
 				});
 			}
 			/*
-		 	* In case the view got released while the window was created and
-		 	* added, and before the main thread was aware that there's a window
-		 	* to be closed, close it now. (onAction is called from the event
-		 	* dispatch thread).
-		 	*/
+			 * In case the view got released while the window was created and
+			 * added, and before the main thread was aware that there's a window
+			 * to be closed, close it now. (onAction is called from the event
+			 * dispatch thread).
+			 */
 			if (isReleased()) {
 				window.close();
 			}
 		}
 	}
-	
+
 	/**
 	 * Get the actual size of the container slot of a container item.
-	 * 
+	 *
 	 * @param slot container slot
 	 * @return size of the container slot
 	 */
@@ -277,12 +265,12 @@ class Item2DView<T extends Item> extends Entity2DView<T> {
 		logger.warn("Container is missing slot size: " + obj);
 		return slot.getCapacity();
 	}
-	
+
 	/**
 	 * Get the content slot.
-	 * 
+	 *
 	 * @return Content slot or <code>null</code> if the item has none or it's
-	 * not accessible. 
+	 * not accessible.
 	 */
 	private RPSlot getContent() {
 		return entity.getContent();
@@ -290,7 +278,7 @@ class Item2DView<T extends Item> extends Entity2DView<T> {
 
 	/**
 	 * Find out dimensions for a somewhat square slot window.
-	 *  
+	 *
 	 * @param slots number of slots in the window
 	 */
 	private void calculateWindowProportions(final int slots) {
@@ -307,7 +295,7 @@ class Item2DView<T extends Item> extends Entity2DView<T> {
 		slotWindowWidth = width;
 		slotWindowHeight = slots / width;
 	}
-	
+
 	@Override
 	public void release() {
 		final SlotWindow window = slotWindow;

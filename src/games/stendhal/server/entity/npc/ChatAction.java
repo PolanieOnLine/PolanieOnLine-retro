@@ -1,4 +1,4 @@
-/* $Id: ChatAction.java,v 1.6 2011/05/01 19:50:07 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -18,6 +18,7 @@ import games.stendhal.server.entity.player.Player;
 
 public interface ChatAction extends PostTransitionAction {
 
+	@Override
 	void fire(final Player player, final Sentence sentence, final EventRaiser npc);
 
 }

@@ -1,4 +1,4 @@
-/* $Id: Present.java,v 1.19 2011/04/02 15:44:18 kymara Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,27 +12,27 @@
  ***************************************************************************/
 package games.stendhal.server.entity.item;
 
+import java.util.Map;
+
 import games.stendhal.common.ItemTools;
 import games.stendhal.common.Rand;
-import games.stendhal.common.grammar.Grammar;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.Map;
-
 /**
  * A present which can be unwrapped.
- * 
+ *
  * @author kymara
  */
 public class Present extends Box {
-
+	
+	
 	private static final String[] ITEMS = { "duży eliksir", "tarta",
-			"kanapka", "marchew", "wisienka", "lazurowy płaszcz elficki", "zwój przywołania" };
-
+			"kanapka", "marchew", "wisienka", "płaszcz elficki", "zwój przywołania" };
+	
 	/**
 	 * Creates a new present.
-	 * 
+	 *
 	 * @param name
 	 * @param clazz
 	 * @param subclass
@@ -55,7 +55,7 @@ public class Present extends Box {
 
 	/**
 	 * Copy constructor.
-	 * 
+	 *
 	 * @param item
 	 *            item to copy
 	 */
@@ -70,7 +70,7 @@ public class Present extends Box {
 		final String itemName = getInfoString();
 		final Item item = SingletonRepository.getEntityManager().getItem(itemName);
 		player.sendPrivateText("Gratulacje dostałeś " 
-				+ Grammar.a_noun(ItemTools.itemNameToDisplayName(itemName)) + "!");
+				+ ItemTools.itemNameToDisplayName(itemName) + "!");
 
 		player.equipOrPutOnGround(item);
 		player.notifyWorldAboutChanges();

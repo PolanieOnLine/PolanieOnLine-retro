@@ -1,6 +1,5 @@
-/* $Id: WordList.java,v 1.3 2011/05/02 19:21:03 martinfuchs Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2017 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -11,8 +10,6 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.common.parser;
-
-import games.stendhal.common.grammar.Grammar;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -26,17 +23,19 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
-
-import marauroa.common.Log4J;
-import marauroa.common.io.UnicodeSupportingInputStreamReader;
+import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
+
+import games.stendhal.common.grammar.Grammar;
+import marauroa.common.Log4J;
+import marauroa.common.io.UnicodeSupportingInputStreamReader;
 
 /**
  * WordList stores a list of words recognized by the ConversationParser. Words
  * are categorised by type (noun, verb, adjective, preposition) and optionally
  * sub-types (animals, food, fluids, ...).
- * 
+ *
  * @author Martin Fuchs
  */
 
@@ -111,13 +110,13 @@ final public class WordList {
     			}
     		}
         } else {
-            logger.error("unable to locate resource file '"+WORDS_FILENAME+"'");            
+            logger.error("unable to locate resource file '"+WORDS_FILENAME+"'");
         }
 	}
 
 	/**
 	 * Returns a reference to the global word list instance.
-	 * 
+	 *
 	 * @return WordList
 	 */
 	public static WordList getInstance() {
@@ -126,7 +125,7 @@ final public class WordList {
 
 	/**
 	 * Reads word list from reader object.
-	 * 
+	 *
 	 * @param reader
 	 * @param comments
 	 * @throws IOException
@@ -166,9 +165,9 @@ final public class WordList {
 
 	/**
 	 * Reads one line of the word list and adds the new entry.
-	 * 
+	 *
 	 * @param key
-	 * 
+	 *
 	 * @param tk
 	 * @param entry
 	 */
@@ -226,7 +225,7 @@ final public class WordList {
 						// retry with normalized in case it differs from key
 						plural = Grammar.plural(normalized);
 
-						/*if ((plural.indexOf(' ') == -1)
+						/**if ((plural.indexOf(' ') == -1)
 								&& !plural.equals(entry.getPlurSing())) {
 							logger.warn(String.format(
 									"suspicious plural: %s -> %s (%s?)", key,
@@ -245,7 +244,7 @@ final public class WordList {
 
 	/**
 	 * Add an entry to the word list.
-	 * 
+	 *
 	 * @param key
 	 * @param entry
 	 */
@@ -278,7 +277,7 @@ final public class WordList {
 
 	/**
 	 * Print all words of a given (main-)type.
-	 * 
+	 *
 	 * @param writer
 	 * @param type
 	 */
@@ -307,7 +306,7 @@ final public class WordList {
 	/**
 	 * Transform the given word to lower case and trim special characters at
 	 * beginning and end to use this normalized form as key in the word list.
-	 * 
+	 *
 	 * @param word
 	 * @return the trimmed word
 	 */
@@ -338,9 +337,36 @@ final public class WordList {
 		return tempword;
 	}
 
+	public static String trimWord(final List<String> word) {
+		String tempword = word.get(0).toLowerCase();
+
+		// Currently we only need to trim "'" characters.
+		while (tempword.length() > 0) {
+			final char c = tempword.charAt(0);
+
+			if (c == '\'') {
+				tempword = tempword.substring(1);
+			} else {
+				break;
+			}
+		}
+
+		while (tempword.length() > 0) {
+			final char c = tempword.charAt(tempword.length() - 1);
+
+			if (c == '\'') {
+				tempword = tempword.substring(0, tempword.length() - 1);
+			} else {
+				break;
+			}
+		}
+
+		return tempword;
+	}
+
 	/**
 	 * Find an entry for a given word.
-	 * 
+	 *
 	 * @param str
 	 * @return WordEntry
 	 */
@@ -352,7 +378,7 @@ final public class WordList {
 
 	/**
 	 * Lookup the plural form of the given word from the word list.
-	 * 
+	 *
 	 * @param word
 	 * @return plural string
 	 */
@@ -375,7 +401,7 @@ final public class WordList {
 
 	/**
 	 * Lookup the singular form of the given word from the word list.
-	 * 
+	 *
 	 * @param word
 	 * @return singular string
 	 */
@@ -397,72 +423,8 @@ final public class WordList {
 	}
 
 	/**
-	 * Return type for normalizeVerb().
-	 */
-	static class Verb extends Grammar.Verb {
-		public Verb(Grammar.Verb verb, WordEntry entry) {
-			super(verb);
-
-			assert entry != null;
-			this.entry = entry;
-		}
-
-		public WordEntry entry; // is never null
-	}
-
-	/**
-	 * Try to normalise the given word as verb.
-	 * 
-	 * @param word
-	 * 
-	 * @return Verb object with additional information
-	 */
-	Verb normalizeVerb(final String word) {
-		final String trimmedWord = trimWord(word);
-
-		final Grammar.Verb verb = Grammar.normalizeRegularVerb(trimmedWord);
-
-		if (verb != null) {
-			WordEntry entry = words.get(verb.word);
-
-			// try and re-append "e" if it was removed by
-			// normalizeRegularVerb()
-			if ((entry == null) && trimmedWord.endsWith("e")
-					&& !verb.word.endsWith("e")) {
-				entry = words.get(verb.word + "e");
-			}
-
-			if (entry != null) {
-				return new Verb(verb, entry);
-			}
-		}
-
-		return null;
-	}
-
-	/**
-	 * Try to find a matching word for a derived adjective.
-	 * 
-	 * @param word
-	 * @return WordEntry
-	 */
-	WordEntry normalizeAdjective(final String word) {
-		final String trimmedWord = trimWord(word);
-
-		final String normalized = Grammar.normalizeDerivedAdjective(trimmedWord);
-
-		if (normalized != null) {
-			final WordEntry entry = words.get(normalized);
-
-			return entry;
-		} else {
-			return null;
-		}
-	}
-
-	/**
 	 * Register a subject name to be recognized by the conversation parser.
-	 * 
+	 *
 	 * @param name
 	 */
 	public void registerSubjectName(final String name) {
@@ -471,7 +433,7 @@ final public class WordList {
 
 	/**
 	 * Register a subject name to be recognized by the conversation parser.
-	 * 
+	 *
 	 * @param name
 	 * @param typeString
 	 */
@@ -495,7 +457,7 @@ final public class WordList {
 
 	/**
 	 * De-register a subject name.
-	 * 
+	 *
 	 * @param name
 	 */
 	public void unregisterSubjectName(final String name) {
@@ -520,7 +482,7 @@ final public class WordList {
 	/**
 	 * Register an item or creature name to be recognized by the conversation
 	 * parser.
-	 * 
+	 *
 	 * @param name
 	 * @param typeString
 	 */
@@ -597,7 +559,9 @@ final public class WordList {
     	Set<CompoundName> candidates = compoundNames.get(first.getOriginal().toLowerCase());
 
 		if (candidates != null) {
-    		for(CompoundName compName : candidates) {
+	    	TreeSet<CompoundName> candidatesSortedFromLongestToShortest = new TreeSet<CompoundName>(new ArrayLengthDescSorter<CompoundName>());
+	    	candidatesSortedFromLongestToShortest.addAll(candidates);
+    		for (CompoundName compName : candidatesSortedFromLongestToShortest) {
     			if (compName.matches(expressions, idx)) {
     				return compName;
     			}
@@ -648,9 +612,11 @@ final public class WordList {
 
 	/**
 	 * Check for compatible types.
+	 *
 	 * @param lastExpr last word in an expression
 	 * @param typeString expected type string
-	 * @return
+	 * @return <code>true</code> if the expression is of compatible type,
+	 * 	otherwise <code>false</code>
 	 */
 	private static boolean isNameCompatibleLastType(
 			final Expression lastExpr, final String typeString) {
@@ -681,22 +647,12 @@ final public class WordList {
 			return true;
 		}
 
-		// handle ambiguous cases like "mill"
-		if (Grammar.isAmbiguousNounVerb(lastExpr.getNormalized())) {
-			if (lastType.isVerb() && typeString.equals(ExpressionType.OBJECT)) {
-				return true;
-			}
-			if (lastType.isObject() && typeString.equals(ExpressionType.VERB)) {
-				return true;
-			}
-		}
-
 		return false;
 	}
 
 	/**
 	 * Register a verb to be recognized by the conversation parser.
-	 * 
+	 *
 	 * @param verb
 	 */
 	public void registerVerb(final String verb) {
@@ -717,9 +673,27 @@ final public class WordList {
 		}
 	}
 
+	public void registerVerb(final List<String> verb) {
+		final String key = trimWord(verb);
+		final WordEntry entry = words.get(key);
+
+		if ((entry == null) || (entry.getType() == null)
+				|| entry.getType().isEmpty()) {
+			final WordEntry newEntry = new WordEntry();
+
+			newEntry.setNormalized(key);
+			newEntry.setType(new ExpressionType(VERB_DYNAMIC));
+
+			words.put(key, newEntry);
+//		} else if (!checkNameCompatibleLastType(entry, ExpressionType.VERB)) {
+//	 		logger.warn("verb name already registered with incompatible expression type: " +
+//			entry.getNormalizedWithTypeString());
+		}
+	}
+
 	/**
 	 * Add a new word to the list in order to remember it later.
-	 * 
+	 *
 	 * @param str
 	 * @return the added entry
 	 */

@@ -1,4 +1,18 @@
+/***************************************************************************
+ *                   (C) Copyright 2016 - Faiumoni e. V.                   *
+ ***************************************************************************
+ ***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
 package games.stendhal.server.entity.npc.behaviour.impl;
+
+import java.util.List;
+import java.util.Set;
 
 import games.stendhal.common.grammar.ItemParserResult;
 import games.stendhal.common.parser.Sentence;
@@ -7,25 +21,22 @@ import games.stendhal.server.entity.item.Item;
 import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.npc.EventRaiser;
-import games.stendhal.server.entity.npc.action.SayTextWithPlayerNameAction;
+import games.stendhal.server.entity.npc.action.SayTextAction;
 import games.stendhal.server.entity.npc.behaviour.impl.prices.PriceCalculationStrategy;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.List;
-import java.util.Set;
-
 /**
  * Behaviour for NPCs repairing items
- * 
+ *
  * @author madmetzger
  */
 public class RepairerBehaviour extends TransactionBehaviour {
-	
+
 	private final PriceCalculationStrategy priceCalculator;
-	
+
 	/**
 	 * Create a new RepairerBehaviour with a given price calculation strategy
-	 * 
+	 *
 	 * @param calculator the price calculator
 	 * @param items the items that can be repaired
 	 */
@@ -78,10 +89,11 @@ public class RepairerBehaviour extends TransactionBehaviour {
 		seller.say("Nie masz ze sobą "+res.getChosenItemName()+".");
 		return false;
 	}
-	
+
 	@Override
 	public ChatCondition getTransactionCondition() {
 		return new ChatCondition() {
+			@Override
 			public boolean fire(Player player, Sentence sentence, Entity npc) {
 				ItemParserResult res = parse(sentence);
 				return canDealWith(res.getChosenItemName());
@@ -91,7 +103,7 @@ public class RepairerBehaviour extends TransactionBehaviour {
 
 	@Override
 	public ChatAction getRejectedTransactionAction() {
-		return new SayTextWithPlayerNameAction("Przykro mi [name], ale nie mogę naprawić twojego przedmiotu.");
+		return new SayTextAction("Przykro mi [name], ale nie mogę naprawić twojego przedmiotu.");
 	}
 
 	/**
@@ -106,7 +118,7 @@ public class RepairerBehaviour extends TransactionBehaviour {
 
 	/**
 	 * Check if this NPC can repair this item
-	 * 
+	 *
 	 * @param chosen the item to repair
 	 * @return true iff this NPC is able to repair the item
 	 */

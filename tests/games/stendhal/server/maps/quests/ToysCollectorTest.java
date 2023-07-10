@@ -1,4 +1,4 @@
-/* $Id: ToysCollectorTest.java,v 1.16 2010/09/19 02:41:22 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -14,20 +14,19 @@ package games.stendhal.server.maps.quests;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.entity.npc.ConversationPhrases;
-import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.maps.MockStendhalRPRuleProcessor;
 
 import java.util.Arrays;
-
-import marauroa.common.Log4J;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.entity.npc.ConversationPhrases;
+import games.stendhal.server.entity.npc.SpeakerNPC;
+import games.stendhal.server.maps.MockStendhalRPRuleProcessor;
+import marauroa.common.Log4J;
 import utilities.PlayerTestHelper;
 
 public class ToysCollectorTest {
@@ -44,7 +43,7 @@ public class ToysCollectorTest {
 	public void setUp() throws Exception {
 		SingletonRepository.getNPCList().add(new SpeakerNPC("Anna"));
 		quest = new ToysCollector();
-	
+
 		quest.addToWorld();
 	}
 
@@ -58,7 +57,7 @@ public class ToysCollectorTest {
 	 */
 	@Test
 	public final void testGetNeededItems() {
-		assertEquals(Arrays.asList(new String[] { "teddy", "dice", "dress" }),
+		assertEquals(Arrays.asList(new String[] { "pluszowy miś", "kości do gry", "koszula" }),
 				quest.getNeededItems());
 	}
 
@@ -84,7 +83,7 @@ public class ToysCollectorTest {
 	 */
 	@Test
 	public final void testGetAdditionalTriggerPhraseForQuest() {
-		assertEquals(Arrays.asList(new String[] { "toys" }),
+		assertEquals(Arrays.asList(new String[] { "toys", "zabawki" }),
 				quest.getAdditionalTriggerPhraseForQuest());
 	}
 

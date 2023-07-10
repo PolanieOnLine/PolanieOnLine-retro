@@ -1,5 +1,5 @@
 /***************************************************************************
- *                    (C) Copyright 2003-2009 - Stendhal                   *
+ *                    (C) Copyright 2003-2020 - Stendhal                   *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -11,22 +11,21 @@
  ***************************************************************************/
 package games.stendhal.server.core.engine.db;
 
-import games.stendhal.common.MathHelper;
-import games.stendhal.server.entity.item.Item;
-import games.stendhal.server.entity.player.Player;
-
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
+
+import games.stendhal.common.MathHelper;
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.entity.item.Item;
+import games.stendhal.server.entity.player.Player;
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPSlot;
 import marauroa.server.db.DBTransaction;
 import marauroa.server.db.TransactionPool;
-
-import org.apache.log4j.Logger;
 
 
 /**
@@ -35,10 +34,24 @@ import org.apache.log4j.Logger;
 public class StendhalWebsiteDAO {
 	private static Logger logger = Logger.getLogger(StendhalWebsiteDAO.class);
 
+	/**
+	 * clears the online status of all players (used on server startup)
+	 *
+	 * @param transaction DBTransaction
+	 * @throws SQLException in case of an database error
+	 */
 	public void clearOnlineStatus(DBTransaction transaction) throws SQLException {
 		transaction.execute("UPDATE character_stats SET online=0", null);
 	}
 
+	/**
+	 * sets the online status of a particular player
+	 *
+	 * @param transaction DBTransaction
+	 * @param playerName name of player
+	 * @param online true, if the player is online; false otherwise
+	 * @throws SQLException in case of an database error
+	 */
 	public void setOnlineStatus(final DBTransaction transaction, final String playerName, final boolean online) throws SQLException {
 		String onlinestate;
 		if (online) {
@@ -57,6 +70,9 @@ public class StendhalWebsiteDAO {
 		transaction.execute(query, params);
 	}
 
+	/**
+	 * clears the online status of all players (used on server startup)
+	 */
 	public void clearOnlineStatus() {
 		DBTransaction transaction = TransactionPool.get().beginWork();
 		try {
@@ -67,85 +83,140 @@ public class StendhalWebsiteDAO {
 		}
 	}
 
-	public void setOnlineStatus(final String playerName, final boolean online) {
-		DBTransaction transaction = TransactionPool.get().beginWork();
-		try {
-			setOnlineStatus(transaction, playerName, online);
-			TransactionPool.get().commit(transaction);
-		} catch (SQLException e) {
-			TransactionPool.get().rollback(transaction);
-		}
+	/**
+	 * logs a trade event
+	 *
+	 * @param transaction DBTransaction
+	 * @param charname name of character
+	 * @param itemname name of item
+	 * @param itemid   id of item
+	 * @param quantity quantity
+	 * @param price    price
+	 * @param stats    description of item
+	 * @param timestamp timestamp
+	 * @throws SQLException in case of an database error
+	 */
+	public void logTradeEvent(final DBTransaction transaction, String charname, String itemname, int itemid, 
+			int quantity, int price, String stats, Timestamp timestamp) throws SQLException {
+		String sql = "INSERT INTO trade(charname, itemname, itemid, quantity, price, stats, timedate) "
+				+ " VALUES ('[charname]', '[itemname]', [itemid], [quantity], [price], '[stats]', '[timedate]')";
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("charname", charname);
+		params.put("itemname", itemname);
+		params.put("itemid", itemid);
+		params.put("quantity", quantity);
+		params.put("price", price);
+		params.put("stats", stats);
+		params.put("timedate", timestamp);
+		transaction.execute(sql, params);
 	}
 
-	protected int updateCharStats(final DBTransaction transaction, final Player instance) throws SQLException {
+	/**
+	 * updates the statistics information about a player
+	 *
+	 * @param transaction DBTransaction
+	 * @param player Player
+	 * @param timestamp timestamp
+	 * @return number of updates rows
+	 * @throws SQLException in case of an database error
+	 */
+	protected int updateCharStats(final DBTransaction transaction, final Player player, Timestamp timestamp) throws SQLException {
 		final String query = "UPDATE character_stats SET "
 			+ " admin=[admin], sentence='[sentence]', age=[age], gender='[gender]', level=[level],"
-			+ " outfit=[outfit], outfit_colors='[outfit_colors]', xp=[xp], money='[money]',"
-			+ " married='[married]', atk='[atk]', def='[def]', hp='[hp]', karma='[karma]',"
-			+ " neck='[neck]', head='[head]', cloak='[cloak]',"
-			+ " lhand='[lhand]', armor='[armor]', rhand='[rhand]',"
-			+ " legs='[legs]', glove='[glove]', finger='[finger]', fingerb='[fingerb]', feet='[feet]',"
-			+ " lastseen='[lastseen]'"
+			+ " outfit=[outfit], outfit_colors='[outfit_colors]', outfit_layers='[outfit_layers]', xp=[xp], money='[money]',"
+			+ " married='[married]', atk='[atk]', def='[def]', ratk='[ratk]', mining='[mining]', hp='[hp]', karma='[karma]',"
+			+ " neck='[neck]', head='[head]', armor='[armor]', lhand='[lhand]', rhand='[rhand]', pas='[pas]',"
+			+ " legs='[legs]', feet='[feet]', cloak='[cloak]', lastseen='[lastseen]',"
+			+ " glove='[glove]', finger='[finger]', fingerb='[fingerb]', zone='[zone]'"
 			+ " WHERE name='[name]'";
 
-		Map<String, Object> params = getParamsFromPlayer(instance);
+		Map<String, Object> params = getParamsFromPlayer(player);
+		params.put("lastseen", timestamp);
 		logger.debug("storeCharacter is running: " + query);
 		final int count = transaction.execute(query, params);
 		return count;
 	}
 
-	private Map<String, Object> getParamsFromPlayer(final Player instance) {
+	/**
+	 * gets the attributes from a player object.
+	 *
+	 * @param player Player
+	 * @return Map with key value pairs
+	 */
+	private Map<String, Object> getParamsFromPlayer(final Player player) {
 		Map<String, Object> params = new HashMap<String, Object>();
-		params.put("admin", instance.getAdminLevel());
-		params.put("sentence", instance.getSentence());
-		params.put("age", instance.getAge());
-		params.put("gender", instance.getGender());
-		params.put("level", instance.getLevel());
-		params.put("outfit", instance.getOutfit().getCode());
-		params.put("outfit_colors", getOutfitColors(instance));
-		params.put("xp", instance.getXP());
-		params.put("money", instance.getTotalNumberOf("money"));
-		params.put("married", extractSpouseOrNull(instance));
-		params.put("atk", instance.getAtk());
-		params.put("def", instance.getDef());
-		params.put("hp", instance.getHP());
-		params.put("karma", (int) instance.getKarma());
-		params.put("neck", extractName(instance.getNecklace()));
-		params.put("head", extractName(instance.getHelmet()));
-		params.put("cloak", extractName(instance.getCloak()));
-		params.put("lhand", extractHandName(instance, "lhand"));
-		params.put("armor", extractName(instance.getArmor()));
-		params.put("rhand", extractHandName(instance, "rhand"));
-		params.put("legs", extractName(instance.getLegs()));
-		params.put("glove", extractName(instance.getGloves()));
-		params.put("finger", extractHandName(instance, "finger"));
-		params.put("fingerb", extractName(instance.getRing()));
-		params.put("feet", extractName(instance.getBoots()));
-		params.put("name", instance.getName());
-		params.put("lastseen", new Timestamp(new Date().getTime()));
+		params.put("admin", player.getAdminLevel());
+		params.put("sentence", player.getSentence());
+		params.put("age", player.getAge());
+		params.put("gender", player.getGender());
+		params.put("level", player.getLevel());
+		params.put("outfit", player.getOutfit().getCode());
+		params.put("outfit_colors", getOutfitColors(player));
+		params.put("outfit_layers", player.getOutfit().getData(player.getOutfitColors()));
+		params.put("xp", player.getXP());
+		params.put("money", player.getTotalNumberOf("money"));
+		params.put("married", extractSpouseOrNull(player));
+		params.put("atk", player.getAtk());
+		params.put("def", player.getDef());
+		params.put("ratk", player.getRatk());
+		params.put("mining", player.getMining());
+		params.put("hp", player.getHP());
+		params.put("karma", (int) player.getKarma());
+		params.put("neck", extractName(player.getNecklace()));
+		params.put("head", extractName(player.getHelmet()));
+		params.put("armor", extractName(player.getArmor()));
+		params.put("lhand", extractHandName(player, "lhand"));
+		params.put("rhand", extractHandName(player, "rhand"));
+		params.put("pas", extractName(player.getBelt()));
+		params.put("legs", extractName(player.getLegs()));
+		params.put("feet", extractName(player.getBoots()));
+		params.put("cloak", extractName(player.getCloak()));
+		params.put("glove", extractName(player.getGloves()));
+		params.put("finger", extractHandName(player, "finger"));
+		params.put("fingerb", extractName(player.getRingB()));
+		params.put("name", player.getName());
+		String zoneName = "";
+		StendhalRPZone zone = player.getZone();
+		if (zone != null) {
+			zoneName = zone.getName();
+		}
+		params.put("zone", zoneName);
 		return params;
 	}
 
-	protected void insertIntoCharStats(final DBTransaction transaction, final Player instance) throws SQLException {
+	/**
+	 * Insert statistics information about a new player
+	 *
+	 *
+	 * @param transaction DBTransaction
+	 * @param player Player
+	 * @throws SQLException in case of an database error
+	 */
+	protected void insertIntoCharStats(final DBTransaction transaction, final Player player, Timestamp timestamp) throws SQLException {
 		final String query = "INSERT INTO character_stats"
 			+ " (name, admin, sentence, age, gender, level,"
-			+ " outfit, outfit_colors, xp, money, married, atk, def, hp,"
-			+ " karma, neck, head, cloak, lhand, armor, rhand,"
-			+ " legs, glove, finger, fingerb, feet, lastseen)"
+			+ " outfit, outfit_colors, outfit_layers, xp, money, married, atk, def, ratk, mining, hp,"
+			+ " karma, neck, head, armor, lhand, rhand, pas,"
+			+ " legs, feet, cloak, glove, finger, fingerb, zone, lastseen)"
 			+ " VALUES ('[name]', '[admin]', '[sentence]', '[age]', '[gender]', '[level]',"
-			+ " '[outfit]', '[outfit_colors]', '[xp]', '[money]', '[married]',"
-			+ " '[atk]', '[def]', '[hp]', '[karma]', '[neck]', '[head]', '[cloak]',"
-			+ " '[lhand]', '[armor]', '[rhand]', '[legs]', '[glove]', '[finger]',"
-			+ " '[fingerb]', '[feet]', '[lastseen]')";
-		Map<String, Object> params = getParamsFromPlayer(instance);
+			+ " '[outfit]', '[outfit_colors]', '[outfit_layers]', '[xp]', '[money]', '[married]',"
+			+ " '[atk]', '[def]', '[ratk]', '[mining]', '[hp]', '[karma]', '[neck]', '[head]', '[armor]',"
+			+ " '[lhand]', '[rhand]', '[pas]', '[legs]', '[feet]', '[cloak]', '[glove]', '[finger]', '[fingerb]',"
+			+ " '[zone]', '[lastseen]')";
+		Map<String, Object> params = getParamsFromPlayer(player);
+		params.put("lastseen", timestamp);
 		logger.debug("storeCharacter is running: " + query);
 		transaction.execute(query, params);
 	}
-	
+
 	/**
 	 * Used to get the items in the hands container, as they can be different to weapons or shields...
 	 * Could also be done using getEquippedItemClass and using all posibble classes for
 	 * the objects that can be used in hands.
+	 *
+	 * @param instance player
+	 * @param handSlot hand slot name
+	 * @return item name
 	 */
 	private String extractHandName(final Player instance, final String handSlot) {
 		if (instance != null && handSlot != null) {
@@ -160,7 +231,7 @@ public class StendhalWebsiteDAO {
 						}
 					}
 					return null;
-			}	
+			}
 			return null;
 		}
 		return null;
@@ -191,15 +262,15 @@ public class StendhalWebsiteDAO {
 			return "";
 		}
 		StringBuilder res = new StringBuilder();
-		/*res.append(Integer.toHexString(MathHelper.parseIntDefault(colors.get("detail"), 0)));
-		res.append("_");*/
+		res.append(Integer.toHexString(MathHelper.parseIntDefault(colors.get("detail"), 0)));
+		res.append("_");
 		res.append(Integer.toHexString(MathHelper.parseIntDefault(colors.get("hair"), 0)));
 		res.append("_");
 		res.append(Integer.toHexString(MathHelper.parseIntDefault(colors.get("head"), 0)));
 		res.append("_");
 		res.append(Integer.toHexString(MathHelper.parseIntDefault(colors.get("dress"), 0)));
 		res.append("_");
-		res.append(Integer.toHexString(MathHelper.parseIntDefault(colors.get("base"), 0)));
+		res.append(Integer.toHexString(MathHelper.parseIntDefault(colors.get("skin"), 0)));
 		return res.toString();
 	}
 }

@@ -1,6 +1,5 @@
-/* $Id: FishSource.java,v 1.7 2012/07/22 17:18:44 kiheru Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2019 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,26 +11,26 @@
  ***************************************************************************/
 package games.stendhal.server.entity.mapstuff.useable;
 
-//
-//
-
+import games.stendhal.common.MathHelper;
 import games.stendhal.common.Rand;
+import games.stendhal.common.constants.SoundLayer;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.item.Item;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.events.ImageEffectEvent;
+import games.stendhal.server.events.SoundEvent;
 import marauroa.common.game.RPClass;
 
 /**
  * A fish source is a spot where a player can fish. He needs a fishing rod, time
  * and luck. Before he catches fish he needs to make a license.
- * 
+ *
  * Fishing takes 5-9 seconds; during this time, the player keep standing next to
  * the fish source. In fact, the player only has to be there when the
  * prospecting action has finished. Therefore, make sure that two fish sources
  * are always at least 8 sec of walking away from each other, so that the player
  * can't fish at several sites simultaneously.
- * 
+ *
  * Completion of the Fishermans Collector quest increases the chance of catching fish.
  * Some karma is used to decide the outcome.
  *
@@ -49,8 +48,16 @@ public class FishSource extends PlayerActivityEntity {
 	private final String itemName;
 
 	/**
+	 * Sound effects
+	 */
+	private final String startSound = "fishing-1";
+	//private String successSound;
+	//private String failSound;
+	private final int SOUND_RADIUS = 20;
+
+	/**
 	 * Create a fish source.
-	 * 
+	 *
 	 * @param itemName
 	 *            The name of the item to be caught.
 	 */
@@ -58,10 +65,10 @@ public class FishSource extends PlayerActivityEntity {
 		this.itemName = itemName;
 		put("class", "source");
 		put("name", "fish_source");
-		setMenu("Wędkowanie");
+		setMenu("Łowienie|Użyj");
 		setDescription("Coś znajduje się w wodzie.");
 	}
-	
+
 	/**
 	 * source name.
 	 */
@@ -69,10 +76,6 @@ public class FishSource extends PlayerActivityEntity {
 	public String getName() {
 		return("ryb");
 	}
-
-	//
-	// FishSource
-	//
 
 	public static void generateRPClass() {
 		final RPClass rpclass = new RPClass("fish_source");
@@ -83,10 +86,10 @@ public class FishSource extends PlayerActivityEntity {
 	 * Calculates the probability that the given player catches a fish. This is
 	 * based on the player's fishing skills, however even players with no skills
 	 * at all have a 5% probability of success, before the karma effect.
-	 * 
+	 *
 	 * @param player
 	 *            The player,
-	 * 
+	 *
 	 * @return The probability of success.
 	 */
 	private double getSuccessProbability(final Player player) {
@@ -95,29 +98,25 @@ public class FishSource extends PlayerActivityEntity {
 		final String skill = player.getSkill("fishing");
 
 		if (skill != null) {
-			probability = Math.max(probability, Double.parseDouble(skill));
+			probability = Math.max(probability, MathHelper.parseDouble(skill));
 		}
 
 		return probability + player.useKarma(0.05);
 	}
 
-	//
-	// PlayerActivityEntity
-	//
-
 	/**
 	 * Get the time it takes to perform this activity.
-	 * 
+	 *
 	 * @return The time to perform the activity (in seconds).
 	 */
 	@Override
-	protected int getDuration() {
+	protected int getDuration(Player player) {
 		return 5 + Rand.rand(4);
 	}
 
 	/**
 	 * Decides if the activity can be done.
-	 * 
+	 *
 	 * @return <code>true</code> if successful.
 	 */
 	@Override
@@ -132,7 +131,7 @@ public class FishSource extends PlayerActivityEntity {
 
 	/**
 	 * Decides if the activity was successful.
-	 * 
+	 *
 	 * @return <code>true</code> if successful.
 	 */
 	@Override
@@ -143,7 +142,7 @@ public class FishSource extends PlayerActivityEntity {
 
 	/**
 	 * Called when the activity has finished.
-	 * 
+	 *
 	 * @param player
 	 *            The player that did the activity.
 	 * @param successful
@@ -155,23 +154,35 @@ public class FishSource extends PlayerActivityEntity {
 			final Item item = SingletonRepository.getEntityManager().getItem(
 					itemName);
 
+			// TODO: find a sound for success
+			//this.addEvent(new SoundEvent(successSound, SOUND_RADIUS, 100, SoundLayer.AMBIENT_SOUND));
+			this.notifyWorldAboutChanges();
+
 			player.equipOrPutOnGround(item);
 			player.incHarvestedForItem(itemName, 1);
-		    SingletonRepository.getAchievementNotifier().onObtain(player);
 			player.sendPrivateText("Złapałeś rybę.");
 		} else {
+		    // TODO: find a sound for failure
+            //this.addEvent(new SoundEvent(failSound, SOUND_RADIUS, 100, SoundLayer.AMBIENT_SOUND));
+			this.notifyWorldAboutChanges();
+
 			player.sendPrivateText("Nie złapałeś ryby.");
 		}
+		notifyWorldAboutChanges();
 	}
 
 	/**
 	 * Called when the activity has started.
-	 * 
+	 *
 	 * @param player
 	 *            The player starting the activity.
 	 */
 	@Override
 	protected void onStarted(final Player player) {
+	    // Play a nice fishing sound
+        addEvent(new SoundEvent(startSound, SOUND_RADIUS, 100, SoundLayer.AMBIENT_SOUND));
+        notifyWorldAboutChanges();
+
 		// some feedback is needed.
 		player.sendPrivateText("Rozpocząłeś łowienie ryb.");
 		addEvent(new ImageEffectEvent("water_splash", true));

@@ -1,6 +1,5 @@
-/* $Id: FarmersWifeNPC.java,v 1.8 2010/12/29 22:38:27 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,18 +11,15 @@
  ***************************************************************************/
 package games.stendhal.server.maps.ados.farmhouse;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.behaviour.adder.SellerAdder;
-import games.stendhal.server.entity.npc.behaviour.impl.SellerBehaviour;
-
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * NPC to sell milk.
@@ -31,20 +27,19 @@ import java.util.Map;
  * @author kymara
  */
 public class FarmersWifeNPC implements ZoneConfigurator {
-
 	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
-		buildNPC(zone, attributes);
+		buildNPC(zone);
 	}
 
-	private void buildNPC(final StendhalRPZone zone, final Map<String, String> attributes) {
+	private void buildNPC(final StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Philomena") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -59,20 +54,16 @@ public class FarmersWifeNPC implements ZoneConfigurator {
 			protected void createDialog() {
 				addGreeting("Dzień dobry!");
 				addJob("Mój mąż prowadzi to gospodarstwo, a ja głównie opiekuję się jego młodszą siostrą i jej chłopakiem, są na górze. Jeżeli możesz powiedzieć coś pomocnego na ich temat, to mów. Słyszałam wcześniej jej płacz...");
-				addQuest("Gdybyś potrafił rozwiązywać Junit testy, moja córka potrzebowałaby Cię. Zapytaj Diogenesa, jak możesz pomóc jej w projekcie..");
+				addQuest("Gdybyś potrafił rozwiązywać Junit testy, moja córka potrzebowałaby Cię. Zapytaj Diogenesa, jak możesz pomóc jej w projekcie.");
 				addHelp("Mogę sprzedać Ci butelkę mleka albo trochę masła, prosto od naszych kochanych krów! Jeśli chcesz, oczywiście.");
-				final Map<String, Integer> offerings = new HashMap<String, Integer>();
-				offerings.put("mleko", 30);
-				offerings.put("osełka masła", 40);
-				new SellerAdder().addSeller(this, new SellerBehaviour(offerings));
-
 				addGoodbye("Żegnaj.");
 			}
 		};
-		npc.setEntityClass("wifenpc");
-		npc.setPosition(27, 4);
-		npc.initHP(100);
+
 		npc.setDescription("Oto Philomena. Pachnie nieco krowami, których mleko jest wyjątkowe.");
+		npc.setEntityClass("wifenpc");
+		npc.setGender("F");
+		npc.setPosition(27, 4);
 	    zone.add(npc);
 	}
 }

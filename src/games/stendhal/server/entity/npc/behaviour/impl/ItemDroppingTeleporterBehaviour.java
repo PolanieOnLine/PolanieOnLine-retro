@@ -1,26 +1,28 @@
-// $Id: ItemDroppingTeleporterBehaviour.java,v 1.2 2011/04/06 22:13:21 kymara Exp $
+// $Id$
 package games.stendhal.server.entity.npc.behaviour.impl;
 
-import marauroa.common.game.IRPZone;
+import java.util.List;
+
 import games.stendhal.common.Rand;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.item.Item;
 import games.stendhal.server.entity.npc.SpeakerNPC;
+import marauroa.common.game.IRPZone;
 
 /**
  * teleports the SpeakerNPC to a random location on the outside world and causes
  * it to walk a random path while also randomly dropping items
- * 
+ *
  * @author kymara
  */
 public final class ItemDroppingTeleporterBehaviour extends TeleporterBehaviour {
 	final SpeakerNPC speakerNPC;
     final String itemName;
-    
-	
+
+
 	/**
 	 * Creates a new ItemDroppingTeleporterBehaviour.
-	 * 
+	 *
 	 * @param speakerNPC
 	 *            SpeakerNPC
 	 * @param repeatedText
@@ -28,28 +30,28 @@ public final class ItemDroppingTeleporterBehaviour extends TeleporterBehaviour {
 	 * @param itemName
 	 *            name of item to drop
 	 */
-	public ItemDroppingTeleporterBehaviour(final SpeakerNPC speakerNPC,
+	public ItemDroppingTeleporterBehaviour(final SpeakerNPC speakerNPC, final List<String> setZones, final String zoneStartsWithLimiter,
 			final String repeatedText, final String itemName) {
-		super(speakerNPC, repeatedText);
+		super(speakerNPC, setZones, zoneStartsWithLimiter, repeatedText);
 		this.speakerNPC = speakerNPC;
 		this.itemName = itemName;
 	}
 
 	/**
 	 * Creates a new ItemDroppingTeleporterBehaviour.
-	 * 
+	 *
 	 * @param speakerNPC
 	 *            SpeakerNPC
 	 * @param repeatedText
 	 *            text to repeat
 	 * @param useHighProbabilityZones
-	 *            true to make teleportation to a hand 
+	 *            true to make teleportation to a hand
 	 *            selected list of zones more likely
 	 * @param itemName
 	 *            name of item to drop
 	 */
-	public ItemDroppingTeleporterBehaviour(final SpeakerNPC speakerNPC, final String repeatedText, final boolean useHighProbabilityZones, final String itemName) {
-		super(speakerNPC, repeatedText, useHighProbabilityZones);
+	public ItemDroppingTeleporterBehaviour(final SpeakerNPC speakerNPC, final List<String> setZones, final String zoneStartsWithLimiter, final String repeatedText, final boolean useHighProbabilityZones, final String itemName) {
+		super(speakerNPC, setZones, zoneStartsWithLimiter, repeatedText, useHighProbabilityZones);
 		this.speakerNPC = speakerNPC;
 		this.itemName = itemName;
 	}

@@ -1,4 +1,4 @@
-/* $Id: Gandhi.java,v 1.3 2012/06/26 17:48:44 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -17,30 +17,37 @@ import games.stendhal.server.entity.creature.Creature;
 
 class Gandhi implements AttackStrategy {
 
+	@Override
 	public void attack(final Creature creature) {
 		// do nothing
 	}
 
+	@Override
 	public boolean canAttackNow(final Creature creature) {
 		return false;
 	}
 
+	@Override
 	public void findNewTarget(final Creature creature) {
 		//do nothing
 	}
 
+	@Override
 	public void getBetterAttackPosition(final Creature creature) {
 		// do nothing
 	}
 
+	@Override
 	public boolean hasValidTarget(final Creature creature) {
 		return false;
 	}
 
+	@Override
 	public int getRange() {
 		return 0;
 	}
 
+	@Override
 	public boolean canAttackNow(Creature attacker, RPEntity target) {
 		return false;
 	}

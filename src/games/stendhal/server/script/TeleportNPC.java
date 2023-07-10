@@ -1,10 +1,6 @@
-/* $Id: TeleportNPC.java,v 1.1 2012/10/22 19:53:53 nhnb Exp $
- * $Log: TeleportNPC.java,v $
- * Revision 1.1  2012/10/22 19:53:53  nhnb
- * a script to teleport npcs
- *
- */
 package games.stendhal.server.script;
+
+import java.util.List;
 
 import games.stendhal.common.MathHelper;
 import games.stendhal.common.NotificationType;
@@ -14,8 +10,6 @@ import games.stendhal.server.core.scripting.ScriptImpl;
 import games.stendhal.server.entity.npc.NPCList;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.List;
 
 /**
  *

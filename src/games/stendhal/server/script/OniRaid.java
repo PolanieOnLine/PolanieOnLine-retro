@@ -1,6 +1,5 @@
-/* $Id: OniRaid.java,v 1.1 2011/02/12 14:11:07 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -17,7 +16,7 @@ import java.util.Map;
 
 /**
  * @author kymara
- * 
+ *
  * Less safe for players below level 70
  */
 public class OniRaid extends CreateRaid {

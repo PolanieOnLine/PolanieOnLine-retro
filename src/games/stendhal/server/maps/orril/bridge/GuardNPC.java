@@ -1,4 +1,3 @@
-/* $Id: GuardNPC.java,v 1.14 2010/09/19 02:31:42 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,15 +11,15 @@
  ***************************************************************************/
 package games.stendhal.server.maps.orril.bridge;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Builds the bridge guard (to fado) NPC.
@@ -33,15 +32,15 @@ public class GuardNPC implements ZoneConfigurator {
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
-	 * 
+	 *
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildNPC(zone);
 	}
 
 	private void buildNPC(final StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Stefan") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -60,14 +59,13 @@ public class GuardNPC implements ZoneConfigurator {
 				addJob("Strzegę tego mostu i sprawdzam zablokowaną drogę.");
 				addHelp("Droga do Fado będzie zablokowana do momentu, aż miasto nie będzie bezpieczne.");
 				addQuest("Chciałbym robić coś ciekawszego.");
-				addGoodbye("Dowidzenia i wracaj szybko. Nudzę się tutaj.");
+				addGoodbye("Do widzenia i wracaj szybko. Nudzę się tutaj.");
 			}
 		};
 
-		npc.setDescription("Oto strażnik wyglądający na znudzonego.");
+		npc.setDescription("Oto Stefan, strażnik wyglądający na znudzonego.");
 		npc.setEntityClass("recruiter1npc");
 		npc.setPosition(62, 105);
-		npc.initHP(100);
 		zone.add(npc);
 	}
 }

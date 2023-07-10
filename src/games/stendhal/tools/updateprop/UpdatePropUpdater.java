@@ -1,4 +1,4 @@
-/* $Id: UpdatePropUpdater.java,v 1.21 2011/07/09 11:20:35 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2011 - Stendhal                    *
  ***************************************************************************
@@ -38,7 +38,7 @@ public class UpdatePropUpdater {
 	private List<String> files;
 	private Properties prop;
 	private UpdateSigner signer;
-	
+
 	/**
 	 * Creates a new UpdatePropUpdater.
 	 *
@@ -48,7 +48,7 @@ public class UpdatePropUpdater {
 	 * @param newVersion new version
 	 * @param folder     folder the .jar files are in
 	 * @param files      list of files
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	public UpdatePropUpdater(final String oldFile, final String newFile, final String oldVersion, final String newVersion, String folder, List<String> files) throws Exception {
 		this.newFile = newFile;
@@ -129,9 +129,11 @@ public class UpdatePropUpdater {
 	}
 
 	/**
-	 * update the file size and signature sections
+	 * Update the file size and signature sections
+	 *
+	 * @throws Exception
 	 */
-	private void updateFileSizeAndSignature() throws Exception{
+	private void updateFileSizeAndSignature() throws Exception {
 		for (String filename : files) {
 			File file = new File(folder + "/" + filename);
 			prop.put("file-size." + filename, Long.toString(file.length()));

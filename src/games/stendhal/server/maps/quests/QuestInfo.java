@@ -1,6 +1,5 @@
-/* $Id: QuestInfo.java,v 1.11 2011/08/16 19:10:47 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -17,7 +16,7 @@ import java.util.Map;
 
 /**
  * Static info about quests, filled with fillQuestInfo in each quest
- * 
+ *
  * @author hendrik
  */
 public class QuestInfo {
@@ -33,7 +32,7 @@ public class QuestInfo {
 	private Map<String, String> history = new HashMap<String, String>();
 
 	private Map<String, String> hints = new HashMap<String, String>();
-	
+
 	private int suggestedMinLevel;
 
 	public int getSuggestedMinLevel() {
@@ -91,5 +90,4 @@ public class QuestInfo {
 	public void setRepeatable(final boolean repeatable) {
 		this.repeatable = repeatable;
 	}
-
 }

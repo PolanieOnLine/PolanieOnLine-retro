@@ -1,4 +1,3 @@
-/* $Id: CaptiveNPC.java,v 1.6 2010/09/19 09:45:31 kymara Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,51 +11,47 @@
  ***************************************************************************/
 package games.stendhal.server.maps.nalwor.hell;
 
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-
-import java.util.Map;
 
 /**
  * Inside Nalwor Hell - level -1 .
  */
 public class CaptiveNPC implements ZoneConfigurator {
-
 	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildTomi(zone);
 	}
 
 	private void buildTomi(final StendhalRPZone zone) {
 		final SpeakerNPC tomi = new SpeakerNPC("tomi") {
-
-			@Override
-			protected void createPath() {
-				setPath(null);
-			}
-
 			@Override
 			protected void createDialog() {
-				addGreeting("pomocy!");
-				addJob("pomóż mi");
-				addHelp("gdzie jest mój miecz lodowy?");
-				addOffer("proszę miecz lodowy");
-				addGoodbye("dowidzenia");
+				addGreeting("Pomocy!");
+				addJob("Pomóż mi!");
+				addHelp("Gdzie jest mój miecz lodowy?");
+				addOffer("Proszę, miecz lodowy...");
+				addGoodbye("Potrze..buję miecz lodowy!");
 			}
 		};
 
+		tomi.setDescription("Oto Tomi. Jest cały spocony i na pewno potrzebuje coś do ochłodzenia.");
 		tomi.setEntityClass("transparentnpc");
 		tomi.setAlternativeImage("tomi");
+		tomi.setGender("M");
 		tomi.setPosition(119, 13);
-		tomi.setBaseHP(100); 
+		tomi.setBaseHP(100);
 		tomi.setHP(50);
-		tomi.setDescription("Oto Tomi. Jest cały spocony i na pewno potrzebuje coś do ochłodzenia.");
+		tomi.setShadowStyle(null);
 		zone.add(tomi);
 	}
 }

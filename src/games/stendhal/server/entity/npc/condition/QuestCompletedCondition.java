@@ -1,4 +1,4 @@
-/* $Id: QuestCompletedCondition.java,v 1.17 2012/09/09 12:33:24 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,15 +12,15 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.condition;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
 import games.stendhal.server.core.config.annotations.Dev.Category;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.npc.ChatCondition;
+import games.stendhal.server.entity.npc.ConditionBuilder;
 import games.stendhal.server.entity.player.Player;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Was this quest completed?
@@ -37,10 +37,19 @@ public class QuestCompletedCondition implements ChatCondition {
 	 *            name of quest-slot
 	 */
 	public QuestCompletedCondition(final String questname) {
-		this.questname = questname;
+		this.questname = checkNotNull(questname);
 	}
 
+	@Override
 	public boolean fire(final Player player, final Sentence sentence, final Entity entity) {
+		// FIXME: this should check IQuest.isCompleted
+		/*
+		final IQuest quest = StendhalQuestSystem.get().getQuestFromSlot(questname);
+		if (quest != null) {
+			return quest.isCompleted(player);
+		}
+		*/
+
 		return (player.isQuestCompleted(questname));
 	}
 
@@ -51,12 +60,19 @@ public class QuestCompletedCondition implements ChatCondition {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 45779 * questname.hashCode();
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				QuestCompletedCondition.class);
+		if (!(obj instanceof QuestCompletedCondition)) {
+			return false;
+		}
+		QuestCompletedCondition other = (QuestCompletedCondition) obj;
+		return questname.equals(other.questname);
+	}
+
+	public static ConditionBuilder questCompleted(String questName) {
+		return new ConditionBuilder(new QuestCompletedCondition(questName));
 	}
 }

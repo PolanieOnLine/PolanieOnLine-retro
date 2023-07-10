@@ -1,4 +1,4 @@
-/* $Id: DragLayer.java,v 1.10 2012/06/06 15:29:18 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,14 +12,6 @@
  ***************************************************************************/
 package games.stendhal.client.gui;
 
-import games.stendhal.client.entity.IEntity;
-import games.stendhal.client.entity.StackableItem;
-import games.stendhal.client.gui.j2d.entity.Entity2DView;
-import games.stendhal.client.gui.j2d.entity.EntityViewFactory;
-import games.stendhal.client.gui.j2d.entity.StackableItem2DView;
-import games.stendhal.client.sprite.Sprite;
-import games.stendhal.client.sprite.SpriteStore;
-
 import java.awt.AWTEvent;
 import java.awt.Component;
 import java.awt.Container;
@@ -28,16 +20,25 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.AWTEventListener;
+import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 
+import games.stendhal.client.entity.IEntity;
+import games.stendhal.client.entity.StackableItem;
+import games.stendhal.client.gui.j2d.entity.Entity2DView;
+import games.stendhal.client.gui.j2d.entity.EntityViewFactory;
+import games.stendhal.client.gui.j2d.entity.StackableItem2DView;
+import games.stendhal.client.sprite.Sprite;
+import games.stendhal.client.sprite.SpriteStore;
+
 /**
  * A glass pane component for drawing dragged items. Using ideas (though no
  * code) from Alexander Potochkin of the swing team. His blog entry describing
  * the tricks used:
- * http://weblogs.java.net/blog/2006/09/20/well-behaved-glasspane
+ * https://weblogs.java.net/blog/2006/09/20/well-behaved-glasspane
  */
 public class DragLayer extends JComponent implements AWTEventListener {
 	/**
@@ -51,14 +52,14 @@ public class DragLayer extends JComponent implements AWTEventListener {
 	 * dropped.
 	 */
 	private static final Sprite dropForbiddenIcon = SpriteStore.get().getSprite("data/gui/forbidden.png");
-	
+
 	/** The dragged entity, or <code>null</code> if nothing is being dragged. */
 	private Entity2DView<?> dragged;
 	/** Current mouse location. */
 	private Point point;
-	
+
 	private int oldX, oldY, width, height;
-	
+
 	/**
 	 * A speed hack for detecting the underlying component. Keep it in memory
 	 * unless the mouse location has changed to avoid scanning the component
@@ -76,16 +77,16 @@ public class DragLayer extends JComponent implements AWTEventListener {
 		 * them does not really work (despite being what the official swing
 		 * tutorial recommends), because enter and leave events to the
 		 * components have already been lost.
-		 * 
+		 *
 		 * Adding a mouse movement listener after the drag has started does not
 		 * work either, because it does not get the mouse events belonging to
 		 * the drag, but starts working only later.
 		 */
 		Toolkit.getDefaultToolkit().addAWTEventListener(this, AWTEvent.MOUSE_EVENT_MASK | AWTEvent.MOUSE_MOTION_EVENT_MASK);
-		
+
 		setOpaque(false);
 	}
-	
+
 	@Override
 	public boolean contains(int x, int y) {
 		/*
@@ -98,20 +99,20 @@ public class DragLayer extends JComponent implements AWTEventListener {
 
 	/**
 	 * Get the DragLayer instance.
-	 * 
+	 *
 	 * @return drag layer
 	 */
 	public static DragLayer get() {
 		if (instance == null) {
-			instance = new DragLayer(); 
+			instance = new DragLayer();
 		}
 		return instance;
 	}
-	
+
 	/**
-	 * Start dragging an entity. The DragLayer will take care of drawing, 
+	 * Start dragging an entity. The DragLayer will take care of drawing,
 	 * updating the position and dropping it to the right DropTarget.
-	 * 
+	 *
 	 * @param entity dragged entity
 	 */
 	@SuppressWarnings("rawtypes") // cannot cast from <IEntity> to <? extends StackableItem> in Java 5
@@ -130,18 +131,18 @@ public class DragLayer extends JComponent implements AWTEventListener {
 			if (dragged instanceof StackableItem2DView) {
 				((StackableItem2DView) dragged).setShowQuantity(false);
 			}
-			
+
 			this.dragged = dragged;
 		}
 	}
-	
+
 	@Override
 	public void paintComponent(Graphics g) {
 		if ((point != null) && (dragged != null)) {
 			Graphics2D g2d = (Graphics2D) g;
 			g2d.translate(point.x, point.y);
 			dragged.draw(g2d);
-			
+
 			// Draw an indicator about invalid dropping area, if needed
 			if (getCurrentDropTarget() == null) {
 				dropForbiddenIcon.draw(g2d, dragged.getWidth() - dropForbiddenIcon.getWidth(),
@@ -149,13 +150,13 @@ public class DragLayer extends JComponent implements AWTEventListener {
 			}
 		}
 	}
-	
+
 	/**
 	 * Get the drop target capable of accepting the dragged entity at the
 	 * current location.
-	 * 
+	 *
 	 * @return drop target, or <code>null</code> if the component below is not a
-	 * 	DropTarget, or it is not capable of accepting the dragged entity 
+	 * 	DropTarget, or it is not capable of accepting the dragged entity
 	 */
 	private DropTarget getCurrentDropTarget() {
 		if (underlyingComponent == null) {
@@ -163,7 +164,7 @@ public class DragLayer extends JComponent implements AWTEventListener {
 			Point containerPoint = SwingUtilities.convertPoint(this, point, parent);
 			underlyingComponent = SwingUtilities.getDeepestComponentAt(parent, containerPoint.x, containerPoint.y);
 		}
-		if ((underlyingComponent instanceof DropTarget) 
+		if ((underlyingComponent instanceof DropTarget)
 				&& (((DropTarget) underlyingComponent).canAccept(dragged.getEntity()))) {
 			return (DropTarget) underlyingComponent;
 		}
@@ -173,7 +174,7 @@ public class DragLayer extends JComponent implements AWTEventListener {
 	/**
 	 * Stop dragging the item, and let the component below the cursor handle
 	 * the dropped entity.
-	 * 
+	 *
 	 * @param event The mouse event that triggered the drop
 	 */
 	private void stopDrag(MouseEvent event) {
@@ -191,24 +192,25 @@ public class DragLayer extends JComponent implements AWTEventListener {
 					// Dropping everything
 					target.dropEntity(entity, -1, componentPoint);
 				}
-			} 
+			}
 		}
 
+		dragged.release();
 		dragged = null;
 	}
 
 	/**
 	 * Determine if the user should be given a chooser popup for selecting the
 	 * amount of items to be dropped.
-	 * 
+	 *
 	 * @param event the mouse event that triggered the drop
 	 * @param entity dropped entity
-	 * 
-	 * @return <code>true</code> if a chooser should be displayed, 
+	 *
+	 * @return <code>true</code> if a chooser should be displayed,
 	 * 	<code>false</code> otherwise
 	 */
 	private boolean showAmountChooser(MouseEvent event, IEntity entity) {
-		if (((event.getModifiersEx() & (MouseEvent.CTRL_DOWN_MASK|MouseEvent.META_DOWN_MASK)) != 0)
+		if (((event.getModifiersEx() & (InputEvent.CTRL_DOWN_MASK|InputEvent.META_DOWN_MASK)) != 0)
 				&& (entity instanceof StackableItem)) {
 			return ((StackableItem) entity).getQuantity() > 1;
 		}
@@ -219,11 +221,12 @@ public class DragLayer extends JComponent implements AWTEventListener {
 	 * (non-Javadoc)
 	 * @see java.awt.event.AWTEventListener#eventDispatched(java.awt.AWTEvent)
 	 */
+	@Override
 	public void eventDispatched(AWTEvent e) {
-		if (e instanceof MouseEvent) { 
-			MouseEvent event = (MouseEvent) e; 
+		if (e instanceof MouseEvent) {
+			MouseEvent event = (MouseEvent) e;
 
-			MouseEvent converted = SwingUtilities.convertMouseEvent(event.getComponent(), event, this); 
+			MouseEvent converted = SwingUtilities.convertMouseEvent(event.getComponent(), event, this);
 			point = converted.getPoint();
 
 			if (e.getID() == MouseEvent.MOUSE_DRAGGED) {
@@ -238,7 +241,7 @@ public class DragLayer extends JComponent implements AWTEventListener {
 			// We are interested only in DnD, so we can ignore any other events
 		}
 	}
-	
+
 	/**
 	 * Request drawing the component after a drag related mouse event
 	 */
@@ -250,7 +253,7 @@ public class DragLayer extends JComponent implements AWTEventListener {
 		 */
 		if ((width != 0) && (height != 0)) {
 			/*
-			 * Paint over the old occupied area. This will probably be 
+			 * Paint over the old occupied area. This will probably be
 			 * merged with the next repaint by the RepaintManager.
 			 */
 			repaint(oldX, oldY, width, height);

@@ -1,4 +1,4 @@
-/* $Id: FieldLister.java,v 1.6 2010/09/19 02:22:56 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -16,9 +16,9 @@ import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.TreeMap;
 
-import marauroa.common.Pair;
-
 import org.apache.log4j.Logger;
+
+import marauroa.common.Pair;
 
 /**
  * Lists the contents all fields of a class and its super classes.
@@ -44,7 +44,7 @@ public class FieldLister {
 	/**
 	 * lists all direct fields for this class and the
 	 * corresponding values of the known object.
-	 * 
+	 *
 	 * @param clazz Class
 	 */
 	private void list(final Class< ? > clazz) {

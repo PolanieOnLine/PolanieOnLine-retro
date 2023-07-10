@@ -1,6 +1,5 @@
-/* $Id: SourceObject.java,v 1.76 2012/09/27 19:50:14 kiheru Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,6 +11,11 @@
  ***************************************************************************/
 package games.stendhal.server.actions.equip;
 
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.common.EquipActionConsts;
 import games.stendhal.server.actions.ItemAccessPermissions;
 import games.stendhal.server.core.engine.ItemLogger;
@@ -20,26 +24,21 @@ import games.stendhal.server.core.events.EquipListener;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.item.Corpse;
 import games.stendhal.server.entity.item.Item;
+import games.stendhal.server.entity.item.OwnedItem;
 import games.stendhal.server.entity.item.Stackable;
 import games.stendhal.server.entity.item.StackableItem;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.entity.slot.EntitySlot;
 import games.stendhal.server.util.EntityHelper;
-
-import java.util.Arrays;
-import java.util.List;
-
 import marauroa.common.game.RPAction;
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPSlot;
 import marauroa.common.game.SlotOwner;
 
-import org.apache.log4j.Logger;
-
 /**
  * this encapsulates the equip/drop source.
  */
-class SourceObject extends MoveableObject {
+public class SourceObject extends MoveableObject {
 	private static InvalidSource invalidSource = new InvalidSource();
 	private static Logger logger = Logger.getLogger(SourceObject.class);
 	/** the item . */
@@ -54,10 +53,12 @@ class SourceObject extends MoveableObject {
 		if ((action == null) || (player == null)) {
 			return invalidSource;
 		}
- 
+
 		// source item must be there
-		if (!action.has(EquipActionConsts.SOURCE_PATH) && !action.has(EquipActionConsts.BASE_ITEM)) {
-			logger.warn("action does not have a base item. action: " + action);
+		if (!action.has(EquipActionConsts.SOURCE_PATH)
+				&& !action.has(EquipActionConsts.BASE_ITEM)
+				&& !action.has(EquipActionConsts.SOURCE_NAME)) {
+			logger.warn("action does not have a base item, path nor name. action: " + action);
 
 			return invalidSource;
 		}
@@ -72,17 +73,18 @@ class SourceObject extends MoveableObject {
 		}
 		source = createSource(action, player);
 
-		if ((source.getEntity() != null) && source.getEntity().hasSlot("content") && source.getEntity().getSlot("content").size() > 0) {
-			player.sendPrivateText("Proszę opróżnij " + source.getEntityName() + " przed przeniesieniem");
+		if ((source.getEntity() != null) && source.getEntity().hasSlot("content") && (source.getEntity().getSlot("content").size() > 0)) {
+			player.sendPrivateText("Proszę opróżnij " + source.getEntityName() + " przed przeniesieniem.");
 			return invalidSource;
 		}
 
 		adjustAmountForStackables(action, source);
 		return source;
 	}
-	
+
 	/**
 	 * Translate old style object reference to entity path.
+	 * @param action action to upgrade to use entity paths
 	 */
 	private static void translateCompatibilityToPaths(RPAction action) {
 		if (action.has(EquipActionConsts.BASE_OBJECT)) {
@@ -124,13 +126,13 @@ class SourceObject extends MoveableObject {
 					+ ")");
 			// Remove message as discussed on #arianne 2010-04-25
 			// player.sendPrivateText("There is no such item in the " + slotName + " of "
-				//	+ parent.getDescriptionName(true));
+			//	+ parent.getDescriptionName(true));
 			return invalidSource;
 		}
 
 		final Entity entity = (Entity) baseSlot.get(baseItemId);
 		if (!(entity instanceof Item)) {
-			player.sendPrivateText("Oto " + entity.getDescriptionName(true)
+			player.sendPrivateText("Oto " + entity.getDescriptionName()
 					+ " nie jest przedmiotem i nie może być założony");
 			return invalidSource;
 		}
@@ -154,10 +156,10 @@ class SourceObject extends MoveableObject {
 
 		return source;
 	}
-	
+
 	/**
 	 * Create a SourceObject for an item path.
-	 * 
+	 *
 	 * @param action
 	 * @param player
 	 * @return source object
@@ -165,7 +167,10 @@ class SourceObject extends MoveableObject {
 	private static SourceObject createSource(RPAction action, final Player player) {
 		List<String> path = action.getList(EquipActionConsts.SOURCE_PATH);
 		Entity entity = EntityHelper.getEntityFromPath(player, path);
-		if (!(entity instanceof Item)) {
+		if (entity == null) {
+			entity = EntityHelper.getEntityByName(player, action.get(EquipActionConsts.SOURCE_NAME));
+		}
+		if (entity == null || !(entity instanceof Item)) {
 			return invalidSource;
 		}
 		Item item = (Item) entity;
@@ -173,7 +178,7 @@ class SourceObject extends MoveableObject {
 			return invalidSource;
 		}
 		RPObject container = item.getBaseContainer();
-		
+
 		/*
 		 * Top level items need to be checked for players standing on them.
 		 */
@@ -182,7 +187,7 @@ class SourceObject extends MoveableObject {
 				return invalidSource;
 			}
 		}
-		
+
 		String slotName = null;
 		RPObject parent = item.getContainer();
 		if (parent != null) {
@@ -194,13 +199,13 @@ class SourceObject extends MoveableObject {
 		}
 
 		SourceObject source = new SourceObject(player, (Entity) parent, slotName, item);
-		
+
 		// handle logging of looting items
 		if (parent instanceof Corpse) {
 			Corpse corpse = (Corpse) parent;
 			checkIfLootingIsRewardable(player, corpse, source, (Item) entity);
 		}
-		
+
 		return source;
 	}
 
@@ -311,11 +316,27 @@ class SourceObject extends MoveableObject {
 	 * @return true if successful
 	 */
 	public boolean moveTo(final DestinationObject dest, final Player player) {
-		if (!((EquipListener) item).canBeEquippedIn(dest.getContentSlotName())) {
+		String targetSlot = dest.getContentSlotName();
+
+		if (!((EquipListener) item).canBeEquippedIn(targetSlot)) {
+			if (targetSlot.equals("keyring")) {
+				targetSlot = "rzemyku";
+			} else if (targetSlot.equals("magicbag")) {
+				targetSlot = "magicznej torby";
+			}
 			// give some feedback
-			player.sendPrivateText("Nie możesz wziąść " + item.getTitle() + " do " + dest.getContentSlotName());
+			player.sendPrivateText("Nie możesz wziąć " + item.getTitle() + " do " + targetSlot + ".");
 			logger.warn("tried to equip an entity into disallowed slot: " + item.getClass() + "; equip rejected");
 			return false;
+		}
+
+		if (item instanceof OwnedItem) {
+			final OwnedItem owned = (OwnedItem) item;
+			if (owned.hasOwner() && !owned.canEquipToSlot(player, targetSlot)) {
+				owned.onEquipFail(player, targetSlot);
+				logger.warn("tried to equip an owned entity into disallowed slot: " + item.getClass() + "; equip rejected");
+				return false;
+			}
 		}
 
 		if (!dest.isValid() || !dest.preCheck(item, player)) {
@@ -323,7 +344,20 @@ class SourceObject extends MoveableObject {
 			return false;
 		}
 
+		//Stackable lucky charm item
+		String destObject = dest.getContentSlotName();
+		boolean isLuckyCharm = item.getName().equals("czterolistna koniczyna");
+
+		if (destObject != null && isLuckyCharm) {
+			StackableItem luckycharm = (StackableItem) removeFromWorld();
+			luckycharm.setQuantity(luckycharm.getQuantity());
+			dest.addToWorld((Entity) luckycharm, player);
+
+			return true;
+		}
+
 		final String[] srcInfo = getLogInfo();
+		item.onPickedUp(player);
 		final Item entity = removeFromWorld();
 		logger.debug("item removed");
 		dest.addToWorld(entity, player);
@@ -352,10 +386,10 @@ class SourceObject extends MoveableObject {
 				return true;
 			} else {
 				logger.debug("distance check failed " + other.squaredDistance(checker));
-				player.sendPrivateText("Nie możesz sięgnąć tak daleko");
+				player.sendPrivateText("Nie jesteś w stanie sięgnąć tak daleko.");
 			}
 		}
-		
+
 		return false;
 	}
 
@@ -430,7 +464,7 @@ class SourceObject extends MoveableObject {
 			// Allow players always pick up their own items
 			if (!player.getName().equals(sourceItem.getBoundTo())) {
 				if (otherPlayer.getArea().intersects(sourceItem.getArea())) {
-					player.sendPrivateText("Nie możesz wziąść przedmiotów, które są pod innymi wojownikami");
+					player.sendPrivateText("Nie możesz wziąć przedmiotów, które znajdują się pod innymi wojownikami!");
 					return true;
 				}
 			}
@@ -475,7 +509,7 @@ class SourceObject extends MoveableObject {
 			if (parent.has("name")) {
 				res[1] = parent.get("name");
 			} else {
-				res[1] = parent.getDescriptionName(false);
+				res[1] = parent.getDescriptionName();
 			}
 			res[2] = slot;
 		} else {
@@ -486,7 +520,7 @@ class SourceObject extends MoveableObject {
 		return res;
 	}
 
-	String getEntityName() {
+	public String getEntityName() {
 		Entity entity1 = getEntity();
 		final String itemName;
 		if (entity1.has("name")) {

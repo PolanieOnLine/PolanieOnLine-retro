@@ -1,4 +1,4 @@
-/* $Id: Portal.java,v 1.22 2010/12/29 18:35:33 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -12,6 +12,14 @@
  ***************************************************************************/
 package games.stendhal.server.entity.mapstuff.portal;
 
+import static games.stendhal.common.constants.Actions.MOVE_CONTINUOUS;
+
+import java.awt.Point;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
+import games.stendhal.common.Direction;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.events.UseListener;
@@ -21,15 +29,12 @@ import games.stendhal.server.core.pathfinder.Path;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.RPEntity;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.List;
-
+import games.stendhal.server.entity.status.StatusType;
+import marauroa.common.game.Definition;
+import marauroa.common.game.Definition.Type;
 import marauroa.common.game.RPClass;
 import marauroa.common.game.RPObject;
 import marauroa.common.game.SyntaxException;
-import marauroa.common.game.Definition.Type;
-
-import org.apache.log4j.Logger;
 
 /**
  * A portal which teleports the player to another portal if used.
@@ -43,6 +48,12 @@ public class Portal extends Entity implements UseListener {
 	protected static final String ATTR_HIDDEN = "hidden";
 	protected static final String ATTR_USE = "use";
 
+	/** Attribute for player face direction. */
+	protected static final String ATTR_FACE = "face";
+
+	/** Attribute for player positioning. */
+	protected static final String ATTR_OFFSET = "offset";
+
 	/** the logger instance. */
 	private static final Logger logger = Logger.getLogger(Portal.class);
 
@@ -54,6 +65,12 @@ public class Portal extends Entity implements UseListener {
 
 	private Object destinationReference;
 
+	/** Direction player should face after teleport when portal is used as destination. */
+	private Direction face;
+
+	/** If "true", will not emit logger error about missing destination */
+	private boolean ignoreNoDestination = false;
+
 	public static void generateRPClass() {
 		try {
 				if (!RPClass.hasRPClass(RPCLASS_NAME)){
@@ -61,6 +78,9 @@ public class Portal extends Entity implements UseListener {
 					portal.isA("entity");
 					portal.addAttribute(ATTR_USE, Type.FLAG);
 					portal.addAttribute(ATTR_HIDDEN, Type.FLAG);
+					portal.addAttribute(ATTR_FACE, Type.STRING);
+					portal.addAttribute(ATTR_OFFSET, Type.INT);
+					portal.addAttribute(MOVE_CONTINUOUS, Type.FLAG, Definition.VOLATILE);
 				}
 		} catch (final SyntaxException e) {
 			logger.error("cannot generate RPClass", e);
@@ -88,7 +108,7 @@ public class Portal extends Entity implements UseListener {
 	 * Set the portal reference to identify this specific portal with-in a zone.
 	 * This value is opaque and requires a working equals(), but typically uses
 	 * a String or Integer.
-	 * 
+	 *
 	 * @param reference
 	 *            A reference tag.
 	 */
@@ -97,8 +117,15 @@ public class Portal extends Entity implements UseListener {
 	}
 
 	/**
+	 * Sets flag to suppress error about missing destination.
+	 */
+	public void setIgnoreNoDestination(final boolean ignoreNoDestination) {
+		this.ignoreNoDestination = ignoreNoDestination;
+	}
+
+	/**
 	 * gets the identifier of this portal.
-	 * 
+	 *
 	 * @return identifier
 	 */
 	public Object getIdentifier() {
@@ -109,7 +136,7 @@ public class Portal extends Entity implements UseListener {
 	 * Set the destination portal zone and reference. The reference should match
 	 * the same type/value as that passed to setReference() in the corresponding
 	 * portal.
-	 * 
+	 *
 	 * @param zone
 	 *            The target zone.
 	 * @param reference
@@ -131,7 +158,7 @@ public class Portal extends Entity implements UseListener {
 
 	/**
 	 * Determine if this portal is hidden from players.
-	 * 
+	 *
 	 * @return <code>true</code> if hidden.
 	 */
 	@Override
@@ -139,8 +166,26 @@ public class Portal extends Entity implements UseListener {
 		return has(ATTR_HIDDEN);
 	}
 
+	/**
+	 * Sets or removes the "hidden" attribute.
+	 *
+	 * @param hide
+	 * 		If <code>true</code>, adds "hidden" attribute, otherwise removes it.
+	 */
+	public void setHidden(final boolean hide) {
+		if (hide) {
+			put(ATTR_HIDDEN, "");
+		} else {
+			remove(ATTR_HIDDEN);
+		}
+	}
+
 	public boolean loaded() {
 		return isDestinationSet;
+	}
+
+	public void logic() {
+	    // Sub-classes can implement this
 	}
 
 	@Override
@@ -170,13 +215,16 @@ public class Portal extends Entity implements UseListener {
 
 	/**
 	 * Use the portal.
-	 * 
+	 *
 	 * @param player
 	 *            the Player who wants to use this portal
 	 * @return <code>true</code> if the portal worked, <code>false</code>
 	 *         otherwise.
 	 */
 	protected boolean usePortal(final Player player) {
+		// check if player has path set to be used with Portal.onUsedBackwards
+		final boolean hadPath = player.hasPath();
+
 		if (!player.isZoneChangeAllowed()) {
 			player.sendPrivateText("Z jakiegoś powodu nie możesz teraz przejść.");
 			return false;
@@ -193,8 +241,8 @@ public class Portal extends Entity implements UseListener {
 			// Check that mouse movement is allowed first
 			if (!player.getZone().isMoveToAllowed()) {
 				player.sendPrivateText("Nie jest możliwe posługiwanie się myszką. Użyj klawiatury.");
-			} else if (player.isPoisoned()) {
-				player.sendPrivateText("Trucizna zdezorientowała Ciebie i nie możesz normalnie się poruszać. Możesz iść wstecz i nie możesz zaplanować trasy.");
+			} else if (player.hasStatus(StatusType.POISONED)) {
+				player.sendPrivateText("Trucizna zdezorientowała Ciebie i nie jesteś w stanie normalnie się poruszać. Możesz iść wstecz i nie możesz zaplanować trasy.");
 			} else {
 				final List<Node> path = Path.searchPath(player, this.getX(), this.getY());
 				player.setPath(new FixedPath(path, false));
@@ -203,8 +251,10 @@ public class Portal extends Entity implements UseListener {
 		}
 
 		if (getDestinationZone() == null) {
-			// This portal is incomplete
-			logger.error(this + " has no destination.");
+			if (!ignoreNoDestination) {
+				// This portal is incomplete
+				logger.error(this + " has no destination.");
+			}
 			return false;
 		}
 
@@ -226,13 +276,54 @@ public class Portal extends Entity implements UseListener {
 			return false;
 		}
 
-		if (player.teleport(destZone, dest.getX(), dest.getY(), null, null)) {
-			player.stop();
-			dest.onUsedBackwards(player);
+		int destX = dest.getX();
+		int destY = dest.getY();
+
+		// Offset positioning of player in relation to the destination portal.
+		if (dest.hasOffset()) {
+			final int pos = dest.getOffset();
+			switch (pos) {
+				case 0:
+					destX = destX - 1;
+					destY = destY - 1;
+					break;
+				case 1:
+					destY = destY - 1;
+					break;
+				case 2:
+					destX = destX + 1;
+					destY = destY - 1;
+					break;
+				case 3:
+					destX = destX - 1;
+					break;
+				case 4:
+					destX = destX + 1;
+					break;
+				case 5:
+					destX = destX - 1;
+					destY = destY + 1;
+					break;
+				case 6:
+					destY = destY + 1;
+					break;
+				case 7:
+					destX = destX + 1;
+					destY = destY + 1;
+					break;
+				default:
+					logger.debug("Invalid destination portal offset positioning: " + Integer.toString(pos));
+			}
 		}
+
+		if (player.teleport(destZone, destX, destY, null, null)) {
+			dest.onUsedBackwards(player, hadPath);
+		}
+
 		return true;
 	}
 
+	@Override
 	public boolean onUsed(final RPEntity user) {
 		if (user instanceof Player) {
 			return usePortal((Player) user);
@@ -243,12 +334,123 @@ public class Portal extends Entity implements UseListener {
 	}
 
 	/**
-	 * if this portal is the destination of another portal used.
-	 * 
+	 * If this portal is the destination of another portal used.
+	 *
 	 * @param user
-	 *            the player who used the other portal teleporting to us
+	 * 		the player who used the other portal teleporting to us
+	 * @param hadPath
+	 * 		determines if entity was using mouse click to use portal
 	 */
-	public void onUsedBackwards(final RPEntity user) {
-		// do nothing
+	public void onUsedBackwards(final RPEntity user, final boolean hadPath) {
+		if (hasFaceDirection()) {
+			user.setDirection(getFaceDirection());
+		}
+		if (user instanceof Player) {
+			final Player player = (Player) user;
+			/* Destination portals determine if continuous movement can be used after teleport.
+			 * Because this is destination portal, cannot depend on Player.handlePortal() here
+			 * to accurately determine if player had path set.
+			 */
+			if (hadPath || !has(MOVE_CONTINUOUS) || !player.has(MOVE_CONTINUOUS)) {
+				player.forceStop();
+			}
+		}
+	}
+
+	/**
+	 * Sub-classes can override for actions to be taken if entity was pushed onto portal.
+	 */
+	@SuppressWarnings("unused")
+	public void onPushedOntoFrom(final RPEntity pushed, final RPEntity pusher, final Point prevPos) {
+		// implementing classes can override
+	}
+
+	/**
+	 * Sets the direction attribute for the portal which determines the direction the
+	 * player should face when this portal is used as a destination.
+	 *
+	 * @param dir
+	 * 			<code>Direction</code> player should face.
+	 */
+	public final void setFaceDirection(final Direction dir) {
+		logger.debug("Setting portal direction: " + dir.toString());
+		face = dir;
+	}
+
+	/**
+	 * Setup direction player should face after using portal as a
+	 * destination. <code>dir</code> can be one of "north", "east",
+	 * "south", "west", "up", "right", "down", or "left".
+	 *
+	 * @param dir
+	 * 			<code>String</code> representation of direction to face.
+	 */
+	public final void setFaceDirection(String dir) {
+		// Convert to lowercase.
+		dir = dir.toLowerCase();
+
+		logger.debug("Portal face attribute: " + dir);
+		switch (dir) {
+			case "north":
+			case "up":
+				setFaceDirection(Direction.UP);
+				break;
+			case "south":
+			case "down":
+				setFaceDirection(Direction.DOWN);
+				break;
+			case "east":
+			case "right":
+				setFaceDirection(Direction.RIGHT);
+				break;
+			case "west":
+			case "left":
+				setFaceDirection(Direction.LEFT);
+				break;
+			default:
+				logger.warn("Not a valid direction: " + dir);
+		}
+	}
+
+	/**
+	 * Get the direction player should face when portal is used as a destination.
+	 *
+	 * @return
+	 * 			<code>Direction</code> player should face.
+	 */
+	public final Direction getFaceDirection() {
+		return face;
+	}
+
+	/**
+	 * Check if the portal has defined a direction for player to face when
+	 * portal is used as a destination.
+	 *
+	 * @return
+	 * 			<code>true</code> if portal's direction attribute is set.
+	 */
+	public final boolean hasFaceDirection() {
+		return (face != null);
+	}
+
+	/**
+	 * Gets offset positioning value when used as a destination. Valid values
+	 * are 0-7.
+	 *
+	 * @return
+	 *			<code>Integer</code> value of offset.
+	 */
+	public final int getOffset() {
+		return getInt("offset");
+	}
+
+	/**
+	 * Checks if portal has an offset positioning when used as a destination.
+	 *
+	 * @return
+	 * 			<code>true<code> if "offset" attribute set.
+	 */
+	public final boolean hasOffset() {
+		return has("offset");
 	}
 }

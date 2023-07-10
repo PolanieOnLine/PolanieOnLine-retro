@@ -1,4 +1,4 @@
-/* $Id: StendhalRPWorld.java,v 1.46 2011/12/12 21:30:23 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -12,28 +12,30 @@
  ***************************************************************************/
 package games.stendhal.server.core.engine;
 
-import games.stendhal.common.parser.WordList;
-import games.stendhal.server.core.config.ZoneGroupsXMLLoader;
-import games.stendhal.server.entity.Entity;
-import games.stendhal.server.entity.mapstuff.portal.OneWayPortalDestination;
-import games.stendhal.server.entity.mapstuff.portal.Portal;
-
 import java.net.URI;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
+import org.apache.log4j.Logger;
+
+import games.stendhal.common.parser.WordList;
+import games.stendhal.server.core.config.ZoneGroupsXMLLoader;
+import games.stendhal.server.entity.Entity;
+import games.stendhal.server.entity.mapstuff.portal.OneWayPortalDestination;
+import games.stendhal.server.entity.mapstuff.portal.Portal;
 import marauroa.common.game.IRPZone;
 import marauroa.common.game.IRPZone.ID;
 import marauroa.server.game.rp.RPWorld;
 
-import org.apache.log4j.Logger;
-
 public class StendhalRPWorld extends RPWorld {
-	/** the logger instance. */
+	/** The logger instance. */
 	private static final Logger logger = Logger.getLogger(StendhalRPWorld.class);
+	/** The singleton instance. */
+	protected static StendhalRPWorld instance;
 
 	public final static String MAPS_FOLDER;
 
@@ -51,18 +53,28 @@ public class StendhalRPWorld extends RPWorld {
 	 * A common place for milliseconds per turn.
 	 */
 	public static final int MILLISECONDS_PER_TURN = 300;
-	
+
 	private final RPClassGenerator genRPClass = new RPClassGenerator();
 
-	/** The Singleton instance. */
-	protected static StendhalRPWorld instance;
-
-	// /** The pathfinder thread. */
-	// private PathfinderThread pathfinderThread;
-	
 	private final Map<String, Set<StendhalRPZone>> regionMap = new HashMap<String, Set<StendhalRPZone>>();
 
-	
+	/**
+	 * Singleton access method.
+	 *
+	 * @return
+	 *     The static instance.
+	 */
+	public static StendhalRPWorld get() {
+		synchronized(StendhalRPWorld.class) {
+			if (instance == null) {
+				instance = new StendhalRPWorld();
+				instance.initialize();
+			}
+		}
+
+		return instance;
+	}
+
 	protected StendhalRPWorld() {
 		super();
 	}
@@ -77,7 +89,7 @@ public class StendhalRPWorld extends RPWorld {
 		}
 		return super.removeRPZone(zoneid);
 	}
-	
+
 	public void removeZone(final StendhalRPZone toBeRemoved) {
 		try {
 			removeRPZone(toBeRemoved.getID());
@@ -85,33 +97,20 @@ public class StendhalRPWorld extends RPWorld {
 			logger.error(e, e);
 		}
 	}
-	
-	
-	public static StendhalRPWorld get() {
-		synchronized(StendhalRPWorld.class) {
-			if (instance == null) {
-				instance = new StendhalRPWorld();
-				instance.initialize();
-			}
-		}
 
-		return instance;
-	}
-
-	
 	@Override
 	protected void initialize() {
 		super.initialize();
 		genRPClass.createRPClasses();
 	}
-	
+
 	/**
 	 * This method is a workaround for a groovy bug:
-	 * http://jira.codehaus.org/browse/GROOVY-1484
-	 * 
+	 * https://jira.codehaus.org/browse/GROOVY-1484
+	 *
 	 * Don't use it in Java code, only in Groovy. Remove this method once the
 	 * Groovy bug has been resolved.
-	 * 
+	 *
 	 * @return StendhalRPWorld
 	 * @deprecated use StendhalRPWorld.get()
 	 */
@@ -123,17 +122,17 @@ public class StendhalRPWorld extends RPWorld {
 	/**
 	 * Gives the number of turns that will take place during a given number of
 	 * seconds.
-	 * 
+	 *
 	 * @param seconds
 	 *            The number of seconds.
-	 * 
+	 *
 	 * @return The number of turns.
 	 */
 	public int getTurnsInSeconds(final int seconds) {
 		return seconds * 10 / 3; // prevent overflows: 1000 / MILLISECONDS_PER_TURN;
 	}
 
-	
+
 
 	@Override
 	public void onInit() {
@@ -142,10 +141,6 @@ public class StendhalRPWorld extends RPWorld {
 
 			// Create the NPC parser word list.
 			WordList.getInstance();
-
-			// create the pathfinder thread and start it
-			// pathfinderThread = new PathfinderThread(this);
-			// pathfinderThread.start();
 
 			final ZoneGroupsXMLLoader loader = new ZoneGroupsXMLLoader(new URI(
 					"/data/conf/zones.xml"));
@@ -183,7 +178,7 @@ public class StendhalRPWorld extends RPWorld {
 		} catch (final InterruptedException e) {
 			//do nothing
 		}
-		
+
 	}
 
 	protected void validatePortal(final Portal portal) {
@@ -229,10 +224,10 @@ public class StendhalRPWorld extends RPWorld {
 
 	/**
 	 * Finds a zone by its id.
-	 * 
+	 *
 	 * @param id
 	 *            The zone's id
-	 * 
+	 *
 	 * @return The matching zone, or <code>null</code> if not found.
 	 */
 	public StendhalRPZone getZone(final String id) {
@@ -241,10 +236,10 @@ public class StendhalRPWorld extends RPWorld {
 
 	/**
 	 * Find the zone that would contain an entity at global coordinates.
-	 * 
+	 *
 	 * TODO: This is likely broken for entity larger than 2x2, because parts of
 	 * them will exist in multiple zones (and not in collision)
-	 * 
+	 *
 	 * @param level
 	 *            The level.
 	 * @param wx
@@ -253,7 +248,7 @@ public class StendhalRPWorld extends RPWorld {
 	 *            The global Y coordinate.
 	 * @param entity
 	 *            The entity.
-	 * 
+	 *
 	 * @return The matching zone, or <code>null</code> if not found.
 	 */
 	public StendhalRPZone getZoneAt(final int level, final int wx, final int wy, final Entity entity) {
@@ -276,7 +271,7 @@ public class StendhalRPWorld extends RPWorld {
 
 		return null;
 	}
-	
+
 	/**
 	 * Adds a zone to a certain region in this world
 	 * @param region
@@ -289,14 +284,20 @@ public class StendhalRPWorld extends RPWorld {
 		}
 		regionMap.get(region).add(zone);
 	}
-	
+
+	public TreeSet<String> getRegions() {
+		// Since we need to make a copy to protect the internal structure,
+		// we use a TreeSet for alphabetical ordering.
+		return new TreeSet<String>(regionMap.keySet());
+	}
+
 	/**
 	 * Retrieves all zones from a specified region with the given flags
-	 * 
+	 *
 	 * @param region the name of the region to search for
 	 * @param exterior only exterior zones(true), interior zones(false) or all zones (null)
-	 * @param aboveGround only zones above ground(true), zones below ground(false) or all (null) 
-	 * @param accessible use true to filter out zones that are not accessible for everyone 
+	 * @param aboveGround only zones above ground(true), zones below ground(false) or all (null)
+	 * @param accessible use true to filter out zones that are not accessible for everyone
 	 * @return a list of zones
 	 */
 	public Collection<StendhalRPZone> getAllZonesFromRegion(final String region, final Boolean exterior, final Boolean aboveGround, final Boolean accessible) {
@@ -336,10 +337,10 @@ public class StendhalRPWorld extends RPWorld {
 		}
 		zonesInRegion.removeAll(removals);
 	}
-	
+
 	/**
 	 * Filter out zones above or below ground
-	 * 
+	 *
 	 * @param zonesInRegion
 	 * @param aboveGround
 	 */
@@ -374,5 +375,4 @@ public class StendhalRPWorld extends RPWorld {
 		}
 		zonesInRegion.removeAll(removals);
 	}
-
 }

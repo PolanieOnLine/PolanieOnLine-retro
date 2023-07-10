@@ -1,4 +1,4 @@
-/* $Id: SentenceHasErrorCondition.java,v 1.7 2012/09/09 12:33:24 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -19,15 +19,13 @@ import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.player.Player;
 
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
-
 /**
  * Checks whether the sentence has an error.
  */
 @Dev(category=Category.CHAT, label="Error?")
 public class SentenceHasErrorCondition implements ChatCondition {
 
+	@Override
 	public boolean fire(final Player player, final Sentence sentence, final Entity entity) {
 		return (sentence.hasError());
 	}
@@ -39,13 +37,12 @@ public class SentenceHasErrorCondition implements ChatCondition {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 47129;
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				SentenceHasErrorCondition.class);
+		return (obj instanceof SentenceHasErrorCondition);
 	}
 
 }

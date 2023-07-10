@@ -1,4 +1,4 @@
-/* $Id: RPEventImageViewer.java,v 1.14 2012/01/10 20:38:13 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,18 +12,17 @@
  ***************************************************************************/
 package games.stendhal.client.gui.imageviewer;
 
-import games.stendhal.client.sprite.DataLoader;
-
 import java.net.URL;
 
-import marauroa.common.game.RPEvent;
-
 import org.apache.log4j.Logger;
+
+import games.stendhal.client.sprite.DataLoader;
+import marauroa.common.game.RPEvent;
 
 /**
  * Opens an image in a styled internal frame with (possibly) some alternate
  * text.
- * 
+ *
  * @author timothyb89
  */
 public final class RPEventImageViewer {
@@ -50,10 +49,10 @@ public final class RPEventImageViewer {
 		new RPEventImageViewer(e);
 	}
 
-	public URL genURL() {
+	private URL genURL() {
 		try {
 			URL url = null;
-			if (path.startsWith("http://")) {
+			if (path.startsWith("http://") || path.startsWith("https://")) {
 				url = new URL(path);
 			} else {
 				url = DataLoader.getResource(path);
@@ -65,8 +64,13 @@ public final class RPEventImageViewer {
 		return null;
 	}
 
-	public void view() {
-		final ViewPanel vp = new ImageViewPanel(genURL(), caption);
-		new ImageViewWindow(title, vp);
+	private void view() {
+		URL url = genURL();
+		if (url != null) {
+			final ViewPanel vp = new ImageViewPanel(url, caption);
+			new ImageViewWindow(title, vp);
+		} else {
+			logger.error("No such image: " + path);
+		}
 	}
 }

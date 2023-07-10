@@ -1,4 +1,4 @@
-/* $Id: LoopedSoundSource.java,v 1.20 2012/07/13 05:56:12 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -50,7 +50,7 @@ public class LoopedSoundSource extends InvisibleEntity {
 
 	/**
 	 * updates the attributes based on the RPObject values sent from the server.
-	 * 
+	 *
 	 * @param object
 	 *            object to read from
 	 */
@@ -91,18 +91,17 @@ public class LoopedSoundSource extends InvisibleEntity {
 	}
 
 	/**
-	 * plays the sound
+	 * Plays the sound.
 	 */
 	private void play() {
 		AudibleCircleArea area = new AudibleCircleArea(Algebra.vecf((float) x, (float) y), radius / 2.0f, radius);
-		boolean cloneSound = group != ClientSingletonRepository.getSound().getGroup(SoundLayer.BACKGROUND_MUSIC.groupName);
-		sound = group.play(soundName, volume, 0, area, fadingDuration, true, cloneSound);
+		sound = group.play(soundName, volume, 0, area, fadingDuration, true, true);
 	}
 
 	/**
 	 * Release this entity. This should clean anything that isn't automatically
 	 * released (such as unregister callbacks, cancel external operations, etc).
-	 * 
+	 *
 	 * @see #initialize(RPObject)
 	 */
 	@Override

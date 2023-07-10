@@ -1,4 +1,4 @@
-/* $Id: Cache.java,v 1.38 2012/06/10 18:47:51 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,9 +12,6 @@
  ***************************************************************************/
 package games.stendhal.client;
 
-import games.stendhal.common.CRC;
-import games.stendhal.common.IO;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -23,15 +20,17 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 
+import org.apache.log4j.Logger;
+
+import games.stendhal.common.CRC;
+import games.stendhal.common.IO;
 import marauroa.common.crypto.Hash;
 import marauroa.common.net.message.TransferContent;
-
-import org.apache.log4j.Logger;
 
 /**
  * Manages a cache for content files such as zone data transmitted by the server
  */
-public class Cache {
+class Cache {
 	private static Logger logger = Logger.getLogger(Cache.class);
 
 	/**
@@ -40,28 +39,28 @@ public class Cache {
 	protected void init() {
 		try {
 
-				// Create file object
-				File file = new File(stendhal.getGameFolder());
-				if (!file.exists() && !file.mkdirs()) {
+			// Create file object
+			File file = new File(stendhal.getGameFolder());
+			if (!file.exists() && !file.mkdirs()) {
 				logger.error("Can't create " + file.getAbsolutePath() + " folder");
-				} else if (file.exists() && file.isFile()) {
-					if (!file.delete() || !file.mkdirs()) {
+			} else if (file.exists() && file.isFile()) {
+				if (!file.delete() || !file.mkdirs()) {
 					logger.error("Can't removing file " + file.getAbsolutePath() + " and creating a folder instead.");
-					}
 				}
+			}
 
-				file = new File(stendhal.getGameFolder() + "cache");
-				if (!file.exists() && !file.mkdir()) {
+			file = new File(stendhal.getGameFolder() + "cache");
+			if (!file.exists() && !file.mkdir()) {
 				logger.error("Can't create " + file.getAbsolutePath() + " folder");
-				}
+			}
 		} catch (final RuntimeException e) {
 			logger.error("cannot create cach folder", e);
-			}
+		}
 	}
 
 	/**
 	 * Gets an item from cache.
-	 * 
+	 *
 	 * @param item
 	 *            key
 	 * @return InputStream or null if not in cache
@@ -102,7 +101,7 @@ public class Cache {
 
 	/**
 	 * Stores an item in cache.
-	 * 
+	 *
 	 * @param item
 	 *            key
 	 * @param data
@@ -134,7 +133,7 @@ public class Cache {
 	 * @param name name
 	 * @return filename
 	 */
-	public String getFilename(String name) {
+	String getFilename(String name) {
 		if (name.indexOf("..") > -1) {
 			logger.error("Cannot access item in cache because .. is not allowed in name " + name);
 			return null;

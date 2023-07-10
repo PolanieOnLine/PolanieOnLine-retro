@@ -1,6 +1,5 @@
-/* $Id: FoundGirl.java,v 1.24 2012/10/06 09:20:23 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,12 +11,19 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests.revivalweeks;
 
+import static games.stendhal.server.maps.ados.rosshouse.LittleGirlNPC.SUSI_OUTFIT;
+
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.LinkedList;
+import java.util.List;
+
 import games.stendhal.common.Direction;
+import games.stendhal.common.constants.SkinColor;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
-import games.stendhal.server.entity.Outfit;
 import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.npc.ConversationPhrases;
@@ -27,7 +33,7 @@ import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.npc.action.IncreaseKarmaAction;
 import games.stendhal.server.entity.npc.action.IncreaseXPAction;
 import games.stendhal.server.entity.npc.action.MultipleActions;
-import games.stendhal.server.entity.npc.action.SayTextWithPlayerNameAction;
+import games.stendhal.server.entity.npc.action.SayTextAction;
 import games.stendhal.server.entity.npc.action.SetQuestToYearAction;
 import games.stendhal.server.entity.npc.condition.AndCondition;
 import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
@@ -38,11 +44,6 @@ import games.stendhal.server.entity.npc.condition.QuestSmallerThanCondition;
 import games.stendhal.server.entity.npc.condition.QuestStartedCondition;
 import games.stendhal.server.entity.npc.condition.TriggerExactlyInListCondition;
 import games.stendhal.server.maps.ados.rosshouse.LittleGirlNPC;
-
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.LinkedList;
-import java.util.List;
 
 public class FoundGirl implements LoadableContent {
 	private SpeakerNPC npc;
@@ -84,7 +85,8 @@ public class FoundGirl implements LoadableContent {
 		};
 
 		//	npcs.add(npc);
-		npc.setOutfit(new Outfit(4, 8, 032, 13));
+		npc.setOutfit(SUSI_OUTFIT);
+		npc.setOutfitColor("skin", SkinColor.LIGHT);
 		npc.setPosition(4, 17);
 		npc.setDirection(Direction.DOWN);
 		npc.initHP(100);
@@ -145,7 +147,7 @@ public class FoundGirl implements LoadableContent {
 				new AndCondition(new GreetingMatchesNameCondition(npc.getName()),
 						anyFriends),
 				ConversationStates.ATTENDING,
-				null, new SayTextWithPlayerNameAction("Cześć [name] miło było cię znów spotkać. "
+				null, new SayTextAction("Cześć [name] miło było cię znów spotkać. "
 						+ "Zgadnij mamy następny #Mine #Town #Revival #Weeks."));
 		// TODO: Tell old friends about renewal
 	}
@@ -251,6 +253,7 @@ public class FoundGirl implements LoadableContent {
 	/**
 	 * removes Susi from her home in Ados and adds her to the Mine Towns.
 	 */
+	@Override
 	public void addToWorld() {
 		removeNPC("Susi");
 
@@ -265,6 +268,7 @@ public class FoundGirl implements LoadableContent {
 	 *
 	 * @return <code>true</code>, if the content was removed, <code>false</code> otherwise
 	 */
+	@Override
 	public boolean removeFromWorld() {
 		removeNPC("Susi");
 

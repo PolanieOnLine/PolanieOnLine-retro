@@ -1,4 +1,4 @@
-/* $Id: EmoteCondition.java,v 1.9 2012/09/09 12:33:24 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -19,9 +19,6 @@ import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.player.Player;
 
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
-
 /**
  * Is player emoting to npc?
  */
@@ -39,6 +36,7 @@ public class EmoteCondition implements ChatCondition {
 		this.playerAction = playerAction.trim();
 	}
 
+	@Override
 	public boolean fire(final Player player, final Sentence sentence, final Entity entity) {
 		final String text = sentence.getOriginalText();
 		return ((text.startsWith("!me")) &&
@@ -53,13 +51,16 @@ public class EmoteCondition implements ChatCondition {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 43649 * playerAction.hashCode();
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				EmoteCondition.class);
+		if (!(obj instanceof EmoteCondition)) {
+			return false;
+		}
+		EmoteCondition other = (EmoteCondition) obj;
+		return playerAction.equals(other.playerAction);
 	}
 
 }

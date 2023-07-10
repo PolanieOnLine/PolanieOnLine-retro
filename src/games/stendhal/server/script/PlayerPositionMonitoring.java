@@ -1,6 +1,5 @@
-/* $Id: PlayerPositionMonitoring.java,v 1.20 2010/09/19 02:36:26 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,6 +11,8 @@
  ***************************************************************************/
 package games.stendhal.server.script;
 
+import java.util.List;
+
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.engine.Task;
@@ -19,11 +20,9 @@ import games.stendhal.server.core.events.TurnListener;
 import games.stendhal.server.core.scripting.ScriptImpl;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.List;
-
 /**
  * List the players and their positions over a period of time.
- * 
+ *
  * @author hendrik
  */
 public class PlayerPositionMonitoring extends ScriptImpl {
@@ -42,7 +41,7 @@ public class PlayerPositionMonitoring extends ScriptImpl {
 
 		/**
 		 * creates a new PlayerPositionListener.
-		 * 
+		 *
 		 * @param admin
 		 *            the admin to notify
 		 */
@@ -56,9 +55,10 @@ public class PlayerPositionMonitoring extends ScriptImpl {
 			sb.append(": ");
 
 			SingletonRepository.getRuleProcessor().getOnlinePlayers().forAllPlayersExecute(
-					
+
 				new Task<Player>() {
 
+				@Override
 				public void execute(final Player player) {
 
 					if (sb.length() > 10) {
@@ -80,16 +80,17 @@ public class PlayerPositionMonitoring extends ScriptImpl {
 					sb.append(player.getX());
 					sb.append(' ');
 					sb.append(player.getY());
-				
 
-					
+
+
 				}
-				
+
 			});
-			
+
 			admin.sendPrivateText(sb.toString());
 		}
 
+		@Override
 		public void onTurnReached(final int currentTurn) {
 			list();
 			if (counter < INTERVALS.length) {

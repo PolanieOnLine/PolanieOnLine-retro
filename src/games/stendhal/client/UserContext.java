@@ -1,4 +1,4 @@
-/* $Id: UserContext.java,v 1.48 2012/04/10 14:13:44 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -13,24 +13,23 @@
 package games.stendhal.client;
 
 
-import games.stendhal.client.listener.FeatureChangeListener;
-import games.stendhal.client.listener.RPObjectChangeListener;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import marauroa.common.game.RPObject;
-
 import org.apache.log4j.Logger;
+
+import games.stendhal.client.listener.FeatureChangeListener;
+import games.stendhal.client.listener.RPObjectChangeListener;
+import marauroa.common.game.RPObject;
 
 /**
  * The player user context. This class holds/manages the data for the user of
  * this client. This is independent of any on-screen representation Entity that,
  * while related, serves an entirely different purpose.
- * 
+ *
  * Currently this is just a helper class for StendhalClient. Maybe it will be
  * directly used by other code later.
  */
@@ -40,15 +39,12 @@ public class UserContext implements RPObjectChangeListener {
 	 */
 	private static final Logger logger = Logger.getLogger(UserContext.class);
 
-	/**
-	 * The currently known buddies.
-	 */
-	protected HashMap<String, Boolean> buddies;
+	private static final UserContext instance = new UserContext();
 
 	/**
 	 * The currently enabled features.
 	 */
-	protected HashMap<String, String> features;
+	private final HashMap<String, String> features = new HashMap<>();
 
 	/**
 	 * The feature change listeners.
@@ -58,40 +54,39 @@ public class UserContext implements RPObjectChangeListener {
 	/**
 	 * The admin level.
 	 */
-	protected int adminlevel;
+	private int adminlevel;
 
 	/**
 	 * The player character's name.
 	 */
-	protected String name;
+	private String name;
 
 	/**
 	 * The owned sheep RPObject ID.
 	 */
-	protected int sheepID;
+	private int sheepID;
+	
+	/**
+	 * The owned goat RPObject ID.
+	 */
+	private int goatID;
 
-	private RPObject player;
+	private volatile RPObject player;
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 */
-	public UserContext() {
-
-		adminlevel = 0;
-		name = null;
-		sheepID = 0;
-		buddies = new HashMap<String, Boolean>();
-		features = new HashMap<String, String>();
+	private UserContext() {
 	}
 
-	//
-	// UserContext
-	//
+	public static UserContext get() {
+		return instance;
+	}
 
 	/**
 	 * Add a feature change listener.
-	 * 
+	 *
 	 * @param l
 	 *            The listener.
 	 */
@@ -99,15 +94,13 @@ public class UserContext implements RPObjectChangeListener {
 		featureListeners.add(l);
 	}
 
-
-
 	/**
 	 * Fire feature enabled to all registered listeners.
-	 * 
+	 *
 	 * @param name
 	 *            The name of the feature.
 	 */
-	protected void fireFeatureDisabled(final String name) {
+	private void fireFeatureDisabled(final String name) {
 		logger.debug("Feature disabled: " + name);
 
 		for (final FeatureChangeListener l : featureListeners) {
@@ -117,13 +110,13 @@ public class UserContext implements RPObjectChangeListener {
 
 	/**
 	 * Fire feature enabled to all registered listeners.
-	 * 
+	 *
 	 * @param name
 	 *            The name of the feature.
 	 * @param value
 	 *            The optional feature value.
 	 */
-	protected void fireFeatureEnabled(final String name, final String value) {
+	private void fireFeatureEnabled(final String name, final String value) {
 		logger.debug("Feature enabled: " + name + " = " + value);
 
 		for (final FeatureChangeListener l : featureListeners) {
@@ -133,7 +126,7 @@ public class UserContext implements RPObjectChangeListener {
 
 	/**
 	 * Get the admin level.
-	 * 
+	 *
 	 * @return The admin level.
 	 */
 	public int getAdminLevel() {
@@ -142,7 +135,7 @@ public class UserContext implements RPObjectChangeListener {
 
 	/**
 	 * Get the player character name.
-	 * 
+	 *
 	 * @return The player character name.
 	 */
 	public String getName() {
@@ -151,17 +144,21 @@ public class UserContext implements RPObjectChangeListener {
 
 	/**
 	 * Get the player's owned sheep RPObject ID.
-	 * 
+	 *
 	 * @return The RPObject ID of the sheep the player owns, or <code>0</code>
 	 *         if none.
 	 */
 	public int getSheepID() {
 		return sheepID;
 	}
+	
+	public int getGoatID() {
+		return goatID;
+	}
 
 	/**
 	 * Determine if the user is an admin.
-	 * 
+	 *
 	 * @return <code>true</code> is the user is an admin.
 	 */
 	public boolean isAdmin() {
@@ -171,24 +168,24 @@ public class UserContext implements RPObjectChangeListener {
 
 	/**
 	 * Remove a feature change listener.
-	 * 
+	 *
 	 * @param listener
 	 *            The listener.
 	 */
-	public void removeFeatureChangeListener(final FeatureChangeListener listener) {
+	void removeFeatureChangeListener(final FeatureChangeListener listener) {
 		featureListeners.remove(listener);
 	}
 
 
 	/**
 	 * A feature object added/changed attribute(s).
-	 * 
+	 *
 	 * @param changes
 	 *            The object changes.
 	 */
-	protected void processFeaturesAdded(final Map<String, String> changes) {
+	private void processFeaturesAdded(final Map<String, String> changes) {
 		for (final Entry<String, String> entry : changes.entrySet()) {
-			if (!features.containsKey(entry.getKey())) {
+			if (!features.containsKey(entry.getKey()) || !features.get(entry.getKey()).equals(entry.getValue())) {
 				features.put(entry.getKey(), entry.getValue());
 				fireFeatureEnabled(entry.getKey(), entry.getValue());
 			}
@@ -197,11 +194,11 @@ public class UserContext implements RPObjectChangeListener {
 
 	/**
 	 * A feature object removed attribute(s).
-	 * 
+	 *
 	 * @param changes
 	 *            The object changes.
 	 */
-	protected void processFeaturesRemoved(final Map<String, String> changes) {
+	private void processFeaturesRemoved(final Map<String, String> changes) {
 		for (final String feature : changes.keySet()) {
 			if (features.containsKey(feature)) {
 				features.remove(feature);
@@ -224,7 +221,7 @@ public class UserContext implements RPObjectChangeListener {
 		}
 	}
 
-	public boolean isUser(final RPObject object) {
+	boolean isUser(final RPObject object) {
 		if (name == null) {
 			return false;
 		}
@@ -241,10 +238,11 @@ public class UserContext implements RPObjectChangeListener {
 
 	/**
 	 * An object was added.
-	 * 
+	 *
 	 * @param object
 	 *            The object.
 	 */
+	@Override
 	public void onAdded(final RPObject object) {
 		if (isUser(object)) {
 
@@ -257,12 +255,13 @@ public class UserContext implements RPObjectChangeListener {
 
 	/**
 	 * The object added/changed attribute(s).
-	 * 
+	 *
 	 * @param object
 	 *            The base object.
 	 * @param changes
 	 *            The changes.
 	 */
+	@Override
 	public void onChangedAdded(final RPObject object, final RPObject changes) {
 		if (isUser(object)) {
 			if (changes.has("adminlevel")) {
@@ -278,6 +277,10 @@ public class UserContext implements RPObjectChangeListener {
 				// fireOwnedSheep(sheepID);
 			}
 			
+			if (changes.has("goat")) {
+				goatID = changes.getInt("goat");
+			}
+
 			if (changes.hasMap("features")) {
 				processFeaturesAdded(changes.getMap("features"));
 			}
@@ -287,12 +290,13 @@ public class UserContext implements RPObjectChangeListener {
 
 	/**
 	 * An object removed attribute(s).
-	 * 
+	 *
 	 * @param object
 	 *            The base object.
 	 * @param changes
 	 *            The changes.
 	 */
+	@Override
 	public void onChangedRemoved(final RPObject object, final RPObject changes) {
 		if (isUser(object)) {
 			if (changes.has("adminlevel")) {
@@ -307,7 +311,11 @@ public class UserContext implements RPObjectChangeListener {
 				sheepID = 0;
 				// fireOwnedSheep(sheepID);
 			}
-			
+
+			if (changes.has("goat")) {
+				goatID = 0;
+			}
+
 			if (changes.hasMap("features")) {
 				processFeaturesRemoved(changes.getMap("features"));
 			}
@@ -316,10 +324,11 @@ public class UserContext implements RPObjectChangeListener {
 
 	/**
 	 * An object was removed.
-	 * 
+	 *
 	 * @param object
 	 *            The object.
 	 */
+	@Override
 	public void onRemoved(final RPObject object) {
 		if (isUser(object)) {
 			adminlevel = 0;
@@ -327,12 +336,13 @@ public class UserContext implements RPObjectChangeListener {
 			name = null;
 
 			sheepID = 0;
+			goatID = 0;
 		}
 	}
 
 	/**
 	 * A slot object was added.
-	 * 
+	 *
 	 * @param object
 	 *            The container object.
 	 * @param slotName
@@ -340,13 +350,14 @@ public class UserContext implements RPObjectChangeListener {
 	 * @param sobject
 	 *            The slot object.
 	 */
+	@Override
 	public void onSlotAdded(final RPObject object, final String slotName,
 			final RPObject sobject) {
 	}
 
 	/**
 	 * A slot object added/changed attribute(s).
-	 * 
+	 *
 	 * @param object
 	 *            The base container object.
 	 * @param slotName
@@ -356,6 +367,7 @@ public class UserContext implements RPObjectChangeListener {
 	 * @param schanges
 	 *            The slot object changes.
 	 */
+	@Override
 	public void onSlotChangedAdded(final RPObject object,
 			final String slotName, final RPObject sobject,
 			final RPObject schanges) {
@@ -363,7 +375,7 @@ public class UserContext implements RPObjectChangeListener {
 
 	/**
 	 * A slot object removed attribute(s).
-	 * 
+	 *
 	 * @param object
 	 *            The base container object.
 	 * @param slotName
@@ -373,6 +385,7 @@ public class UserContext implements RPObjectChangeListener {
 	 * @param schanges
 	 *            The slot object changes.
 	 */
+	@Override
 	public void onSlotChangedRemoved(final RPObject object,
 			final String slotName, final RPObject sobject,
 			final RPObject schanges) {
@@ -380,7 +393,7 @@ public class UserContext implements RPObjectChangeListener {
 
 	/**
 	 * A slot object was removed.
-	 * 
+	 *
 	 * @param object
 	 *            The container object.
 	 * @param slotName
@@ -388,11 +401,19 @@ public class UserContext implements RPObjectChangeListener {
 	 * @param sobject
 	 *            The slot object.
 	 */
+	@Override
 	public void onSlotRemoved(final RPObject object, final String slotName,
 			final RPObject sobject) {
 	}
 
 	public void setName(final String username) {
 		name = username;
+	}
+
+	/**
+	 * Checks if the player has a feature.
+	 */
+	public boolean hasFeature(final String name) {
+		return features.get(name) != null;
 	}
 }

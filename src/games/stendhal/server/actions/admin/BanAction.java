@@ -1,6 +1,5 @@
-/* $Id: BanAction.java,v 1.17 2011/11/03 20:12:57 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2013 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,12 +11,6 @@
  ***************************************************************************/
 package games.stendhal.server.actions.admin;
 
-import games.stendhal.common.NotificationType;
-import games.stendhal.server.actions.CommandCenter;
-import games.stendhal.server.core.engine.GameEvent;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.entity.player.Player;
-
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Calendar;
@@ -25,18 +18,25 @@ import java.util.GregorianCalendar;
 import java.util.LinkedList;
 import java.util.List;
 
+import games.stendhal.common.NotificationType;
+import games.stendhal.server.actions.CommandCenter;
+import games.stendhal.server.core.engine.GameEvent;
+import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.entity.player.Player;
 import marauroa.common.game.RPAction;
+import marauroa.server.db.command.DBCommandQueue;
 import marauroa.server.game.container.PlayerEntry;
 import marauroa.server.game.container.PlayerEntryContainer;
-import marauroa.server.game.db.AccountDAO;
 import marauroa.server.game.db.CharacterDAO;
 import marauroa.server.game.db.DAORegister;
+import marauroa.server.game.dbcommand.BanAccountCommand;
 
-import org.apache.log4j.Logger;
-
+/**
+ * Bans an account
+ *
+ * @author hendrik
+ */
 public class BanAction extends AdministrationAction {
-	@SuppressWarnings("hiding")
-	private static Logger logger = Logger.getLogger(BanAction.class);
 
 	@Override
 	protected void perform(final Player player, final RPAction action) {
@@ -47,14 +47,14 @@ public class BanAction extends AdministrationAction {
 				reason = action.get("reason");
 			}
 			int hours = 1;
-			
+
 			try {
 				hours = Integer.parseInt(action.get("hours"));
 			} catch (final NumberFormatException e) {
 				player.sendPrivateText(NotificationType.ERROR, "Przy blokowaniu używaj liczb w godzinach lub -1 godzin, aby całkowicie zablokować. Dla krótszego czasu niż 1 godzina używaj /jail.");
 				return; 
 			}
-			
+
 			String sender = player.getName();
 			if (action.has("sender") && (player.getName().equals("postman"))) {
 				sender = action.get("sender");
@@ -62,14 +62,6 @@ public class BanAction extends AdministrationAction {
 
 
 			try {
-
-				// look up username
-				String username = DAORegister.get().get(CharacterDAO.class).getAccountName(bannedName);
-				if (username == null) {
-					player.sendPrivateText(NotificationType.ERROR, "Nie ma takiego wojownika");
-					return;
-				}
-
 				// parse expire
 				Timestamp expire = null;
 				String expireStr = "zawsze";
@@ -80,13 +72,19 @@ public class BanAction extends AdministrationAction {
 					expireStr = expire.toString();
 				}
 
-				DAORegister.get().get(AccountDAO.class).addBan(username, reason, expire);
+				// look up username
+				String username = DAORegister.get().get(CharacterDAO.class).getAccountName(bannedName);
+				if (username == null) {
+					player.sendPrivateText(NotificationType.ERROR, "Nie ma takiego wojownika");
+					return;
+				}
+				DBCommandQueue.get().enqueue(new BanAccountCommand(username, reason, expire));
 				player.sendPrivateText("Zablokowałeś konto " + username + " (postać: " + bannedName + ") na " + expireStr + " za: " + reason);
 
 				// logging
 				logger.info(sender + " has banned  account " + username + " (character: " + bannedName + ") until " + expireStr + " for: " + reason);
 				new GameEvent(sender, "ban",  bannedName, expireStr, reason).raise();
-				
+
 				SingletonRepository.getRuleProcessor().sendMessageToSupporters("JailKeeper",
 						sender + " zablokował konto " + username + " (postać: " + bannedName + ") na " + expireStr
 						+ ". Powód: " + reason + ".");
@@ -101,7 +99,7 @@ public class BanAction extends AdministrationAction {
 		List<String> characters = new LinkedList<String>();
 		final PlayerEntryContainer playerContainer = PlayerEntryContainer.getContainer();
 		for (PlayerEntry entry : playerContainer) {
-			if (username.equals(entry.username)) {
+			if (username.equalsIgnoreCase(entry.username)) {
 				characters.add(entry.character);
 			}
 		}
@@ -110,11 +108,14 @@ public class BanAction extends AdministrationAction {
 			final Player player = SingletonRepository.getRuleProcessor().getPlayer(character);
 			if (player != null) {
 				SingletonRepository.getRuleProcessor().getRPManager().disconnectPlayer(player);
-	}
+			}
 		}
 	}
 
+	/**
+	 * registers the ban action
+	 */
 	public static void register() {
-		CommandCenter.register("ban", new BanAction(), 19);
+		CommandCenter.register("ban", new BanAction(), 1000);
 	}
 }

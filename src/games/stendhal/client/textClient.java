@@ -1,4 +1,4 @@
-/* $Id: textClient.java,v 1.33 2010/11/26 20:02:23 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -55,44 +55,55 @@ public class textClient extends Thread {
 
 		handler = new PerceptionHandler(new IPerceptionListener() {
 
+			@Override
 			public boolean onAdded(final RPObject object) {
 				return false;
 			}
 
+			@Override
 			public boolean onClear() {
 				return false;
 			}
 
+			@Override
 			public boolean onDeleted(final RPObject object) {
 				return false;
 			}
 
+			@Override
 			public void onException(final Exception exception,
 					final MessageS2CPerception perception) {
 				exception.printStackTrace();
 			}
 
+			@Override
 			public boolean onModifiedAdded(final RPObject object, final RPObject changes) {
 				return false;
 			}
 
+			@Override
 			public boolean onModifiedDeleted(final RPObject object, final RPObject changes) {
 				return false;
 			}
 
+			@Override
 			public boolean onMyRPObject(final RPObject added, final RPObject deleted) {
 				return false;
 			}
 
+			@Override
 			public void onPerceptionBegin(final byte type, final int timestamp) {
 			}
 
+			@Override
 			public void onPerceptionEnd(final byte type, final int timestamp) {
 			}
 
+			@Override
 			public void onSynced() {
 			}
 
+			@Override
 			public void onUnsynced() {
 			}
 		});
@@ -102,7 +113,7 @@ public class textClient extends Thread {
 
 			@Override
 			protected String getGameName() {
-				return "polskaonline";
+				return "polanieonline";
 			}
 
 			@Override

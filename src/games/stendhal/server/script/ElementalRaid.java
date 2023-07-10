@@ -1,6 +1,5 @@
-/* $Id: ElementalRaid.java,v 1.3 2010/09/19 02:36:26 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -17,7 +16,7 @@ import java.util.Map;
 
 /**
  * @author kymara
- * 
+ *
  * Less safe for players below level 50
  */
 public class ElementalRaid extends CreateRaid {
@@ -33,7 +32,7 @@ public class ElementalRaid extends CreateRaid {
 		attackArmy.put("żywioł powietrza", 7);
 		return attackArmy;
 	}
-	
+
 	@Override
 	protected String getInfo() {
 		return "Mniej bezpieczny dla wojowników poniżej poziomu 50";

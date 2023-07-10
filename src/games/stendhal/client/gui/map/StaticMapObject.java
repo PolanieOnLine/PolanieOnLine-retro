@@ -1,4 +1,4 @@
-/* $Id: StaticMapObject.java,v 1.2 2010/09/19 02:19:20 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,25 +12,25 @@
  ***************************************************************************/
 package games.stendhal.client.gui.map;
 
-import games.stendhal.client.entity.IEntity;
-
 import java.awt.Color;
 import java.awt.Graphics;
 
-public abstract class StaticMapObject extends MapObject {
-	public StaticMapObject(final IEntity entity) {
+import games.stendhal.client.entity.IEntity;
+
+abstract class StaticMapObject extends MapObject {
+	StaticMapObject(final IEntity entity) {
 		super(entity);
 	}
 
 	/**
 	 * Draw the entity
-	 * 
+	 *
 	 * @param g Graphics context
 	 * @param scale Scaling factor
 	 * @param color Drawing Color
 	 * @param outline Outline color, or <code>null</code> if no outline
 	 */
-	protected void draw(final Graphics g, final int scale, final Color color, final Color outline) {
+	void draw(final Graphics g, final int scale, final Color color, final Color outline) {
 		final int rx = worldToCanvas(x, scale);
 		final int ry = worldToCanvas(y, scale);
 		final int rwidth = width * scale;

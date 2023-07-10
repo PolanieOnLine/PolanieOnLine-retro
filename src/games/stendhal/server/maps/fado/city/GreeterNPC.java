@@ -1,6 +1,5 @@
-/* $Id: GreeterNPC.java,v 1.22 2012/03/26 19:42:58 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,21 +11,16 @@
  ***************************************************************************/
 package games.stendhal.server.maps.fado.city;
 
-import games.stendhal.server.core.config.ZoneConfigurator;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.core.pathfinder.FixedPath;
-import games.stendhal.server.core.pathfinder.Node;
-import games.stendhal.server.entity.Outfit;
-import games.stendhal.server.entity.npc.ShopList;
-import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.behaviour.adder.SellerAdder;
-import games.stendhal.server.entity.npc.behaviour.impl.SellerBehaviour;
-
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import games.stendhal.server.core.config.ZoneConfigurator;
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.core.pathfinder.FixedPath;
+import games.stendhal.server.core.pathfinder.Node;
+import games.stendhal.server.entity.npc.SpeakerNPC;
 
 /**
  * Builds the city greeter NPC.
@@ -34,29 +28,19 @@ import java.util.Map;
  * @author timothyb89
  */
 public class GreeterNPC implements ZoneConfigurator {
-	private final ShopList shops = SingletonRepository.getShopList();
-
-	//
-	// ZoneConfigurator
-	//
-
 	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
-		buildNPC(zone, attributes);
+		buildNPC(zone);
 	}
 
-	//
-	// OL0_GreeterNPC
-	//
-
-	private void buildNPC(final StendhalRPZone zone, final Map<String, String> attributes) {
+	private void buildNPC(final StendhalRPZone zone) {
 		final SpeakerNPC greeterNPC = new SpeakerNPC("Xhiphin Zohos") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -76,15 +60,14 @@ public class GreeterNPC implements ZoneConfigurator {
 				        "Deniran jest perłą w koronie. Deniran jest centrum Faiumoni, posiada także wojsko, które jest gotowe pokonać wroga próbującego podbić Faiumoni.");
 				addJob("Witam wszystkich nowo przybyłych do Fado. Mogę #zaoferować zwój jeżeli chciałbyś kiedyś tu wrócić.");
 				addHelp("Możesz pójść do oberży, w której kupisz jedzenie i picie. Możesz także odwiedzać ludzi w domach lub odwiedzić kowala lub miejski hotel.");
-				new SellerAdder().addSeller(this, new SellerBehaviour(shops.get("fadoscrolls")));
-				addGoodbye("Dowidzenia.");
+				addGoodbye("Do widzenia.");
 			}
 		};
 
-		greeterNPC.setOutfit(new Outfit(5, 2, 006, 01));
+		greeterNPC.setDescription("Oto Xhiphin Zohos. Jest pomocnym obywatelem Fado.");
+		greeterNPC.setOutfit(1, 6, 1, null, 0, null, 5, null, 0);
+		greeterNPC.setGender("M");
 		greeterNPC.setPosition(39, 29);
-		greeterNPC.initHP(1000);
-		greeterNPC.setDescription("Widzisz Xhiphin Zohos. Jest pomocnym obywatelem Fado.");
 		zone.add(greeterNPC);
 	}
 }

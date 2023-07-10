@@ -1,4 +1,4 @@
-/* $Id: NPCNameValidator.java,v 1.2 2010/09/19 02:22:40 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -18,7 +18,7 @@ import marauroa.common.game.Result;
 
 /**
  * validates name is not an NPC name
- * 
+ *
  * @author kymara
  */
 public class NPCNameValidator implements AccountParameterValidator {
@@ -26,7 +26,7 @@ public class NPCNameValidator implements AccountParameterValidator {
 
 	/**
 	 * creates a NPCNameValidator.
-	 * 
+	 *
 	 * @param parameterValue
 	 *            value to validate
 	 */
@@ -34,12 +34,13 @@ public class NPCNameValidator implements AccountParameterValidator {
 		this.parameterValue = parameterValue;
 	}
 
+	@Override
 	public Result validate() {
 		final NPCList npcs = SingletonRepository.getNPCList();
 		for (final String name : npcs.getNPCs()) {
 			if (name.equals(parameterValue)) {
 				return Result.FAILED_RESERVED_NAME;
-			}	
+			}
 		}
 		return null;
 	}

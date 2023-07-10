@@ -1,4 +1,4 @@
-/* $Id: PublicChestSlot.java,v 1.1 2010/09/28 20:33:00 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -16,7 +16,7 @@ import games.stendhal.server.entity.mapstuff.chest.Chest;
 
 /**
  * A slot of a chest which is only accessible, if the chest is open.
- * 
+ *
  * @author hendrik
  */
 public class PublicChestSlot extends ChestSlot {

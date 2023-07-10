@@ -1,4 +1,4 @@
-/* $Id: LevelGreaterThanCondition.java,v 1.16 2012/09/09 12:33:24 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -18,9 +18,6 @@ import games.stendhal.server.core.config.annotations.Dev.Category;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.player.Player;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Is the player's level greater than the specified one?
@@ -43,6 +40,7 @@ public class LevelGreaterThanCondition implements ChatCondition {
 	/**
 	 * @return true if players level greater then conditions Level
 	 */
+	@Override
 	public boolean fire(final Player player, final Sentence sentence, final Entity entity) {
 		return (player.getLevel() > level);
 	}
@@ -54,13 +52,16 @@ public class LevelGreaterThanCondition implements ChatCondition {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 43717 * level;
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				LevelGreaterThanCondition.class);
+		if (!(obj instanceof LevelGreaterThanCondition)) {
+			return false;
+		}
+		LevelGreaterThanCondition other = (LevelGreaterThanCondition) obj;
+		return level == other.level;
 	}
 
 }

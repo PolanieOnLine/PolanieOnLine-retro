@@ -1,6 +1,5 @@
-/* $Id: MoveAction.java,v 1.9 2009/02/25 23:42:52 astridemma Exp $ */
 /***************************************************************************
- *                      (C) Copyright 2003 - Marauroa                      *
+ *                   (C) Copyright 2003-2013 - Marauroa                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -15,6 +14,7 @@ package games.stendhal.server.actions.move;
 import static games.stendhal.common.constants.Actions.AWAY;
 import static games.stendhal.common.constants.Actions.DIR;
 import static games.stendhal.common.constants.Actions.MOVE;
+
 import games.stendhal.common.Direction;
 import games.stendhal.server.actions.ActionListener;
 import games.stendhal.server.actions.CommandCenter;
@@ -22,15 +22,20 @@ import games.stendhal.server.core.events.TutorialNotifier;
 import games.stendhal.server.entity.player.Player;
 import marauroa.common.game.RPAction;
 
+/**
+ * moves into the specified direction
+ */
 public class MoveAction implements ActionListener {
 
-
-
+	/**
+	 * registers the action
+	 */
 	public static void register() {
 		final MoveAction move = new MoveAction();
 		CommandCenter.register(MOVE, move);
 	}
 
+	@Override
 	public void onAction(final Player player, final RPAction action) {
 		if (action.has(DIR)) {
 			final int dirval = action.getInt(DIR);

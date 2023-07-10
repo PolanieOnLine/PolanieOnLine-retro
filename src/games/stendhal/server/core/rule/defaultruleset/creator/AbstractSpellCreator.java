@@ -1,4 +1,4 @@
-/* $Id: AbstractSpellCreator.java,v 1.3 2010/09/19 02:22:48 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,13 +12,13 @@
  ***************************************************************************/
 package games.stendhal.server.core.rule.defaultruleset.creator;
 
+import java.lang.reflect.Constructor;
+
 import games.stendhal.server.core.rule.defaultruleset.DefaultSpell;
 import games.stendhal.server.entity.spell.Spell;
 
-import java.lang.reflect.Constructor;
-
 abstract class AbstractSpellCreator extends AbstractCreator<Spell> {
-	
+
 	protected final DefaultSpell defaultSpell;
 
 	public AbstractSpellCreator(DefaultSpell defaultSpell, Constructor<?> construct) {

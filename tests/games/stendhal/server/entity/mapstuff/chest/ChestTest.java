@@ -1,4 +1,4 @@
-/* $Id: ChestTest.java,v 1.7 2010/09/19 02:39:55 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -15,16 +15,17 @@ package games.stendhal.server.entity.mapstuff.chest;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.PassiveEntity;
 import games.stendhal.server.entity.RPEntity;
 import games.stendhal.server.entity.item.Corpse;
 import marauroa.common.game.RPClass;
 import marauroa.common.game.SlotIsFullException;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
 
 public class ChestTest {
 
@@ -50,11 +51,11 @@ public class ChestTest {
 	public final void testSize() {
 		final Chest ch = new Chest();
 		assertEquals(0, ch.size());
-		for (int i = 0; i < 30; i++) {
+		for (int i = 0; i < 40; i++) {
 			ch.add(new PassiveEntity() {
 			});
 		}
-		assertEquals(30, ch.size());
+		assertEquals(40, ch.size());
 		ch.add(new PassiveEntity() {
 		});
 	}

@@ -1,8 +1,6 @@
 
 package games.stendhal.server.maps.quests.houses;
 
-import marauroa.common.game.SlotIsFullException;
-
 import org.apache.log4j.Logger;
 
 import games.stendhal.common.parser.Sentence;
@@ -16,15 +14,14 @@ import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.player.Player;
+import marauroa.common.game.SlotIsFullException;
 
 final class BuyHouseChatAction extends HouseChatAction implements ChatAction {
-
-
 	private int cost;
 
 	/**
 	 * Creates a new BuyHouseChatAction.
-	 * 
+	 *
 	 * @param cost how much does the house cost
 	 * @param questSlot name of quest slot
 	 */
@@ -33,8 +30,8 @@ final class BuyHouseChatAction extends HouseChatAction implements ChatAction {
 		this.cost = cost;
 	}
 
+	@Override
 	public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
-
 		final int number = sentence.getNumeral().getAmount();
 		// now check if the house they said is free
 		final String itemName = Integer.toString(number);
@@ -50,22 +47,21 @@ final class BuyHouseChatAction extends HouseChatAction implements ChatAction {
 
 		final String owner = houseportal.getOwner();
 		if (owner.length() == 0) {
-			
+
 			// it's available, so take money
 			if (player.isEquipped("money", cost)) {
-				final Item key = SingletonRepository.getEntityManager().getItem(
-																				"klucz do drzwi");
+				final Item key = SingletonRepository.getEntityManager().getItem("klucz do drzwi");
 
 				final String doorId = houseportal.getDoorId();
 
 				final int locknumber = houseportal.getLockNumber();
 				((HouseKey) key).setup(doorId, locknumber, player.getName());
-			
+
 				if (player.equipToInventoryOnly(key)) {
 					raiser.say("Gratulacje, a oto i klucz do " + doorId
-							   + ". Upewnij się, że zmieniłeś zamki o ile zgubiłeś klucze. Czy chcesz kupić zapasowy klucz w cenie  "
+							   + "! Upewnij się, że zmieniłeś zamki o ile zgubiłeś klucze. Czy chcesz kupić zapasowy klucz w cenie "
 							   + HouseChatAction.COST_OF_SPARE_KEY + " money?");
-					
+
 					player.drop("money", cost);
 					// remember what house they own
 					player.setQuest(questslot, itemName);
@@ -82,11 +78,11 @@ final class BuyHouseChatAction extends HouseChatAction implements ChatAction {
 				} else {
 					raiser.say("Przepraszam, ale nie możesz wziąć więcej kluczy!");
 				}
-			
+
 			} else {
-				raiser.say("Nie masz wystarczająco dużo pieniędzy, aby kupić dom");
+				raiser.say("Nie masz wystarczająco dużo pieniędzy, aby kupić dom.");
 			}
-		
+
 		} else {
 			raiser.say("Przepraszam dom " + itemName
 					   + " został już sprzedany. Poproś o listę #niesprzedanych domów lub podaj numer innego domu.");
@@ -100,7 +96,7 @@ final class BuyHouseChatAction extends HouseChatAction implements ChatAction {
 				+ "1. Jeżeli nie zapłacisz podatku za dom to wszystkie przedmioty znajdujące się w skrzyni będą skonfiskowane.\n"
 				+ "2. Wszystkie osoby, które dostaną się do domu mogą korzystać ze skrzyni.\n"
 				+ "3. Pamiętaj, aby zmienić zamki jako zabezpieczenie twojego domu.\n"
-				+ "4. Możesz odsprzedać dom o ile chcesz (nie zostawiaj mnie)\n");
+				+ "4. Możesz odsprzedać dom o ile chcesz (nie zostawiaj mnie)");
 		try {
 			chest.add(item);
 

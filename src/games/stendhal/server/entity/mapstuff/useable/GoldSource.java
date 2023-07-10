@@ -1,4 +1,4 @@
-/* $Id: GoldSource.java,v 1.6 2011/04/02 15:44:18 kymara Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +12,8 @@
  ***************************************************************************/
 package games.stendhal.server.entity.mapstuff.useable;
 
+import org.apache.log4j.Logger;
+
 //
 //
 
@@ -22,20 +24,18 @@ import games.stendhal.server.entity.item.Item;
 import games.stendhal.server.entity.player.Player;
 import marauroa.common.game.RPClass;
 
-import org.apache.log4j.Logger;
-
 /**
  * A gold source is a spot where a player can prospect for gold nuggets. He
  * needs a gold pan, time, and luck.
- * 
+ *
  * Prospecting takes 7-11 seconds; during this time, the player keep standing
  * next to the gold source. In fact, the player only has to be there when the
  * prospecting action has finished. Therefore, make sure that two gold sources
  * are always at least 5 sec of walking away from each other, so that the player
  * can't prospect for gold at several sites simultaneously.
- * 
+ *
  * Some karma is used to decide if the player was successful at the well or not.
- * 
+ *
  * @author daniel
  */
 public class GoldSource extends PlayerActivityEntity {
@@ -70,10 +70,10 @@ public class GoldSource extends PlayerActivityEntity {
 	public String getName() {
 		return("gold rich water");
 	}
-	
+
 	/**
 	 * Create a gold source.
-	 * 
+	 *
 	 * @param itemName
 	 *            The name of the item to be prospected.
 	 */
@@ -81,7 +81,7 @@ public class GoldSource extends PlayerActivityEntity {
 		this.itemName = itemName;
 		put("class", "source");
 		put("name", "gold_source");
-		setMenu("Poszukaj złota");
+		setMenu("Poszukaj złota|Użyj");
 		setDescription("Widzisz coś świecącego na złoto.");
 	}
 
@@ -100,17 +100,17 @@ public class GoldSource extends PlayerActivityEntity {
 
 	/**
 	 * Get the time it takes to perform this activity.
-	 * 
+	 *
 	 * @return The time to perform the activity (in seconds).
 	 */
 	@Override
-	protected int getDuration() {
+	protected int getDuration(Player player) {
 		return 7 + Rand.rand(4);
 	}
 
 	/**
 	 * Decides if the activity can be done.
-	 * 
+	 *
 	 * @return <code>true</code> if successful.
 	 */
 	@Override
@@ -125,7 +125,7 @@ public class GoldSource extends PlayerActivityEntity {
 
 	/**
 	 * Decides if the activity was successful.
-	 * 
+	 *
 	 * @return <code>true</code> if successful.
 	 */
 	@Override
@@ -134,12 +134,12 @@ public class GoldSource extends PlayerActivityEntity {
         /*
         * Use some karma to help decide if the outcome is successful
 		*/
-		return random <= (FINDING_PROBABILITY + player.useKarma(FINDING_PROBABILITY)) * 100;
+        return random <= (FINDING_PROBABILITY + player.useKarma(FINDING_PROBABILITY)) * 100;
 	}
 
 	/**
 	 * Called when the activity has finished.
-	 * 
+	 *
 	 * @param player
 	 *            The player that did the activity.
 	 * @param successful
@@ -151,11 +151,10 @@ public class GoldSource extends PlayerActivityEntity {
 			final Item item = SingletonRepository.getEntityManager().getItem(itemName);
 
 			if (item != null) {
-				player.equipOrPutOnGround(item);
+			    player.equipOrPutOnGround(item);
 			    player.incMinedForItem(item.getName(), item.getQuantity());
-			    SingletonRepository.getAchievementNotifier().onObtain(player);
-				player.sendPrivateText("Znalazłeś "
-						+ Grammar.a_noun(item.getTitle()) + ".");
+				player.sendPrivateText(Grammar.genderVerb(player.getGender(), "Znalazłeś") + " "
+						+ item.getTitle() + ".");
 			} else {
 				logger.error("could not find item: " + itemName);
 			}
@@ -166,7 +165,7 @@ public class GoldSource extends PlayerActivityEntity {
 
 	/**
 	 * Called when the activity has started.
-	 * 
+	 *
 	 * @param player
 	 *            The player starting the activity.
 	 */

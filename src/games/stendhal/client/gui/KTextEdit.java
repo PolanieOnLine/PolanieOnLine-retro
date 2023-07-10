@@ -1,6 +1,5 @@
-/* $Id: KTextEdit.java,v 1.81 2012/12/02 17:53:11 kiheru Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2012 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,10 +11,7 @@
  ***************************************************************************/
 package games.stendhal.client.gui;
 
-import games.stendhal.client.stendhal;
-import games.stendhal.client.gui.chatlog.EventLine;
-import games.stendhal.common.NotificationType;
-
+import java.awt.Adjustable;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
@@ -24,11 +20,20 @@ import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.awt.event.MouseEvent;
-import java.io.FileWriter;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.text.Format;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 import javax.swing.DefaultBoundedRangeModel;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -36,62 +41,113 @@ import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.BoxView;
 import javax.swing.text.Caret;
+import javax.swing.text.ComponentView;
 import javax.swing.text.DefaultCaret;
 import javax.swing.text.Document;
+import javax.swing.text.Element;
+import javax.swing.text.IconView;
+import javax.swing.text.LabelView;
+import javax.swing.text.ParagraphView;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
+import javax.swing.text.StyledDocument;
+import javax.swing.text.StyledEditorKit;
+import javax.swing.text.View;
+import javax.swing.text.ViewFactory;
 
 import org.apache.log4j.Logger;
+
+import games.stendhal.client.UserContext;
+import games.stendhal.client.stendhal;
+import games.stendhal.client.gui.chatlog.ChatTextSink;
+import games.stendhal.client.gui.chatlog.EventLine;
+import games.stendhal.client.gui.chatlog.HeaderLessEventLine;
+import games.stendhal.client.gui.textformat.StringFormatter;
+import games.stendhal.client.gui.textformat.StyleSet;
+import games.stendhal.client.sprite.EmojiStore;
+import games.stendhal.client.sprite.ImageSprite;
+import games.stendhal.common.MathHelper;
+import games.stendhal.common.NotificationType;
 
 /**
  * Appendable text component to be used as the chat log.
  */
-public class KTextEdit extends JComponent {
+class KTextEdit extends JComponent {
 	/** Color of the time stamp written before the lines. */
 	protected static final Color HEADER_COLOR = new Color(210, 210, 210);
 
-	private static final long serialVersionUID = -698232821850852452L;
 	private static final Logger logger = Logger.getLogger(KTextEdit.class);
 
 	/** The actual text component for showing the chat log. */
 	JTextPane textPane;
-	/** Scroll pane containing the text component. */
 	private JScrollPane scrollPane;
 	/** Name of the log. */
 	private String name = "";
 	/** Background color when not highlighting unread messages. */
-	private Color defaultBackground = new Color(60, 30, 0);
+	private static Color defaultBackground = new Color(60, 30 , 0);
+	// kolor pogrubienia poprzez #
+	private static final Color BOLD_COLOR = new Color(90, 170, 255);
+	// kolor czasu
+	private static final Color TIMESTP_COLOR = new Color(220, 220, 220);
+	// kolor nicku
+	private static final Color HEAD_COLOR = new Color(255, 255, 220);
+	// kolor kursywy
+	private static final Color ITALIC_COLOR = new Color(65, 105, 225);
+	// kolor podkreslenia na !
+	private static final Color UNDERLINE_COLOR = new Color(254, 76, 76);
+	
+	/** Formatting class for text containing stendhal markup. */
+	private final StringFormatter<Style, StyleSet> formatter = new StringFormatter<Style, StyleSet>();
+	private final Format dateFormatter = new SimpleDateFormat("[HH:mm:ss] ");
 
 	/** Listener for opening the popup menu when it's requested. */
 	private final class TextPaneMouseListener extends MousePopupAdapter {
 		@Override
 		protected void showPopup(final MouseEvent e) {
 			final JPopupMenu popup = new JPopupMenu("zapisz");
-	        	
-	        JMenuItem menuItem = new JMenuItem("Zapisz");
-	        menuItem.addActionListener(new ActionListener() {
+
+			JMenuItem menuItem = new JMenuItem("Zapisz");
+			menuItem.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(final ActionEvent e) {
 					save();
 				}
 			});
 			popup.add(menuItem);
-						
+
 			menuItem = new JMenuItem("Wyczyść");
 			menuItem.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(final ActionEvent e) {
 					clear();
-					}
-				});
-				popup.add(menuItem);
+				}
+			});
+			popup.add(menuItem);
 
-	        	popup.show(e.getComponent(), e.getX(), e.getY());
-	        }
-	    }
+			popup.show(e.getComponent(), e.getX(), e.getY());
+		}
+
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			StyledDocument doc = (StyledDocument) textPane.getDocument();
+			Element ele = doc.getCharacterElement(textPane.viewToModel(e.getPoint()));
+			AttributeSet as = ele.getAttributes();
+			Object fla = as.getAttribute("linkact");
+			if (fla instanceof LinkListener) {
+				try {
+					((LinkListener) fla).linkClicked(doc.getText(ele.getStartOffset(), ele.getEndOffset() - ele.getStartOffset()));
+				} catch (BadLocationException exc) {
+					logger.error("Trying to extract link from invalid range", exc);
+				}
+			}
+		}
+	}
 
 	@Override
 	public void setFont(Font font) {
@@ -103,7 +159,7 @@ public class KTextEdit extends JComponent {
 		 */
 		initStylesForTextPane(textPane, font.getSize() - 1);
 	}
-	
+
 	/**
 	 * Basic Constructor.
 	 */
@@ -114,8 +170,20 @@ public class KTextEdit extends JComponent {
 	/**
 	 * This method builds the Gui.
 	 */
-	protected void buildGUI() {
-		textPane = new JTextPane();
+	private void buildGUI() {
+		textPane = new JTextPane() {
+			@Override
+			public void insertIcon(Icon g) {
+				final JScrollBar scrollbar = scrollPane.getVerticalScrollBar();
+				final int oldpos = scrollbar.getValue();
+				setCaretPosition(textPane.getDocument().getLength());
+				super.insertIcon(g);
+				if (!isAtMaximum(scrollbar)) {
+					SwingUtilities.invokeLater(() -> scrollbar.setValue(oldpos));
+				}
+			}
+		};
+		textPane.setEditorKit(new WrapEditorKit());
 		textPane.setEditable(false);
 		textPane.setAutoscrolls(true);
 		// Turn off caret following. VerticalScrollBarModel takes care of
@@ -126,12 +194,12 @@ public class KTextEdit extends JComponent {
 		} else {
 			logger.warn("Failed to turn off caret following");
 		}
-		
+
 		textPane.addMouseListener(new TextPaneMouseListener());
-		
-		initStylesForTextPane(textPane, textPane.getFont().getSize());
+
+		initStylesForTextPane(textPane, textPane.getFont().getSize() - 1);
 		setLayout(new BorderLayout());
-		
+
 		scrollPane = new JScrollPane(textPane) {
 			@Override
 			public JScrollBar createVerticalScrollBar() {
@@ -140,16 +208,16 @@ public class KTextEdit extends JComponent {
 				return bar;
 			}
 		};
-	
+
 		scrollPane.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener() {
 			@Override
 			public void adjustmentValueChanged(final AdjustmentEvent ev) {
 				JScrollBar bar = (JScrollBar) ev.getAdjustable();
 				// Try to avoid turning the new message indicator off
-				// while the player keeps adjusting the scroll bar to 
+				// while the player keeps adjusting the scroll bar to
 				// avoid missleading results
 				if (!bar.getValueIsAdjusting() && isAtMaximum(bar)) {
-						setUnreadLinesWarning(false);
+					setUnreadLinesWarning(false);
 				}
 			}
 		});
@@ -159,26 +227,27 @@ public class KTextEdit extends JComponent {
 
 	/**
 	 * Initializes the basic styles.
-	 * 
+	 *
 	 * @param textPane
 	 *            the active text component
-	 * @param mainTextSize size of regular text 
+	 * @param mainTextSize size of regular text
 	 */
 	protected void initStylesForTextPane(final JTextPane textPane, int mainTextSize) {
+		// ****** General style definitions for the text pane ******
 		Style regular = textPane.getStyle("regular");
 		if (regular == null) {
-		final Style def = StyleContext.getDefaultStyleContext().getStyle(
-				StyleContext.DEFAULT_STYLE);
+			final Style def = StyleContext.getDefaultStyleContext().getStyle(
+					StyleContext.DEFAULT_STYLE);
 			regular = textPane.addStyle("regular", def);
-		StyleConstants.setFontFamily(def, "Dialog");
+			StyleConstants.setFontFamily(def, "Dialog");
 		}
 		StyleConstants.setFontSize(regular, mainTextSize);
 
 		Style s = textPane.getStyle("normal");
 		if (s == null) {
 			s = textPane.addStyle("normal", regular);
-		StyleConstants.setBold(s, true);
-		StyleConstants.setForeground(s, HEADER_COLOR);
+			StyleConstants.setBold(s, true);
+			StyleConstants.setForeground(s, HEADER_COLOR);
 		}
 
 		s = textPane.getStyle("bold");
@@ -186,7 +255,7 @@ public class KTextEdit extends JComponent {
 			s = textPane.addStyle("bold", regular);
 			StyleConstants.setItalic(s, true);
 			StyleConstants.setBold(s, true);
-			StyleConstants.setForeground(s, new Color(90, 170, 255));
+			StyleConstants.setForeground(s, BOLD_COLOR);
 		}
 		StyleConstants.setFontSize(regular, mainTextSize + 1);
 
@@ -194,7 +263,7 @@ public class KTextEdit extends JComponent {
 		if (s == null) {
 			s = textPane.addStyle("header", regular);
 			StyleConstants.setItalic(s, true);
-			StyleConstants.setForeground(s, new Color(255, 255, 220));
+			StyleConstants.setForeground(s, HEAD_COLOR);
 		}
 		StyleConstants.setFontSize(s, mainTextSize);
 
@@ -202,14 +271,41 @@ public class KTextEdit extends JComponent {
 		if (s == null) {
 			s = textPane.addStyle("timestamp", regular);
 			StyleConstants.setItalic(s, true);
-			StyleConstants.setForeground(s, new Color(220, 220, 220));
+			StyleConstants.setForeground(s, TIMESTP_COLOR);
 		}
 		StyleConstants.setFontSize(s, mainTextSize - 1);
+
+		// FIXME: emoji font size does not get updated with changes to settings
+		s = textPane.getStyle("emoji");
+		if (s == null) {
+			s = textPane.addStyle("emoji", regular);
+			StyleConstants.setFontFamily(s, "Noto Emoji");
+			StyleConstants.setBold(s, true);
+		}
+		StyleConstants.setFontSize(s, mainTextSize + 2);
+
+		//****** Styles used by the string formatter ******
+		StyleSet defaultAttributes = new StyleSet(StyleContext.getDefaultStyleContext(), regular);
+
+		StyleSet attributes = defaultAttributes.copy();
+		attributes.setAttribute(StyleConstants.Italic, Boolean.TRUE);
+		attributes.setAttribute(StyleConstants.Foreground, ITALIC_COLOR);
+		attributes.setAttribute("linkact", new LinkListener());
+		formatter.addStyle('#', attributes);
+
+		attributes = defaultAttributes.copy();
+		attributes.setAttribute(StyleConstants.Underline, Boolean.TRUE);
+		formatter.addStyle('§', attributes);
+		
+		attributes = defaultAttributes.copy();
+		attributes.setAttribute(StyleConstants.Underline, Boolean.TRUE);
+		attributes.setAttribute(StyleConstants.Foreground, UNDERLINE_COLOR);
+		formatter.addStyle('&', attributes);
 	}
 
 	/**
 	 * Get the style corresponding to a description and color.
-	 * 
+	 *
 	 * @param desiredColor
 	 *            the color with which the text must be colored
 	 * @param styleDescription
@@ -224,8 +320,8 @@ public class KTextEdit extends JComponent {
 
 	/**
 	 * Insert a header.
-	 * 
-	 * @param header 
+	 *
+	 * @param header header string
 	 */
 	protected void insertHeader(final String header) {
 		final Document doc = textPane.getDocument();
@@ -241,7 +337,7 @@ public class KTextEdit extends JComponent {
 
 	/**
 	 * Insert time stamp.
-	 * 
+	 *
 	 * @param header time stamp
 	 */
 	protected void insertTimestamp(final String header) {
@@ -258,33 +354,34 @@ public class KTextEdit extends JComponent {
 
 	/**
 	 * Add text using a style defined for a notification type.
-	 * 
-	 * @param text
-	 * @param type
+	 *
+	 * @param text text contents
+	 * @param type type for formatting
 	 */
-	protected void insertText(final String text, final NotificationType type) {
-		
-		final Color color = type.getColor();
-		final String styleDescription = type.getStyleDescription();
-		final Document doc = textPane.getDocument();
+	protected void insertText(String text, final NotificationType type) {
+		ChatTextSink dest = new ChatTextSink(textPane.getDocument());
+		final Color c = type.getColor();
+		Style s = getStyle(c, type.getStyleDescription());
 
-		try {
-			final FormatTextParser parser =	new FormatTextParser() {
-				@Override
-				public void normalText(final String txt) throws BadLocationException {
-						doc.insertString(doc.getLength(), txt, getStyle(color, styleDescription));
-				}
-
-				@Override
-				public void colorText(final String txt) throws BadLocationException {
-					doc.insertString(doc.getLength(), txt, textPane.getStyle("bold"));
-				}
-			};
-			parser.format(text);
-		} catch (final Exception e) { 
-			// BadLocationException
-			logger.error("Couldn't insert initial text.", e);
+		if (type.equals(NotificationType.EMOJI)) {
+			// get file path basename
+			text = new File(text).getName().replaceFirst("[.][^.]+$", "");
+			final Map<String, String> chatLogChars = EmojiStore.chatLogChars;
+			if (chatLogChars.containsKey(text)) {
+				text = chatLogChars.get(text);
+			} else {
+				s = getStyle(c, NotificationType.NORMALSTYLE);
+				text = ":" + text + ":";
+				final ImageSprite emoji = (ImageSprite) EmojiStore.get().create(text);
+				// FIXME: should icons get cached?
+				textPane.insertIcon(new ImageIcon(emoji.getImage()));
+				return;
+			}
 		}
+		final StyleSet set = new StyleSet(StyleContext.getDefaultStyleContext(), s);
+		set.setAttribute(StyleConstants.Foreground, c);
+
+		formatter.format(text, set, dest);
 	}
 
 	/**
@@ -312,7 +409,7 @@ public class KTextEdit extends JComponent {
 	 */
 	private void addLine(final String header, final String line,
 			final NotificationType type) {
-		// do the whole thing in the event dispatch thread to ensure the generated 
+		// do the whole thing in the event dispatch thread to ensure the generated
 		// events get handled in the correct order
 		try {
 			if (SwingUtilities.isEventDispatchThread()) {
@@ -329,7 +426,7 @@ public class KTextEdit extends JComponent {
 			logger.error(e, e);
 		}
 	}
-	
+
 	/**
 	 * Add a new line with a specified header and content. The style will be
 	 * chosen according to the type of the message. Keep the view at the last
@@ -345,8 +442,7 @@ public class KTextEdit extends JComponent {
 	private void handleAddLine(final String header, final String line, final NotificationType type) {
 		insertNewline();
 
-		final java.text.Format formatter = new java.text.SimpleDateFormat("[HH:mm:ss] ");
-		final String dateString = formatter.format(new Date());
+		String dateString = dateFormatter.format(new Date());
 		insertTimestamp(dateString);
 
 		insertHeader(header);
@@ -355,50 +451,50 @@ public class KTextEdit extends JComponent {
 
 	/**
 	 * Check if a scroll bar is at its maximum value.
-	 * 
+	 *
 	 * @param bar scroll bar
 	 * @return <code>true</code> if the scrollbar is at its maximum value
 	 * 	location, <code>false</code>otherwise
 	 */
-	private boolean isAtMaximum(JScrollBar bar) {
+	private boolean isAtMaximum(Adjustable bar) {
 		return (bar.getValue() + bar.getVisibleAmount() >= bar.getMaximum());
 	}
 
 	/**
 	 * Append an event line.
-	 * 
-	 * @param line 
+	 *
+	 * @param line event line
 	 */
-	public void addLine(final EventLine line) {
+	void addLine(final EventLine line) {
 		this.addLine(line.getHeader(), line.getText(), line.getType());
 	}
-	
+
 	/**
 	 * Clear the context.
 	 */
-	public void clear() {
+	void clear() {
 		textPane.setText("");
 	}
-	
+
 	/**
 	 * Set the background color to be used normally, when not highlighting
 	 * unread messages.
-	 * 
+	 *
 	 * @param color background color
 	 */
 	void setDefaultBackground(Color color) {
 		defaultBackground = color;
 	}
-	
+
 	/**
 	 * Set the name of the logged channel.
-	 * 
+	 *
 	 * @param name channel name
 	 */
 	void setChannelName(String name) {
 		this.name = name;
 	}
-	
+
 	/**
 	 * Set a clear warning for the user that there are new, unread lines.
 	 * @param warn true if the warning indicator should be shown, false otherwise
@@ -410,40 +506,52 @@ public class KTextEdit extends JComponent {
 			textPane.setBackground(defaultBackground);
 		}
 	}
-	
+
 	/**
 	 * Get name of the file where logs should be saved on request.
-	 * 
+	 *
 	 * @return file name
 	 */
 	private String getSaveFileName() {
-		if ("".equals(name)) {
-			return stendhal.getGameFolder() + "gamechat.log";
-		} else {
-			return stendhal.getGameFolder() + "gamechat-" + name + ".log";
+		String savename = new SimpleDateFormat(
+				"yyyyMMdd_HHmmss").format(new Date());
+
+		// channel name
+		if (!"".equals(name)) {
+			savename = name + "_" + savename;
 		}
+
+		// character name
+		final String charname = UserContext.get().getName();
+		if (charname != null) {
+			savename = charname + "_" + savename;
+		}
+
+		return stendhal.getGameFolder() + "chat/" + savename + ".log";
 	}
-	
+
 	/**
 	 * Save the contents into the log file and inform the user about it.
 	 */
-	public void save() {
+	private void save() {
 		String fname = getSaveFileName();
-		FileWriter fo;
+		Writer fo;
 		try {
-			fo = new FileWriter(fname);
+			// create parent directory if not exists
+			new File(fname).getParentFile().mkdirs();
+			fo = new OutputStreamWriter(new FileOutputStream(fname), "UTF-8");
 			try {
 				textPane.write(fo);
 			} finally {
 				fo.close();
 			}
-			
+
 			addLine("", "Dziennik rozmowy został zapisany do " + fname, NotificationType.CLIENT);
 		} catch (final IOException ex) {
 			logger.error(ex, ex);
 		}
 	}
-	
+
 	/**
 	 * A custom range model that implements the automatically scrolling pane.
 	 * Keeps the scrollbar at bottom, if it it was there before.
@@ -452,17 +560,106 @@ public class KTextEdit extends JComponent {
 		@Override
 		public void setRangeProperties(int value, int extent, int min, int max,
 				boolean adjusting) {
-			boolean atBottom = getValue() + getExtent() >= getMaximum(); 
+			boolean atBottom = getValue() + getExtent() >= getMaximum();
 			if (atBottom && (value == getValue())) {
 				// We are at bottom, use adjusted values to ensure we stay
 				// at bottom
-				value = Math.min(Math.max(max - extent, min), max);
+				value = MathHelper.clamp(max - extent, min, max);
 			} else if (max > getMaximum()) {
 				// Not at bottom. Keep the old location.
-				value = Math.min(Math.max(getValue(), min), max);
+				value = MathHelper.clamp(getValue(), min, max);
 				setUnreadLinesWarning(true);
 			}
 			super.setRangeProperties(value, extent, min, max, adjusting);
+		}
+	}
+
+
+	/**
+	 * Listener for clicking text marked with "#".
+	 */
+	class LinkListener {
+		/** Allowed patterns for links to be opened in a browser. */
+		final Pattern whitelist = Pattern.compile("^https?://stendhalgame\\.org(/.*)*$");
+
+		/**
+		 * Called when a text marked with "#" is clicked.
+		 *
+		 * @param text content of the marked text
+		 */
+		void linkClicked(String text) {
+			if (whitelist.matcher(text).matches()) {
+				addLine(new HeaderLessEventLine("Próbuję otworzyć #'" + text
+						+ "' w twojej przeglądarce.", NotificationType.CLIENT));
+				BareBonesBrowserLaunch.openURL(text);
+			}
+		}
+	}
+
+	/**
+	 * This is a workaround to line break behavior change between java versions
+	 * 6 and 7. Long words do not get line breaks and no officially supported
+	 * mechanism to get the old behavior is provided. Java bug <a href=
+	 * "https://bugs.java.com/view_bug.do?bug_id=7125737">7125737</a> was closed
+	 * as "Not an Issue".<p>
+	 *
+	 * The solution here is by StanislavL, published at multiple places,
+	 * including <a href="https://stackoverflow.com/questions/8666727/wrap-long-words-in-jtextpane-java-7">
+	 * here.</a>
+	 */
+	private static class WrapEditorKit extends StyledEditorKit {
+		private final ViewFactory defaultFactory = new WrapColumnFactory();
+
+		@Override
+		public ViewFactory getViewFactory() {
+			return defaultFactory;
+		}
+	}
+
+	/**
+	 * Part of the bug workaround mentioned in {@link WrapEditorKit}.
+	 */
+	private static class WrapColumnFactory implements ViewFactory {
+		@Override
+		public View create(Element elem) {
+			String kind = elem.getName();
+			if (kind != null) {
+				if (kind.equals(AbstractDocument.ContentElementName)) {
+					return new WrapLabelView(elem);
+				} else if (kind.equals(AbstractDocument.ParagraphElementName)) {
+					return new ParagraphView(elem);
+				} else if (kind.equals(AbstractDocument.SectionElementName)) {
+					return new BoxView(elem, View.Y_AXIS);
+				} else if (kind.equals(StyleConstants.ComponentElementName)) {
+					return new ComponentView(elem);
+				} else if (kind.equals(StyleConstants.IconElementName)) {
+					return new IconView(elem);
+				}
+			}
+
+			// default to text display
+			return new LabelView(elem);
+		}
+	}
+
+	/**
+	 * Part of the bug workaround mentioned in {@link WrapEditorKit}.
+	 */
+	private static class WrapLabelView extends LabelView {
+		public WrapLabelView(Element elem) {
+			super(elem);
+		}
+
+		@Override
+		public float getMinimumSpan(int axis) {
+			switch (axis) {
+			case View.X_AXIS:
+				return 0;
+			case View.Y_AXIS:
+				return super.getMinimumSpan(axis);
+			default:
+				throw new IllegalArgumentException("Invalid axis: " + axis);
+			}
 		}
 	}
 }

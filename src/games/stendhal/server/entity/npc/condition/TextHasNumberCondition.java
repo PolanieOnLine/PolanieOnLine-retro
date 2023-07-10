@@ -1,4 +1,4 @@
-/* $Id: TextHasNumberCondition.java,v 1.10 2012/09/09 12:33:24 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -19,9 +19,6 @@ import games.stendhal.server.core.config.annotations.Dev.Category;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.player.Player;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Does this trigger contain a number?
@@ -62,6 +59,7 @@ public class TextHasNumberCondition implements ChatCondition {
 		this.max = max;
 	}
 
+	@Override
 	public boolean fire(final Player player, final Sentence sentence, final Entity entity) {
 		final Expression number = sentence.getNumeral();
 
@@ -81,12 +79,16 @@ public class TextHasNumberCondition implements ChatCondition {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 47143 * min + max;
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				TextHasNumberCondition.class);
+		if (!(obj instanceof TextHasNumberCondition)) {
+			return false;
+		}
+		TextHasNumberCondition other = (TextHasNumberCondition) obj;
+		return (min == other.min)
+			&& (max == other.max);
 	}
 }

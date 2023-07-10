@@ -1,17 +1,17 @@
 /*
  * @(#) src/games/stendhal/server/config/zone/ConfiguratorDescriptor.java
  *
- * $Id: ConfiguratorDescriptor.java,v 1.6 2012/06/06 15:29:18 nhnb Exp $
+ * $Id$
  */
 
 package games.stendhal.server.core.config.zone;
 
 
+import org.apache.log4j.Logger;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.config.annotations.ServerModeUtil;
 import games.stendhal.server.core.engine.StendhalRPZone;
-
-import org.apache.log4j.Logger;
 
 /**
  * A zone configurator [setup] descriptor.
@@ -29,7 +29,7 @@ public class ConfiguratorDescriptor extends SetupDescriptor {
 
 	/**
 	 * Create a zone configurator descriptor.
-	 * 
+	 *
 	 * @param className
 	 *            The class name of the configurator.
 	 */
@@ -43,7 +43,7 @@ public class ConfiguratorDescriptor extends SetupDescriptor {
 
 	/**
 	 * Get the class name of the configurator.
-	 * 
+	 *
 	 * @return The class name.
 	 */
 	public String getClassName() {
@@ -56,7 +56,7 @@ public class ConfiguratorDescriptor extends SetupDescriptor {
 
 	/**
 	 * Do appropriate zone setup.
-	 * 
+	 *
 	 * @param zone
 	 *            The zone.
 	 */
@@ -82,7 +82,7 @@ public class ConfiguratorDescriptor extends SetupDescriptor {
 		 * Create instance
 		 */
 		try {
-			obj = clazz.newInstance();
+			obj = clazz.getDeclaredConstructor().newInstance();
 		} catch (final InstantiationException ex) {
 			LOGGER.error("Error creating zone configurator: " + classNameTemp,
 					ex);
@@ -90,6 +90,16 @@ public class ConfiguratorDescriptor extends SetupDescriptor {
 			return;
 		} catch (final IllegalAccessException ex) {
 			LOGGER.error("Error accessing zone configurator: " + classNameTemp,
+					ex);
+
+			return;
+		} catch (final NoSuchMethodException ex) {
+			LOGGER.error("Error creating zone configurator: " + classNameTemp,
+					ex);
+
+			return;
+		} catch (final java.lang.reflect.InvocationTargetException ex) {
+			LOGGER.error("Error creating zone configurator: " + classNameTemp,
 					ex);
 
 			return;

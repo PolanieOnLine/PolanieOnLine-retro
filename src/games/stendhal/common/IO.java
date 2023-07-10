@@ -1,4 +1,4 @@
-/* $Id: IO.java,v 1.2 2012/06/10 21:34:05 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2012 - Faiumoni e. V.                   *
  ***************************************************************************
@@ -43,7 +43,7 @@ public class IO {
 		int size = (int) file.length();
 		byte[] res = new byte[size];
 
-		// we need that loop because java does not garantee, 
+		// we need that loop because java does not garantee,
 		// that read(...) returns the complete remaining stream at once
 		try {
 			InputStream is = new FileInputStream(file);

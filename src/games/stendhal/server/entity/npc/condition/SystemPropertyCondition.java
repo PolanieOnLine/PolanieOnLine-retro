@@ -1,14 +1,15 @@
 package games.stendhal.server.entity.npc.condition;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import com.google.common.base.Objects;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
 import games.stendhal.server.core.config.annotations.Dev.Category;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.player.Player;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Is the specified system property set?
@@ -25,7 +26,7 @@ public class SystemPropertyCondition implements ChatCondition {
 	 * @param key key to check
 	 */
 	public SystemPropertyCondition(String key) {
-		this.key = key;
+		this.key = checkNotNull(key);
 		this.value = null;
 	}
 
@@ -36,10 +37,11 @@ public class SystemPropertyCondition implements ChatCondition {
 	 * @param value value the key has to have.
 	 */
 	public SystemPropertyCondition(String key, String value) {
-		this.key = key;
+		this.key = checkNotNull(key);
 		this.value = value;
 	}
 
+	@Override
 	public boolean fire(final Player player, final Sentence sentence, final Entity entity) {
 		if (value == null) {
 			return System.getProperty(key) != null;
@@ -63,13 +65,17 @@ public class SystemPropertyCondition implements ChatCondition {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 47137 * key.hashCode();
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				SystemPropertyCondition.class);
+		if (!(obj instanceof SystemPropertyCondition)) {
+			return false;
+		}
+		SystemPropertyCondition other = (SystemPropertyCondition) obj;
+		return key.equals(other.key)
+			&& Objects.equal(value, other.value);
 	}
 
 }

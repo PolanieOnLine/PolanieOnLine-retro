@@ -1,4 +1,4 @@
-/* $Id: AccountCreationRules.java,v 1.10 2011/04/14 20:00:50 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -14,7 +14,7 @@ package games.stendhal.server.core.account;
 
 /**
  * rules for account creation.
- * 
+ *
  * @author hendrik
  */
 class AccountCreationRules {
@@ -26,7 +26,7 @@ class AccountCreationRules {
 
 	/**
 	 * creates a new AccountCreationRules instance.
-	 * 
+	 *
 	 * @param username
 	 *            name of the user
 	 * @param password
@@ -42,20 +42,20 @@ class AccountCreationRules {
 
 	private void setupValidatorsForUsername() {
 		validators.add(new NotEmptyValidator(username));
-		validators.add(new MinLengthValidator(username, 7));
-		validators.add(new MaxLengthValidator(username, 100));
+		validators.add(new MinLengthValidator(username, 2));
+		validators.add(new MaxLengthValidator(username, 20));
 
 		validators.add(new NameCharacterValidator(username));
 		validators.add(new ReservedSubStringValidator(username));
 		validators.add(new NPCNameValidator(username));
 		validators.add(new CreatureNameValidator(username));
-		
+
 		validators.add(new IsNotCharacterNameValidator(username));
 	}
 
 	private void setupValidatorsForPassword() {
 		validators.add(new NotEmptyValidator(password));
-		validators.add(new MinLengthValidator(password, 6));
+		validators.add(new MinLengthValidator(password, 4));
 		validators.add(new MaxLengthValidator(password, 100));
 		validators.add(new CommonPassword(password));
 		// This is only a warning in the client:
@@ -71,7 +71,7 @@ class AccountCreationRules {
 	/**
 	 * returns a complete list of all rules which must be enforced during.
 	 * account creation
-	 * 
+	 *
 	 * @return ValidatorList
 	 */
 	public ValidatorList getAllRules() {

@@ -1,4 +1,4 @@
-/* $Id: AtlasPolBrowserLaunchCommand.java,v 1.1 2011/08/04 21:17:04 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -16,6 +16,7 @@ import games.stendhal.client.ClientSingletonRepository;
 import games.stendhal.client.entity.User;
 import games.stendhal.client.gui.BareBonesBrowserLaunch;
 import games.stendhal.client.gui.chatlog.HeaderLessEventLine;
+import games.stendhal.client.update.ClientGameConfiguration;
 import games.stendhal.common.NotificationType;
 
 /**
@@ -23,7 +24,7 @@ import games.stendhal.common.NotificationType;
  *
  * @author hendrik
  */
-public class AtlasPolBrowserLaunchCommand implements SlashAction{
+class AtlasPolBrowserLaunchCommand implements SlashAction{
 
 	/**
 	 * Opens the atlas URL at the current position
@@ -32,10 +33,11 @@ public class AtlasPolBrowserLaunchCommand implements SlashAction{
 	 * @param remainder ignored
 	 * @return <code>true</code>
 	 */
+	@Override
 	public boolean execute(final String[] params, final String remainder) {
 		StringBuilder url = new StringBuilder();
 		User user = User.get();
-		url.append("http://gra.polskaonline.org/strona/kraina-pras%C5%82owia%C5%84ska");
+		url.append(ClientGameConfiguration.get("DEFAULT_SERVER_WEB") + "/atlaspol.html");
 		if (user != null) {
 			url.append("?me=");
 			url.append(user.getZoneName());
@@ -58,6 +60,7 @@ public class AtlasPolBrowserLaunchCommand implements SlashAction{
 	 * 
 	 * @return The parameter count.
 	 */
+	@Override
 	public int getMaximumParameters() {
 		return 0;
 	}
@@ -67,6 +70,7 @@ public class AtlasPolBrowserLaunchCommand implements SlashAction{
 	 * 
 	 * @return The parameter count.
 	 */
+	@Override
 	public int getMinimumParameters() {
 		return 0;
 	}

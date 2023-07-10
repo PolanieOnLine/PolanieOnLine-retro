@@ -1,4 +1,4 @@
-/* $Id: LogEntry.java,v 1.5 2010/09/19 01:29:16 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -32,6 +32,7 @@ public class LogEntry {
 	/**
 	 * Creates a new LogEntry.
 	 *
+	 * @param id
 	 * @param timestamp timestamp
 	 * @param itemid id of the item
 	 * @param source name of player
@@ -103,7 +104,7 @@ public class LogEntry {
     	sb.append(param3);
     	sb.append('\t');
     	sb.append(param4);
-    	
+
     	return sb.toString();
     }
 

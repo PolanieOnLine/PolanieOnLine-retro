@@ -1,4 +1,4 @@
-/* $Id: User2DView.java,v 1.35 2012/09/01 20:17:54 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,23 +12,27 @@
  ***************************************************************************/
 package games.stendhal.client.gui.j2d.entity;
 
+import java.util.List;
+
 import games.stendhal.client.entity.ActionType;
 import games.stendhal.client.entity.IEntity;
 import games.stendhal.client.entity.User;
 import games.stendhal.client.gui.j2DClient;
 
-import java.util.List;
-
 /**
  * The 2D view of a user.
- * 
- * @param <T> user 
+ *
+ * @param <T> user
  */
 class User2DView<T extends User> extends Player2DView<T> {
 	@Override
 	public void initialize(final T entity) {
+		// A hack to prevent centering on coloring only zone updates
+		boolean updatePosition = this.entity == null;
 		super.initialize(entity);
-		j2DClient.get().setPosition(entity.getX(), entity.getY());
+		if (updatePosition) {
+			j2DClient.get().setPosition(entity.getX(), entity.getY());
+		}
 	}
 	//
 	// RPEntity2DView
@@ -36,7 +40,7 @@ class User2DView<T extends User> extends Player2DView<T> {
 
 	/**
 	 * Determine is the user can see this entity while in ghostmode.
-	 * 
+	 *
 	 * @return <code>true</code> if the client user can see this entity while in
 	 *         ghostmode.
 	 */
@@ -52,7 +56,7 @@ class User2DView<T extends User> extends Player2DView<T> {
 	/**
 	 * Build a list of entity specific actions. <strong>NOTE: The first entry
 	 * should be the default.</strong>
-	 * 
+	 *
 	 * @param list
 	 *            The list to populate.
 	 */
@@ -68,6 +72,13 @@ class User2DView<T extends User> extends Player2DView<T> {
 		list.remove(ActionType.TRADE.getRepresentation());
 		list.remove(ActionType.INVITE.getRepresentation());
 
+		/* Walk/Stop action. */
+		if (this.getEntity().stopped()) {
+			list.add(ActionType.WALK_START.getRepresentation());
+		} else {
+			list.add(ActionType.WALK_STOP.getRepresentation());
+		}
+
 		list.add(ActionType.SET_OUTFIT.getRepresentation());
 		list.add(ActionType.WHERE.getRepresentation());
 
@@ -76,6 +87,10 @@ class User2DView<T extends User> extends Player2DView<T> {
 			if (user.hasSheep()) {
 				list.add(ActionType.LEAVE_SHEEP.getRepresentation());
 			}
+			
+			if (user.hasGoat()) {
+				list.add(ActionType.LEAVE_GOAT.getRepresentation());
+			}
 
 			if (user.hasPet()) {
 				list.add(ActionType.LEAVE_PET.getRepresentation());
@@ -83,21 +98,9 @@ class User2DView<T extends User> extends Player2DView<T> {
 		}
 	}
 
-	//
-	// EntityChangeListener
-	//
-
-	/**
-	 * An entity was changed.
-	 * 
-	 * @param entity
-	 *            The entity that was changed.
-	 * @param property
-	 *            The property identifier.
-	 */
 	@Override
-	public void entityChanged(final T entity, final Object property) {
-		super.entityChanged(entity, property);
+	void entityChanged(final Object property) {
+		super.entityChanged(property);
 
 		if (property == IEntity.PROP_POSITION) {
 			j2DClient.get().setPosition(entity.getX(), entity.getY());
@@ -110,7 +113,7 @@ class User2DView<T extends User> extends Player2DView<T> {
 
 	/**
 	 * Perform an action.
-	 * 
+	 *
 	 * @param at
 	 *            The action.
 	 */
@@ -125,15 +128,12 @@ class User2DView<T extends User> extends Player2DView<T> {
 		case SET_OUTFIT:
 			j2DClient.get().chooseOutfit();
 			break;
-			
+
+		case WALK_START:
+		case WALK_STOP:
 		case WHERE:
-			at.send(at.fillTargetInfo(entity));
-			break;
-
 		case LEAVE_SHEEP:
-			at.send(at.fillTargetInfo(entity));
-			break;
-
+		case LEAVE_GOAT:
 		case LEAVE_PET:
 			at.send(at.fillTargetInfo(entity));
 			break;

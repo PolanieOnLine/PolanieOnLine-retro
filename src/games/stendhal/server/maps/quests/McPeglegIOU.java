@@ -1,6 +1,5 @@
-/* $Id: McPeglegIOU.java,v 1.34 2012/04/24 17:01:18 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,6 +11,11 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import games.stendhal.common.grammar.Grammar;
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.item.Item;
@@ -24,10 +28,6 @@ import games.stendhal.server.entity.npc.condition.QuestCompletedCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotCompletedCondition;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.Region;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * QUEST: McPegleg's IOU
@@ -45,28 +45,17 @@ import java.util.List;
  * REPETITIONS: - None.
  */
 public class McPeglegIOU extends AbstractQuest {
-
 	private static final String QUEST_SLOT = "IOU";
+	private final SpeakerNPC npc = npcs.get("McPegleg");
 
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
 	private void step_1() {
-		// find the IOU in a corpse in kanmararn.
-		// this is implemented in KanmararnSoldiers
-	}
-
-	private void step_2() {
-
-		final SpeakerNPC npc = npcs.get("McPegleg");
-
 		npc.add(ConversationStates.ATTENDING,
 			Arrays.asList("iou", "henry", "charles", "note", "notatka","karteczka"),
 			new QuestNotCompletedCondition(QUEST_SLOT),
 			ConversationStates.ATTENDING, null,
 			new ChatAction() {
 
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 					// from all notes that the player is carrying, try to
 					// find the IOU note
@@ -102,16 +91,13 @@ public class McPeglegIOU extends AbstractQuest {
 
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
-				"McPegleg IOU",
+				"Kupon IOU",
 				"Czy znalazłeś karteczke z imieniem McPegleg? Może McPegleg wie co z tym zrobić...",
 				false);
-
 		step_1();
-		step_2();
 	}
-	
+
 	@Override
 	public List<String> getHistory(final Player player) {
 			final List<String> res = new ArrayList<String>();
@@ -120,25 +106,31 @@ public class McPeglegIOU extends AbstractQuest {
 				res.add("Henry dał mi karteczkę z imieniem McPegleg na jej temat.");
 			}
 			if (isCompleted(player)) {
-				res.add("McPegleg poznała karteczkę z jej imieniem - Dostałem za nią 250 money!");
-			} 
+				res.add("McPegleg poznała karteczkę z jej imieniem - " + Grammar.genderVerb(player.getGender(), "dostałem") + " za nią 250 money!");
+			}
 			return res;
 	}
-	
+
 	@Override
-	public String getName() {
-		return "McPeglegIOU";
+	public String getSlotName() {
+		return QUEST_SLOT;
 	}
 
- 	@Override
+	@Override
+	public String getName() {
+		return "Kupon IOU";
+	}
+
+	@Override
 	public int getMinLevel() {
 		return 40;
 	}
+
 	@Override
 	public String getNPCName() {
-		return "McPegleg";
+		return npc.getName();
 	}
-	
+
 	@Override
 	public String getRegion() {
 		return Region.SEMOS_DUNGEONS;

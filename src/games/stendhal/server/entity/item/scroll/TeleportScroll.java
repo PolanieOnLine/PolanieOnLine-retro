@@ -1,5 +1,4 @@
-/* $Id: TeleportScroll.java,v 1.18 2010/04/11 12:50:42 kiheru Exp $
- /***************************************************************************
+/***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
  ***************************************************************************
@@ -12,10 +11,10 @@
  ***************************************************************************/
 package games.stendhal.server.entity.item.scroll;
 
+import java.util.Map;
+
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.Map;
 
 /**
  * Represents a general teleport scroll.
@@ -24,7 +23,7 @@ public abstract class TeleportScroll extends Scroll {
 
 	/**
 	 * Creates a new teleport scroll.
-	 * 
+	 *
 	 * @param name
 	 * @param clazz
 	 * @param subclass
@@ -37,7 +36,7 @@ public abstract class TeleportScroll extends Scroll {
 
 	/**
 	 * Copy constructor.
-	 * 
+	 *
 	 * @param item
 	 *            item to copy
 	 */
@@ -47,10 +46,10 @@ public abstract class TeleportScroll extends Scroll {
 
 	/**
 	 * Is invoked when a teleporting scroll is actually used.
-	 * 
+	 *
 	 * @param player
 	 *            The player who used the scroll and who will be teleported
-	 * 
+	 *
 	 * @return true iff teleport was successful
 	 */
 	protected abstract boolean useTeleportScroll(Player player);
@@ -58,7 +57,7 @@ public abstract class TeleportScroll extends Scroll {
 	/**
 	 * Is invoked when a teleporting scroll is used. Tries to put the player on
 	 * the scroll's destination, or near it.
-	 * 
+	 *
 	 * @param player
 	 *            The player who used the scroll and who will be teleported
 	 * @return true iff teleport was successful

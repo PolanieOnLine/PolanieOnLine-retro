@@ -1,4 +1,3 @@
-/* $Id: SadScientsBrother.java,v 1.6 2010/09/19 02:30:42 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -23,14 +22,16 @@ import games.stendhal.server.entity.creature.ItemGuardCreature;
 import games.stendhal.server.entity.mapstuff.spawner.CreatureRespawnPoint;
 
 public class SadScientsBrother implements ZoneConfigurator {
+	private final String brotherName = "Sergej Elos";
+	private final String questSlot = "sad_scientist";
+	private final String gobletDescr = "Oto czara, która została wypełniona krwią " + brotherName + ".";
 
-	public void configureZone(StendhalRPZone zone,
-			Map<String, String> attributes) {
+	@Override
+	public void configureZone(StendhalRPZone zone, Map<String, String> attributes) {
 		final EntityManager manager = SingletonRepository.getEntityManager();
-		final Creature creature = new ItemGuardCreature(manager.getCreature("uczony imperium"), "czara", "sad_scientist", "kill_scientist", 0);
-		creature.setName("Sergej Elos");
+		final Creature creature = new ItemGuardCreature(manager.getCreature("uczony imperium"), "czara", questSlot, gobletDescr, questSlot, "kill_scientist", 0);
+		creature.setName(brotherName);
 		final CreatureRespawnPoint point = new CreatureRespawnPoint(zone, 43, 85, creature, 1);
 		zone.add(point);
 	}
-
 }

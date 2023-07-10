@@ -1,4 +1,4 @@
-/* $Id: ToneGeneratorTest.java,v 1.2 2010/11/27 22:06:40 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -14,9 +14,10 @@ package games.stendhal.client.sound.system;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import games.stendhal.client.sound.system.processors.ToneGenerator;
 
 import org.junit.Test;
+
+import games.stendhal.client.sound.system.processors.ToneGenerator;
 
 /**
  * Tests for the ToneGenerator class.

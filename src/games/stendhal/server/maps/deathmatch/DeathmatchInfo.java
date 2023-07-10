@@ -1,4 +1,3 @@
-/* $Id: DeathmatchInfo.java,v 1.20 2010/09/19 11:10:59 kymara Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -11,6 +10,9 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.maps.deathmatch;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.Spot;
@@ -25,12 +27,10 @@ import games.stendhal.server.util.Area;
  * @author hendrik
  */
 public class DeathmatchInfo {
-
 	private final DeathmatchArea arena;
-
 	private final Spot entranceSpot;
-
 	private final StendhalRPZone zone;
+	private Map<String, Integer> helpers;
 
 	/**
 	 * Creates a new DeathmatchInfo.
@@ -41,15 +41,13 @@ public class DeathmatchInfo {
 	 *            zone
 	 * @param entrance the spot where the players stands before entering DM.
 	 */
-	public DeathmatchInfo(final Area arena, final StendhalRPZone zone,
-			final Spot entrance) {
+	public DeathmatchInfo(final Area arena, final StendhalRPZone zone, final Spot entrance) {
 		super();
 		this.arena = new DeathmatchArea(arena);
 		this.zone = zone;
 		this.entranceSpot = entrance;
 	}
 
-	
 	/**
 	 * Gets the arena.
 	 *
@@ -77,11 +75,45 @@ public class DeathmatchInfo {
 	}
 
 	void startSession(final Player player,final EventRaiser raiser ) {
+		helpers = new HashMap<>();
+
 		final DeathmatchState deathmatchState = DeathmatchState.createStartState(player.getLevel());
 		player.setQuest("deathmatch", deathmatchState.toQuestString());
 		final DeathmatchEngine dmEngine = new DeathmatchEngine(player, this, raiser);
 		SingletonRepository.getTurnNotifier().notifyInTurns(0, dmEngine);
 	}
-	
-	
+
+	/**
+	 * Increments number of aided kills for a player that helped during deathmatch.
+	 *
+	 * @param helper
+	 * 		Name of player that helped with kill.
+	 */
+	public void addAidedKill(final String helper) {
+		helpers.put(helper, getAidedKills(helper) + 1);
+	}
+
+	/**
+	 * Retrieves number of creatures a player helped kill during deathmatch.
+	 *
+	 * @param helper
+	 * 		Name of player to check for aided kills.
+	 * @return
+	 * 		Number of creatures player helped kill.
+	 */
+	public int getAidedKills(final String helper) {
+		int aidedKills = 0;
+		if (helpers.containsKey(helper)) {
+			aidedKills = helpers.get(helper);
+		}
+
+		return aidedKills;
+	}
+
+	/**
+	 * Checks if player was helped at all by another.
+	 */
+	public boolean wasAided() {
+		return helpers.size() > 0;
+	}
 }

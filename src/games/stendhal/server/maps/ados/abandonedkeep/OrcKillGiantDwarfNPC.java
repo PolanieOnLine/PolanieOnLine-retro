@@ -1,4 +1,3 @@
-/* $Id: OrcKillGiantDwarfNPC.java,v 1.7 2010/10/30 14:45:57 bluelads99 Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,16 +11,16 @@
  ***************************************************************************/
 package games.stendhal.server.maps.ados.abandonedkeep;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Builds the orc kill diant dwarf NPC.
@@ -29,24 +28,18 @@ import java.util.Map;
  * @author Teiv
  */
 public class OrcKillGiantDwarfNPC implements ZoneConfigurator {
-
-	//
-	// ZoneConfigurator
-	//
-
 	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
-	
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
-		buildNPC(zone, attributes);
+		buildNPC(zone);
 	}
 
-
-	private void buildNPC(final StendhalRPZone zone, final Map<String, String> attributes) {
+	private void buildNPC(final StendhalRPZone zone) {
 		final SpeakerNPC zogfangNPC = new SpeakerNPC("Zogfang") {
 
 			@Override
@@ -60,7 +53,7 @@ public class OrcKillGiantDwarfNPC implements ZoneConfigurator {
 				nodes.add(new Node(12, 114));
 				nodes.add(new Node(5, 114));
 				setPath(new FixedPath(nodes, true));
-	
+
 			}
 
 			@Override
@@ -73,10 +66,11 @@ public class OrcKillGiantDwarfNPC implements ZoneConfigurator {
 			}
 		};
 
+		zogfangNPC.setDescription("Oto stary ork zwany Zogfang. Czeka na odważnego wojownika, który zgładzi wszystkich krasnali na tym piętrze.");
 		zogfangNPC.setEntityClass("orcbuyernpc");
+		zogfangNPC.setGender("M");
 		zogfangNPC.setPosition(10, 107);
 		zogfangNPC.initHP(1000);
-		zogfangNPC.setDescription("Widzisz starego orka Zogfang. Czeka na odważnego wojownika, który zgładzi wszystkich krasnali na tym piętrze.");
 		zone.add(zogfangNPC);
 	}
 }

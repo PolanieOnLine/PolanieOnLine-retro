@@ -1,4 +1,3 @@
-/* $Id: FifthFloorCreatures.java,v 1.6 2012/02/26 16:51:50 kiheru Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +11,9 @@
  ***************************************************************************/
 package games.stendhal.server.maps.semos.wizardstower;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import games.stendhal.common.Direction;
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.SingletonRepository;
@@ -19,23 +21,19 @@ import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.rule.EntityManager;
 import games.stendhal.server.entity.creature.Creature;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class FifthFloorCreatures implements ZoneConfigurator {
-
 	/**
 	 * Configure a zone.
-	 * 
+	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
-
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
-		buildFifthFloor(zone, attributes);
+		buildFifthFloor(zone);
 	}
 
-	private void buildFifthFloor(final StendhalRPZone zone, final Map<String, String> attributes) {
+	private void buildFifthFloor(final StendhalRPZone zone) {
 		final EntityManager manager = SingletonRepository.getEntityManager();
 
 		final Creature creature = manager.getCreature("kamienny golem");
@@ -57,7 +55,7 @@ public class FifthFloorCreatures implements ZoneConfigurator {
 		creature1.setXP(0);
 		creature2.setXP(0);
 		creature3.setXP(0);
-		
+
 		creature.setPosition(15,28);
 		creature1.setPosition(29,15);
 		creature2.setPosition(1,15);

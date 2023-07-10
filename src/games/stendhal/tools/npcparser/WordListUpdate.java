@@ -1,4 +1,4 @@
-/* $Id: WordListUpdate.java,v 1.10 2011/05/01 22:55:19 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,9 +12,6 @@
  ***************************************************************************/
 package games.stendhal.tools.npcparser;
 
-import games.stendhal.common.parser.ExpressionType;
-import games.stendhal.common.parser.WordList;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -23,6 +20,8 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import games.stendhal.common.parser.ExpressionType;
+import games.stendhal.common.parser.WordList;
 import marauroa.common.io.UnicodeSupportingInputStreamReader;
 
 /**
@@ -37,7 +36,7 @@ public final class WordListUpdate {
 
 		// load word list and perform the update
 		String msg = updateWordList(WordList.getInstance());
-		
+
 		System.out.print(msg);
     }
 

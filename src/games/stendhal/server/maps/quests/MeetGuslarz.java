@@ -1,6 +1,5 @@
-/* $Id: MeetGuslarz.java,v 1.63 2011/12/21 16:02:23 edi18028 Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,15 +11,15 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
 
-import games.stendhal.common.parser.Sentence;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.core.events.LoginListener;
-import games.stendhal.server.entity.Outfit;
 import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
-import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.npc.NPCList;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.npc.action.EquipItemAction;
@@ -33,47 +32,36 @@ import games.stendhal.server.entity.npc.condition.QuestCompletedCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotCompletedCondition;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.LinkedList;
-import java.util.List;
-
 /**
- * QUEST: Meet Santa anywhere around the World.
- *<p>
- * PARTICIPANTS: <ul><li> Santa Claus</ul>
+ * QUEST: Meet Guslarz anywhere around the World.
+ * <p>
  *
- * STEPS: <ul><li> Find Santa <li>Say hi <li> Get reward <li> Get hat</ul>
+ * PARTICIPANTS:<ul><li> Guslarz</ul>
  *
- * REWARD: <ul><li> a stocking which can be opened to obtain a random good reward: food,
- * money, potions, items, etc... </ul>
+ * STEPS: <ul><li> Find Guslarz <li> Say hi <li> Get reward </ul>
  *
- * REPETITIONS:None
+ * REWARD: <ul><li> a skrzynka which can be opened to obtain a random good reward: food,
+ * money, potions, items, etc...</ul>
+ *
+ * REPETITIONS: None
  */
-public class MeetGuslarz extends AbstractQuest implements LoginListener {
-
-	// quest slot changed ready for 2011
-	private static final String QUEST_SLOT = "meet_guslarz_11";
-	// date changed ready for 2011
-	private static final GregorianCalendar endGusla = new GregorianCalendar(2011, Calendar.NOVEMBER, 11);
-
-	public static final String QUEST_NAME = "MeetGuslarz";
+public class MeetGuslarz extends AbstractQuest {
+	// quest slot changed ready for 2012
+	private static final String QUEST_SLOT = "meet_guslarz_[seasonyear]";
 
 	/** the Guslarz NPC. */
 	protected SpeakerNPC guslarz;
 
 	private StendhalRPZone zone;
-
 	private TeleporterBehaviour teleporterBehaviour;
 
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
-	
-	private SpeakerNPC createGuslarz() {
+	/** the name of the quest */
+	public static final String QUEST_NAME = "Spotkanie Guślarza";
+
+	// The default is 100 (30 seconds) so make ours half this
+	private static final int TIME_OUT = 50;
+
+	private SpeakerNPC createguslarz() {
 		guslarz = new SpeakerNPC("Guślarz") {
 			@Override
 			protected void createPath() {
@@ -83,43 +71,34 @@ public class MeetGuslarz extends AbstractQuest implements LoginListener {
 
 			@Override
 			protected void createDialog() {
+				// Greet players who have a basket but go straight back to idle to give others a chance
 				add(ConversationStates.IDLE,
-					ConversationPhrases.GREETING_MESSAGES,
-					new AndCondition(new GreetingMatchesNameCondition(super.getName()),
-							new QuestCompletedCondition(QUEST_SLOT)),
-					ConversationStates.ATTENDING,
-					"Witaj ponownie!",
-					new ChatAction() {
-						public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) { 
-							addHat(player);
-						}
-					}
-				);
+						ConversationPhrases.GREETING_MESSAGES,
+						new AndCondition(new GreetingMatchesNameCondition(super.getName()),
+								new QuestCompletedCondition(QUEST_SLOT)),
+						ConversationStates.IDLE,
+						"Witaj ponownie! Co za dużo to nie zdrowo!", null);
 
 				final List<ChatAction> reward = new LinkedList<ChatAction>();
-					reward.add(new EquipItemAction("skrzynka"));
-					reward.add(new SetQuestAction(QUEST_SLOT, "done"));
-					reward.add(new ChatAction() {
-						public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
-							addHat(player);
-						}
-					}
-				);
+				reward.add(new EquipItemAction("skrzynka"));
+				reward.add(new SetQuestAction(QUEST_SLOT, "done"));
+
+				// Give unmet players a basket
 				add(ConversationStates.IDLE,
 					ConversationPhrases.GREETING_MESSAGES,
 					new AndCondition(new GreetingMatchesNameCondition(super.getName()),
 							new QuestNotCompletedCondition(QUEST_SLOT)),
-					ConversationStates.ATTENDING,
+					ConversationStates.IDLE,
 					"Witaj! Co nieszczęsny robisz w tych stronach? Ale skoro już mnie spotkałeś mam coś dla ciebie.",
 					new MultipleActions(reward));
-
-				addJob("Jestem Guślarzem! Odprawiam gusła, aby przywołać z zaświatów wielkie moce!");
-				addGoodbye("Żegnaj! I pamiętaj, że zmieniły się zasady walki, a moc z zaświatów wzmocniła potwory!");
 			}
 		};
+
 		guslarz.setEntityClass("npcguslarz");
 		guslarz.initHP(100);
-
+		// times out twice as fast as normal NPCs
+		guslarz.setPlayerChatTimeout(TIME_OUT); 
+		guslarz.setDescription("Oto Guślarz odprawiający gusła, aby przywołać z zaświatów wielkie moce!");
 		// start in int_admin_playground
 		zone = SingletonRepository.getRPWorld().getZone("int_admin_playground");
 		guslarz.setPosition(17, 13);
@@ -128,33 +107,30 @@ public class MeetGuslarz extends AbstractQuest implements LoginListener {
 		return guslarz;
 	}
 
-	private void addHat(final Player player) {
-		// fetch old outfit as we want to know the current hair
-		final Outfit oldoutfit = player.getOutfit();
-		// all santa hat sprites are at 50 + current hair
-		if (oldoutfit.getHair() < 50) {
-			final int hatnumber = oldoutfit.getHair() + 44;
-			// the new outfit only changes the hair, rest is null
-			final Outfit newOutfit = new Outfit(hatnumber, null, null, null);
-			//put it on, and store old outfit.
-			player.setOutfit(newOutfit.putOver(oldoutfit), true);
+	@Override
+	public void addToWorld() {
+		fillQuestInfo(
+				"Spotkanie Guślarza",
+				"Odprawia gusła, aby przywołać z zaświatów wielkie moce...",
+				false);
+
+		if (System.getProperty("stendhal.guslarz") != null) {
+			createguslarz();
+			teleporterBehaviour = new TeleporterBehaviour(guslarz, null, "0", "Strzeż się! Mocniejsze potwory zewsząd atakują!", false); 
 		}
 	}
 
-
-	public void onLoggedIn(final Player player) {
-		// is it Christmas?
-		final Outfit outfit = player.getOutfit();
-		final int hairnumber = outfit.getHair();
-		if ((hairnumber >= 50) && (hairnumber < 94)) {
-			final Date now = new Date();
-			final Date dateEndGusla = endGusla.getTime();
-			if (now.before(dateEndGusla)) {
-				final int newhair = hairnumber - 44;
-				final Outfit newOutfit = new Outfit(newhair, null, null, null);
-				player.setOutfit(newOutfit.putOver(outfit), false);
-			}
-		}
+	/**
+	 * removes a quest from the world.
+	 *
+	 * @return true, if the quest could be removed; false otherwise.
+	 */
+	@Override
+	public boolean removeFromWorld() {
+		removeNPC("Guślarz");
+		// remove the turn notifiers left from the TeleporterBehaviour
+		SingletonRepository.getTurnNotifier().dontNotify(teleporterBehaviour);
+		return true;
 	}
 
 	/**
@@ -169,39 +145,15 @@ public class MeetGuslarz extends AbstractQuest implements LoginListener {
 		}
 		npc.getZone().remove(npc);
 	}
-	
+
 	@Override
-	public void addToWorld() {
-		super.addToWorld();
-		fillQuestInfo(
-				"Spotkanie Guślarza",
-				"Odprawia gusła, aby przywołać z zaświatów wielkie moce.",
-				false);
-		SingletonRepository.getLoginNotifier().addListener(this);
-		
-		if (System.getProperty("stendhal.guslarz") != null) {
-			// activate guslarz here
-			createGuslarz();
-			teleporterBehaviour = new TeleporterBehaviour(guslarz, "Strzeż się! Mocniejsze potwory zewsząd atakują!", false);
-		}
-	}
-	
-	/**
-	 * removes a quest from the world.
-	 *
-	 * @return true, if the quest could be removed; false otherwise.
-	 */
-	@Override
-	public boolean removeFromWorld() {
-		removeNPC("Guślarz");
-		// remove the turn notifiers left from the TeleporterBehaviour
-		SingletonRepository.getTurnNotifier().dontNotify(teleporterBehaviour);
-		return true;
+	public String getSlotName() {
+		return QUEST_SLOT;
 	}
 
 	@Override
 	public String getName() {
-		return "MeetGuslarz";
+		return QUEST_NAME;
 	}
 
 	@Override

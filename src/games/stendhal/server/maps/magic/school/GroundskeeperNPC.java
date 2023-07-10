@@ -1,4 +1,3 @@
-/* $Id: GroundskeeperNPC.java,v 1.12 2010/09/19 02:30:58 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,16 +11,17 @@
  ***************************************************************************/
 package games.stendhal.server.maps.magic.school;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
+import games.stendhal.server.entity.CollisionAction;
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Builds the groundskeeper NPC.
@@ -29,25 +29,19 @@ import java.util.Map;
  * @author Teiv
  */
 public class GroundskeeperNPC implements ZoneConfigurator {
-
-	//
-	// ZoneConfigurator
-	//
-
 	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
-		buildNPC(zone, attributes);
+		buildNPC(zone);
 	}
 
-
-	private void buildNPC(final StendhalRPZone zone, final Map<String, String> attributes) {
+	private void buildNPC(final StendhalRPZone zone) {
 		final SpeakerNPC groundskeeperNPC = new SpeakerNPC("Morgrin") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -69,14 +63,15 @@ public class GroundskeeperNPC implements ZoneConfigurator {
 				addReply(ConversationPhrases.YES_MESSAGES, "Dobrze, dobrze. Mam nadzieję, że cieszysz się dniem.");
 				addJob("Moją pracą jest sprzątanie szkoły i naprawa zepsutych rzeczy! Mam dużo pracy!");
 				addHelp("Nie mogę Tobie pomóc. Jestem zajęty przez cały dzień, ale ty mógłbyś mi pomóc w małym #zadaniu!");
-				addGoodbye("Dowidzenia.");
+				addGoodbye("Do widzenia.");
 			}
 		};
 
+		groundskeeperNPC.setDescription("Oto Morgrin, kierownik szkoły w magicznym mieście. Jest zawsze zajęty i potrzebuje pomocnej dłoni.");
 		groundskeeperNPC.setEntityClass("groundskeepernpc");
+		groundskeeperNPC.setGender("M");
 		groundskeeperNPC.setPosition(35, 13);
-		groundskeeperNPC.initHP(1000);
-		groundskeeperNPC.setDescription("Oto Morgrin, kierownik szkoły w Magic City. Jest zawsze zajęty i potrzebuje pomocnej dłoni.");
+		groundskeeperNPC.setCollisionAction(CollisionAction.STOP);
 		zone.add(groundskeeperNPC);
 	}
 }

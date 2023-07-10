@@ -1,4 +1,4 @@
-/* $Id: ProfileTest.java,v 1.3 2010/09/19 02:38:02 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,9 +12,9 @@
  ***************************************************************************/
 package games.stendhal.client.gui.login;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-import static org.hamcrest.CoreMatchers.*;
 import org.junit.Test;
 
 /**

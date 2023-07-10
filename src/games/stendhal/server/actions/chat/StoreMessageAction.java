@@ -1,6 +1,5 @@
-/* $Id: StoreMessageAction.java,v 1.6 2012/09/13 21:24:00 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -14,6 +13,7 @@ package games.stendhal.server.actions.chat;
 
 import static games.stendhal.common.constants.Actions.TARGET;
 import static games.stendhal.common.constants.Actions.TEXT;
+
 import games.stendhal.common.NotificationType;
 import games.stendhal.server.actions.ActionListener;
 import games.stendhal.server.actions.CommandCenter;
@@ -64,12 +64,13 @@ public class StoreMessageAction implements ActionListener, TurnListener {
 	 * @param action
 	 *            The action.
 	 */
+	@Override
 	public void onAction(final Player player, final RPAction action) {
 		if (!validation.validateAndInformPlayer(player, action)) {
 			return;
 		}
 
-		String message = action.get(TEXT);
+		String message = QuoteSpecials.quote(action.get(TEXT));
 
 		DBCommand command = new StoreMessageCommand(player.getName(), action.get(TARGET), message, "P");
 		DBCommandQueue.get().enqueueAndAwaitResult(command, handle);
@@ -82,6 +83,7 @@ public class StoreMessageAction implements ActionListener, TurnListener {
 	 *
 	 * @param currentTurn ignored
 	 */
+	@Override
 	public void onTurnReached(int currentTurn) {
 		StoreMessageCommand checkcommand = DBCommandQueue.get().getOneResult(StoreMessageCommand.class, handle);
 
@@ -95,17 +97,21 @@ public class StoreMessageAction implements ActionListener, TurnListener {
 		String target = checkcommand.getTarget();
 
 		final Player sourceplayer = SingletonRepository.getRuleProcessor().getPlayer(source);
-
-
-		if (sourceplayer != null) {
-			// incase source player logged out while waiting we want to avoid NPE
-			if(characterExists) {
-				sourceplayer.sendPrivateText("postman powiedział Tobie: Wiadomość została zaakceptowana do dostarczenia");
-			} else {
-				sourceplayer.sendPrivateText(NotificationType.ERROR, "postman powiedział Tobie: Wojownik " + target + " nie został znaleziony z związku z tym twoja wiadomość nie zostanie dostarczona.");
-			}
-			sourceplayer.setLastPrivateChatter("postman");
+		if (sourceplayer == null) {
+			return;
 		}
+
+		if (!characterExists) {
+			sourceplayer.sendPrivateText(NotificationType.ERROR, "postman powiedział tobie: Przykro mi, ale nie mogę znaleźć wojownika " + target + " z związku z tym wiadomość nie może zostać przyjęta.");
+			return;
+		}
+
+		if (checkcommand.isIgnored()) {
+			sourceplayer.sendPrivateText("postman powiedział tobie: Nie mogę w twoim imieniu dotrzeć do wojownika " + target + ".");
+			return;
+		}
+
+		sourceplayer.sendPrivateText("postman powiedział tobie: Wiadomość została zaakceptowana do dostarczenia");
 
 		return;
 	}

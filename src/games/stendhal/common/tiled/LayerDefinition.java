@@ -1,4 +1,4 @@
-/* $Id: LayerDefinition.java,v 1.1 2012/07/13 06:05:22 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -79,6 +79,7 @@ public class LayerDefinition implements Serializable {
 	 */
 	public LayerDefinition(final int layerWidth, final int layerHeight) {
 		raw = new byte[4 * layerWidth * layerHeight];
+		data = new int[layerWidth * layerHeight];
 		width = layerWidth;
 		height = layerHeight;
 	}
@@ -261,6 +262,7 @@ public class LayerDefinition implements Serializable {
 		return name;
 	}
 
+	@Override
 	public void readObject(final InputSerializer in) throws IOException {
 		name = in.readString();
 		width = in.readInt();
@@ -268,6 +270,7 @@ public class LayerDefinition implements Serializable {
 		raw = in.readByteArray();
 	}
 
+	@Override
 	public void writeObject(final OutputSerializer out) throws IOException {
 		out.write(name);
 		out.write(width);

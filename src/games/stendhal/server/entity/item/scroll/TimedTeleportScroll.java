@@ -1,18 +1,17 @@
-/*
- * $Id: TimedTeleportScroll.java,v 1.22 2010/11/24 20:55:38 kymara Exp $
- */
 package games.stendhal.server.entity.item.scroll;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.StringTokenizer;
+
+import org.apache.log4j.Logger;
 
 import games.stendhal.common.Rand;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.events.TurnListener;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.Map;
-import java.util.StringTokenizer;
-
-import org.apache.log4j.Logger;
 
 /**
  * Represents a teleport scroll that takes the player to a specified location
@@ -32,7 +31,7 @@ import org.apache.log4j.Logger;
  * <li>-1 and -1 are the return x and y positions (negative value means a random
  * position)
  * </ul>
- * 
+ *
  * TODO: This class isn't fully self-containing as the LoginHandler (that
  * handles the players logging in the target zone) must be implemented
  * elsewhere, i.e. in a quest file.
@@ -41,9 +40,15 @@ public class TimedTeleportScroll extends TeleportScroll {
 
 	private static final Logger logger = Logger.getLogger(TimedTeleportScroll.class);
 
+		private static final List<String> DESERT_MAPS = Arrays.asList("5_desert_ice_pyramid", "4_desert_ice_pyramid",
+				"3_desert_ice_pyramid", "2_desert_ice_pyramid", "1_desert_ice_pyramid", "0_desert_pyramid_ne",
+				"0_desert_pyramid_sw", "0_desert_pyramid_se", "int_desert_blacksmith", "-1_desert_fire_pyramid",
+				"-1_desert_pyramid", "-1_desert_corridor", "-1_desert_ice_pyramid", "-2_desert_black_river_n",
+				"-2_desert_black_river_s");
+
 	/**
 	 * Teleport the player back from the target zone.
-	 * 
+	 *
 	 * @param player
 	 * @return true if teleport was successful
 	 */
@@ -57,15 +62,15 @@ public class TimedTeleportScroll extends TeleportScroll {
 			final StringTokenizer st = new StringTokenizer(infoString);
 			if (st.countTokens() == 7) {
 				targetZoneName = st.nextToken();
-				
-				// targetX 
-				st.nextToken(); 
-				
-				// targetY 
-				st.nextToken(); 
-				
-				// timeInTurns 
-				st.nextToken(); 
+
+				// targetX
+				st.nextToken();
+
+				// targetY
+				st.nextToken();
+
+				// timeInTurns
+				st.nextToken();
 				returnZoneName = st.nextToken();
 				returnX = Integer.parseInt(st.nextToken());
 				returnY = Integer.parseInt(st.nextToken());
@@ -74,22 +79,45 @@ public class TimedTeleportScroll extends TeleportScroll {
 						"the infostring attribute is malformed");
 			}
 		}
-	
-		if ((player == null) || (player.getZone() == null)
-				|| (targetZoneName == null)) {
-			return true;
-		}
 
-		if (notInTargetZone(player, targetZoneName)) {
-			return true; 
+		if(targetZoneName.equals("0_desert_pyramid_nw")) {
+			int i=0;
+			if(player.getZone().getName().contains("0_desert_pyramid_nw")) {
+				if ((player == null) || (player.getZone() == null)
+						|| (targetZoneName == null)) {
+					return true;
+				}
+
+				if (notInTargetZone(player, targetZoneName)) {
+					return true;
+				}
+			} else {
+				for(final String mapsName : DESERT_MAPS) {
+					if (mapsName.equals(player.getZone().getName())) {
+						i=1;
+					}
+				}
+				if(i==0) {
+					return true;
+				}
+			}
+		} else {
+			if ((player == null) || (player.getZone() == null)
+					|| (targetZoneName == null)) {
+				return true;
+			}
+
+			if (notInTargetZone(player, targetZoneName)) {
+				return true;
+			}
 		}
 
 		final StendhalRPZone returnZone = SingletonRepository.getRPWorld().getZone(
 				returnZoneName);
-		
+
 		int x = initCoord(returnX, returnZone.getWidth());
 		int y = initCoord(returnY, returnZone.getHeight());
-	
+
 		final boolean result = player.teleport(returnZone, x, y, null, player);
 
 		sendAfterTransportMessage(player);
@@ -110,7 +138,7 @@ public class TimedTeleportScroll extends TeleportScroll {
 
 	/**
 	 * Evaluates the given coord to be non negative.
-	 * 
+	 *
 	 * @param coord
 	 * @param max
 	 * @return the coord if coord non negative or a randomized value between 0 and max.
@@ -127,7 +155,7 @@ public class TimedTeleportScroll extends TeleportScroll {
 
 	/**
 	 * Creates a new timed marked teleport scroll.
-	 * 
+	 *
 	 * @param name
 	 * @param clazz
 	 * @param subclass
@@ -140,7 +168,7 @@ public class TimedTeleportScroll extends TeleportScroll {
 
 	/**
 	 * Copy constructor.
-	 * 
+	 *
 	 * @param item
 	 *            item to copy
 	 */
@@ -151,7 +179,7 @@ public class TimedTeleportScroll extends TeleportScroll {
 	/**
 	 * Is invoked when a teleporting scroll is used. Tries to put the player on
 	 * the scroll's destination, or near it.
-	 * 
+	 *
 	 * @param player
 	 *            The player who used the scroll and who will be teleported
 	 * @return true if teleport was successful
@@ -178,11 +206,11 @@ public class TimedTeleportScroll extends TeleportScroll {
 
 		return useTeleportScroll(player, targetZoneName, targetX, targetY, timeInTurns);
 	}
-	
+
 	/**
 	 * Is invoked when a teleporting scroll is used. Tries to put the player on
 	 * the destination, or near it.
-	 * 
+	 *
 	 * @param player
 	 * 	The player who used the scroll
 	 * @param targetZoneName
@@ -192,7 +220,7 @@ public class TimedTeleportScroll extends TeleportScroll {
 	 * @param y
 	 * 	y coordinate of the target location
 	 * @param timeInTurns
-	 * 	The time on turns that the player should spend on the the target 
+	 * 	The time on turns that the player should spend on the the target
 	 * 	zone unless she leaves by other means than the scrolls timeout feature
 	 * @return true if teleport was succesful
 	 */
@@ -215,16 +243,16 @@ public class TimedTeleportScroll extends TeleportScroll {
 	/**
 	 * Teleports the player to the given position in the given zone.
 	 * Uses player as teleporter to give report to him in case something goes wrong while transport.
-	 * 
+	 *
 	 * @param player the person to teleport
-	 * @param targetX 
+	 * @param targetX
 	 * @param targetY
 	 * @param targetZone the zone to teleport to.
 	 * @return true if successful
 	 */
 	private boolean teleportPlayer(final Player player, final int targetX,
 			final int targetY, final StendhalRPZone targetZone) {
-		
+
 		return player.teleport(targetZone, targetX, targetY, null, player);
 	}
 
@@ -241,17 +269,37 @@ public class TimedTeleportScroll extends TeleportScroll {
 			final String targetZoneName, final int timeInTurns) {
 		final String beforeReturnMessage = getBeforeReturnMessage();
 		if (beforeReturnMessage != null) {
-			SingletonRepository.getTurnNotifier().notifyInTurns(
-					(int) (timeInTurns * 0.9),
-					new TimedTeleportWarningTurnListener(player,
-							SingletonRepository.getRPWorld().getZone(targetZoneName),
-							beforeReturnMessage));
+			if(targetZoneName.equals("0_desert_pyramid_nw")) {
+				if(player.getZone().getName().contains("0_desert_pyramid_nw")) {
+					SingletonRepository.getTurnNotifier().notifyInTurns(
+							(int) (timeInTurns * 0.9),
+							new TimedTeleportWarningTurnListener(player,
+									SingletonRepository.getRPWorld().getZone(targetZoneName),
+									beforeReturnMessage));
+				} else {
+					for(final String mapsName : DESERT_MAPS) {
+						if(player.getZone().getName().contains(mapsName)) {
+							SingletonRepository.getTurnNotifier().notifyInTurns(
+									(int) (timeInTurns * 0.9),
+									new TimedTeleportWarningTurnListener(player,
+											SingletonRepository.getRPWorld().getZone(mapsName),
+											beforeReturnMessage));
+						}
+					}
+				}
+			} else {
+				SingletonRepository.getTurnNotifier().notifyInTurns(
+						(int) (timeInTurns * 0.9),
+						new TimedTeleportWarningTurnListener(player,
+								SingletonRepository.getRPWorld().getZone(targetZoneName),
+								beforeReturnMessage));
+			}
 		}
 	}
 
 	/**
 	 * override this to show a message before teleporting the player back.
-	 * 
+	 *
 	 * @return the message to shown or null for no message
 	 */
 	protected String getBeforeReturnMessage() {
@@ -260,7 +308,7 @@ public class TimedTeleportScroll extends TeleportScroll {
 
 	/**
 	 * override this to show a message after teleporting the player back.
-	 * 
+	 *
 	 * @return the message to shown or null for no message
 	 */
 	protected String getAfterReturnMessage() {
@@ -279,6 +327,7 @@ public class TimedTeleportScroll extends TeleportScroll {
 			this.player = player;
 		}
 
+		@Override
 		public void onTurnReached(final int currentTurn) {
 			teleportBack(player);
 		}
@@ -302,6 +351,7 @@ public class TimedTeleportScroll extends TeleportScroll {
 			this.warningMessage = warningMessage;
 		}
 
+		@Override
 		public void onTurnReached(final int currentTurn) {
 			if ((player == null) || (player.getZone() == null) || (zone == null)) {
 				return;
@@ -311,5 +361,5 @@ public class TimedTeleportScroll extends TeleportScroll {
 			}
 		}
 	}
-	
+
 }

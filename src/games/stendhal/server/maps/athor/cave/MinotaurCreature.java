@@ -1,4 +1,3 @@
-/* $Id: MinotaurCreature.java,v 1.14 2010/09/19 02:31:41 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +11,8 @@
  ***************************************************************************/
 package games.stendhal.server.maps.athor.cave;
 
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
@@ -20,26 +21,21 @@ import games.stendhal.server.entity.creature.Creature;
 import games.stendhal.server.entity.creature.ItemGuardCreature;
 import games.stendhal.server.entity.mapstuff.spawner.CreatureRespawnPoint;
 
-import java.util.Map;
-
 public class MinotaurCreature implements ZoneConfigurator {
-
 	/**
 	 * Configure a zone.
-	 * 
+	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
-
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
-		buildQuicksandArea(zone, attributes);
+		buildQuicksandArea(zone);
 	}
 
-	private void buildQuicksandArea(final StendhalRPZone zone, final Map<String, String> attributes) {
+	private void buildQuicksandArea(final StendhalRPZone zone) {
 		final EntityManager manager = SingletonRepository.getEntityManager();
-
 		final Creature creature = new ItemGuardCreature(manager.getCreature("minotaur"), "klucz minotaura");
-
 		final CreatureRespawnPoint point = new CreatureRespawnPoint(zone, 121, 121, creature, 1);
 
 		zone.add(point);

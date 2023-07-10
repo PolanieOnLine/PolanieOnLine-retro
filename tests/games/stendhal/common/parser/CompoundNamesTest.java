@@ -1,4 +1,4 @@
-/* $Id: CompoundNamesTest.java,v 1.1 2011/05/01 19:41:43 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -17,17 +17,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import games.stendhal.common.parser.CompoundName;
-import games.stendhal.common.parser.ConversationParser;
-import games.stendhal.common.parser.ExpressionType;
-import games.stendhal.common.parser.Sentence;
-import games.stendhal.common.parser.WordList;
 
 import org.junit.Test;
 
 /**
  * Test the NPC conversation CompoundName class.
- * 
+ *
  * @author Martin Fuchs
  */
 public class CompoundNamesTest {

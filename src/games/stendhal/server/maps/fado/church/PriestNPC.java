@@ -1,4 +1,4 @@
-/* $Id: PriestNPC.java,v 1.22 2011/09/08 18:51:55 bluelads99 Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -33,26 +33,19 @@ import java.util.Map;
  *
  */
 public class PriestNPC implements ZoneConfigurator {
-	private SpeakerNPC priest;
-
 	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildNPC(zone);
 	}
 
 	private void buildNPC(final StendhalRPZone zone) {
-		priest = new SpeakerNPC("Priest") {
-
-			@Override
-			protected void createPath() {
-				setPath(null);
-			}
-
+		final SpeakerNPC priest = new SpeakerNPC("Ksiądz") {
 			@Override
 			protected void createDialog() {
 				addGreeting("Witam w kościele!");
@@ -64,16 +57,17 @@ public class PriestNPC implements ZoneConfigurator {
 				addReply(Arrays.asList("ring", "pierścionka", "pierścionek"), "Gdy się zaręczysz to możesz pójść do Ognira, który pracuje tutaj w Fado, aby wyrobić pierścionek ślubny. Wiem, że też sprzedaje pierścionki zaręczynowe, ale one są tylko jako dekoracja. Jakie to rozpustne!");
 			}
 
+			@Override
 			protected void onGoodbye(RPEntity player) {
 				setDirection(Direction.DOWN);
 			}
 		};
 
-		priest.setDescription("Oto ksiądz w kościole w Fado");
+		priest.setDescription("Oto ksiądz znajdujący się w kościole w Fado");
 		priest.setEntityClass("priestnpc");
+		priest.setGender("M");
 		priest.setPosition(11, 5);
 		priest.setDirection(Direction.DOWN);
-		priest.initHP(100);
 		zone.add(priest);
 	}
 }

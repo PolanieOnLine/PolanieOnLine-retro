@@ -1,4 +1,4 @@
-/* $Id: NPC.java,v 1.67 2010/08/07 13:11:03 kymara Exp $ */
+/* $Id$ */
 /***************************************************************************
  *						(C) Copyright 2003 - Marauroa					   *
  ***************************************************************************
@@ -12,102 +12,85 @@
  ***************************************************************************/
 package games.stendhal.client.entity;
 
-import games.stendhal.common.constants.SoundLayer;
 import marauroa.common.game.RPObject;
 
 /**
  * An NPC entity.
  */
-public class NPC extends AudibleEntity {
-	
+public class NPC extends RPEntity {
+	/**
+	 * Idea property for NPCs and domestic animals.
+	 */
+	public static final Property PROP_IDEA = new Property();
+
 	/**
 	 * The NPC's idea.
 	 */
 	private String idea;
-	
+
+	private String cloneOf = null;
+
 	/**
 	 * Get the idea setting.
-	 * 
+	 *
 	 * @return The NPC's idea.
 	 */
 	public String getIdea() {
 		return idea;
 	}
-	
+
 	/**
-	 * Ask NPC if they are attending
-	 * 
+	 * Ask NPC if they are attending.
+	 *
 	 * @return true if attending.
 	 */
 	public boolean isAttending() {
 		return (idea != null);
 	}
-	
+
 	//
 	// Entity
 	//
 
 	/**
 	 * Initialize this entity for an object.
-	 * 
+	 *
 	 * @param object
 	 *			  The object.
-	 * 
+	 *
 	 * @see #release()
 	 */
 	@Override
 	public void initialize(final RPObject object) {
 		super.initialize(object);
 
-		final String type = getType();
-
 		/*
 		 * Idea
 		 */
-		if (object.has("idea")) {
-			idea = object.get("idea");
-		} else {
-			idea = null;
-		}
-		
-		if (type.startsWith("npc")) {
-			if (name.equals("Diogenes")) {
-				addSounds(SoundLayer.CREATURE_NOISE.groupName, "move", "laugh-1", "laugh-2");
-			} else if (name.equals("Carmen")) {
-				addSounds(SoundLayer.CREATURE_NOISE.groupName, "move", "giggle-1", "giggle-2");
-			} else if (name.equals("Nishiya")) {
-				addSounds(SoundLayer.CREATURE_NOISE.groupName, "move", "cough-11", "cough-2", "cough-3");
-			} else if (name.equals("Margaret")) {
-				addSounds(SoundLayer.CREATURE_NOISE.groupName, "move", "hiccup-1", "hiccup-2", "hiccup-3");
-			} else if (name.equals("Sato")) {
-				addSounds(SoundLayer.CREATURE_NOISE.groupName, "move", "hiccup-1", "sneeze-1");
-			} else if (name.equals("Kibic")) {
-				addSounds(SoundLayer.CREATURE_NOISE.groupName, "move", "pol-boisko-tlo", "pol-chcemy-gola");
-			}
+		onIdea(object.get("idea"));
+
+		// if this is a clone, the name of the original NPC will be displayed
+		if (object.has("cloned")) {
+			cloneOf = object.get("cloned");
 		}
 	}
 
 	/**
-	 * When the entity's position changed.
-	 * 
-	 * @param x
-	 *			  The new X coordinate.
-	 * @param y
-	 *			  The new Y coordinate.
+	 * Called when the idea changes.
+	 *
+	 * @param idea new idea
 	 */
-	@Override
-	protected void onPosition(final double x, final double y) {
-		super.onPosition(x, y);
-		playRandomSoundFromGroup(SoundLayer.CREATURE_NOISE.groupName, "move", 20000);
+	private void onIdea(String idea) {
+		this.idea = idea;
 	}
-	
+
 	//
 	// RPObjectChangeListener
 	//
 
 	/**
 	 * The object added/changed attribute(s).
-	 * 
+	 *
 	 * @param object
 	 *            The base object.
 	 * @param changes
@@ -121,13 +104,14 @@ public class NPC extends AudibleEntity {
 		 * Idea
 		 */
 		if (changes.has("idea")) {
-			idea = changes.get("idea");
+			onIdea(changes.get("idea"));
+			fireChange(PROP_IDEA);
 		}
 	}
-	
+
 	/**
 	 * The object removed attribute(s).
-	 * 
+	 *
 	 * @param object
 	 *            The base object.
 	 * @param changes
@@ -141,7 +125,15 @@ public class NPC extends AudibleEntity {
 		 * Idea
 		 */
 		if (changes.has("idea")) {
-			idea = null;
+			onIdea(null);
+			fireChange(PROP_IDEA);
 		}
+	}
+
+	/**
+	 * Checks if this entity is a clone of another NPC.
+	 */
+	public boolean isClone() {
+		return cloneOf != null;
 	}
 }

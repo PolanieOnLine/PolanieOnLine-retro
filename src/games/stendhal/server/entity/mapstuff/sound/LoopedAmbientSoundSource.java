@@ -1,4 +1,4 @@
-/* $Id: LoopedAmbientSoundSource.java,v 1.3 2010/09/19 02:24:30 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -20,12 +20,14 @@ import games.stendhal.common.constants.SoundLayer;
  * @author hendrik
  */
 public class LoopedAmbientSoundSource extends LoopedSoundSource {
-
 	/**
 	 * Create an ambient sound area.
+	 *
+	 * @param sound
+	 * @param radius
+	 * @param volume
 	 */
 	public LoopedAmbientSoundSource(String sound, int radius, int volume) {
 		super(sound, radius, volume, SoundLayer.AMBIENT_SOUND);
 	}
-
 }

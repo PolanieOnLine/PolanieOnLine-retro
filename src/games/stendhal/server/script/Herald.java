@@ -1,6 +1,5 @@
-/* $Id: Herald.java,v 1.13 2011/05/01 19:50:06 martinfuchs Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,6 +11,12 @@
  ***************************************************************************/
 package games.stendhal.server.script;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.common.Direction;
 import games.stendhal.common.grammar.Grammar;
 import games.stendhal.common.parser.Sentence;
@@ -21,24 +26,17 @@ import games.stendhal.server.core.events.TurnListener;
 import games.stendhal.server.core.events.TurnNotifier;
 import games.stendhal.server.core.scripting.ScriptImpl;
 import games.stendhal.server.core.scripting.ScriptingSandbox;
-import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.condition.AdminCondition;
 import games.stendhal.server.entity.npc.condition.NotCondition;
-
-import java.util.List;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.lang.StringBuilder;
-
-import org.apache.log4j.Logger;
-
+import games.stendhal.server.entity.player.Player;
 
 /**
  * A herald which will tell news to citizens.
+ *
  * @author yoriy
  */
 public class Herald extends ScriptImpl {
@@ -47,12 +45,12 @@ public class Herald extends ScriptImpl {
 	// it will add to game more fun.
     public final String HeraldName = "Patrick";
 
-    // after some thinking, i decided to not implement here 
+    // after some thinking, i decided to not implement here
 	// news records to file.
-	private Logger logger = Logger.getLogger(Herald.class);
+	private final Logger logger = Logger.getLogger(Herald.class);
     private final int REQUIRED_ADMINLEVEL_INFO = 100;
     private final int REQUIRED_ADMINLEVEL_SET = 1000;
-    private TurnNotifier turnNotifier = TurnNotifier.get();
+    private final TurnNotifier turnNotifier = TurnNotifier.get();
 
     //private final String HaveNoTime = "Cześć. Mam pracę do zrobienia i nie mam czasu na rozmowę z tobą.";
     private final String HiOldFriend = "Jesteś! Witaj mój stary przyjacielu. Miło cię widzieć.";
@@ -66,70 +64,71 @@ public class Herald extends ScriptImpl {
 									"Jeżeli chcesz usunąć jakieś aktualne ogłoszenia to "+
 									"powiedz mi '#remove <numer ogłoszenia>'. "+
 									"Możesz mnie też zapytać o aktualne ogłoszenia mówiąc '#info'.";
-    
-    private LinkedList<HeraldNews> heraldNews = new LinkedList<HeraldNews>();
-   
+
+    private final LinkedList<HeraldNews> heraldNews = new LinkedList<HeraldNews>();
+
     /**
-     * class for herald announcements. 
+     * class for herald announcements.
      */
     private final static class HeraldNews {
 
-    private String news;
-    private int interval;
-    private int limit;
-    private int counter;
-    private int id;
-    private HeraldListener tnl;  
-    public String getNews(){
-    	return(news);
+		private final String news;
+		private final int interval;
+		private final int limit;
+	    private int counter;
+		private final int id;
+		private final HeraldListener tnl;
+    	public String getNews(){
+    		return(news);
+    	}
+    	public int getInterval(){
+    		return(interval);
+	    }
+    	public int getLimit(){
+    		return(limit);
+	    }
+    	public int getCounter(){
+    		return(counter);
+	    }
+    	public int getid(){
+    		return(id);
+	    }
+    	public HeraldListener getTNL(){
+    		return(tnl);
+    	}
+			public void setCounter(int count){
+    		this.counter=count;
+    	}
+
+	    /**
+    	 * constructor for news
+	     * @param news - text to speech
+    	 * @param interval - interval between speeches in seconds.
+	     * @param limit - time limit in seconds.
+    	 * @param counter - counter of speeches
+	     * @param tnl - listener object
+    	 * @param id - unique number to internal works with news.
+	     */
+	    public HeraldNews(String news, int interval, int limit, int counter,
+    			HeraldListener tnl, int id){
+    		this.news=news;
+	    	this.interval=interval;
+    		this.limit=limit;
+    		this.counter=counter;
+	    	this.tnl=tnl;
+    		this.id=id;
+    	}
     }
-    public int getInterval(){
-    	return(interval);
-    }
-    public int getLimit(){
-    	return(limit);
-    }
-    public int getCounter(){
-    	return(counter);
-    }
-    public int getid(){
-    	return(id);
-    }
-    public HeraldListener getTNL(){
-    	return(tnl);
-    }
-		public void setCounter(int count){
-    	this.counter=count;
-    }
-    
+
     /**
-     * constructor for news
-     * @param news - text to speech
-     * @param interval - interval between speeches in seconds.
-     * @param limit - time limit in seconds.
-     * @param counter - counter of speeches
-     * @param tnl - listener object
-     * @param id - unique number to internal works with news.
-     */
-    public HeraldNews(String news, int interval, int limit, int counter, 
-    		HeraldListener tnl, int id){
-    	this.news=news;
-    	this.interval=interval;
-    	this.limit=limit;
-    	this.counter=counter;
-    	this.tnl=tnl;
-    	this.id=id;
-    }
-    }
-    
-    /**
-     * herald turn listener object. 
+     * herald turn listener object.
      */
     class HeraldListener implements TurnListener{
-    	private int id;
+		private final int id;
     	/**
     	 * function invokes by TurnNotifier each time when herald have to speech.
     	 */
+		@Override
     	public void onTurnReached(int currentTurn) {
     		workWithCounters(id);
 			}
@@ -141,7 +140,7 @@ public class Herald extends ScriptImpl {
     		id=i;
     	}
     }
-    
+
     /**
      * invokes by /script -load Herald.class,
      * placing herald near calling admin.
@@ -208,11 +207,12 @@ public class Herald extends ScriptImpl {
 	 */
 	private SpeakerNPC getHerald(StendhalRPZone zone, int x, int y) {
 		final SpeakerNPC npc = new SpeakerNPC(HeraldName) {
-			
+
 			/**
 			 * npc says his job list
 			 */
 			class ReadJobsAction implements ChatAction {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc){
 					int newssize = heraldNews.size();
 					if(newssize==0){
@@ -222,7 +222,7 @@ public class Herald extends ScriptImpl {
 					StringBuilder sb=new StringBuilder();
 					sb.append("Oto " + Grammar.isare(newssize) + " moich aktualnych ogłoszeń: ");
 
-					
+
 					for(int i=0; i<newssize;i++){
 						// will add 1 to position numbers to show position 0 as 1.
 						logger.info("info: index "+Integer.toString(i));
@@ -245,12 +245,13 @@ public class Herald extends ScriptImpl {
 					npc.say(sb.toString());
 				}
 			}
-			
-			
+
+
 			/**
 			 * npc says his job list
 			 */
 			class ReadNewsAction implements ChatAction {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc){
 					int newssize = heraldNews.size();
 					if(newssize==0){
@@ -260,7 +261,7 @@ public class Herald extends ScriptImpl {
 
 					StringBuilder sb=new StringBuilder();
 					sb.append("Oto " + Grammar.isare(newssize) + " moich aktualnych ogłoszeń: ");
-					
+
 					for(int i=0; i<newssize;i++){
 						// will add 1 to position numbers to show position 0 as 1.
 						logger.info("info: index "+Integer.toString(i));
@@ -281,10 +282,11 @@ public class Herald extends ScriptImpl {
 			 * NPC adds new job to his job list.
 			 */
 			class WriteNewsAction implements ChatAction {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc){
 					String text = sentence.getOriginalText();
 					logger.info("Oryginalne zdanie: " + text);
-					final String[] starr = text.split(" ");	
+					final String[] starr = text.split(" ");
 					if(starr.length < 2){
 						npc.say("Zapomniałeś o czasie zakończenia. Jestem śmiertelnikiem i trochę stary. Wiesz o co chodzi.");
 						return;
@@ -320,14 +322,15 @@ public class Herald extends ScriptImpl {
 					}
 				}
 			}
-	
+
 			/**
 			 * NPC removes one job from his job list.
 			 */
 			class RemoveNewsAction implements ChatAction {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc){
-					String text = sentence.getOriginalText();					
-					final String[] starr = text.split(" ");	
+					String text = sentence.getOriginalText();
+					final String[] starr = text.split(" ");
 					if(starr.length < 2){
 						npc.say("Powiedz mi numer ogłoszenia do usunięcia.");
 						return;
@@ -344,7 +347,7 @@ public class Herald extends ScriptImpl {
 							return;
 						}
 						if(i>=(heraldNews.size())){
-							npc.say("Mam tylko "+ Integer.toString(heraldNews.size())+ 
+							npc.say("Mam tylko "+ Integer.toString(heraldNews.size())+
 									" ogłoszeń w tym momencie.");
 							return;
 						}
@@ -361,12 +364,13 @@ public class Herald extends ScriptImpl {
 						npc.say(DontUnderstand);
 					}
 				}
-			}		
-			
+			}
+
 			/**
 			 * npc removes all jobs from his job list
 			 */
 			class ClearNewsAction implements ChatAction {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser npc){
 						logger.info("ClearAllAction: Admin "+player.getName()+
 									" cleared announcement list.");
@@ -381,60 +385,60 @@ public class Herald extends ScriptImpl {
 						}
 					}
 			}
-			
+
 			/**
 			 *  Finite states machine logic for herald.
 			 */
 			@Override
 			public void createDialog() {
-				add(ConversationStates.IDLE, 
+				add(ConversationStates.IDLE,
 					Arrays.asList("hi", "hola", "hello", "heya", "cześć"),
 					new NotCondition(new AdminCondition(REQUIRED_ADMINLEVEL_INFO)),
-					ConversationStates.IDLE, 
+					ConversationStates.IDLE,
 					null,	new ReadNewsAction());
-				add(ConversationStates.IDLE, 
+				add(ConversationStates.IDLE,
 					Arrays.asList("hi", "hola", "hello", "heya", "cześć"),
-					new AdminCondition(REQUIRED_ADMINLEVEL_INFO), 
-					ConversationStates.ATTENDING, 
+					new AdminCondition(REQUIRED_ADMINLEVEL_INFO),
+					ConversationStates.ATTENDING,
 					HiOldFriend, null);
-				add(ConversationStates.ATTENDING, 
+				add(ConversationStates.ATTENDING,
 					Arrays.asList("help", "pomoc"),
-					new AdminCondition(REQUIRED_ADMINLEVEL_SET), 
-					ConversationStates.ATTENDING, 
+					new AdminCondition(REQUIRED_ADMINLEVEL_SET),
+					ConversationStates.ATTENDING,
 					WillHelp, null);
-				add(ConversationStates.ATTENDING, 
+				add(ConversationStates.ATTENDING,
 					Arrays.asList("speech", "remove", "usuń"),
-					new NotCondition(new AdminCondition(REQUIRED_ADMINLEVEL_SET)), 
-					ConversationStates.ATTENDING, 
+					new NotCondition(new AdminCondition(REQUIRED_ADMINLEVEL_SET)),
+					ConversationStates.ATTENDING,
 					TooScared, null);
-				add(ConversationStates.ATTENDING, 
+				add(ConversationStates.ATTENDING,
 					Arrays.asList("help", "pomoc"),
-					new NotCondition(new AdminCondition(REQUIRED_ADMINLEVEL_SET)), 
-					ConversationStates.ATTENDING, 
+					new NotCondition(new AdminCondition(REQUIRED_ADMINLEVEL_SET)),
+					ConversationStates.ATTENDING,
 					InfoOnly, new ReadJobsAction());
-				add(ConversationStates.ATTENDING, 
+				add(ConversationStates.ATTENDING,
 					Arrays.asList("info", "list", "tasks", "news", "informacje", "zadania", "nowości"),
-					new AdminCondition(REQUIRED_ADMINLEVEL_INFO), 
-					ConversationStates.ATTENDING, 
-					null, new ReadJobsAction());		
-				add(ConversationStates.ATTENDING, 
+					new AdminCondition(REQUIRED_ADMINLEVEL_INFO),
+					ConversationStates.ATTENDING,
+					null, new ReadJobsAction());
+				add(ConversationStates.ATTENDING,
 					Arrays.asList("speech", "powiedz"),
-					new AdminCondition(REQUIRED_ADMINLEVEL_SET), 
-					ConversationStates.ATTENDING, 
+					new AdminCondition(REQUIRED_ADMINLEVEL_SET),
+					ConversationStates.ATTENDING,
 					null, new WriteNewsAction());
-				add(ConversationStates.ATTENDING, 
+				add(ConversationStates.ATTENDING,
 					Arrays.asList("remove", "usuń"),
-					new AdminCondition(REQUIRED_ADMINLEVEL_SET), 
-					ConversationStates.ATTENDING, 
+					new AdminCondition(REQUIRED_ADMINLEVEL_SET),
+					ConversationStates.ATTENDING,
 					null, new RemoveNewsAction());
-				add(ConversationStates.ATTENDING, 
+				add(ConversationStates.ATTENDING,
 						Arrays.asList("clear", "wyczyść"),
-						new AdminCondition(REQUIRED_ADMINLEVEL_SET), 
-						ConversationStates.ATTENDING, 
+						new AdminCondition(REQUIRED_ADMINLEVEL_SET),
+						ConversationStates.ATTENDING,
 						null, new ClearNewsAction());
 				addGoodbye();
 			}
-		}; 
+		};
 		zone.assignRPObjectID(npc);
 		npc.setEntityClass("heraldnpc");
 		npc.setPosition(x, y);

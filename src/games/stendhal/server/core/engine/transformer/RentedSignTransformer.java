@@ -1,4 +1,4 @@
-/* $Id: RentedSignTransformer.java,v 1.3 2010/09/19 02:22:47 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -17,6 +17,7 @@ import marauroa.common.game.RPObject;
 
 public class RentedSignTransformer implements Transformer {
 
+	@Override
 	public RPObject transform(final RPObject object) {
 				return new RentedSign(object);
 	}

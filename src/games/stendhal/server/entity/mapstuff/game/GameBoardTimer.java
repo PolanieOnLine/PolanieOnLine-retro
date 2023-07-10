@@ -1,4 +1,4 @@
-/* $Id: GameBoardTimer.java,v 1.2 2010/09/19 02:24:43 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -35,6 +35,7 @@ public class GameBoardTimer implements TurnListener {
 		this.seconds = seconds;
 	}
 
+	@Override
 	public void onTurnReached(int currentTurn) {
 		gameBoard.timeOut();
 	}

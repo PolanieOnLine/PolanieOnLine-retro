@@ -1,4 +1,4 @@
-/* $Id: BareBonesBrowserLaunchCommandsFactory.java,v 1.9 2011/08/04 21:22:56 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -16,38 +16,36 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import games.stendhal.client.update.ClientGameConfiguration;
+
 /**
  * Factory to create all known {@link SlashAction}s that open a specified URL in the browser
- *  
+ *
  * @author madmetzger
  */
-public class BareBonesBrowserLaunchCommandsFactory {
-	
+class BareBonesBrowserLaunchCommandsFactory {
 	private static Map<String, String> commandsAndUrls;
-	
+
 	private static void initialize() {
+		String server_page = ClientGameConfiguration.get("DEFAULT_SERVER_WEB");
+
 		commandsAndUrls = new HashMap<String, String>();
-		commandsAndUrls.put("faq", "http://www.gra.polskaonline.org/faq");
-		commandsAndUrls.put("manual", "http://www.gra.polskaonline.org/wprowadzenie");
-		commandsAndUrls.put("przewodnik", "http://www.gra.polskaonline.org/wprowadzenie");
-		commandsAndUrls.put("rules", "http://www.gra.polskaonline.org/regulamin-gry-polskaonline-mmorpg");
-		commandsAndUrls.put("regulamin", "http://www.gra.polskaonline.org/regulamin-gry-polskaonline-mmorpg");
-		commandsAndUrls.put("changepassword", "http://pol.polskaonline.org/account/change-password.html");
-		commandsAndUrls.put("zmieńhasło", "http://pol.polskaonline.org/account/change-password.html");
-		commandsAndUrls.put("loginhistory", "http://pol.polskaonline.org/account/history.html");
-		commandsAndUrls.put("historialogowania", "http://pol.polskaonline.org/account/history.html");
-		commandsAndUrls.put("merge", "http://pol.polskaonline.org/account/merge.html");
-		commandsAndUrls.put("połącz", "http://pol.polskaonline.org/account/merge.html");
-		commandsAndUrls.put("halloffame", "http://pol.polskaonline.org/world/hall-of-fame/active_overview.html");
-		commandsAndUrls.put("alejasław", "http://pol.polskaonline.org/world/hall-of-fame/active_overview.html");
+		commandsAndUrls.put("beginnersguide", server_page + "/wprowadzenie.html");
+		commandsAndUrls.put("faq", server_page + "/faq.html");
+		commandsAndUrls.put("manual", server_page + "/wprowadzenie.html");
+		commandsAndUrls.put("rules", server_page + "/regulamin/regulamin-gry-polanieonline");
+		commandsAndUrls.put("changepassword", server_page + "/account/ustawienia.html");
+		commandsAndUrls.put("loginhistory", server_page + "/account/history.html");
+		commandsAndUrls.put("merge", server_page + "/account/ustawienia.html");
+		commandsAndUrls.put("halloffame", server_page + "/aleja-slaw/all_overview.html");
 	}
-	
+
 	/**
-	 * creates {@link SlashAction}s for all in initialize specified values 
-	 * 
+	 * creates {@link SlashAction}s for all in initialize specified values
+	 *
 	 * @return map of the created actions
 	 */
-	public static Map<String, SlashAction> createBrowserCommands() {
+	static Map<String, SlashAction> createBrowserCommands() {
 		initialize();
 		Map<String, SlashAction> commandsMap = new HashMap<String, SlashAction>();
 		for(Entry<String, String> entry : commandsAndUrls.entrySet()) {

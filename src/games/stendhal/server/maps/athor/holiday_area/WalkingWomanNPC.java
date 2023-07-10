@@ -1,4 +1,3 @@
-/* $Id: WalkingWomanNPC.java,v 1.8 2010/10/31 13:11:11 kymara Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,30 +11,27 @@
  ***************************************************************************/
 package games.stendhal.server.maps.athor.holiday_area;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 public class WalkingWomanNPC implements ZoneConfigurator  {
-
-	public void configureZone(StendhalRPZone zone,
-			Map<String, String> attributes) {
+	@Override
+	public void configureZone(StendhalRPZone zone, Map<String, String> attributes) {
 		buildNPC(zone);
 	}
 
 	private void buildNPC(StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Kelicia") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
-				// walking along the beach
 				nodes.add(new Node(5,49));
 				nodes.add(new Node(6,48));
 				nodes.add(new Node(6,47));
@@ -78,7 +74,7 @@ public class WalkingWomanNPC implements ZoneConfigurator  {
 				nodes.add(new Node(52,29));
 				nodes.add(new Node(52,28));
 				nodes.add(new Node(76,28));
-				// The same way back 
+				// The same way back
 				nodes.add(new Node(52,28));
 				nodes.add(new Node(52,29));
 				nodes.add(new Node(47,29));
@@ -126,13 +122,15 @@ public class WalkingWomanNPC implements ZoneConfigurator  {
 				addGreeting("Cześć!");
 				addQuest("Nie mam dla Ciebie zajęcia");
 				addJob("Chodzę sobie wzdłuż wybrzeża!");
-				addHelp("Nie mogę Ci pomóc...Jestem tylko dziewczyną...");
-				addGoodbye("Dowidzenia!");
+				addHelp("Nie mogę Ci pomóc... Jestem tylko dziewczyną...");
+				addGoodbye("Do widzenia!");
 			}
-
 		};
-		npc.setPosition(5, 49);
+
+		npc.setDescription ("Oto Kelicia, która spaceruje wzdłuż wybrzeża.");
 		npc.setEntityClass("swimmer7npc");
-		zone.add(npc);		
+		npc.setGender("F");
+		npc.setPosition(5, 49);
+		zone.add(npc);
 	}
 }

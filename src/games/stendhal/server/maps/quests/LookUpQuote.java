@@ -1,6 +1,5 @@
-/* $Id: LookUpQuote.java,v 1.41 2012/02/01 12:24:19 monsterdhal Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2011 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,7 +11,13 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.common.Rand;
+import games.stendhal.common.grammar.Grammar;
 import games.stendhal.common.parser.ConversationParser;
 import games.stendhal.common.parser.Expression;
 import games.stendhal.common.parser.JokerExprMatcher;
@@ -29,11 +34,6 @@ import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.Region;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 /**
  * QUEST: Quest to get a fishing rod 
  * <p>
@@ -47,62 +47,48 @@ import java.util.Map;
  * to the fisherman and tells him the quote.</ul>
  * 
  * 
- * REWARD: <ul><li>750 XP - A fishing rod.</ul>
+ * REWARD:
+ * <ul>
+ * <li> 750 XP
+ * <li> some karma (10)
+ * <li> A fishing rod
+ * </ul>
  * 
  * REPETITIONS: <ul><li> no repetitions</ul>
  * 
  * @author dine
  */
-
 public class LookUpQuote extends AbstractQuest {
 	private static final String QUEST_SLOT = "get_fishing_rod";
+	private final SpeakerNPC npc = npcs.get("Pequod");
 
 	private static Map<String, String> quotes = new HashMap<String, String>();
 	static {
-		quotes.put("fisherman Bully", "Clownfish are always good for a laugh.");
-		quotes.put("fisherman Jacky",
+		quotes.put("Rybak Bully",
+						"Clownfish are always good for a laugh.");
+		quotes.put("Rybak Jacky",
 						"Don't mistake your trout for your old trout, she wouldn't taste so good.");
-		quotes.put("fisherman Tommy",
+		quotes.put("Rybak Tommy",
 						"I wouldn't trust a surgeonfish in a hospital, there's something fishy about them.");
-		quotes.put("fisherman Sody",
-				"Devout Crustaceans believe in the One True Cod.");
-		quotes.put("fisherman Humphrey",
+		quotes.put("Rybak Sody",
+						"Devout Crustaceans believe in the One True Cod.");
+		quotes.put("Rybak Humphrey",
 						"I don't understand why no-one buys my fish. The sign says 'Biggest Roaches in town'.");
-		quotes.put("fisherman Monty",
+		quotes.put("Rybak Monty",
 						"My parrot doesn't like to sit on a perch. He says it smells fishy.");
-		quotes.put("fisherman Charby",
+		quotes.put("Rybak Charby",
 						"That fish restaurant really overcooks everything. It even advertises char fish.");
-		quotes.put("fisherman Ally", "Holy mackerel! These chips are tasty.");
-	}
-
-
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
-	@Override
-	public List<String> getHistory(final Player player) {
-		final List<String> res = new ArrayList<String>();
-		if (!player.hasQuest(QUEST_SLOT)) {
-			return res;
-		}
-		res.add("Spotkałem Pequod w domku w mieście Ados i poprosił mnie o znalezienie cytatu znanego rybaka.");
-		if (!player.isQuestCompleted(QUEST_SLOT)) {
-			res.add("Cytat, który muszę znaleść jest " + player.getQuest(QUEST_SLOT) + ".");
-		} else {
-			res.add("Znalazłem cytat dla Pequod i dostałem wędkę.");
-		}
-		return res;
+		quotes.put("Rybak Ally",
+						"Holy mackerel! These chips are tasty.");
 	}
 
 	private void createFishingRod() {
-		final SpeakerNPC fisherman = npcs.get("Pequod");
-
-		fisherman.add(ConversationStates.IDLE,
+		npc.add(ConversationStates.IDLE,
 			ConversationPhrases.GREETING_MESSAGES,
-			new GreetingMatchesNameCondition(fisherman.getName()), true,
+			new GreetingMatchesNameCondition(npc.getName()), true,
 			ConversationStates.ATTENDING, null,
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					if (!player.hasQuest(QUEST_SLOT)) {
 						npc.say("Witaj przybyszu! #Pomagam w drodze do zostania prawdziwym rybakiem!");
@@ -117,10 +103,11 @@ public class LookUpQuote extends AbstractQuest {
 			});
 
 		// TODO: rewrite this to use standard conditions and actions
-		fisherman.add(ConversationStates.ATTENDING,
+		npc.add(ConversationStates.ATTENDING,
 			ConversationPhrases.QUEST_MESSAGES, null,
 			ConversationStates.QUEST_OFFERED, null,
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					if (player.isQuestCompleted(QUEST_SLOT)) {
 						npc.say("Nie dziękuję mam wszystko.");
@@ -135,15 +122,16 @@ public class LookUpQuote extends AbstractQuest {
 				}
 			});
 
-		fisherman.add(ConversationStates.QUEST_OFFERED,
+		npc.add(ConversationStates.QUEST_OFFERED,
 			ConversationPhrases.NO_MESSAGES, null,
 			ConversationStates.ATTENDING,
 			"W takim razie nie wyświadczę Tobie przysługi. Nigdy.", null);
 
-		fisherman.add(ConversationStates.QUEST_OFFERED,
+		npc.add(ConversationStates.QUEST_OFFERED,
 			ConversationPhrases.YES_MESSAGES, null,
 			ConversationStates.ATTENDING, null,
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					final String name = Rand.rand(quotes.keySet());
 					npc.say("Proszę poszukaj ulubionego powiedzonka " + name + ".");
@@ -151,19 +139,20 @@ public class LookUpQuote extends AbstractQuest {
 				}
 			});
 
-		fisherman.add(ConversationStates.QUESTION_1,
+		npc.add(ConversationStates.QUESTION_1,
 			ConversationPhrases.YES_MESSAGES, null,
 			ConversationStates.QUESTION_2, "Jak brzmi?", null);
 
-		fisherman.add(ConversationStates.QUESTION_1,
+		npc.add(ConversationStates.QUESTION_1,
 			ConversationPhrases.NO_MESSAGES, null,
 			ConversationStates.ATTENDING,
 			"Nie dobrze. Mogłem mieć dla Ciebie niezłą nagrodę.", null);
 
 		// TODO: rewrite this to use standard conditions and actions
-		fisherman.addMatching(ConversationStates.QUESTION_2, Expression.JOKER, new JokerExprMatcher(), null,
+		npc.addMatching(ConversationStates.QUESTION_2, Expression.JOKER, new JokerExprMatcher(), null,
 			ConversationStates.ATTENDING, null,
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					final String name = player.getQuest(QUEST_SLOT);
 					final String quote = quotes.get(name);
@@ -172,15 +161,16 @@ public class LookUpQuote extends AbstractQuest {
 					final Sentence expected = ConversationParser.parse(quote, new SimilarExprMatcher());
 
 					if (answer.matchesFull(expected)) {
-						npc.say("Oh racja to jest to! Jak mogłem to zapomnieć? Weź tą poręczną wędkę jako wyraz mojej wdzięczności!");
+						npc.say("Och racja, to jest to! Jak mogłem to zapomnieć? Weź tą poręczną wędkę jako wyraz mojej wdzięczności!");
 						final Item fishingRod = SingletonRepository.getEntityManager().getItem("wędka");
 						fishingRod.setBoundTo(player.getName());
 						player.equipOrPutOnGround(fishingRod);
 						player.addXP(750);
+						player.addKarma(10);
 						player.setQuest(QUEST_SLOT, "done");
 						player.notifyWorldAboutChanges();
 					} else if (ConversationPhrases.GOODBYE_MESSAGES.contains(sentence.getTriggerExpression().getNormalized())) {
-						npc.say("Dowidzenia - do następnego razu!");
+						npc.say("Do widzenia - do następnego razu!");
 						npc.setCurrentState(ConversationStates.IDLE);
 					} else {
 						npc.say("Sądzę, że się pomyliłeś. Wróć, gdy będziesz dobrze znał powiedzenie.");
@@ -192,24 +182,45 @@ public class LookUpQuote extends AbstractQuest {
 
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
 				"Poszukiwania Cytatu",
 				"Pequod zapomniał cytatu znanego rybaka.",
 				false);
 		createFishingRod();
 	}
+
+	@Override
+	public List<String> getHistory(final Player player) {
+		final List<String> res = new ArrayList<String>();
+		if (!player.hasQuest(QUEST_SLOT)) {
+			return res;
+		}
+		res.add(Grammar.genderVerb(player.getGender(), "Spotkałem") + " Pequod w domku w mieście Ados i poprosił mnie o znalezienie cytatu znanego rybaka.");
+		if (!player.isQuestCompleted(QUEST_SLOT)) {
+			res.add("Cytat, który muszę znaleźć jest " + player.getQuest(QUEST_SLOT) + ".");
+		} else {
+			res.add(Grammar.genderVerb(player.getGender(), "Znalazłem") + " cytat dla Pequod i " + Grammar.genderVerb(player.getGender(), "dostałem") + " wędkę.");
+		}
+		return res;
+	}
+
+	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
+	}
+
 	@Override
 	public String getName() {
-		return "LookUpQuote";
+		return "Poszukiwania Cytatu";
 	}
-	
+
 	@Override
 	public String getRegion() {
 		return Region.ADOS_CITY;
 	}
+
 	@Override
 	public String getNPCName() {
-		return "Pequod";
+		return npc.getName();
 	}
 }

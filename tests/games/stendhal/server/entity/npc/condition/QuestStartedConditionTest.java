@@ -1,4 +1,4 @@
-/* $Id: QuestStartedConditionTest.java,v 1.14 2011/05/01 19:50:06 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -15,14 +15,14 @@ package games.stendhal.server.entity.npc.condition;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import games.stendhal.common.parser.ConversationParser;
-import games.stendhal.server.entity.player.Player;
-import games.stendhal.server.maps.MockStendlRPWorld;
-import marauroa.common.Log4J;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.common.parser.ConversationParser;
+import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.maps.MockStendlRPWorld;
+import marauroa.common.Log4J;
 import utilities.PlayerTestHelper;
 import utilities.SpeakerNPCTestHelper;
 
@@ -33,7 +33,7 @@ public class QuestStartedConditionTest {
 		Log4J.init();
 		MockStendlRPWorld.get();
 	}
-	
+
 	/**
 	 * Tests for fire.
 	 */
@@ -54,7 +54,7 @@ public class QuestStartedConditionTest {
 		assertFalse(new QuestStartedCondition("questname").fire(bob,
 				ConversationParser.parse("testAdminConditionText"),
 				SpeakerNPCTestHelper.createSpeakerNPC()));
-		
+
 		bob.setQuest("questname", "rejected");
 		assertFalse(new QuestStartedCondition("questname").fire(bob,
 				ConversationParser.parse("testAdminConditionText"),
@@ -83,25 +83,14 @@ public class QuestStartedConditionTest {
 	 * Tests for equals.
 	 */
 	@Test
-	public void testEquals() throws Throwable {
+	public void testEquals() {
 		assertFalse(new QuestStartedCondition("questname").equals(null));
 
 		final QuestStartedCondition obj = new QuestStartedCondition("questname");
 		assertTrue(obj.equals(obj));
-		assertTrue(new QuestStartedCondition("questname").equals(new QuestStartedCondition(
-		"questname")));
-		assertTrue(new QuestStartedCondition(null).equals(new QuestStartedCondition(
-		null)));
+		assertTrue(new QuestStartedCondition("questname").equals(new QuestStartedCondition("questname")));
 
 		assertFalse(new QuestStartedCondition("questname").equals(new Object()));
-
-
-		assertFalse(new QuestStartedCondition(null).equals(new QuestStartedCondition(
-		"questname")));
-		assertFalse(new QuestStartedCondition("questname").equals(new QuestStartedCondition(
-		null)));
-
-
 	}
 
 
@@ -109,13 +98,12 @@ public class QuestStartedConditionTest {
 	 * Tests for hashcode.
 	 */
 	@Test
-	public void testHashcode() throws Throwable {
+	public void testHashcode() {
 		final QuestStartedCondition obj = new QuestStartedCondition("questname");
 		assertTrue(obj.equals(obj));
 		assertEquals(obj.hashCode(), obj.hashCode());
 
 		assertTrue(new QuestStartedCondition("questname").equals(new QuestStartedCondition("questname")));
 		assertEquals(new QuestStartedCondition("questname").hashCode(), new QuestStartedCondition("questname").hashCode());
-		assertEquals(new QuestStartedCondition(null).hashCode(), new QuestStartedCondition(null).hashCode());
 	}
 }

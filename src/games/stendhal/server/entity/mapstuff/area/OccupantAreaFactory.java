@@ -1,7 +1,7 @@
 /*
  * @(#) src/games/stendhal/server/entity/area/OccupantAreaFactory.java
  *
- * $Id: OccupantAreaFactory.java,v 1.4 2008/07/12 14:43:56 astridemma Exp $
+ * $Id$
  */
 
 package games.stendhal.server.entity.mapstuff.area;
@@ -15,7 +15,7 @@ import games.stendhal.server.core.config.factory.ConfigurableFactoryContext;
 public abstract class OccupantAreaFactory implements ConfigurableFactory {
 	/**
 	 * Creates the OccupantArea.
-	 * 
+	 *
 	 * @param ctx
 	 *            The configuration context.
 	 * @return An OccupantArea.
@@ -26,7 +26,7 @@ public abstract class OccupantAreaFactory implements ConfigurableFactory {
 
 	/**
 	 * Extract the width from context.
-	 * 
+	 *
 	 * @param ctx
 	 *            The configuration context.
 	 * @return The width, 1 if unspecified.
@@ -39,7 +39,7 @@ public abstract class OccupantAreaFactory implements ConfigurableFactory {
 
 	/**
 	 * Extract the height from context.
-	 * 
+	 *
 	 * @param ctx
 	 *            The configuration context.
 	 * @return The height, 1 if unspecified.
@@ -52,7 +52,7 @@ public abstract class OccupantAreaFactory implements ConfigurableFactory {
 
 	/**
 	 * Extract the interval (in seconds) to perform actions while stationary.
-	 * 
+	 *
 	 * @param ctx
 	 *            The configuration context.
 	 * @return The stationary interval (in turns).
@@ -65,7 +65,7 @@ public abstract class OccupantAreaFactory implements ConfigurableFactory {
 
 	/**
 	 * Extract the flag to only affect players.
-	 * 
+	 *
 	 * @param ctx
 	 *            The configuration context.
 	 * @return The flag to only affect players.
@@ -76,6 +76,7 @@ public abstract class OccupantAreaFactory implements ConfigurableFactory {
 		return ctx.getRequiredBoolean("players-only");
 	}
 
+	@Override
 	public Object create(final ConfigurableFactoryContext ctx) {
 		OccupantArea area;
 

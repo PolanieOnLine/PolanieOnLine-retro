@@ -1,4 +1,4 @@
-/* $Id: Cell.java,v 1.4 2010/09/19 02:26:09 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -32,7 +32,7 @@ class Cell {
 
 	public boolean isEmpty() {
 		return "".equals(inmateName);
-		
+
 	}
 
 	public Point getEntry() {

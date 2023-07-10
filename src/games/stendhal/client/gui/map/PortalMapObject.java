@@ -1,4 +1,4 @@
-/* $Id: PortalMapObject.java,v 1.2 2010/09/19 02:19:20 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -17,13 +17,13 @@ import java.awt.Graphics;
 
 import games.stendhal.client.entity.IEntity;
 
-public class PortalMapObject extends StaticMapObject {
-	public PortalMapObject(final IEntity entity) {
+class PortalMapObject extends StaticMapObject {
+	PortalMapObject(final IEntity entity) {
 		super(entity);
 	}
-	
+
 	@Override
-	public void draw(final Graphics g, final int scale) {
+	void draw(final Graphics g, final int scale) {
 		draw(g, scale, Color.WHITE, Color.BLACK);
 	}
 }

@@ -1,6 +1,6 @@
-/* $Id: VegetableGrower.java,v 1.16 2011/11/11 21:06:31 theredqueen Exp $ */
+/* $Id$ */
 /***************************************************************************
- *                      (C) Copyright 2003 - Marauroa                      *
+ *                   (C) Copyright 2003-2023 - Marauroa                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -22,7 +22,7 @@ import marauroa.common.game.RPObject;
 
 /**
  * A growing carrot which can be picked.
- * 
+ *
  * @author hendrik
  */
 public class VegetableGrower extends GrowingPassiveEntityRespawnPoint implements
@@ -46,41 +46,44 @@ public class VegetableGrower extends GrowingPassiveEntityRespawnPoint implements
 		return notRipeEnoughMessage;
 	}
 
-    /**
+	/**
      * Create a VegetableGrower from an RPObject. Used when restoring growers
      * from the DB.
-     * 
+     *
      * @param object object to be converted
      * @param name item name
      * @param maxRipeness maximum ripeness of the object
-     * @param growthRate average time between growth steps 
+     * @param growthRate average time between growth steps
      */
 	public VegetableGrower(final RPObject object, final String name, final String vegetableview,
 			final int maxRipeness, final int growthRate) {
 		super(object, "items/grower/" + vegetableview + "_grower", "items/grower/" + vegetableview + " grower", "Pick", maxRipeness, growthRate);
 		vegetableName = name;
 		setDescription("Wygląda na to, że rośnie tutaj "
-				+ Grammar.a_noun(name) + ".");
+				+ name + ".");
 		update();
 	}
 
 	/**
 	 * Create a new VegetableGrower for an item.
-	 * 
-	 * @param name item name
+	 *
+	 * @param name
+	 * 			Item name
+	 * @param vegetableview
+	 * 			Item sprite-image name
 	 */
 	public VegetableGrower(final String name, final String vegetableview) {
 		super("items/grower/" + vegetableview + "_grower", "items/grower/" + vegetableview + " grower", "Pick", 1, 1, 1);
 		vegetableName = name;
 		setDescription("Wygląda na to, że rośnie tutaj "
-				+ Grammar.a_noun(name) + ".");
+				+ name + ".");
 	}
-	
+
 	/**
 	 * Create a new VegetableGrower for an item.
-	 * 
+	 *
 	 * @param name item name
-	 * @param notRipeEnoughMessage 
+	 * @param notRipeEnoughMessage
 	 * 		The message displayed when the
 	 * 		player tries to pick the item but it is
 	 * 		not yet ripe enough.
@@ -95,13 +98,13 @@ public class VegetableGrower extends GrowingPassiveEntityRespawnPoint implements
 		String text;
 		switch (getRipeness()) {
 		case 0:
-			text = "Oto miejsce, gdzie można znaleść " + Grammar.a_noun(vegetableName) + ".";
+			text = "Oto miejsce, gdzie można znaleźć " + vegetableName + ".";
 			break;
 		case 1:
-			text = "Oto zebrane " + Grammar.a_noun(vegetableName) + ".";
+			text = "Oto zebrane " + vegetableName + ".";
 			break;
 		default:
-			text = "Oto niezebrane " + Grammar.a_noun(vegetableName) + ".";
+			text = "Oto niezebrane " + vegetableName + ".";
 			break;
 		}
 		return text;
@@ -112,6 +115,7 @@ public class VegetableGrower extends GrowingPassiveEntityRespawnPoint implements
 	 * @param entity that tries to harvest
 	 * @return true on success
 	 */
+	@Override
 	public boolean onUsed(final RPEntity entity) {
 		if (entity.nextTo(this)) {
 			if (getRipeness() == getMaxRipeness()) {
@@ -120,7 +124,6 @@ public class VegetableGrower extends GrowingPassiveEntityRespawnPoint implements
 						vegetableName);
 				if(entity instanceof Player) {
 					((Player) entity).incHarvestedForItem(vegetableName, 1);
-					SingletonRepository.getAchievementNotifier().onObtain((Player) entity);
 				}
 				entity.equipOrPutOnGround(grain);
 				return true;
@@ -138,4 +141,8 @@ public class VegetableGrower extends GrowingPassiveEntityRespawnPoint implements
 		return false;
 	}
 
+	@Override
+	public String getItemName() {
+		return vegetableName;
+	}
 }

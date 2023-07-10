@@ -1,4 +1,3 @@
-/* $Id: ReaperNPC.java,v 1.8 2010/09/19 02:31:24 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,12 +11,12 @@
  ***************************************************************************/
 package games.stendhal.server.maps.nalwor.hell;
 
+import java.util.Arrays;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-
-import java.util.Arrays;
-import java.util.Map;
 
 /**
  * Builds the reaper in hell.
@@ -25,10 +24,6 @@ import java.util.Map;
  * @author kymara
  */
 public class ReaperNPC implements ZoneConfigurator {
-	//
-	// ZoneConfigurator
-	//
-
 	/**
 	 * Configure a zone.
 	 *
@@ -37,20 +32,19 @@ public class ReaperNPC implements ZoneConfigurator {
 	 * @param attributes
 	 *            Configuration attributes.
 	 */
-	public void configureZone(final StendhalRPZone zone,
-			final Map<String, String> attributes) {
-		buildNPC(zone, attributes);
+	@Override
+	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
+		buildNPC(zone);
 	}
 
-	private void buildNPC(final StendhalRPZone zone, final Map<String, String> attributes) {
-		final SpeakerNPC npc = new SpeakerNPC("Grim Reaper") {
+	private void buildNPC(final StendhalRPZone zone) {
+		SpeakerNPC npc = createNPC("Grim Reaper");
+		npc.setPosition(63, 76);
+		zone.add(npc);
+	}
 
-			@Override
-			protected void createPath() {
-				// doesn't move
-				setPath(null);
-			}
-
+	static SpeakerNPC createNPC(String name) {
+		final SpeakerNPC npc = new SpeakerNPC(name) {
 			@Override
 			protected void createDialog() {
 				addGreeting("Jeżeli chcesz #opuścić to miejsce to musisz rozwiązać #zagadkę");
@@ -62,10 +56,10 @@ public class ReaperNPC implements ZoneConfigurator {
 				addGoodbye("Stary porządek rzeczy odszedł w niepamięć ... ");
 			}
 		};
+
+		npc.setDescription("Oto Grim Reaper. Jego zagadki dają wolność.");
 		npc.setEntityClass("grim_reaper_npc");
 		npc.setPosition(63, 76);
-		npc.initHP(100);
-		npc.setDescription("Oto Grim Reaper. Jego zagadki dają wolność.");
-		zone.add(npc);
+		return npc;
 	}
 }

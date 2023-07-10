@@ -1,4 +1,4 @@
-/* $Id: ImageViewWindow.java,v 1.18 2010/11/27 22:43:31 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,17 +12,17 @@
  ***************************************************************************/
 package games.stendhal.client.gui.imageviewer;
 
-import games.stendhal.client.stendhal;
-import games.stendhal.client.gui.InternalManagedWindow;
-import games.stendhal.client.gui.j2DClient;
-
 import java.awt.Dimension;
 
 import javax.swing.SwingUtilities;
 
+import games.stendhal.client.stendhal;
+import games.stendhal.client.gui.InternalManagedWindow;
+import games.stendhal.client.gui.j2DClient;
+
 /**
  * Opens an image resource at a given URL, and displays it in the client.
- * 
+ *
  * @author timothyb89
  */
 public class ImageViewWindow extends InternalManagedWindow {
@@ -44,15 +44,16 @@ public class ImageViewWindow extends InternalManagedWindow {
 	 */
 	public ImageViewWindow(String title, ViewPanel viewPanel) {
 		super("examine", title);
-		
+
 		viewPanel.prepareView(genMaxSize());
 		setContent(viewPanel);
-		
+
 		/*
 		 * Generating the window was likely triggered an event from the network
 		 * thread; do the rest of the work in EDT.
 		 */
 		SwingUtilities.invokeLater(new Runnable() {
+			@Override
 			public void run() {
 				j2DClient.get().addWindow(ImageViewWindow.this);
 				center();
@@ -63,13 +64,13 @@ public class ImageViewWindow extends InternalManagedWindow {
 
 	/**
 	 * Calculate maximum size for a window that fits on the game screen.
-	 * 
+	 *
 	 * @return size
 	 */
 	private Dimension genMaxSize() {
-		Dimension screenSize = stendhal.getScreenSize();
-		final int width = (int) (screenSize.getWidth() - PADDING);
-		final int height = (int) (screenSize.getHeight() - PADDING);
+		Dimension displaySize = stendhal.getDisplaySize();
+		final int width = (int) (displaySize.getWidth() - PADDING);
+		final int height = (int) (displaySize.getHeight() - PADDING);
 		return new Dimension(width, height);
 	}
 }

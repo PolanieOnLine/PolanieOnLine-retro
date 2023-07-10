@@ -1,4 +1,4 @@
-/* $Id: AndCondition.java,v 1.17 2012/09/09 21:19:55 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,18 +12,17 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.condition;
 
+import java.util.Arrays;
+import java.util.List;
+
+import com.google.common.collect.ImmutableList;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
 import games.stendhal.server.core.config.annotations.Dev.Category;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Is constructed from a group of conditions. <p>
@@ -44,6 +43,26 @@ public class AndCondition implements ChatCondition {
 		this.conditions = Arrays.asList(condition);
 	}
 
+	/**
+	 * Creates a new "and"-condition.
+	 *
+	 * @param conditions
+	 *            list of condition which should be and-ed.
+	 */
+	public AndCondition(final List<ChatCondition> conditions) {
+		this.conditions = ImmutableList.copyOf(conditions);
+	}
+	/**
+	 * Creates a new "and"-condition.
+	 *
+	 * @param conditions
+	 *            condition which should be and-ed.
+	 */
+	public AndCondition(final Iterable<ChatCondition> conditions) {
+		this.conditions = ImmutableList.copyOf(conditions);
+	}
+
+	@Override
 	public boolean fire(final Player player, final Sentence sentence, final Entity entity) {
 		for (final ChatCondition condition : conditions) {
 			final boolean res = condition.fire(player, sentence, entity);
@@ -61,12 +80,14 @@ public class AndCondition implements ChatCondition {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 43613 * conditions.hashCode();
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				AndCondition.class);
+		if (!(obj instanceof AndCondition)) {
+			return false;
+		}
+		return conditions.equals(((AndCondition) obj).conditions);
 	}
 }

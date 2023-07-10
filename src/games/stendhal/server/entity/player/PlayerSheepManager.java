@@ -1,4 +1,4 @@
-/* $Id: PlayerSheepManager.java,v 1.13 2010/09/19 02:26:09 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -33,7 +33,7 @@ public class PlayerSheepManager {
 
 		/*
 		 * RPSlot.add() destroys zoneid, so preserve/restore it.
-		 * 
+		 *
 		 * TODO: Remove if getID()/setID() are made purely virtual.
 		 */
 		String zoneid;
@@ -55,7 +55,7 @@ public class PlayerSheepManager {
 
 	/**
 	 * Recreate a saved sheep.
-	 * 
+	 *
 	 * @return A sheep, or <code>null</code> if none.
 	 */
 	public Sheep retrieveSheep() {

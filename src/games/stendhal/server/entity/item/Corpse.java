@@ -1,4 +1,4 @@
-/* $Id: Corpse.java,v 1.109 2012/07/24 22:21:51 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -11,6 +11,10 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.entity.item;
+
+import java.awt.geom.Rectangle2D;
+
+import org.apache.log4j.Logger;
 
 import games.stendhal.common.ItemTools;
 import games.stendhal.common.MathHelper;
@@ -25,15 +29,10 @@ import games.stendhal.server.entity.PassiveEntity;
 import games.stendhal.server.entity.RPEntity;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.entity.slot.LootableSlot;
-
-import java.awt.geom.Rectangle2D;
-
 import marauroa.common.game.Definition.Type;
 import marauroa.common.game.RPClass;
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPSlot;
-
-import org.apache.log4j.Logger;
 
 /**
  * A corpse created when a creature or player is killed. It may contain items.
@@ -42,22 +41,24 @@ public class Corpse extends PassiveEntity implements EquipListener {
 
 	/**
 	 * TurnListener to degradate a corpse
-	 *   
+	 *
 	 * @author madmetzger
 	 */
 	private final class CorpseRottingTurnListener implements TurnListener {
+		@Override
 		public void onTurnReached(final int currentTurn) {
-			Corpse.this.onTurnReached(currentTurn);
+			Corpse.this.onTurnReached();
 		}
 	}
-	
+
 	/**
 	 * TurnListener to release this corpse to get everyone able to be rewarded for looting this corpse
 	 * (i.e. for achievements)
-	 *  
+	 *
 	 * @author madmetzger
 	 */
 	private final class CorpseReleaseRewardingForEveryoneTurnListener implements TurnListener {
+		@Override
 		public void onTurnReached(final int currentTurn) {
 			setCorpseOwner(null);
 		}
@@ -73,13 +74,18 @@ public class Corpse extends PassiveEntity implements EquipListener {
 	 * The name attribute name.
 	 */
 	private static final String ATTR_NAME = "name";
-	
+
 	/**
 	 * The image name
 	 */
 	private static final String ATTR_IMAGE = "image";
 
-	
+	/**
+	 * The harmless image name
+	 */
+	private static final String ATTR_HARMLESS_IMAGE = "harmless_image";
+
+
 	/**
 	 * The owner of the corpse
 	 */
@@ -89,29 +95,34 @@ public class Corpse extends PassiveEntity implements EquipListener {
 
 	/** Time (in seconds) until a corpse disappears. */
 	private static final int DEGRADATION_TIMEOUT = 15 * MathHelper.SECONDS_IN_ONE_MINUTE;
-	
+
 	/** number of degradation steps. */
-	private static final int MAX_STAGE = 5; 
+	private static final int MAX_STAGE = 5;
 
 	/** time between two degradation steps */
 	private static final int DEGRADATION_STEP_TIMEOUT = DEGRADATION_TIMEOUT / MAX_STAGE;
-	
+
 	/** Minimum resistance of a single corpse */
 	private static final int MIN_RESISTANCE = 5;
 	/** Theoretical resistance of a single corpse */
 	private static final int MAX_RESISTANCE = 70;
-	
+
 	/** Time (in seconds) until everyone may loot this corpse */
 	private static final int PROTECTION_TIME = 5;
-	
+
 	/** Who can loot this corpse?*/
 	private String corpseOwner = null;
-	
+
 	private int stage;
+	/**
+	 * A holder for more accurate creature name "rat" instead of "small
+	 * animal" for corpses of Creatures.
+	 */
+	private String creatureName;
 
 	private TurnListener corpseDegradator = new CorpseRottingTurnListener();
 	private TurnListener itemForRewardsReleaser = new CorpseReleaseRewardingForEveryoneTurnListener();
-	
+
 	@Override
 	public void onRemoved(final StendhalRPZone zone) {
 		SingletonRepository.getTurnNotifier().dontNotify(corpseDegradator);
@@ -128,14 +139,15 @@ public class Corpse extends PassiveEntity implements EquipListener {
 		entity.addAttribute(ATTR_NAME, Type.STRING);
 		entity.addAttribute(ATTR_KILLER, Type.STRING);
 		entity.addAttribute(ATTR_IMAGE, Type.STRING);
+		entity.addAttribute(ATTR_HARMLESS_IMAGE, Type.STRING);
 		entity.addAttribute(ATTR_CORPSE_OWNER, Type.STRING);
 
-		entity.addRPSlot(CONTENT_SLOT, 4);
+		entity.addRPSlot(CONTENT_SLOT, 6);
 	}
-	
+
 	/**
 	 * non rotting corpse.
-	 * 
+	 *
 	 * @param clazz
 	 * @param x
 	 * @param y
@@ -151,21 +163,22 @@ public class Corpse extends PassiveEntity implements EquipListener {
 		put("stage", stage);
 		// default to player corpse image
 		put(ATTR_IMAGE, "player");
+		put(ATTR_HARMLESS_IMAGE, "harmless_player");
 		setResistance(calculateResistance());
-		
+
 		final RPSlot slot = new LootableSlot(this);
 		addSlot(slot);
 	}
 
 	/**
 	 * Create a corpse.
-	 * 
+	 *
 	 * @param victim
 	 *            The killed entity.
 	 * @param killerName
 	 *            The killer name.
-	 * 
-	 * 
+	 *
+	 *
 	 */
 	public Corpse(final RPEntity victim, final String killerName) {
 		setRPClass("corpse");
@@ -176,9 +189,14 @@ public class Corpse extends PassiveEntity implements EquipListener {
 		} else {
 			setEntityClass(victim.get("type"));
 		}
-		
+
 		put(ATTR_IMAGE, victim.getCorpseName());
+		put(ATTR_HARMLESS_IMAGE, victim.getHarmlessCorpseName());
 		setSize(victim.getCorpseWidth(), victim.getCorpseHeight());
+
+		if ("creature".equals(victim.getRPClass().getName())) {
+			creatureName = victim.getName();
+		}
 
 		if ((killerName != null)) {
 			put(ATTR_NAME, victim.getTitle());
@@ -200,7 +218,7 @@ public class Corpse extends PassiveEntity implements EquipListener {
 			setCorpseOwner(victim.getCorpseDeserver());
 			SingletonRepository.getTurnNotifier().notifyInSeconds(PROTECTION_TIME, this.itemForRewardsReleaser);
 		}
-		
+
 		stage = 0;
 		put("stage", stage);
 		setResistance(calculateResistance());
@@ -225,9 +243,9 @@ public class Corpse extends PassiveEntity implements EquipListener {
 	}
 
 	/**
-	 * Get the name of the owner of this corpse (the player who's 
+	 * Get the name of the owner of this corpse (the player who's
 	 * deemend worthy to access the items within).
-	 *  
+	 *
 	 * @return the name of the owner or <code>null</code> if anyone
 	 * may use the items
 	 */
@@ -237,14 +255,14 @@ public class Corpse extends PassiveEntity implements EquipListener {
 
 	/**
 	 * Calculate walking resistance for the corpse.
-	 *  
+	 *
 	 * @return resistance value between <code>100 * MIN_RESISTANCE</code> and
 	 * <code>100 * MAX_RESISTANCE</code>
 	 */
 	private int calculateResistance() {
 		// Using area would make the resistance grow very fast for large corpses
 		double mean = Math.sqrt(getWidth() * getHeight());
-		// Get a [0, 1[ value for a corpse size index 
+		// Get a [0, 1[ value for a corpse size index
 		double normalized = 1 - 1 / Math.max(1.0, mean);
 		// Scale between max and min
 		return Math.max(MIN_RESISTANCE, (int) (MAX_RESISTANCE * normalized));
@@ -256,9 +274,10 @@ public class Corpse extends PassiveEntity implements EquipListener {
 
 	/**
 	 * Get the entity name.
-	 * 
+	 *
 	 * @return The entity's name, or <code>null</code> if undefined.
 	 */
+	@Override
 	public String getName() {
 		if (has(ATTR_NAME)) {
 			return get(ATTR_NAME);
@@ -269,7 +288,7 @@ public class Corpse extends PassiveEntity implements EquipListener {
 
 	/**
 	 * Set the killer name of the corpse.
-	 * 
+	 *
 	 * @param killer
 	 *            The corpse's killer name.
 	 */
@@ -279,7 +298,7 @@ public class Corpse extends PassiveEntity implements EquipListener {
 
 	/**
 	 * Set the name of the corpse.
-	 * 
+	 *
 	 * @param name
 	 *            The corpse name.
 	 */
@@ -312,7 +331,7 @@ public class Corpse extends PassiveEntity implements EquipListener {
 		put("stage", stage);
 		modify();
 	}
-	
+
 	@Override
 	protected void onMoved(int oldX, int oldY, int newX, int newY) {
 		super.onMoved(oldX, oldY, newX, newY);
@@ -324,22 +343,13 @@ public class Corpse extends PassiveEntity implements EquipListener {
 	}
 
 	/**
-	 * degradates this corpse and remove it if it is completely rotten
-	 *
-	 * @param currentTurn ignored
+	 * Degrades this corpse and remove it if it is completely rotten
 	 */
-	public void onTurnReached(final int currentTurn) {
+	private void onTurnReached() {
 		degradateCorpse();
 		if (isCompletelyRotten()) {
 			for (RPObject obj : getSlot(CONTENT_SLOT)) {
-				/*
-				 * Log items that have a logid. They are put there by players.
-				 * Those that don't have it haven't had their creation logged
-				 * either yet.
-				 */
-				if (obj.has("logid") && (obj instanceof Item)) {
-					new ItemLogger().timeout((Item) obj);
-				}
+				new ItemLogger().timeout((Item) obj);
 			}
 			getZone().remove(this);
 		} else {
@@ -350,7 +360,7 @@ public class Corpse extends PassiveEntity implements EquipListener {
 	/**
 	 * Sets the current degrading state. Set it to MAX_STAGE will remove the
 	 * corpse.
-	 * 
+	 *
 	 * @param newStage
 	 */
 	public void setStage(final int newStage) {
@@ -377,6 +387,13 @@ public class Corpse extends PassiveEntity implements EquipListener {
 	 * @return true if the corpse is full, false otherwise
 	 */
 	public boolean isFull() {
+		return getSlot(CONTENT_SLOT).size() >= 4;
+	}
+
+	public boolean isFull(final boolean boss) {
+		if (!boss) {
+			return isFull();
+		}
 		return getSlot(CONTENT_SLOT).isFull();
 	}
 
@@ -394,17 +411,24 @@ public class Corpse extends PassiveEntity implements EquipListener {
 
 		if (hasDescription()) {
 			text = getDescription();
+		} else if (creatureName != null) {
+			text += creatureName;
 		} else if (has(ATTR_NAME)) {
 			text += get(ATTR_NAME);
+			Player player = SingletonRepository.getRuleProcessor().getPlayer(get(ATTR_NAME));
+			String getGender = player.getGender();
+			if (getGender == null) {
+				getGender = "M";
+			}
 
 			if (has(ATTR_KILLER)) {
 				// only display the killer if it is the corpse of a player
 				if (get("class").equals("player")) {
-					text += " został zabity przez " + get(ATTR_KILLER);
+					text += ", " + Grammar.genderVerb(getGender, "został") + " " + Grammar.genderVerb(getGender, "zabity") + " przez " + get(ATTR_KILLER);
 				}
 			}
 		} else {
-			text += Grammar.a_noun(ItemTools.itemNameToDisplayName(get("class")).replace("pol/", ""));
+			text += ItemTools.itemNameToDisplayName(get("class")).replace("pol/", "");
 		}
 
 		text += ". Możesz je #przeszukać, aby zobaczyć co zawierają.";
@@ -412,6 +436,7 @@ public class Corpse extends PassiveEntity implements EquipListener {
 		return (text);
 	}
 
+	@Override
 	public boolean canBeEquippedIn(final String slot) {
 		return false;
 	}
@@ -423,27 +448,27 @@ public class Corpse extends PassiveEntity implements EquipListener {
 	/**
 	 * Returns the name or something that can be used to identify the entity for
 	 * the player.
-	 * 
+	 *
 	 * @param definite
 	 *            <code>true</code> for "the", and <code>false</code> for
 	 *            "a/an" in case the entity has no name.
-	 * 
+	 *
 	 * @return The description name.
 	 */
 	@Override
-	public String getDescriptionName(final boolean definite) {
+	public String getDescriptionName() {
 		final String name = getName();
 
 		if (name != null) {
-			return Grammar.article_noun(name, definite);
+			return name;
 		} else {
-			return super.getDescriptionName(definite);
+			return super.getDescriptionName();
 		}
 	}
 
 	/**
 	 * Get the nicely formatted entity title/name.
-	 * 
+	 *
 	 * @return The title, or <code>null</code> if unknown.
 	 */
 	@Override
@@ -466,12 +491,12 @@ public class Corpse extends PassiveEntity implements EquipListener {
 		return DEGRADATION_STEP_TIMEOUT;
 	}
 
-	
+
 	/**
 	 * Check if a player may access the slots of this corpse
-	 * 
+	 *
 	 * @param player the player trying to use the items in the corpse
-	 * @return true iff the player may access the items in the slots 
+	 * @return true iff the player may access the items in the slots
 	 */
 	public boolean mayUse(Player player) {
 
@@ -493,7 +518,7 @@ public class Corpse extends PassiveEntity implements EquipListener {
 
 	/**
 	 * Checks if looting this corpse will be rewarded (i.e. for achievements).
-	 * 
+	 *
 	 * @return true if looting should be rewarded
 	 */
 	public boolean isItemLootingRewardable() {
@@ -502,7 +527,7 @@ public class Corpse extends PassiveEntity implements EquipListener {
 
 	/**
 	 * gets the killer of this corpse
-	 * 
+	 *
 	 * @return the name of the killer
 	 */
 	public String getKiller() {

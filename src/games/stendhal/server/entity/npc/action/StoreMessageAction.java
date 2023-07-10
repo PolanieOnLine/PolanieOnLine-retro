@@ -1,4 +1,3 @@
-/* $Id: StoreMessageAction.java,v 1.5 2012/09/09 12:19:56 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -11,6 +10,8 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.entity.npc.action;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
@@ -39,12 +40,27 @@ public class StoreMessageAction implements ChatAction {
 	 * @param message what the message is
 	 */
 	public StoreMessageAction(String npcName, String message) {
-		this.npcName = npcName;
-		this.message = message;
+		this.npcName = checkNotNull(npcName);
+		this.message = checkNotNull(message);
 	}
 
+	@Override
 	public void fire(Player player, Sentence sentence, EventRaiser npc) {
 		DBCommandQueue.get().enqueue(new StoreMessageCommand(npcName, player.getName(), message, "N"));
 	}
 
+	@Override
+	public int hashCode() {
+		return 5651 * (npcName.hashCode() + 5653 * message.hashCode());
+	}
+
+	@Override
+	public boolean equals(final Object obj) {
+		if (!(obj instanceof StoreMessageAction)) {
+			return false;
+		}
+		StoreMessageAction other = (StoreMessageAction) obj;
+		return npcName.equals(other.npcName)
+			&& message.equals(other.message);
+	}
 }

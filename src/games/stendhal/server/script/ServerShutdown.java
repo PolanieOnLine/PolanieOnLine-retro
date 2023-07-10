@@ -1,6 +1,5 @@
-/* $Id: ServerShutdown.java,v 1.7 2012/03/26 19:42:39 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,20 +11,20 @@
  ***************************************************************************/
 package games.stendhal.server.script;
 
+import java.util.List;
+
 import games.stendhal.common.NotificationType;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.scripting.ScriptImpl;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.List;
-
 /**
  * Shuts down the server in a regular fashion. You should warn connected players
  * to logout if that is still possible.
- * 
+ *
  * If the server is started in a loop, it will come up again: while sleep 60; do
  * java -jar marauroa -c marauroa.ini -l; done
- * 
+ *
  * @author M. Fuchs
  */
 public class ServerShutdown extends ScriptImpl {
@@ -39,9 +38,10 @@ public class ServerShutdown extends ScriptImpl {
 
 		new Thread(
 			new Runnable() {
+    			@Override
     			public void run() {
     				//marauroad.finish() is already called using a JRE shutdown hook, so we don't need
-    				// to call it here directly: 
+    				// to call it here directly:
     				//marauroad.getMarauroa().finish();
 
     				System.exit(0);

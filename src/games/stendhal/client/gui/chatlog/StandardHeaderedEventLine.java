@@ -1,4 +1,4 @@
-/* $Id: StandardHeaderedEventLine.java,v 1.2 2010/09/19 02:18:31 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -17,7 +17,6 @@ import games.stendhal.common.NotificationType;
 public class StandardHeaderedEventLine extends EventLine {
 
 	public StandardHeaderedEventLine(final String header, final String text) {
-		// color font
 		super(header, text, NotificationType.NORMAL);
 	}
 

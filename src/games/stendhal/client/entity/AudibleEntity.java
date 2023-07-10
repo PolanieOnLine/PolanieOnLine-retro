@@ -1,4 +1,4 @@
-/* $Id: AudibleEntity.java,v 1.10 2012/07/13 05:56:12 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +12,9 @@
  ***************************************************************************/
 package games.stendhal.client.entity;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 import games.stendhal.client.ClientSingletonRepository;
 import games.stendhal.client.sound.facade.AudibleCircleArea;
 import games.stendhal.client.sound.facade.SoundFileType;
@@ -20,16 +23,12 @@ import games.stendhal.client.sound.facade.Time;
 import games.stendhal.common.Rand;
 import games.stendhal.common.math.Algebra;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-
 /**
  * An entity that can make noises.
  *
  * @author silvio
  */
-public abstract class AudibleEntity extends RPEntity {
-
+abstract class AudibleEntity extends ActiveEntity {
 	private final AudibleCircleArea mAudibleArea = new AudibleCircleArea(Algebra.vecf(0, 0), 1.5f, 23);
 	private final HashMap<String, ArrayList<String>> mCategorys = new HashMap<String, ArrayList<String>>();
 	private long mWaitTime = 0;
@@ -53,14 +52,41 @@ public abstract class AudibleEntity extends RPEntity {
 		}
 	}
 
-	protected String getRandomSoundFromCategory(String groupName) {
+	/**
+	 * Get a random sound name from named group.
+	 *
+	 * @param groupName sound group name
+	 * @return sound name, or <code>null</code> if the group does not exist or
+	 * 	has no sounds
+	 */
+	private String getRandomSoundFromCategory(String groupName) {
 		ArrayList<String> soundNameList = mCategorys.get(groupName);
 
 		if ((soundNameList != null) && !soundNameList.isEmpty()) {
-			return soundNameList.get(Rand.rand(soundNameList.size()));
+			return Rand.rand(soundNameList);
 		}
 
 		return null;
+	}
+
+	private String getSoundFromCategory(String groupName) {
+	    ArrayList<String> soundNameList = mCategorys.get(groupName);
+
+	    if ((soundNameList != null) && !soundNameList.isEmpty()) {
+	        return soundNameList.get(0);
+	    }
+
+	    return null;
+	}
+
+	private String getSoundFromCategory(String groupName, int index) {
+	    ArrayList<String> soundNameList = mCategorys.get(groupName);
+
+	    if ((soundNameList != null) && !soundNameList.isEmpty()) {
+	        return soundNameList.get(index);
+	    }
+
+	    return null;
 	}
 
 	@Override
@@ -68,11 +94,6 @@ public abstract class AudibleEntity extends RPEntity {
 		super.onPosition(x, y);
 		mAudibleArea.setPosition(Algebra.vecf((float) x, (float) y));
 		ClientSingletonRepository.getSound().update();
-	}
-
-	protected void playSound(String groupName, String soundName) {
-		SoundGroup group = ClientSingletonRepository.getSound().getGroup(groupName);
-		group.play(soundName, 0, mAudibleArea, new Time(), false, true);
 	}
 
 	protected void playRandomSoundFromCategory(String groupName, String categoryName) {
@@ -86,4 +107,14 @@ public abstract class AudibleEntity extends RPEntity {
 			mWaitTime = System.currentTimeMillis() + waitTimeInMilliSec;
 		}
 	}
+
+	protected void playSoundFromCategory(String groupName, String categoryName) {
+	    SoundGroup group = ClientSingletonRepository.getSound().getGroup(groupName);
+	    group.play(getSoundFromCategory(categoryName), 0, mAudibleArea, new Time(), false, true);
+	}
+
+    protected void playSoundFromCategory(String groupName, String categoryName, int index) {
+        SoundGroup group = ClientSingletonRepository.getSound().getGroup(groupName);
+        group.play(getSoundFromCategory(categoryName, index), 0, mAudibleArea, new Time(), false, true);
+    }
 }

@@ -1,4 +1,4 @@
-/* $Id: CarrotGrower2DView.java,v 1.15 2012/09/01 20:17:54 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,10 +12,10 @@
  ***************************************************************************/
 package games.stendhal.client.gui.j2d.entity;
 
+import java.util.List;
+
 import games.stendhal.client.entity.ActionType;
 import games.stendhal.client.entity.GrainField;
-
-import java.util.List;
 
 /**
  * The 2D view of a grower.
@@ -29,13 +29,15 @@ class CarrotGrower2DView extends GrainField2DView<GrainField> {
 	/**
 	 * Build a list of entity specific actions. <strong>NOTE: The first entry
 	 * should be the default.</strong>
-	 * 
+	 *
 	 * @param list
 	 *            The list to populate.
 	 */
 	@Override
 	protected void buildActions(final List<String> list) {
-		list.add(ActionType.PICK.getRepresentation());
+		if (!entity.getRPObject().has("menu")) {
+			list.add(ActionType.PICK.getRepresentation());
+		}
 
 		super.buildActions(list);
 		list.remove(ActionType.HARVEST.getRepresentation());
@@ -55,7 +57,7 @@ class CarrotGrower2DView extends GrainField2DView<GrainField> {
 
 	/**
 	 * Perform an action.
-	 * 
+	 *
 	 * @param at
 	 *            The action.
 	 */
@@ -64,7 +66,7 @@ class CarrotGrower2DView extends GrainField2DView<GrainField> {
 		if (isReleased()) {
 			return;
 		}
-			
+
 		switch (at) {
 		case PICK:
 			at.send(at.fillTargetInfo(entity));

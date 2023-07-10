@@ -1,6 +1,5 @@
-/* $Id: PendingAchievementDAO.java,v 1.2 2011/02/25 07:46:44 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2011 - Stendhal                    *
+ *                   (C) Copyright 2003-2020 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,29 +11,27 @@
  ***************************************************************************/
 package games.stendhal.server.core.engine.db;
 
-import games.stendhal.server.util.MapOfMaps;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
+import games.stendhal.server.util.MapOfMaps;
 import marauroa.server.db.DBTransaction;
-import marauroa.server.db.TransactionPool;
 
 /**
  * DAO to gather information on pending achievements
- * @author kymara
  *
+ * @author kymara
  */
 public class PendingAchievementDAO {
-	
+
 	/**
 	 * Delete used records for a pending achievement for a given player
 	 *
-	 * @param transaction
-	 * @param charname 
-	 * @throws SQLException
+	 * @param transaction DBTransaction
+	 * @param charname name of player
+	 * @throws SQLException in case of an database error
 	 */
 	public void deletePendingAchievementDetails(DBTransaction transaction, String charname) throws SQLException {
 		String query  = "DELETE FROM pending_achievement " +
@@ -43,18 +40,17 @@ public class PendingAchievementDAO {
 		parameters.put("charname", charname);
 		transaction.execute(query, parameters);
 	}
-	
 
 	/**
-	 * Get details on pending achievements for a given player 
+	 * Get details on pending achievements for a given player
 	 *
-	 * @param transaction
-	 * @param charname
+	 * @param transaction DBTransaction
+	 * @param charname name of player
 	 * @return details as param and count
-	 * @throws SQLException
+	 * @throws SQLException in case of an database error
 	 */
 	public Map<String, Map<String, Integer>> getPendingAchievementDetails(DBTransaction transaction, String charname) throws SQLException {
-		
+
 		MapOfMaps<String, String, Integer> map = new MapOfMaps<String, String, Integer>();
 		String query  = "SELECT identifier, param, cnt FROM pending_achievement " +
 		                "JOIN achievement on achievement_id = achievement.id " +
@@ -70,32 +66,4 @@ public class PendingAchievementDAO {
 		}
 		return map;
 	}
-
-	
-	/**
-	 * Get details on pending achievements for a given player
-	 *
-	 * @param charname 
-	 * return details as param and count
-	 * @throws SQLException
-	 */
-	public Map<String, Map<String, Integer>> getPendingAchievementDetails(String charname) throws SQLException {
-		DBTransaction transaction = TransactionPool.get().beginWork();
-		Map<String, Map<String, Integer>> map = getPendingAchievementDetails(transaction, charname);
-		TransactionPool.get().commit(transaction);
-		return map;
-	}
-	
-	/**
-	 * Delete used records for a pending achievement for a given player
-	 *
-	 * @param charname 
-	 * @throws SQLException
-	 */
-	public void deletePendingAchievementDetails(String charname) throws SQLException {
-		DBTransaction transaction = TransactionPool.get().beginWork();
-		deletePendingAchievementDetails(transaction, charname);
-		TransactionPool.get().commit(transaction);
-	}
-
 }

@@ -1,6 +1,5 @@
-/* $Id: LookBookforCeryl.java,v 1.58 2011/11/13 17:14:15 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2011 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,6 +11,13 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
+import games.stendhal.common.grammar.Grammar;
+import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
@@ -32,36 +38,40 @@ import games.stendhal.server.entity.npc.condition.QuestInStateCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotStartedCondition;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.Region;
-
-import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import games.stendhal.server.maps.orril.magician_house.WitchNPC;
+import games.stendhal.server.maps.semos.library.LibrarianNPC;
+import games.stendhal.server.util.ResetSpeakerNPC;
 
 /**
- * QUEST: Look book for Ceryl PARTICIPANTS: - Ceryl - Jynath
- * 
- * STEPS: - Talk with Ceryl to activate the quest. - Talk with Jynath for the
- * book. - Return the book to Ceryl
- * 
- * REWARD: - 100 XP - 50 gold coins
- * 
- * REPETITIONS: - None.
+ * QUEST: Look for a book for Ceryl
+ *
+ * PARTICIPANTS:
+ * <ul>
+ * <li> Ceryl </li>
+ * <li> Jynath </li>
+ * </ul>
+ *
+ * STEPS:
+ * <ul>
+ * <li> Talk with Ceryl to activate the quest. </li>
+ * <li> Talk with Jynath for the book. </li>
+ * <li> Return the book to Ceryl. </li>
+ * </ul>
+ *
+ * REWARD:
+ * <ul>
+ * <li> 500 XP </li>
+ * <li> some karma (10 + (5 | -5) </li>
+ * <li> 150 gold coins </li>
+ * </ul>
+ *
+ * REPETITIONS: None
  */
 public class LookBookforCeryl extends AbstractQuest {
 	private static final String QUEST_SLOT = "ceryl_book";
-
-
-
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
+	private final SpeakerNPC npc = npcs.get("Ceryl");
 	
 	private void step1LearnAboutQuest() {
-
-		final SpeakerNPC npc = npcs.get("Ceryl");
-
 		npc.add(ConversationStates.ATTENDING,
 			ConversationPhrases.QUEST_MESSAGES,
 			new QuestNotStartedCondition(QUEST_SLOT),
@@ -74,13 +84,14 @@ public class LookBookforCeryl extends AbstractQuest {
 			ConversationStates.ATTENDING, 
 			"Nie mam nic dla Ciebie.", null);
 			
-     /** Other conditions not met e.g. quest completed */
+		/* Other conditions not met e.g. quest completed */
 		npc.addReply(Arrays.asList("book", "książki", "książka"),"Jeśli chcesz dowiedzieć się więcej, porozmawiać z moim przyjacielem Wikipedian w bibliotece Ados.", null);
 
-		/** If quest is not started yet, start it. */
+		/* If quest is not started yet, start it. */
 		npc.add(
 			ConversationStates.ATTENDING,
-			"book", new QuestNotStartedCondition(QUEST_SLOT),
+			Arrays.asList("book", "książki", "książka"),
+			new QuestNotStartedCondition(QUEST_SLOT),
 			ConversationStates.QUEST_OFFERED,
 			"Czy możesz poprosić #Jynath, aby zwróciła książkę? Przetrzymuje ją od miesiąca, a ludzie szukają jej.",
 			null);
@@ -109,7 +120,7 @@ public class LookBookforCeryl extends AbstractQuest {
 			"Jynath jest wiedźmą mieszkającą na południe od zamku Or'ril, a na południowy zachód stąd. Zdobędziesz dla mnie tą książkę?",
 			null);
 
-		/** Remind player about the quest */
+		/* Remind player about the quest */
 		npc.add(ConversationStates.ATTENDING, Arrays.asList("book", "książki", "książka"),
 			new QuestInStateCondition(QUEST_SLOT, "start"),
 			ConversationStates.ATTENDING,
@@ -140,7 +151,7 @@ public class LookBookforCeryl extends AbstractQuest {
 			"Och, Ceryl chce tą książkę z powrotem? Mój boże! Kompletnie zapomniałam o tym... oto ona!",
 			new MultipleActions(new EquipItemAction("księga czarna", 1, true), new SetQuestAction(QUEST_SLOT, "jynath")));
 
-		/** If player keep asking for book, just tell him to hurry up */
+		/* If player keep asking for book, just tell him to hurry up */
 		npc.add(
 			ConversationStates.IDLE,
 			ConversationPhrases.GREETING_MESSAGES,
@@ -154,7 +165,7 @@ public class LookBookforCeryl extends AbstractQuest {
 			ConversationStates.ATTENDING,
 			"Ceryl jest bibliotekarzem w Semos.", null);
 
-		/** Finally if player didn't start the quest, just ignore him/her */
+		/* Finally if player didn't start the quest, just ignore him/her */
 		npc.add(
 			ConversationStates.ATTENDING,
 			"książka",
@@ -165,13 +176,11 @@ public class LookBookforCeryl extends AbstractQuest {
 	}
 
 	private void step3returnBook() {
-		final SpeakerNPC npc = npcs.get("Ceryl");
-
-		/** Complete the quest */
+		/* Complete the quest */
 		final List<ChatAction> reward = new LinkedList<ChatAction>();
 		reward.add(new DropItemAction("księga czarna"));
-		reward.add(new EquipItemAction("money", 50));
-		reward.add(new IncreaseXPAction(100));
+		reward.add(new EquipItemAction("money", 150));
+		reward.add(new IncreaseXPAction(500));
 		reward.add(new IncreaseKarmaAction(10.0));
 		reward.add(new SetQuestAction(QUEST_SLOT, "done"));
 
@@ -201,40 +210,11 @@ public class LookBookforCeryl extends AbstractQuest {
 			new SetQuestAction(QUEST_SLOT, null));
 	}
 
-	
-	@Override
-	public List<String> getHistory(final Player player) {
-		final List<String> res = new ArrayList<String>();
-		if (!player.hasQuest(QUEST_SLOT)) {
-			return res;
-		}
-		res.add("Spotkałem Ceryl w bibliotece, jest tam bibliotekarzem");
-		final String questState = player.getQuest(QUEST_SLOT);
-		if (questState.equals("rejected")) {
-			res.add("Nie chcę szukać książki");
-		}
-		if (player.isQuestInState(QUEST_SLOT, "start", "jynath", "done")) {
-			res.add("Chcę znaleść czarną księgę");
-		}
-		if ((questState.equals("jynath") && player.isEquipped("księga czarna"))
-				|| questState.equals("done")) {
-			res.add("Rozmawiałem z Jynath i mam książkę");
-		}
-		if (questState.equals("jynath") && !player.isEquipped("księga czarna")) {
-			res.add("Nie mam książki od Jynath");
-		}
-		if (questState.equals("done")) {
-			res.add("Zwróciłem książkę Cerylowi i dostałem nagrodę.");
-		}
-		return res;
-	}
-	
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
-				"Poszukiwania Książki dla Ceryla",
-				"Ceryl potrzebuje starej książki.",
+				"Poszukiwania Książki Ceryla",
+				"Ceryl chce odzyskać książkę.",
 				false);
 		step1LearnAboutQuest();
 		step2getBook();
@@ -242,8 +222,49 @@ public class LookBookforCeryl extends AbstractQuest {
 	}
 
 	@Override
+	public boolean removeFromWorld() {
+		final boolean res = ResetSpeakerNPC.reload(new LibrarianNPC(), getNPCName())
+			&& ResetSpeakerNPC.reload(new WitchNPC(), "Jynath");
+		// reload other quests associated with Ceryl
+		SingletonRepository.getStendhalQuestSystem().reloadQuestSlots("obsidian_knife");
+		return res;
+	}
+
+	@Override
+	public List<String> getHistory(final Player player) {
+		final List<String> res = new ArrayList<String>();
+		if (!player.hasQuest(QUEST_SLOT)) {
+			return res;
+		}
+		res.add(Grammar.genderVerb(player.getGender(), "Spotkałem") + " Ceryl w bibliotece, jest tam bibliotekarzem.");
+		final String questState = player.getQuest(QUEST_SLOT);
+		if (questState.equals("rejected")) {
+			res.add("Nie chcę szukać książki.");
+		}
+		if (player.isQuestInState(QUEST_SLOT, "start", "jynath", "done")) {
+			res.add("Chcę znaleźć czarną księgę.");
+		}
+		if (questState.equals("jynath") && player.isEquipped("księga czarna")
+				|| questState.equals("done")) {
+			res.add(Grammar.genderVerb(player.getGender(), "Rozmawiałem") + " z Jynath i mam książkę.");
+		}
+		if (questState.equals("jynath") && !player.isEquipped("księga czarna")) {
+			res.add("Nie mam książki od Jynath.");
+		}
+		if (questState.equals("done")) {
+			res.add(Grammar.genderVerb(player.getGender(), "Zwróciłem") + " książkę Cerylowi i " + Grammar.genderVerb(player.getGender(), "dostałem") + " nagrodę.");
+		}
+		return res;
+	}
+
+	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
+	}
+
+	@Override
 	public String getName() {
-		return "LookBookforCeryl";
+		return "Poszukiwania Książki Ceryla";
 	}
 	
 	@Override
@@ -253,6 +274,6 @@ public class LookBookforCeryl extends AbstractQuest {
 
 	@Override
 	public String getNPCName() {
-		return "Ceryl";
+		return npc.getName();
 	}
 }

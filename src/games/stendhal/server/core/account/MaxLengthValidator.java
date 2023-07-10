@@ -1,4 +1,4 @@
-/* $Id: MaxLengthValidator.java,v 1.3 2010/09/19 02:22:40 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -17,7 +17,7 @@ import marauroa.common.game.Result;
 /**
  * validates that the given parameter is provided is short than a specified
  * maximum length.
- * 
+ *
  * @author hendrik
  */
 public class MaxLengthValidator implements AccountParameterValidator {
@@ -26,7 +26,7 @@ public class MaxLengthValidator implements AccountParameterValidator {
 
 	/**
 	 * creates a new MaxLengthValidator.
-	 * 
+	 *
 	 * @param parameterValue
 	 *            value to validate
 	 * @param maxLength
@@ -37,6 +37,7 @@ public class MaxLengthValidator implements AccountParameterValidator {
 		this.maxLength = maxLength;
 	}
 
+	@Override
 	public Result validate() {
 		if (parameterValue.length() > maxLength) {
 			return Result.FAILED_STRING_TOO_LONG;

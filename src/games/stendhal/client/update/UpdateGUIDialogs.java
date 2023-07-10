@@ -17,23 +17,23 @@ import javax.swing.JOptionPane;
 
 /**
  * Dialogboxes used during updating..
- * 
+ *
  * @author hendrik
  */
-public class UpdateGUIDialogs {
+class UpdateGUIDialogs {
 
-	private static final String DIALOG_TITLE = "Aktualizacja " + ClientGameConfiguration.get("GAME_NAME");
+	private static final String DIALOG_TITLE =  "Aktualizacja " + ClientGameConfiguration.get("GAME_NAME");
 
 	/**
 	 * Asks the user to accept an update.
-	 * 
+	 *
 	 * @param updateSize
 	 *            size of the files to download
 	 * @param update
 	 *            true, if it is an update, false on first install
 	 * @return true if the update should be performed, false otherwise
 	 */
-	public static boolean askForDownload(final int updateSize, final boolean update) {
+	static boolean askForDownload(final int updateSize, final boolean update) {
 		// format number, only provide decimal digits on very small sizes
 		float size = (float) updateSize / 1024;
 		if (size > 10) {
@@ -44,15 +44,14 @@ public class UpdateGUIDialogs {
 		// ask user
 		int resCode;
 		if (update) {
-			resCode = JOptionPane.showConfirmDialog(null,
-					new SelectableLabel("Jest już nowa wersja, która zajmuje " + sizeString + " KB.\r\n"
-							+ "Czy " + ClientGameConfiguration.get("GAME_NAME") + " powinna zostać zaktualizowana?"), DIALOG_TITLE,
-					JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+			resCode = LoneOptionDialog.showConfirmDialog("Jest już nowa wersja, która zajmuje "
+					+ sizeString + " KB.\r\n" + "Czy "
+					+ ClientGameConfiguration.get("GAME_NAME") + " powinna zostać zaktualizowana?",
+					DIALOG_TITLE, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 		} else {
-			resCode = JOptionPane.showConfirmDialog(null,
-					new SelectableLabel("Potrzebne jest pobranie dodatkowych plików, które zajmują "
-							+ sizeString + " KB.\r\n"
-							+ "Czy " + ClientGameConfiguration.get("GAME_NAME") + " powinna zostać zainstalowana?"),
+			resCode = LoneOptionDialog.showConfirmDialog("Potrzebne jest pobranie dodatkowych plików, które zajmują "
+					+ sizeString + " KB.\r\n" + "Czy "
+					+ ClientGameConfiguration.get("GAME_NAME") + " powinna zostać zainstalowana?",
 					DIALOG_TITLE, JOptionPane.YES_NO_OPTION,
 					JOptionPane.QUESTION_MESSAGE);
 		}
@@ -62,13 +61,11 @@ public class UpdateGUIDialogs {
 
 	/**
 	 * Displays a message box.
-	 * 
+	 *
 	 * @param message
 	 *            message to display
 	 */
-	public static void messageBox(final String message) {
-		JOptionPane.showMessageDialog(null, new SelectableLabel(message), DIALOG_TITLE,
-				JOptionPane.INFORMATION_MESSAGE);
+	static void messageBox(final String message) {
+		LoneOptionDialog.showMessageDialog(message, DIALOG_TITLE);
 	}
-
 }

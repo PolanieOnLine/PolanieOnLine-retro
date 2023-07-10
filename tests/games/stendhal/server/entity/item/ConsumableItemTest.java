@@ -1,4 +1,4 @@
-/* $Id: ConsumableItemTest.java,v 1.15 2010/09/19 02:39:48 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -14,6 +14,7 @@ package games.stendhal.server.entity.item;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;

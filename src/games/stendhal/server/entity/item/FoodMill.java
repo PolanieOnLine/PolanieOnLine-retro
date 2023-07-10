@@ -1,6 +1,5 @@
-/* $Id: FoodMill.java,v 1.10 2012/06/27 19:38:16 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,16 +11,19 @@
  ***************************************************************************/
 package games.stendhal.server.entity.item;
 
-import games.stendhal.common.grammar.Grammar;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.core.events.UseListener;
-import games.stendhal.server.entity.RPEntity;
-
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
+
+import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.entity.RPEntity;
 import marauroa.common.game.RPObject;
 
-public class FoodMill extends Item implements UseListener {
+public class FoodMill extends Item {
+	/** the logger instance. */
+	private static final Logger logger = Logger.getLogger(RPEntity.class);
 
 	/** The item to be processed */
 	private String input;
@@ -29,7 +31,12 @@ public class FoodMill extends Item implements UseListener {
 	private String container;
 	/** The resulting processed item */
 	private String output;
-	
+	/** Items that do not require a "container". */
+	private final List<String> containerNotRequired = new ArrayList<String>() {{
+		add("zwój czyszczący");
+		add("obrotowy nożyk");
+	}};
+
     public FoodMill(final String name, final String clazz,
             final String subclass, final Map<String, String> attributes) {
         super(name, clazz, subclass, attributes);
@@ -40,17 +47,21 @@ public class FoodMill extends Item implements UseListener {
         super(item);
         init();
     }
-    
+
     /** Sets up the input, output and container based on item name */
     private void init() {
-    	if ("młynek do cukru".equals(getName())) {
+    	final String tool = getName();
+
+    	if ("młynek do cukru".equals(tool)) {
     		input = "trzcina cukrowa";
     		container = "pusty worek";
     		output = "cukier";
-    	} else if ("zwój czyszczący".equals(getName())) {
+    	} else if ("zwój czyszczący".equals(tool)) {
     		input = "zwój zapisany";
-    		container = "money";
     		output = "niezapisany zwój";
+    	} else if ("obrotowy nożyk".equals(tool)) {
+    		input = "skóra zwierzęca";
+    		output = "skórzana nić";
     	} else {
     		input = "jabłko";
     		container = "buteleczka";
@@ -58,10 +69,20 @@ public class FoodMill extends Item implements UseListener {
     	}
     }
 
-    public boolean onUsed(final RPEntity user) {
+    @Override
+	public boolean onUsed(final RPEntity user) {
+    	final String tool = getName();
+    	final boolean containerRequired = !containerNotRequired.contains(tool);
+
+    	/* Items/Tools not listed in "containerNotRequired" must have a "container" defined. */
+    	if (containerRequired && container == null) {
+    		logger.error("Input \"" + input + "\" requires a container, but container value is null.");
+    		return false;
+    	}
+
     	/* is the mill equipped at all? */
     	if (!isContained()) {
-    		user.sendPrivateText("Powinieneś mieć " + getName() + ", aby móc go użyć.");
+    		user.sendPrivateText("Powinieneś mieć " + tool + ", aby móc go użyć.");
     		return false;
     	}
 
@@ -69,11 +90,11 @@ public class FoodMill extends Item implements UseListener {
 
     	/* is it in a hand? */
     	if (!slotName.endsWith("hand")) {
-    		user.sendPrivateText("Powinieneś trzymać " + getName() + " w drugiej ręce, aby móc go użyć.");
+    		user.sendPrivateText("Powinieneś trzymać " + tool + " w drugiej ręce, aby móc go użyć.");
     		return false;
     	}
 
-    	String otherhand = getOtherHand(slotName);
+    	final String otherhand = getOtherHand(slotName);
 
     	final RPObject first = user.getSlot(otherhand).getFirst();
 
@@ -88,34 +109,44 @@ public class FoodMill extends Item implements UseListener {
     	 * and have the correct container in his inventory
     	 */
     	if (!input.equals(first.get("name"))) {
-    		user.sendPrivateText("Musisz mieć conajmniej " + Grammar.a_noun(input) + " w drugiej dłoni");
+    		user.sendPrivateText("Musisz mieć conajmniej " + input + " w drugiej dłoni.");
     		return false;
     	}
 
-    	if (!user.isEquipped(container)) {
-    		user.sendPrivateText("Nie masz " + Grammar.a_noun(container) + " ze sobą");
+    	if (containerRequired && !user.isEquipped(container)) {
+    		user.sendPrivateText("Nie masz " + container + " ze sobą.");
     		return false;
     	}
 
         /* all is okay, lets process this item */
     	final Item item = SingletonRepository.getEntityManager().getItem(output);
-    	
+
     	if (first instanceof StackableItem) {
 			StackableItem dropOneOfMe = (StackableItem) first;
 			dropOneOfMe.removeOne();
 		} else {
 			user.drop((Item) first);
 		}
-    	user.drop(container);
-    	user.equipOrPutOnGround(item);
+
+    	if (containerRequired) {
+    		user.drop(container);
+    	}
+    	if ("obrotowy nożyk".equals(tool)) {
+
+    		final StackableItem stackable = (StackableItem) item;
+    		stackable.setQuantity(5);
+
+    		user.equipOrPutOnGround(stackable);
+    	} else {
+    		user.equipOrPutOnGround(item);
+    	}
 
     	return true;
-    } 
+    }
 
-    
     /**
      * @param handSlot should be rhand or lhand
-     * @return the opposite hand to handSlot 
+     * @return the opposite hand to handSlot
      */
     private String getOtherHand(final String handSlot) {
         if ("rhand".equals(handSlot)) {
@@ -124,5 +155,4 @@ public class FoodMill extends Item implements UseListener {
             return "rhand";
         }
     }
-    
 }

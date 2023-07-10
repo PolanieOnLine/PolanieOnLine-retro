@@ -1,6 +1,5 @@
-/* $Id: RPEntity2DView.java,v 1.75 2012/11/25 20:04:12 kiheru Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,109 +11,112 @@
  ***************************************************************************/
 package games.stendhal.client.gui.j2d.entity;
 
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import games.stendhal.client.IGameScreen;
 import games.stendhal.client.entity.ActionType;
 import games.stendhal.client.entity.Entity;
 import games.stendhal.client.entity.IEntity;
-import games.stendhal.client.entity.Player;
 import games.stendhal.client.entity.RPEntity;
+import games.stendhal.client.entity.StatusID;
+import games.stendhal.client.entity.TextIndicator;
 import games.stendhal.client.entity.User;
+import games.stendhal.client.gui.j2d.entity.helpers.AttackPainter;
 import games.stendhal.client.gui.j2d.entity.helpers.HorizontalAlignment;
 import games.stendhal.client.gui.j2d.entity.helpers.VerticalAlignment;
+import games.stendhal.client.gui.wt.core.WtWindowManager;
 import games.stendhal.client.sprite.AnimatedSprite;
+import games.stendhal.client.sprite.DataLoader;
+import games.stendhal.client.sprite.ImageSprite;
 import games.stendhal.client.sprite.Sprite;
 import games.stendhal.client.sprite.SpriteStore;
 import games.stendhal.client.sprite.TextSprite;
 import games.stendhal.common.Debug;
 import games.stendhal.common.Direction;
 import games.stendhal.common.constants.Nature;
-
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.Stroke;
-import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
 import marauroa.common.game.RPAction;
+import marauroa.common.game.RPObject;
 
 /**
  * The 2D view of an RP entity.
- * 
+ *
  * @param <T> type of RPEntity
  */
 abstract class RPEntity2DView<T extends RPEntity> extends ActiveEntity2DView<T> {
+
 	private static final int ICON_OFFSET = 8;
 	private static final int HEALTH_BAR_HEIGHT = 4;
-	
-	/** Number of frames in attack sprites. */
-	private static final int NUM_ATTACK_FRAMES = 3;
-	private static final Stroke ARROW_STROKE = new BasicStroke(2);
-	private static final Map<Nature, Color> arrowColor;
-	
-	static {
-		arrowColor = new EnumMap<Nature, Color>(Nature.class);
-		arrowColor.put(Nature.CUT, Color.LIGHT_GRAY);
-		arrowColor.put(Nature.DARK, Color.DARK_GRAY);
-		arrowColor.put(Nature.LIGHT, new Color(255, 240, 140)); // light yellow
-		arrowColor.put(Nature.FIRE, new Color(255, 100, 0)); // reddish orange
-		arrowColor.put(Nature.ICE, new Color(140, 140, 255)); // light blue
-	}
 
-	/**
-	 * The attack sprites. The top level map contains all the
-	 * strike sprites sorted by damage type. Those in turn are
-	 * retrievable by the attack direction.
-	 */
-	private static final Map<Nature, Map<Direction, Sprite[]>> bladeStrikeSprites;
+	// Battle icons
+	private static final Sprite blockedSprite;
+	private static final Sprite hitSprite;
+	private static final Sprite missedSprite;
 
+	// Job icons
+	private static final Sprite healerSprite;
+	private static final Sprite merchantSprite;
+	private static final Sprite producerSprite;
+
+	// Status icons
+	private static final Sprite chokingSprite;
+	private static final Sprite confusedSprite;
 	private static final Sprite eatingSprite;
 	private static final Sprite poisonedSprite;
-	private static final Sprite chokingSprite;
-	private static final Sprite hitSprite;
-	private static final Sprite blockedSprite;
-	private static final Sprite missedSprite;
-	
+	private static final Sprite bleedingSprite;
+	private static final Sprite shockedSprite;
+	private static final Sprite heavySprite;
+
 	/** Colors of the ring/circle around the player while attacking or being attacked. */
 	private static final Color RING_COLOR_RED = new Color(230, 10, 10);
 	private static final Color RING_COLOR_DARK_RED = new Color(74, 0, 0);
 	private static final Color RING_COLOR_ORANGE = new Color(255, 200, 0);
-	
+
+	private static final double SQRT2 = 1.414213562;
+
 	/** Temporary text sprites, like HP and XP changes. */
-	private Map<RPEntity.TextIndicator, Sprite> floaters = new HashMap<RPEntity.TextIndicator, Sprite>();
+	private Map<TextIndicator, Sprite> floaters = new HashMap<TextIndicator, Sprite>();
 
 	/**
 	 * Model attributes effecting the title changed.
 	 */
 	private boolean titleChanged;
+	/** <code>true</code> if the view should show the entity title. */
+	private boolean showTitle;
+	/** <code>true</code> if the view should show the HP bar. */
+	private boolean showHP;
+	/** for adjusting entity hp bar & title vertical position */
+	protected int titleDrawYOffset = 0;
 
 	/**
 	 * The title image sprite.
 	 */
 	private Sprite titleSprite;
 
-	/*
-	 * The drawn height.
-	 */
+	/** The drawn height. */
 	protected int height;
 
-	/*
-	 * The drawn width.
-	 */
+	/** The drawn width. */
 	protected int width;
 	/** Status icon managers. */
-	private final List<StatusIconManager> iconManagers = new ArrayList<StatusIconManager>();
-	private HealthBar healthBar; 
+	private final List<AbstractStatusIconManager> iconManagers = new ArrayList<AbstractStatusIconManager>();
+	private HealthBar healthBar;
+	private int statusBarYOffset;
 
+	/**
+	 * Flag for detecting if any of the icon manager managed icons have
+	 * changed.
+	 */
+	private volatile boolean iconsChanged;
 	/**
 	 * Flag for checking if the entity is attacking. Can be modified by both
 	 * the EDT and the game loop.
@@ -122,88 +124,113 @@ abstract class RPEntity2DView<T extends RPEntity> extends ActiveEntity2DView<T> 
 	private volatile boolean isAttacking;
 	/** <code>true</code> if the current attack is ranged. */
 	private boolean rangedAttack;
-	/** Attack sprites to be used for the current attack. */
-	private Sprite[] attackSprite;
-	/** Blade strike frame. */
-	private volatile int bladeStrikeFrame;
+
+	/** Object for drawing the attack. */
+	private AttackPainter attackPainter;
 
 	static {
 		final SpriteStore st = SpriteStore.get();
-		
-		final int twidth = NUM_ATTACK_FRAMES * IGameScreen.SIZE_UNIT_PIXELS;
-		final int theight = 4 * IGameScreen.SIZE_UNIT_PIXELS;
 
-		bladeStrikeSprites = new EnumMap<Nature, Map<Direction, Sprite[]>>(Nature.class);
-		
-		// Load all attack sprites
-		for (Nature damageType : Nature.values()) {
-			final Sprite tiles = st.getSprite("data/sprites/combat/blade_strike_" 
-					+ damageType.toString().toLowerCase(Locale.US) + ".png");
+		// Battle icons
+		hitSprite = st.getCombatSprite("hitted.png");
+		blockedSprite = st.getCombatSprite("blocked.png");
+		missedSprite = st.getCombatSprite("missed.png");
 
-			Map<Direction, Sprite[]> map = new EnumMap<Direction, Sprite[]>(Direction.class);
-			bladeStrikeSprites.put(damageType, map);
-			
-			int y = 0;
-			map.put(Direction.UP, st.getTiles(tiles, 0, y, 3, twidth, theight));
+		// Job icons
+		healerSprite = st.getStatusSprite("healer.png");
+		merchantSprite = st.getStatusSprite("merchant.png");
+		producerSprite = st.getStatusSprite("producer.png");
 
-			y += theight;
-			map.put(Direction.RIGHT, st.getTiles(tiles, 0, y, 3, twidth, theight));
-
-			y += theight;
-			map.put(Direction.DOWN, st.getTiles(tiles, 0, y, 3, twidth, theight));
-
-			y += theight;
-			map.put(Direction.LEFT, st.getTiles(tiles, 0, y, 3, twidth, theight));
-		}
-
-		hitSprite = st.getSprite("data/sprites/combat/hitted.png");
-		blockedSprite = st.getSprite("data/sprites/combat/blocked.png");
-		missedSprite = st.getSprite("data/sprites/combat/missed.png");
+		// Status icons
+		confusedSprite = st.getAnimatedSprite(st.getStatusSprite("confuse.png"), 200);
 		eatingSprite = st.getSprite("data/sprites/ideas/eat.png");
-		poisonedSprite = st.getSprite("data/sprites/ideas/poisoned.png");
+		poisonedSprite = st.getAnimatedSprite(st.getStatusSprite("poison.png"), 100);
+		bleedingSprite = st.getAnimatedSprite(st.getStatusSprite("bleeding.png"), 100);
 		chokingSprite = st.getSprite("data/sprites/ideas/choking.png");
+		shockedSprite = st.getAnimatedSprite(st.getStatusSprite("shock.png"), 38, 200);
+		heavySprite = st.getAnimatedSprite(st.getStatusSprite("heavy.png"), 200);
 	}
 
 	/**
 	 * Create a new RPEntity2DView.
 	 */
 	public RPEntity2DView() {
-		addIconManager(new StatusIconManager(Player.PROP_EATING, eatingSprite,
-				HorizontalAlignment.LEFT, VerticalAlignment.BOTTOM, 0, 0) {
-					@Override
-					boolean show(T rpentity) {
-						return rpentity.isEating() && !rpentity.isChoking();
-					}
-				});
-		addIconManager(new StatusIconManager(Player.PROP_EATING, chokingSprite,
-				HorizontalAlignment.LEFT, VerticalAlignment.BOTTOM, 0, 0) {
-					@Override
-					boolean show(T rpentity) {
-						return rpentity.isChoking();
-					}
-				});
-		addIconManager(new StatusIconManager(Player.PROP_POISONED, poisonedSprite,
-				HorizontalAlignment.LEFT, VerticalAlignment.BOTTOM, -poisonedSprite.getWidth(), 0) {
-					@Override
-					boolean show(T rpentity) {
-						return rpentity.isPoisoned();
-					}
-				});
+		// Job icons
+		addIconManager(new StatusIconManager(RPEntity.PROP_HEALER, healerSprite,
+				HorizontalAlignment.LEFT, VerticalAlignment.BOTTOM, StatusID.HEALER));
+		addIconManager(new StatusIconManager(RPEntity.PROP_MERCHANT, merchantSprite,
+				HorizontalAlignment.LEFT, VerticalAlignment.BOTTOM, StatusID.MERCHANT));
+		addIconManager(new StatusIconManager(RPEntity.PROP_PRODUCER, producerSprite,
+				HorizontalAlignment.LEFT, VerticalAlignment.BOTTOM, StatusID.PRODUCER));
+
+		// Status icons
+		/* choking status */
+		addIconManager(new AbstractStatusIconManager(RPEntity.PROP_EATING, chokingSprite,
+				HorizontalAlignment.LEFT, VerticalAlignment.BOTTOM) {
+			@Override
+			boolean show(T rpentity) {
+				return rpentity.isChoking();
+			}
+		});
+
+		/* confused status */
+		addIconManager(new StatusIconManager(RPEntity.PROP_CONFUSED, confusedSprite,
+				HorizontalAlignment.RIGHT, VerticalAlignment.MIDDLE, StatusID.CONFUSE));
+
+		/* eating status */
+		addIconManager(new AbstractStatusIconManager(RPEntity.PROP_EATING, eatingSprite,
+				HorizontalAlignment.LEFT, VerticalAlignment.BOTTOM) {
+			@Override
+			boolean show(T rpentity) {
+				return rpentity.isEating() && !rpentity.isChoking();
+			}
+		});
+
+		/* poison status */
+		StatusIconManager poisonManager = new StatusIconManager(RPEntity.PROP_POISONED, poisonedSprite,
+				HorizontalAlignment.CENTER, VerticalAlignment.MIDDLE, StatusID.POISON);
+		poisonManager.setOffsets(10, -13);
+		addIconManager(poisonManager);
+
+		/* bleeding status */
+		StatusIconManager injuredManager = new StatusIconManager(RPEntity.PROP_BLEEDING, bleedingSprite,
+				HorizontalAlignment.CENTER, VerticalAlignment.MIDDLE, StatusID.INJURED);
+		injuredManager.setOffsets(10, -13);
+		addIconManager(injuredManager);
+
+		/* shock status */
+		addIconManager(new StatusIconManager(RPEntity.PROP_SHOCK, shockedSprite,
+				HorizontalAlignment.CENTER, VerticalAlignment.BOTTOM, StatusID.SHOCK));
+
+		/* heavy status */
+		StatusIconManager heavyManager = new StatusIconManager(RPEntity.PROP_HEAVY,
+				heavySprite, HorizontalAlignment.CENTER, VerticalAlignment.MIDDLE,
+				StatusID.HEAVY);
+		heavyManager.setOffsets(0, 32);
+		addIconManager(heavyManager);
+
+		setSpriteAlignment(HorizontalAlignment.CENTER, VerticalAlignment.BOTTOM);
 	}
 
 	@Override
 	public void initialize(final T entity) {
 		super.initialize(entity);
-		titleSprite = createTitleSprite();
+		showTitle = entity.showTitle();
+		showHP = entity.showHPBar();
+		if (showTitle) {
+			titleSprite = createTitleSprite();
+		}
 		titleChanged = false;
+		iconsChanged = true;
 	}
+
 	//
 	// RPEntity2DView
 	//
 
 	/**
 	 * Populate keyed state sprites.
-	 * 
+	 *
 	 * @param map
 	 *            The map to populate.
 	 * @param tiles
@@ -229,35 +256,11 @@ abstract class RPEntity2DView<T extends RPEntity> extends ActiveEntity2DView<T> 
 	}
 
 	/**
-	 * Calculate sprite image offset. Sub-classes may override this to change
-	 * alignment.
-	 * 
-	 * @param spriteWidth
-	 *            The sprite width (in pixels).
-	 * @param spriteHeight
-	 *            The sprite height (in pixels).
-	 * @param entityWidth
-	 *            The entity width (in pixels).
-	 * @param entityHeight
-	 *            The entity height (in pixels).
-	 */
-	@Override
-	protected void calculateOffset(final int spriteWidth,
-			final int spriteHeight, final int entityWidth,
-			final int entityHeight) {
-		/*
-		 * X alignment centered, Y alignment bottom
-		 */
-		xoffset = (entityWidth - spriteWidth) / 2;
-		yoffset = entityHeight - spriteHeight;
-	}
-
-	/**
 	 * Create the title sprite.
-	 * 
+	 *
 	 * @return The title sprite.
 	 */
-	protected Sprite createTitleSprite() {
+	private Sprite createTitleSprite() {
 		final String titleType = entity.getTitleType();
 		final int adminlevel = entity.getAdminLevel();
 		Color nameColor = null;
@@ -271,14 +274,16 @@ abstract class RPEntity2DView<T extends RPEntity> extends ActiveEntity2DView<T> 
 		}
 
 		if (nameColor == null) {
-			if (adminlevel >= 20) {
-				nameColor = new Color(200, 200, 0);
+			if (adminlevel >= 1000) {
+				nameColor = new Color(150, 149, 34); // ciemny żółty
+			} else if (adminlevel >= 20) {
+				nameColor = new Color(200, 200, 0); // żółty
+			} else if (adminlevel >= 7) {
+				nameColor = new Color(255, 255, 172); // jasny żółty
 			} else if (adminlevel >= 3) {
-				nameColor = new Color(255, 255, 0);
-			} else if (adminlevel > 1) {
-				nameColor = new Color(255, 255, 172);
+				nameColor = new Color(185, 255, 185); // jasna zieleń
 			} else if (adminlevel > 0) {
-				nameColor = new Color(185, 255, 185);
+				nameColor = new Color(205, 255, 205); // blada zieleń
 			} else {
 				nameColor = Color.white;
 			}
@@ -290,7 +295,7 @@ abstract class RPEntity2DView<T extends RPEntity> extends ActiveEntity2DView<T> 
 	/**
 	 * Extract a walking animation for a specific row. The source sprite
 	 * contains 3 animation tiles, but this is converted to 4 frames.
-	 * 
+	 *
 	 * @param tiles
 	 *            The tile image.
 	 * @param y
@@ -299,7 +304,7 @@ abstract class RPEntity2DView<T extends RPEntity> extends ActiveEntity2DView<T> 
 	 *            The frame width.
 	 * @param height
 	 *            The frame height.
-	 * 
+	 *
 	 * @return A sprite.
 	 */
 	protected Sprite createWalkSprite(final Sprite tiles, final int y,
@@ -321,19 +326,19 @@ abstract class RPEntity2DView<T extends RPEntity> extends ActiveEntity2DView<T> 
 
 		return new AnimatedSprite(frames, 100, false);
 	}
-	
+
 	/**
 	 * Add a new status icon manager.
-	 * 
+	 *
 	 * @param manager
 	 */
-	void addIconManager(StatusIconManager manager) {
+	final void addIconManager(AbstractStatusIconManager manager) {
 		iconManagers.add(manager);
 	}
 
 	/**
 	 * Draw the floating text indicators (floaters).
-	 * 
+	 *
 	 * @param g2d
 	 *            The graphics context.
 	 * @param x
@@ -343,13 +348,13 @@ abstract class RPEntity2DView<T extends RPEntity> extends ActiveEntity2DView<T> 
 	 * @param width
 	 *            The drawn width.
 	 */
-	protected void drawFloaters(final Graphics2D g2d, final int x, final int y,
+	private void drawFloaters(final Graphics2D g2d, final int x, final int y,
 			final int width) {
-		for (Map.Entry<RPEntity.TextIndicator, Sprite> floater : floaters.entrySet()) {
-			final RPEntity.TextIndicator indicator = floater.getKey();
+		for (Map.Entry<TextIndicator, Sprite> floater : floaters.entrySet()) {
+			final TextIndicator indicator = floater.getKey();
 			final Sprite sprite = floater.getValue();
 			final int age = indicator.getAge();
-			
+
 			final int tx = x + (width - sprite.getWidth()) / 2;
 			final int ty = y - (int) (age * 5L / 300L);
 			sprite.draw(g2d, tx, ty);
@@ -358,7 +363,7 @@ abstract class RPEntity2DView<T extends RPEntity> extends ActiveEntity2DView<T> 
 
 	/**
 	 * Draw the entity HP bar.
-	 * 
+	 *
 	 * @param g2d
 	 *            The graphics context.
 	 * @param x
@@ -371,12 +376,12 @@ abstract class RPEntity2DView<T extends RPEntity> extends ActiveEntity2DView<T> 
 	protected void drawHPbar(final Graphics2D g2d, final int x, final int y,
 			final int width) {
 		int dx = (width - healthBar.getWidth()) / 2;
-		healthBar.draw(g2d, x + dx, y - healthBar.getHeight());
+		healthBar.draw(g2d, x + dx, y - healthBar.getHeight() + titleDrawYOffset);
 	}
 
 	/**
 	 * Draw the entity status bar. The status bar show the title and HP bar.
-	 * 
+	 *
 	 * @param g2d
 	 *            The graphics context.
 	 * @param x
@@ -386,15 +391,27 @@ abstract class RPEntity2DView<T extends RPEntity> extends ActiveEntity2DView<T> 
 	 * @param width
 	 *            The drawn width.
 	 */
-	protected void drawStatusBar(final Graphics2D g2d, final int x,
-			final int y, final int width) {
-		drawTitle(g2d, x, y, width);
-		drawHPbar(g2d, x, y, width);
+	protected void drawStatusBar(Graphics2D g2d, int x, int y, int width) {
+		if (showTitle) {
+			drawTitle(g2d, x, y, width);
+		}
+		if (showHP) {
+			drawHPbar(g2d, x, y, width);
+		}
+	}
+
+	private int getStatusBarHeight() {
+		if (titleSprite != null) {
+			return 3 + titleSprite.getHeight();
+		} else if (healthBar != null) {
+			return healthBar.getHeight();
+		}
+		return 0;
 	}
 
 	/**
 	 * Draw the entity title.
-	 * 
+	 *
 	 * @param g2d
 	 *            The graphics context.
 	 * @param x
@@ -406,16 +423,16 @@ abstract class RPEntity2DView<T extends RPEntity> extends ActiveEntity2DView<T> 
 	 */
 	protected void drawTitle(final Graphics2D g2d, final int x, final int y, final int width) {
 		if (titleSprite != null) {
-			final int tx = x + ((width - titleSprite.getWidth()) / 2);
-			final int ty = y - 3 - titleSprite.getHeight();
+			int tx = x + ((width - titleSprite.getWidth()) / 2);
+			int ty = y - getStatusBarHeight() + titleDrawYOffset;
 
 			titleSprite.draw(g2d, tx, ty);
 		}
 	}
 
 	/**
-	 * Draw the combat indicators. 
-	 * 
+	 * Draw the combat indicators.
+	 *
 	 * @param g2d
 	 *            The graphics context.
 	 * @param x
@@ -427,67 +444,62 @@ abstract class RPEntity2DView<T extends RPEntity> extends ActiveEntity2DView<T> 
 	 * @param height
 	 *            The drawn entity height.
 	 */
-	protected void drawCombat(final Graphics2D g2d, final int x,
+	private void drawCombat(final Graphics2D g2d, final int x,
 							  final int y, final int width, final int height) {
 		Rectangle2D wrect = entity.getArea();
 		final Rectangle srect = new Rectangle(
 				(int) (wrect.getX() * IGameScreen.SIZE_UNIT_PIXELS),
-				(int) (wrect.getY() * IGameScreen.SIZE_UNIT_PIXELS), 
+				(int) (wrect.getY() * IGameScreen.SIZE_UNIT_PIXELS),
 				(int) (wrect.getWidth() * IGameScreen.SIZE_UNIT_PIXELS),
 				(int) (wrect.getHeight() * IGameScreen.SIZE_UNIT_PIXELS)
 		);
-		
-		final double DIVISOR = 1.414213562; // sqrt(2)
-		
+
 		// Calculating the circle's height
-		int circleHeight = (int) ((srect.height - 2) / DIVISOR);
+		int circleHeight = (int) ((srect.height - 2) / SQRT2);
 		circleHeight = Math.max(circleHeight, srect.height - IGameScreen.SIZE_UNIT_PIXELS / 2);
-		
+
 		// When the entity is attacking the user give him a orange ring
 		if (entity.isAttacking(User.get())) {
-			g2d.setColor(RING_COLOR_ORANGE); 
-			g2d.drawOval(srect.x-1, srect.y + srect.height - circleHeight, srect.width, circleHeight);
+			g2d.setColor(RING_COLOR_ORANGE);
+			g2d.drawOval(srect.x - 1, srect.y + srect.height - circleHeight, srect.width, circleHeight);
 			g2d.drawOval(srect.x, srect.y + srect.height - circleHeight, srect.width, circleHeight);
-			g2d.drawOval(srect.x+1, srect.y + srect.height - circleHeight, srect.width, circleHeight);
+			g2d.drawOval(srect.x + 1, srect.y + srect.height - circleHeight, srect.width, circleHeight);
 			drawShadedOval(g2d, srect.x + 1, srect.y + srect.height - circleHeight + 1, srect.width - 2, circleHeight - 2, RING_COLOR_ORANGE, true, false);
 		}
-		
+
 		// When the entity is attacked by another entity
 		if (entity.isBeingAttacked()) {
 			Color lineColor;
 			g2d.setColor(RING_COLOR_RED);
-			
+
 			// When it is also attacking the user give him only a red outline
-			if (entity.isAttacking(User.get()))
-			{
+			if (entity.isAttacking(User.get())) {
 				lineColor = RING_COLOR_RED;
 				drawShadedOval(g2d, srect.x - 1, srect.y + srect.height - circleHeight - 1, srect.width + 2, circleHeight + 2, RING_COLOR_RED, false, true);
-			}
-			// Otherwise make his complete ring red
-			else
-			{
+			} else {
+				// Otherwise make his complete ring red
 				lineColor = RING_COLOR_DARK_RED;
-				g2d.drawOval(srect.x-1, srect.y + srect.height - circleHeight, srect.width, circleHeight);
+				g2d.drawOval(srect.x - 1, srect.y + srect.height - circleHeight, srect.width, circleHeight);
 				g2d.drawOval(srect.x, srect.y + srect.height - circleHeight, srect.width, circleHeight);
-				g2d.drawOval(srect.x+1, srect.y + srect.height - circleHeight, srect.width, circleHeight);
+				g2d.drawOval(srect.x + 1, srect.y + srect.height - circleHeight, srect.width, circleHeight);
 				drawShadedOval(g2d, srect.x + 1, srect.y + srect.height - circleHeight + 1, srect.width - 2, circleHeight - 2, RING_COLOR_RED, true, false);
 				drawShadedOval(g2d, srect.x - 1, srect.y + srect.height - circleHeight - 1, srect.width + 2, circleHeight + 2, RING_COLOR_ORANGE, false, false);
 			}
-			
+
 			// Get the direction of his opponents and draw an arrow to those
 			EnumSet<Direction> directions = EnumSet.noneOf(Direction.class);
-			for(Entity attacker : entity.getAttackers()) {
-				directions.add(Direction.getAreaDirectionTowardsArea(entity.getArea(), attacker.getArea()));	
+			for (Entity attacker : entity.getAttackers()) {
+				directions.add(Direction.getAreaDirectionTowardsArea(entity.getArea(), attacker.getArea()));
 			}
 			drawArrows(g2d, srect.x - 1, srect.y + srect.height - circleHeight - 1, srect.width + 2, circleHeight + 2, directions, lineColor);
-		
+
 		// When the entity is attacked by the user, but still is attacking the user, give him a dark orange outline
 		} else if (entity.isAttacking(User.get())) {
 			drawShadedOval(g2d, srect.x - 1, srect.y + srect.height - circleHeight - 1, srect.width + 2, circleHeight + 2, RING_COLOR_ORANGE, false, false);
 		}
-		
+
 		drawAttack(g2d, x, y, width, height);
-		
+
 		if (entity.isDefending()) {
 			// Draw bottom right combat icon
 			final int sx = srect.x + srect.width - ICON_OFFSET;
@@ -510,13 +522,15 @@ abstract class RPEntity2DView<T extends RPEntity> extends ActiveEntity2DView<T> 
 			}
 		}
 	}
-	
+
 	/**
 	 * Function to draw the arrows on the attack/being attacked ring.
-	 * 
+	 *
 	 * @param g2d The graphic context
 	 * @param x The x-center of the arrows
 	 * @param y The y-center of the arrows
+	 * @param width ring width
+	 * @param height ring height
 	 * @param directions The directions an arrow should be drawn
 	 * @param lineColor The color of the outline of the arrow
 	 */
@@ -572,7 +586,7 @@ abstract class RPEntity2DView<T extends RPEntity> extends ActiveEntity2DView<T> 
 					3);
 		}
 	}
-	
+
 	/**
 	 * @param g2d The graphic context
 	 * @param x The x-position of the upperleft of the oval
@@ -584,33 +598,33 @@ abstract class RPEntity2DView<T extends RPEntity> extends ActiveEntity2DView<T> 
 	 * @param light
 	 */
 	private void drawShadedOval(final Graphics2D g2d, final int x, final int y, final int width, final int height, final Color color, final boolean reversed, final boolean light) {
-		
+
 		// Calculate how much darker the ring must be made (depends on the boolean 'light')
 		float multi1;
 		float multi2;
-		if(light) {
+		if (light) {
 			multi1 = reversed ? 1f : 0.8f;
 			multi2 = reversed ? 0.8f : 1f;
 		} else {
 			multi1 = reversed ? 0.24f : 0.39f;
 			multi2 = reversed ? 0.39f : 0.24f;
 		}
-		
+
 		// Darken the colors by the given multiplier
 		Color color1 = new Color((int) (color.getRed() * multi1), (int) (color.getGreen() * multi1), (int) (color.getBlue() * multi1));
 		Color color2 = new Color((int) (color.getRed() * multi2), (int) (color.getGreen() * multi2), (int) (color.getBlue() * multi2));
-		
+
 		// Draw with two arcs a oval
 		g2d.setColor(color1);
 		g2d.drawArc(x, y, width, height, 0, 180);
 		g2d.setColor(color2);
 		g2d.drawArc(x, y, width, height, 180, 180);
 	}
-	
+
 	/**
 	 * Draw the attacking effect.
-	 * 
-	 * @param g2d The graphics context 
+	 *
+	 * @param g2d The graphics context
 	 * @param x x coordinate of the attacker
 	 * @param y y coordinate of the attacker
 	 * @param width width of the attacker
@@ -618,129 +632,81 @@ abstract class RPEntity2DView<T extends RPEntity> extends ActiveEntity2DView<T> 
 	 */
 	private void drawAttack(final Graphics2D g2d, final int x, final int y, final int width, final int height) {
 		if (isAttacking) {
-			if (bladeStrikeFrame < NUM_ATTACK_FRAMES) {
+			if (!attackPainter.isDoneAttacking()) {
 				RPEntity target = entity.getAttackTarget();
-				
+
 				if (target != null) {
 					if (rangedAttack) {
-						drawDistanceAttack(g2d, entity, target, x, y, width, height);
+						attackPainter.drawDistanceAttack(g2d, entity, target, x, y, width, height);
 					} else {
-						drawStrike(g2d, x, y, width, height);
+						attackPainter.draw(g2d, entity.getDirection(), x, y, width, height);
 					}
 				}
-				bladeStrikeFrame++;
 			} else {
-				bladeStrikeFrame = 0;
 				isAttacking = false;
 			}
 		}
 	}
-	
-	/**
-	 * Draw a blade strike.
-	 *  
-	 * @param g2d
-	 * @param x
-	 * @param y
-	 * @param width
-	 * @param height
-	 */
-	private void drawStrike(final Graphics2D g2d, final int x, final int y,
-			final int width, final int height) {
-		final Sprite sprite = attackSprite[bladeStrikeFrame];
-
-		final int spriteWidth = sprite.getWidth();
-		final int spriteHeight = sprite.getHeight();
-
-		int sx;
-		int sy;
-
-		/*
-		 * Align swipe image to be 16 px past the facing edge, centering
-		 * in other axis.
-		 * 
-		 * Swipe image is 3x4 tiles, but really only uses partial areas.
-		 * Adjust positions to match (or fix images to be
-		 * uniform/centered).
-		 */
-		switch (entity.getDirection()) {
-		case UP:
-			sx = x + ((width - spriteWidth) / 2) + 16;
-			sy = y - 16 - 32;
-			break;
-
-		case DOWN:
-			sx = x + ((width - spriteWidth) / 2);
-			sy = y + height - spriteHeight + 16;
-			break;
-
-		case LEFT:
-			sx = x - 16;
-			sy = y + ((height - spriteHeight) / 2) - 16;
-			break;
-
-		case RIGHT:
-			sx = x + width - spriteWidth + 16;
-			sy = y + ((height - spriteHeight) / 2) - ICON_OFFSET;
-			break;
-
-		default:
-			sx = x + ((width - spriteWidth) / 2);
-			sy = y + ((height - spriteHeight) / 2);
-		}
-
-		sprite.draw(g2d, sx, sy);
-	}
-	
-	/**
-	 * Draw a distance attack line.
-	 * 
-	 * @param g2d
-	 * @param entity
-	 * @param target
-	 * @param x
-	 * @param y
-	 * @param width
-	 * @param height
-	 */
-	private void drawDistanceAttack(final Graphics2D g2d, final RPEntity entity, final RPEntity target,
-			final int x, final int y, final int width, final int height) {
-		Nature nature = entity.getShownDamageType(); 
-
-		int startX = x + width / 2;
-		int startY = y + height / 2;
-		int endX = (int) (32 * (target.getX() + target.getWidth() / 2));
-		// Target at the upper edge of the occupied area.
-		// Getting the EntityView from an entity is tedious, and
-		// still does not work reliable for everything (rats)
-		int endY = (int) (32 * target.getY()); 
-
-		int yLength = (endY - startY) / NUM_ATTACK_FRAMES;
-		int xLength = (endX - startX) / NUM_ATTACK_FRAMES;
-
-		startY += bladeStrikeFrame * yLength;
-		endY = startY + yLength;
-
-		startX += bladeStrikeFrame * xLength;
-		endX = startX + xLength;
-
-		g2d.setColor(arrowColor.get(nature));
-		Stroke oldStroke = g2d.getStroke();
-		g2d.setStroke(ARROW_STROKE);
-		g2d.drawLine(startX, startY, endX, endY);
-		g2d.setStroke(oldStroke);
-	}
 
 	/**
 	 * Get the full directional animation tile set for this entity.
-	 * 
+	 *
 	 * @return A tile sprite containing all animation images.
 	 */
 	protected abstract Sprite getAnimationSprite();
 
 	/**
+	 * Draws a shadow under image if shadows are enabled in the client.
+	 *
+	 * @param sprite
+	 * 		The sprite to manipulate.
+	 * @return
+	 * 		Sprite
+	 */
+	protected Sprite addShadow(final Sprite sprite) {
+		final boolean draw_shadows = WtWindowManager.getInstance().getProperty("gamescreen.shadows", "true").equals("true");
+
+		if (draw_shadows && entity.castsShadow()) {
+			/* XXX: would it be better to use a single shadow file & scale it?
+			 * XXX: would it be better to use an opaque image & set transparency here?
+			 */
+
+			// custom shadows are created with attribute set in .xml config
+			final String custom_shadow = entity.getShadowStyle();
+			final ImageSprite shadowed;
+			final Graphics g;
+
+			// check if custom shadow image exists
+			if (custom_shadow != null && DataLoader.getResource(custom_shadow) != null) {
+				// draw shadow under the image
+				shadowed = new ImageSprite(SpriteStore.get().getSprite(custom_shadow));
+				g = shadowed.getGraphics();
+
+				sprite.draw(g, 0, 0);
+				return shadowed;
+			}
+
+			final int w_sprite = sprite.getWidth() / 3;
+			final int h_sprite = sprite.getHeight() / 4;
+			final String standard_shadow = "data/sprites/shadow/" + Integer.toString(w_sprite) + "x" + Integer.toString(h_sprite) + ".png";
+
+			// check if corresponding standard shadow image exists
+			if (DataLoader.getResource(standard_shadow) != null) {
+				// draw a shadow under the image
+				shadowed = new ImageSprite(SpriteStore.get().getSprite(standard_shadow));
+				g = shadowed.getGraphics();
+
+				sprite.draw(g, 0, 0);
+				return shadowed;
+			}
+		}
+
+		return sprite;
+	}
+
+	/**
 	 * Get the number of tiles in the X axis of the base sprite.
-	 * 
+	 *
 	 * @return The number of tiles.
 	 */
 	protected int getTilesX() {
@@ -749,7 +715,7 @@ abstract class RPEntity2DView<T extends RPEntity> extends ActiveEntity2DView<T> 
 
 	/**
 	 * Get the number of tiles in the Y axis of the base sprite.
-	 * 
+	 *
 	 * @return The number of tiles.
 	 */
 	protected int getTilesY() {
@@ -758,7 +724,7 @@ abstract class RPEntity2DView<T extends RPEntity> extends ActiveEntity2DView<T> 
 
 	/**
 	 * Determine is the user can see this entity while in ghostmode.
-	 * 
+	 *
 	 * @return <code>true</code> if the client user can see this entity while in
 	 *         ghostmode.
 	 */
@@ -772,7 +738,7 @@ abstract class RPEntity2DView<T extends RPEntity> extends ActiveEntity2DView<T> 
 
 	/**
 	 * Populate keyed state sprites.
-	 * 
+	 *
 	 * @param entity the entity to build sprites for
 	 * @param map
 	 *            The map to populate.
@@ -786,20 +752,40 @@ abstract class RPEntity2DView<T extends RPEntity> extends ActiveEntity2DView<T> 
 
 		buildSprites(map, tiles, width, height);
 		calculateOffset(entity, width, height);
-		
+
 		/*
 		 * Set icons for a newly created entity.
-		 * These need to be after the main sprite is ready, so that the
-		 * dimensions are correct for the sprite placement.
 		 */
-		for (StatusIconManager handler : iconManagers) {
-			handler.check(entity);
-		}
-		
+		checkIcons();
+
 		// Prepare the health bar
 		int barWidth = Math.max(width * 2 / 3, IGameScreen.SIZE_UNIT_PIXELS);
 		healthBar = new HealthBar(barWidth, HEALTH_BAR_HEIGHT);
 		healthBar.setHPRatio(entity.getHpRatio());
+	}
+
+	/**
+	 * Check if icon states have changed.
+	 */
+	private void checkIcons() {
+		for (AbstractStatusIconManager handler : iconManagers) {
+			if (handler.check(entity)) {
+				iconsChanged = true;
+			}
+		}
+	}
+
+	/**
+	 * Check if icon states have changed.
+	 *
+	 * @param property the changed property
+	 */
+	private void checkIcons(Object property) {
+		for (AbstractStatusIconManager handler : iconManagers) {
+			if (handler.check(property, entity)) {
+				iconsChanged = true;
+			}
+		}
 	}
 
 	//
@@ -809,21 +795,33 @@ abstract class RPEntity2DView<T extends RPEntity> extends ActiveEntity2DView<T> 
 	/**
 	 * Build a list of entity specific actions. <strong>NOTE: The first entry
 	 * should be the default.</strong>
-	 * 
+	 *
 	 * @param list
 	 *            The list to populate.
 	 */
 	@Override
 	protected void buildActions(final List<String> list) {
-		if (entity.getRPObject().has("menu")) {
-			list.add(entity.getRPObject().get("menu"));
-		}
 		super.buildActions(list);
 
-		if (entity.isAttackedBy(User.get())) {
-			list.add(ActionType.STOP_ATTACK.getRepresentation());
-		} else {
-			list.add(ActionType.ATTACK.getRepresentation());
+		final RPObject obj = entity.getRPObject();
+		if (!obj.has("no_attack")) {
+			/* FIXME: SilentNPC no longer has "Attack" option in menu. Should this
+			 *        code be changed?
+			 *
+			 * Menu is used to provide an alternate action for some entities (like
+			 * puppies - and they should not be attackable).
+			 *
+			 * For now normally attackable entities get a menu only in Capture The
+			 * Flag, and then they don't need attack. If that changes, this code
+			 * will need to be adjusted.
+			 */
+			if (!entity.getRPObject().has("menu")) {
+				if (entity.isAttackedBy(User.get())) {
+					list.add(ActionType.STOP_ATTACK.getRepresentation());
+				} else {
+					list.add(ActionType.ATTACK.getRepresentation());
+				}
+			}
 		}
 
 		list.add(ActionType.PUSH.getRepresentation());
@@ -831,7 +829,7 @@ abstract class RPEntity2DView<T extends RPEntity> extends ActiveEntity2DView<T> 
 
 	/**
 	 * Draw the entity.
-	 * 
+	 *
 	 * @param g2d
 	 *            The graphics context.
 	 * @param x
@@ -853,14 +851,12 @@ abstract class RPEntity2DView<T extends RPEntity> extends ActiveEntity2DView<T> 
 			g2d.setColor(Color.cyan);
 			g2d.drawRect(x, y, width, height);
 		}
-
-		drawFloaters(g2d, x, y, width);
 	}
 
 	/**
 	 * Draw the top layer parts of an entity. This will be on down after all
 	 * other game layers are rendered.
-	 * 
+	 *
 	 * @param g2d
 	 *            The graphics context.
 	 * @param x
@@ -875,12 +871,13 @@ abstract class RPEntity2DView<T extends RPEntity> extends ActiveEntity2DView<T> 
 	@Override
 	protected void drawTop(final Graphics2D g2d, final int x, final int y,
 			final int width, final int height) {
-		drawStatusBar(g2d, x, y, width);
+		drawFloaters(g2d, x, y, width);
+		drawStatusBar(g2d, x, y + statusBarYOffset, width);
 	}
 
 	/**
 	 * Get the height.
-	 * 
+	 *
 	 * @return The height (in pixels).
 	 */
 	@Override
@@ -890,7 +887,7 @@ abstract class RPEntity2DView<T extends RPEntity> extends ActiveEntity2DView<T> 
 
 	/**
 	 * Get the entity's visibility.
-	 * 
+	 *
 	 * @return The visibility value (0-100).
 	 */
 	@Override
@@ -911,7 +908,7 @@ abstract class RPEntity2DView<T extends RPEntity> extends ActiveEntity2DView<T> 
 
 	/**
 	 * Get the width.
-	 * 
+	 *
 	 * @return The width (in pixels).
 	 */
 	@Override
@@ -923,9 +920,9 @@ abstract class RPEntity2DView<T extends RPEntity> extends ActiveEntity2DView<T> 
 	 * Determines on top of which other entities this entity should be drawn.
 	 * Entities with a high Z index will be drawn on top of ones with a lower Z
 	 * index.
-	 * 
+	 *
 	 * Also, players can only interact with the topmost entity.
-	 * 
+	 *
 	 * @return The drawing index.
 	 */
 	@Override
@@ -934,41 +931,49 @@ abstract class RPEntity2DView<T extends RPEntity> extends ActiveEntity2DView<T> 
 	}
 
 	@Override
+	public void setVisibleScreenArea(Rectangle area) {
+		Rectangle drawingArea = getDrawingArea();
+		int drawTop = drawingArea.y - getStatusBarHeight();
+		int visibleTop = area.y;
+		statusBarYOffset = Math.max(0, visibleTop - drawTop);
+	}
+
+	@Override
 	protected void update() {
 		super.update();
 
 		if (titleChanged) {
-			titleSprite = createTitleSprite();
 			titleChanged = false;
+			showTitle = entity.showTitle();
+			if (showTitle) {
+				titleSprite = createTitleSprite();
+			} else {
+				titleSprite = null;
+			}
+		}
+
+		if (iconsChanged) {
+			iconsChanged = false;
+			for (AbstractStatusIconManager handler : iconManagers) {
+				handler.apply();
+			}
 		}
 	}
 
-	//
-	// EntityChangeListener
-	//
-
-	/**
-	 * An entity was changed.
-	 * 
-	 * @param entity
-	 *            The entity that was changed.
-	 * @param property
-	 *            The property identifier.
-	 */
 	@Override
-	public void entityChanged(final T entity, final Object property) {
-		super.entityChanged(entity, property);
+	void entityChanged(final Object property) {
+		super.entityChanged(property);
 
 		if (property == RPEntity.PROP_ADMIN_LEVEL) {
 			titleChanged = true;
 			visibilityChanged = true;
 		} else if (property == RPEntity.PROP_GHOSTMODE) {
 			visibilityChanged = true;
-		} else if (property == RPEntity.PROP_OUTFIT) {
+		} else if (property == RPEntity.PROP_OUTFIT
+				|| property == RPEntity.PROP_ZOMBIE) {
 			representationChanged = true;
-		} else if (property == IEntity.PROP_TITLE) {
-			titleChanged = true;
-		} else if (property == RPEntity.PROP_TITLE_TYPE) {
+		} else if (property == IEntity.PROP_TITLE
+				|| property == RPEntity.PROP_TITLE_TYPE) {
 			titleChanged = true;
 		} else if (property == RPEntity.PROP_TEXT_INDICATORS) {
 			onFloatersChanged();
@@ -976,39 +981,43 @@ abstract class RPEntity2DView<T extends RPEntity> extends ActiveEntity2DView<T> 
 			if (healthBar != null) {
 				healthBar.setHPRatio(entity.getHpRatio());
 			}
+		} else if (property == RPEntity.PROP_HP_DISPLAY) {
+			showHP = entity.showHPBar();
 		} else if (property == RPEntity.PROP_ATTACK) {
 			Nature nature = entity.getShownDamageType();
+			String weapon = entity.getShownWeapon();
 			if (nature == null) {
 				isAttacking = false;
 			} else {
 				rangedAttack = entity.isDoingRangedAttack();
-				if (!rangedAttack) {
-					attackSprite = bladeStrikeSprites.get(nature).get(getState(entity));
+				if (attackPainter == null || !attackPainter.hasNatureAndWeapon(nature, weapon)) {
+					attackPainter = AttackPainter.get(nature, weapon, (int) Math.min(entity.getWidth(), entity.getHeight()));
 				}
+				attackPainter.prepare(getState(entity));
 				isAttacking = true;
-				bladeStrikeFrame = 0;
 			}
 		}
-		
-		for (StatusIconManager handler : iconManagers) {
-			handler.check(property, entity);
-		}
+
+		checkIcons(property);
 	}
-	
+
+	/**
+	 * Called when the floating text indicators change.
+	 */
 	private void onFloatersChanged() {
-		Iterator<RPEntity.TextIndicator> it = entity.getTextIndicators();
-		Map<RPEntity.TextIndicator, Sprite> newFloaters = new HashMap<RPEntity.TextIndicator, Sprite>();
-		
+		Iterator<TextIndicator> it = entity.getTextIndicators();
+		Map<TextIndicator, Sprite> newFloaters = new HashMap<TextIndicator, Sprite>();
+
 		while (it.hasNext()) {
-			RPEntity.TextIndicator floater = it.next();
+			TextIndicator floater = it.next();
 			Sprite sprite = floaters.get(floater);
 			if (sprite == null) {
 				sprite = TextSprite.createTextSprite(floater.getText(), floater.getType().getColor());
 			}
-			
+
 			newFloaters.put(floater, sprite);
 		}
-		
+
 		floaters = newFloaters;
 	}
 
@@ -1026,7 +1035,7 @@ abstract class RPEntity2DView<T extends RPEntity> extends ActiveEntity2DView<T> 
 
 	/**
 	 * Perform an action.
-	 * 
+	 *
 	 * @param action
 	 *            The action.
 	 */
@@ -1062,93 +1071,227 @@ abstract class RPEntity2DView<T extends RPEntity> extends ActiveEntity2DView<T> 
 			break;
 		}
 	}
-	
+
+	/**
+	 * An icon manager whose visibility check is just checking a status of the
+	 * entity.
+	 */
+	private class StatusIconManager extends AbstractStatusIconManager {
+		/** The followed status. */
+		private final StatusID status;
+
+		/**
+		 * Create a StatusIconManager.
+		 *
+ 		 * @param property observed property
+		 * @param sprite icon sprite
+		 * @param xAlign horizontal alignment of the sprite
+		 * @param yAlign vertical alignment of the sprite
+		 * @param status status corresponding to the visibility of the icon
+		 */
+		StatusIconManager(Object property, Sprite sprite, HorizontalAlignment xAlign,
+				VerticalAlignment yAlign, StatusID status) {
+			super(property, sprite, xAlign, yAlign);
+			this.status = status;
+		}
+
+		@Override
+		boolean show(T entity) {
+			return entity.hasStatus(status);
+		}
+	}
+
 	/**
 	 * A manager for a status icon. Observes property changes and shows and
 	 * hides the icon as needed.
 	 */
-	abstract class StatusIconManager {
-		/** Observed property */
+	abstract class AbstractStatusIconManager {
+		/** Observed property. */
 		private final Object property;
-		/** Icon sprite */
+		/** Icon sprite. */
 		private final Sprite sprite;
+		/** Horizontal alignment of the sprite. */
 		private final HorizontalAlignment xAlign;
+		/** Vertical alignment of the sprite. */
 		private final VerticalAlignment yAlign;
-		private final int xOffset, yOffset;
+		private int xOffset, yOffset;
 		/**
 		 * For tracking changes that can have multiple "true" values (such
 		 * as away messages).
 		 */
 		private boolean wasVisible;
-		
+		/**
+		 * Property for telling if the icon should be visible.
+		 */
+		private boolean shouldBeVisible;
+		/**
+		 * Flag for detecting that the visibility status has changed.
+		 */
+		private volatile boolean changed;
+
 		/**
 		 * Create a new StatusIconManager.
-		 * 
+		 *
 		 * @param property observed property
 		 * @param sprite icon sprite
-		 * @param xAlign
-		 * @param yAlign
-		 * @param xOffset
-		 * @param yOffset
+		 * @param xAlign Horizontal alignment of the sprite related to the
+		 * 	entity view
+		 * @param yAlign Vertical alignment of the sprite related to the
+		 * 	entity view
 		 */
-		StatusIconManager(Object property, Sprite sprite,
-				HorizontalAlignment xAlign, VerticalAlignment yAlign,
-				int xOffset, int yOffset) {
+		AbstractStatusIconManager(Object property, Sprite sprite,
+				HorizontalAlignment xAlign, VerticalAlignment yAlign) {
 			this.property = property;
 			this.sprite = sprite;
 			this.xAlign = xAlign;
 			this.yAlign = yAlign;
-			this.xOffset = xOffset;
-			this.yOffset = yOffset;
 		}
-		
+
 		/**
 		 * Check if the icon should be shown.
-		 * 
-		 * @param entity
+		 *
+		 * @param entity checked entity
 		 * @return <code>true</code> if the icon should be shown,
 		 * 	<code>false</code> otherwise
 		 */
 		abstract boolean show(T entity);
-		
+
 		/**
 		 * Check the entity at a property change. Show or hide the icon if
 		 * needed.
-		 * 
-		 * @param changedProperty
-		 * @param entity
+		 *
+		 * @param changedProperty property that changed
+		 * @param entity changed entity
+		 * @return <code>true</code> if the visibility status changed, otherwise
+		 * 	<code>false</code>
 		 */
-		void check(Object changedProperty, T entity) {
+		boolean check(Object changedProperty, T entity) {
 			if (property == changedProperty) {
-				check(entity);
+				return check(entity);
+			}
+
+			return false;
+		}
+
+		/**
+		 * Apply visibility changes if needed.
+		 */
+		void apply() {
+			if (changed) {
+				changed = false;
+				setVisible(shouldBeVisible);
 			}
 		}
-		
+
+		/**
+		 * Set the icon offsets compared to the normal position determined by
+		 * the alignment. <b>The horizontal offset will be ignored, unless
+		 * the icon is center aligned.</b>
+		 * @param xOffset
+		 * @param yOffset
+		 */
+		void setOffsets(int xOffset, int yOffset) {
+			this.xOffset = xOffset;
+			this.yOffset = yOffset;
+		}
+
 		/**
 		 * Check the status of an entity, and show or hide the icon if
 		 * needed.
-		 * 
-		 * @param entity
+		 *
+		 * @param entity checked entity
+		 * @return <code>true</code> if the visibility status changed, otherwise
+		 * 	<code>false</code>
 		 */
-		void check(T entity) {
-			setVisible(show(entity));
+		private boolean check(T entity) {
+			boolean old = shouldBeVisible;
+			shouldBeVisible = show(entity);
+			boolean tmp = old != shouldBeVisible;
+			if (tmp) {
+				changed = true;
+			}
+
+			return tmp;
 		}
-		
+
+		/**
+		 * Find the correct location for the icon when it has been set visible.
+		 */
+		private void position() {
+			if (xAlign == HorizontalAlignment.CENTER) {
+				return;
+			}
+			xOffset = 0;
+			for (int i = 0; i < iconManagers.size(); i++) {
+				AbstractStatusIconManager manager = iconManagers.get(i);
+				if (manager != this) {
+					if (sharesPosition(manager)) {
+						if (xAlign == HorizontalAlignment.LEFT) {
+							xOffset += manager.sprite.getWidth();
+						} else {
+							xOffset -= manager.sprite.getWidth();
+						}
+					}
+				} else {
+					// Reposition any icons in the same position after this
+					reposition(i + 1);
+					break;
+				}
+			}
+		}
+
+		/**
+		 * Reposition any visible icons following this when the visibility has
+		 * changed.
+		 *
+		 * @param startIndex the position of this manager in the iconManagers
+		 * 	list
+		 */
+		private void reposition(int startIndex) {
+			for (int j = startIndex; j < iconManagers.size(); j++) {
+				AbstractStatusIconManager follower = iconManagers.get(j);
+				if (sharesPosition(follower)) {
+					follower.setVisible(false);
+					follower.position();
+					follower.setVisible(true);
+					// position() above will trigger repositioning of
+					// any icons after follower, so avoid processing any
+					// further.
+					break;
+				}
+			}
+		}
+
+		/**
+		 * Check if a manager shares position with this, and is in visible
+		 * state.
+		 *
+		 * @param manager manager to be checked
+		 * @return <code>true</code> if the manages shares alignment properties
+		 * with this, and its icon is visible.
+		 */
+		private boolean sharesPosition(AbstractStatusIconManager manager) {
+			return manager.xAlign == xAlign && manager.yAlign == yAlign
+					&& manager.shouldBeVisible;
+		}
+
 		/**
 		 * Attach or detach the icon sprite, depending on visibility.
-		 * 
-		 * @param visible
+		 *
+		 * @param visible new visibility status
 		 */
 		private void setVisible(boolean visible) {
 			if (visible) {
 				// Avoid attaching the sprite more than once
 				if (!wasVisible) {
+					position();
 					attachSprite(sprite, xAlign, yAlign, xOffset, yOffset);
 					wasVisible = true;
 				}
 			} else {
 				wasVisible = false;
 				detachSprite(sprite);
+				reposition(iconManagers.indexOf(this) + 1);
 			}
 		}
 	}

@@ -1,4 +1,4 @@
-/* $Id: ActiveEntity2DView.java,v 1.16 2012/04/06 14:41:18 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -14,15 +14,14 @@
 package games.stendhal.client.gui.j2d.entity;
 
 import games.stendhal.client.entity.ActiveEntity;
-import games.stendhal.client.entity.IEntity;
 import games.stendhal.common.Direction;
 
 /**
  * The 2D view of an animated entity.
- * 
- * @param <T> entity type 
+ *
+ * @param <T> entity type
  */
-abstract class ActiveEntity2DView<T extends IEntity> extends StateEntity2DView<T> {
+abstract class ActiveEntity2DView<T extends ActiveEntity> extends StateEntity2DView<T> {
 
 
 	//
@@ -31,13 +30,13 @@ abstract class ActiveEntity2DView<T extends IEntity> extends StateEntity2DView<T
 
 	/**
 	 * Get the appropriate named state for a direction.
-	 * 
+	 *
 	 * @param direction
 	 *            The direction.
-	 * 
+	 *
 	 * @return A named state.
 	 */
-	protected Direction getDirectionState(final Direction direction) {
+	private Direction getDirectionState(final Direction direction) {
 		if (direction == Direction.STOP) {
 			return Direction.DOWN;
 		}
@@ -50,13 +49,13 @@ abstract class ActiveEntity2DView<T extends IEntity> extends StateEntity2DView<T
 
 	/**
 	 * Get the current model state.
-	 * 
+	 *
 	 * @param entity
 	 * @return The model state.
 	 */
 	@Override
-	protected Direction getState(IEntity entity) {
-		return getDirectionState(((ActiveEntity) entity).getDirection());
+	protected Direction getState(T entity) {
+		return getDirectionState(entity.getDirection());
 	}
 
 	//
@@ -65,29 +64,17 @@ abstract class ActiveEntity2DView<T extends IEntity> extends StateEntity2DView<T
 
 	/**
 	 * Determine if this view is currently animatable.
-	 * 
+	 *
 	 * @return <code>true</code> if animating enabled.
 	 */
 	@Override
 	protected boolean isAnimating() {
-		return !((ActiveEntity) entity).stopped();
+		return !entity.stopped();
 	}
 
-	//
-	// EntityChangeListener
-	//
-
-	/**
-	 * An entity was changed.
-	 * 
-	 * @param entity
-	 *            The entity that was changed.
-	 * @param property
-	 *            The property identifier.
-	 */
 	@Override
-	public void entityChanged(final T entity, final Object property) {
-		super.entityChanged(entity, property);
+	void entityChanged(final Object property) {
+		super.entityChanged(property);
 
 		if (property == ActiveEntity.PROP_DIRECTION) {
 			proceedChangedState(entity);

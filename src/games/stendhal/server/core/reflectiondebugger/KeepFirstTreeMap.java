@@ -1,4 +1,4 @@
-/* $Id: KeepFirstTreeMap.java,v 1.3 2010/09/19 02:22:56 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -15,7 +15,7 @@ package games.stendhal.server.core.reflectiondebugger;
 import java.util.TreeMap;
 
 /**
- * A tree map which does not override a value in <code>put</code>. 
+ * A tree map which does not override a value in <code>put</code>.
  *
  * @author hendrik
  * @param <K> the type of keys maintained by this map
@@ -34,5 +34,5 @@ public class KeepFirstTreeMap<K, V> extends TreeMap<K, V> {
 		return super.put(key, value);
 	}
 
-	
+
 }

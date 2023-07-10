@@ -1,4 +1,4 @@
-/* $Id: NoItemMove.java,v 1.1 2011/04/27 22:20:13 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,10 +12,10 @@
  ***************************************************************************/
 package games.stendhal.server.core.config.zone;
 
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
-
-import java.util.Map;
 
 /**
  * Disallows moving of items
@@ -29,6 +29,7 @@ public class NoItemMove implements ZoneConfigurator {
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		zone.setNoItemMoveMessage(attributes.get("message"));
 	}

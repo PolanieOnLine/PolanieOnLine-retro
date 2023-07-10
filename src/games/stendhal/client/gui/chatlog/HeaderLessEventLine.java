@@ -1,4 +1,4 @@
-/* $Id: HeaderLessEventLine.java,v 1.2 2010/09/19 02:18:31 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -15,10 +15,7 @@ package games.stendhal.client.gui.chatlog;
 import games.stendhal.common.NotificationType;
 
 public class HeaderLessEventLine extends EventLine {
-
 	public HeaderLessEventLine(final String text, final NotificationType type) {
 		super("", text, type);
-		
 	}
-
 }

@@ -1,4 +1,4 @@
-/* $Id: KilledCondition.java,v 1.16 2012/09/09 12:33:24 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,20 +12,18 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.condition;
 
-import games.stendhal.common.parser.Sentence;
-import games.stendhal.server.core.config.annotations.Dev;
-import games.stendhal.server.core.config.annotations.Dev.Category;
-import games.stendhal.server.entity.Entity;
-import games.stendhal.server.entity.npc.ChatCondition;
-import games.stendhal.server.entity.player.Player;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
+import games.stendhal.common.parser.Sentence;
+import games.stendhal.server.core.config.annotations.Dev;
+import games.stendhal.server.core.config.annotations.Dev.Category;
+import games.stendhal.server.entity.Entity;
+import games.stendhal.server.entity.npc.ChatCondition;
+import games.stendhal.server.entity.npc.ConditionBuilder;
+import games.stendhal.server.entity.player.Player;
 
 /**
  * Has the player killed at least one of each specified creature, with or without the help of any other player.
@@ -57,6 +55,7 @@ public class KilledCondition implements ChatCondition {
 		this.toKill = new TreeSet<String>(Arrays.asList(toKill));
 	}
 
+	@Override
 	public boolean fire(final Player player, final Sentence sentence, final Entity npc) {
 		for (final String creature : toKill) {
 			if (!player.hasKilled(creature)) {
@@ -72,14 +71,20 @@ public class KilledCondition implements ChatCondition {
 	}
 
 	@Override
-	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				KilledCondition.class);
+	public int hashCode() {
+		return 43661 * toKill.hashCode();
 	}
 
 	@Override
-	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+	public boolean equals(final Object obj) {
+		if (!(obj instanceof KilledCondition)) {
+			return false;
+		}
+		KilledCondition other = (KilledCondition) obj;
+		return toKill.equals(other.toKill);
 	}
 
+	public static ConditionBuilder playerHasKilled(String ... toKill) {
+		return new ConditionBuilder(new KilledCondition(toKill));
+	}
 }

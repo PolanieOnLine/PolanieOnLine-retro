@@ -1,4 +1,4 @@
-/* $Id: BringListOfItemsQuest.java,v 1.12 2010/09/19 02:33:31 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -38,7 +38,7 @@ public interface BringListOfItemsQuest {
 	List<String> getTriggerPhraseToEnumerateMissingItems();
 
 	List<String> getAdditionalTriggerPhraseForQuest();
-	
+
 	double getKarmaDiffForQuestResponse();
 
 	String welcomeBeforeStartingQuest();
@@ -78,7 +78,7 @@ public interface BringListOfItemsQuest {
 	void rewardPlayer(Player player);
 
 	String respondToOfferOfNotExistingItem(String itemName);
-	
+
 	String respondToOfferOfNotMissingItem();
 
 	String respondToOfferOfNotNeededItem();

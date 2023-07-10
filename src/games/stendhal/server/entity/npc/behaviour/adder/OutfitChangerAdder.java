@@ -1,6 +1,5 @@
-/* $Id: OutfitChangerAdder.java,v 1.34 2012/08/23 20:48:57 yoriy Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2011 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -11,12 +10,19 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.entity.npc.behaviour.adder;
+import java.util.Arrays;
+import java.util.List;
 
+import org.apache.log4j.Logger;
+import games.stendhal.common.constants.SoundID;
+import games.stendhal.common.constants.SoundLayer;
 import games.stendhal.common.grammar.Grammar;
 import games.stendhal.common.grammar.ItemParserResult;
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.npc.ChatAction;
+import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.EventRaiser;
@@ -24,19 +30,21 @@ import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.npc.action.BehaviourAction;
 import games.stendhal.server.entity.npc.behaviour.impl.OutfitChangerBehaviour;
 import games.stendhal.server.entity.npc.behaviour.journal.ServicersRegister;
+import games.stendhal.server.entity.npc.condition.AndCondition;
+import games.stendhal.server.entity.npc.condition.NotCondition;
+import games.stendhal.server.entity.npc.condition.OrCondition;
+import games.stendhal.server.entity.npc.condition.OutfitIsTemporaryCondition;
+import games.stendhal.server.entity.npc.condition.PlayerIsWearingOutfitCondition;
 import games.stendhal.server.entity.npc.fsm.Engine;
 import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.events.SoundEvent;
 import games.stendhal.server.util.TimeUtil;
-
-import java.util.Arrays;
-import java.util.List;
-import org.apache.log4j.Logger;
 
 public class OutfitChangerAdder {
 	private static Logger logger = Logger.getLogger(OutfitChangerAdder.class);
 
     private final ServicersRegister servicersRegister = SingletonRepository.getServicersRegister();
-    
+
 	/**
 	 * Behaviour parse result in the current conversation.
 	 * Remark: There is only one conversation between a player and the NPC at any time.
@@ -46,7 +54,7 @@ public class OutfitChangerAdder {
 	/**
 	 * Makes this NPC an outfit changer, i.e. someone who can give players
 	 * special outfits.
-	 * 
+	 *
 	 * @param npc
 	 *            SpeakerNPC
 	 * @param behaviour
@@ -62,7 +70,7 @@ public class OutfitChangerAdder {
 	/**
 	 * Makes this NPC an outfit changer, i.e. someone who can give players
 	 * special outfits.
-	 * 
+	 *
 	 * @param npc
 	 *            SpeakerNPC
 	 * @param outfitBehaviour
@@ -80,6 +88,7 @@ public class OutfitChangerAdder {
 			final boolean offer, final boolean canReturn) {
 
 		servicersRegister.add(npc.getName(), outfitBehaviour);
+		npc.put("job_merchant", "");
 
 		final Engine engine = npc.getEngine();
 		if (offer) {
@@ -101,7 +110,7 @@ public class OutfitChangerAdder {
 					public void fireRequestOK(final ItemParserResult res, Player player, Sentence sentence, EventRaiser raiser) {
 						// find out what the player wants to wear
 
-							// We ignore any amounts.
+						// We ignore any amounts.
 						res.setAmount(1);
 
 						final int price = outfitBehaviour.getUnitPrice(res.getChosenItemName()) * res.getAmount();
@@ -114,31 +123,83 @@ public class OutfitChangerAdder {
 					}
 				});
 
-		engine.add(ConversationStates.BUY_PRICE_OFFERED,
-				ConversationPhrases.YES_MESSAGES, null,
-				false, ConversationStates.ATTENDING,
-				null, new ChatAction() {
-					public void fire(final Player player, final Sentence sentence,
-							final EventRaiser npc) {
-						final String itemName = currentBehavRes.getChosenItemName();
-						logger.debug("Selling a " + itemName + " to player " + player.getName());
+		final ChatAction changeOutfitAction = new ChatAction() {
+			@Override
+			public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
+				final String itemName = currentBehavRes.getChosenItemName();
+				logger.debug("Selling a " + itemName + " to player " + player.getName());
 
-						if (outfitBehaviour.transactAgreedDeal(currentBehavRes, npc, player)) {
-							if (canReturn) {
-								npc.say("Dziękuję i nie zapomnij powiedzieć #zwrot, gdy nie będziesz już potrzebował!");
-								// -1 is also the public static final int NEVER_WEARS_OFF = -1; 
-								// but it doesn't recognise it here ...
-							} else if (outfitBehaviour.getEndurance() != -1) {
-								// timeUntil takes a parameter in seconds so we multiply the endurance in minutes by 60
-								npc.say("Dziękuję! Możesz nosić to przez " +  TimeUtil.timeUntil(60 * outfitBehaviour.getEndurance()) + ".");
-							} else {
-								npc.say("Dziękuję!");
-							}
-						}
-
-						currentBehavRes = null;
+				if (outfitBehaviour.transactAgreedDeal(currentBehavRes, npc, player)) {
+					if (canReturn) {
+						npc.say(getReturnPhrase());
+						// -1 is also the public static final int NEVER_WEARS_OFF = -1;
+						// but it doesn't recognise it here ...
+					} else if (outfitBehaviour.getEndurance() != -1) {
+						// timeUntil takes a parameter in seconds so we multiply the endurance in minutes by 60
+						npc.say("Dziękuję! Możesz nosić to przez " +  TimeUtil.timeUntil(60 * outfitBehaviour.getEndurance()) + ".");
+					} else {
+						npc.say("Dziękuję!");
 					}
-				});
+					npc.addEvent(new SoundEvent(SoundID.COMMERCE, SoundLayer.CREATURE_NOISE));
+				}
+
+				currentBehavRes = null;
+			}
+		};
+
+		final ChatCondition confirmTempCondition = new AndCondition(
+			new ChatCondition() {
+				@Override
+				public boolean fire(final Player player, final Sentence sentence, final Entity npc) {
+					return outfitBehaviour.flagIsSet("confirmTemp");
+				}
+			},
+			new OutfitIsTemporaryCondition()
+		);
+
+		final ChatCondition confirmBalloonCondition = new AndCondition(
+			new ChatCondition() {
+				@Override
+				public boolean fire(final Player player, final Sentence sentence, final Entity npc) {
+					return outfitBehaviour.flagIsSet("confirmBalloon");
+				}
+			},
+			new PlayerIsWearingOutfitCondition("detail=1")
+		);
+
+		engine.add(ConversationStates.BUY_PRICE_OFFERED,
+				ConversationPhrases.YES_MESSAGES,
+				new OrCondition(confirmTempCondition, confirmBalloonCondition),
+				false,
+				ConversationStates.CONFIRM_REQUESTED,
+				"Jesteś pewien? Stracisz swój specjalny strój.",
+				null);
+
+			engine.add(ConversationStates.CONFIRM_REQUESTED,
+				ConversationPhrases.NO_MESSAGES,
+				null,
+				false,
+				ConversationStates.ATTENDING,
+				"Ok, jak jeszcze mogę Ci pomóc?",
+				null);
+
+			engine.add(ConversationStates.CONFIRM_REQUESTED,
+				ConversationPhrases.YES_MESSAGES,
+				null,
+				false,
+				ConversationStates.ATTENDING,
+				null,
+				changeOutfitAction);
+
+			engine.add(ConversationStates.BUY_PRICE_OFFERED,
+				ConversationPhrases.YES_MESSAGES,
+				new AndCondition(
+					new NotCondition(confirmTempCondition),
+					new NotCondition(confirmBalloonCondition)),
+				false,
+				ConversationStates.ATTENDING,
+				null,
+				changeOutfitAction);
 
 		engine.add(ConversationStates.BUY_PRICE_OFFERED,
 				ConversationPhrases.NO_MESSAGES, null,
@@ -146,9 +207,10 @@ public class OutfitChangerAdder {
 				"Dobrze w czym mogę jeszcze pomóc?", null);
 
 		if (canReturn) {
-			engine.add(ConversationStates.ATTENDING, Arrays.asList("return", "zwróć", "zwrot"), null,
+			engine.add(ConversationStates.ATTENDING, Arrays.asList("return", "zwróć", "zwrot", "zwrócić"), null,
 					false, ConversationStates.ATTENDING,
 					null, new ChatAction() {
+						@Override
 						public void fire(final Player player, final Sentence sentence,
 								final EventRaiser npc) {
 							if (outfitBehaviour.returnToOriginalOutfit(player)) {
@@ -163,4 +225,7 @@ public class OutfitChangerAdder {
 		}
 	}
 
+	protected String getReturnPhrase() {
+		return "Dziękuję i nie zapomnij powiedzieć #zwrot, gdy nie będziesz już potrzebował!";
+	}
 }

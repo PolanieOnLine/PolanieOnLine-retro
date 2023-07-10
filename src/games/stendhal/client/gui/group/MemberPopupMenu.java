@@ -11,70 +11,73 @@
  ***************************************************************************/
 package games.stendhal.client.gui.group;
 
-import games.stendhal.client.actions.SlashActionRepository;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
+import games.stendhal.client.actions.SlashActionRepository;
+
 /**
  * Popup menu for the member entries in the group listing.
  */
 class MemberPopupMenu extends JPopupMenu {
 	private static final long serialVersionUID = -4373851861705571044L;
-	
+
 	private final String member;
 
 	/**
 	 * Create a popup menu for a group member.
-	 * 
+	 *
 	 * @param member member name
 	 * @param showLeaderOps <code>true</code> if leader operations such as
 	 * 	kicking should be included in the menu
 	 */
 	MemberPopupMenu(String member, boolean showLeaderOps) {
 		this.member = member;
-		
+
 		JMenuItem item = new JMenuItem("Gdzie");
 		item.addActionListener(new WhereAction());
 		add(item);
-		
+
 		if (showLeaderOps) {
 			item = new JMenuItem("Wykop");
 			add(item);
 			item.addActionListener(new KickAction());
-		
+
 			item = new JMenuItem("Powołaj Lidera");
 			add(item);
-		item.addActionListener(new TransferLeadershipAction());
+			item.addActionListener(new TransferLeadershipAction());
 		}
 	}
-	
+
 	/**
 	 * Listener for activating the where menu item.
 	 */
 	private class WhereAction implements ActionListener {
+		@Override
 		public void actionPerformed(ActionEvent e) {
 			SlashActionRepository.get("where").execute(null, member);
 		}
 	}
-	
+
 	/**
 	 * Listener for activating the kick menu item.
 	 */
 	private class KickAction implements ActionListener {
+		@Override
 		public void actionPerformed(ActionEvent e) {
 			String[] args = { "kick" };
 			SlashActionRepository.get("group").execute(args, member);
 		}
 	}
-	
+
 	/**
 	 * Listener for activating the "Make Leader" menu item.
 	 */
 	private class TransferLeadershipAction implements ActionListener {
+		@Override
 		public void actionPerformed(ActionEvent arg0) {
 			String[] args = { "leader" };
 			SlashActionRepository.get("group").execute(args, member);

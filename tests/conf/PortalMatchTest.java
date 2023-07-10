@@ -1,6 +1,5 @@
-/* $Id: PortalMatchTest.java,v 1.15 2010/09/19 01:29:05 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2015 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,31 +11,31 @@
  ***************************************************************************/
 package conf;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import marauroa.common.Log4J;
-
-import org.apache.log4j.Logger;
 import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
+import marauroa.common.Log4J;
+
 public class PortalMatchTest {
-	private static final Logger logger = Logger.getLogger(PortalMatchTest.class); 
 	private final transient List<PortalTestObject> portals = new LinkedList<PortalTestObject>();
 
 	@Test
@@ -46,34 +45,59 @@ public class PortalMatchTest {
 
 			final DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
 			final DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-			
-			final File directory = new File("data/conf/zones/");
-			final File[] files = directory.listFiles(new FileFilter() {
 
+			final File directory = new File("data/conf/zones/");
+			final File poldirectory = new File("data/conf/zones/pol/");
+			final File stdirectory = new File("data/conf/zones/stendhal/");
+			final File[] misc = directory.listFiles(new FileFilter() {
+				@Override
+				public boolean accept(final File file) {
+					return file.getName().endsWith("xml");
+				}
+			});
+			final File[] polZones = poldirectory.listFiles(new FileFilter() {
+				@Override
+				public boolean accept(final File file) {
+					return file.getName().endsWith("xml");
+				}
+			});
+			final File[] stZones = stdirectory.listFiles(new FileFilter() {
+				@Override
 				public boolean accept(final File file) {
 					return file.getName().endsWith("xml");
 				}
 			});
 
-			assertThat("files should not be empty", files.length, not((is(0))));
-			for (final File f : files) {
+			assertThat(misc, notNullValue());
+			assertThat(polZones, notNullValue());
+			assertThat(stZones, notNullValue());
+			assertThat("files should not be empty", Arrays.asList(misc.length, polZones.length, stZones.length), not((is(0))));
+			for (final File f : misc) {
+				final Document doc = docBuilder.parse(f);
+				portals.addAll(proceedDocument(doc));
+			}
+			for (final File f : polZones) {
+				final Document doc = docBuilder.parse(f);
+				portals.addAll(proceedDocument(doc));
+			}
+			for (final File f : stZones) {
 				final Document doc = docBuilder.parse(f);
 				portals.addAll(proceedDocument(doc));
 			}
 
 		} catch (final SAXParseException err) {
-		
+
 			fail(err.toString());
 
 		} catch (final SAXException e) {
-			
+
 			fail(e.toString());
 		} catch (final Exception t) {
-			
+
 			fail(t.toString());
 		}
 
-		assertTrue("All portals are valid", isValid(portals));
+		assertThat("All portals are valid", isValid(portals), equalTo(""));
 
 	}
 
@@ -88,12 +112,12 @@ public class PortalMatchTest {
 
 		final NodeList listOfPortals = xmldoc.getElementsByTagName("portal");
 		if (listOfPortals.getLength() > 0) {
-			
+
 			for (int s = 0; s < listOfPortals.getLength(); s++) {
 				zone = listOfPortals.item(s).getParentNode().getAttributes().getNamedItem(
 						"name").getNodeValue();
 				name = listOfPortals.item(s).getAttributes().getNamedItem("ref").getNodeValue();
-				
+
 				final NodeList listofChildren = listOfPortals.item(s).getChildNodes();
 				for (int i = 0; i < listofChildren.getLength(); i++) {
 					if ("destination".equals(listofChildren.item(i).getNodeName())) {
@@ -111,8 +135,8 @@ public class PortalMatchTest {
 		return tempList;
 	}
 
-	public boolean isValid(final List<PortalTestObject> testList) {
-		boolean result = true;
+	public String isValid(final List<PortalTestObject> testList) {
+		StringBuilder errors = new StringBuilder();
 
 		for (final PortalTestObject x : testList) {
 			if (x.hasDestination()) {
@@ -124,12 +148,11 @@ public class PortalMatchTest {
 
 				}
 				if (!founddestination) {
-					logger.warn(x.toString());
+					errors.append(x.toString());
 
 				}
-				result = result && founddestination;
 			}
 		}
-		return result;
+		return errors.toString();
 	}
 }

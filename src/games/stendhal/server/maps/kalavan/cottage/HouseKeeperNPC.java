@@ -1,6 +1,5 @@
-/* $Id: HouseKeeperNPC.java,v 1.5 2010/09/19 02:31:46 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,20 +11,16 @@
  ***************************************************************************/
 package games.stendhal.server.maps.kalavan.cottage;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.common.Direction;
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.behaviour.adder.ProducerAdder;
-import games.stendhal.server.entity.npc.behaviour.impl.ProducerBehaviour;
-
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * NPC who makes tea.
@@ -39,13 +34,13 @@ public class HouseKeeperNPC implements ZoneConfigurator {
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
-		buildNPC(zone, attributes);
+		buildNPC(zone);
 	}
 
-	private void buildNPC(final StendhalRPZone zone, final Map<String, String> attributes) {
-		final SpeakerNPC npc = new SpeakerNPC("Granny Graham") {
-
+	private void buildNPC(final StendhalRPZone zone) {
+		final SpeakerNPC npc = new SpeakerNPC("babcia Graham") {
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -62,17 +57,8 @@ public class HouseKeeperNPC implements ZoneConfigurator {
 				addHelp("Zawsze mi brakuje, ale znajdę jakąś piękną filiżankę #herbaty.");
 				addOffer("Zaparzę Tobie filiżankę #herbaty o ile chcesz. Powiedz tylko #zaparz.");
 				addQuest("Mam ból głowy i małą Annie, która za każdym razem jak schodzi to hałasuje. Może mógłbyś dać jej jakieś zajęcie? ... tak, aby się uciszyła ...");
-				addGoodbye("Dowidzenia.");
+				addGoodbye("Do widzenia.");
 
-				final Map<String, Integer> requiredResources = new TreeMap<String, Integer>();	
-				requiredResources.put("mleko", 1);
-				requiredResources.put("miód", 1);
-
-				final ProducerBehaviour behaviour = new ProducerBehaviour("granny_brew_tea",
-						 Arrays.asList("brew", "zaparz"), "filiżanka herbaty", requiredResources, 3 * 60);
-
-				new ProducerAdder().addProducer(this, behaviour,
-				        "Cześć.");
 				addReply("mleko",
 		        		"Cóż spodziewam się, że zdobędziesz mleko z farmy.");
 				addReply("miód",
@@ -81,11 +67,12 @@ public class HouseKeeperNPC implements ZoneConfigurator {
 				        "To najlepszy napój. Słodzę ją miodem. Powiedz #'zaparz filiżanka herbaty' o ile będziesz chciał.");
 			}
 		};
-		npc.setDescription("Oto starsza Granny Graham krzątająca się po kuchni i mówiąca do siebie.");
+
+		npc.setDescription("Oto starsza babcia Graham krzątająca się po kuchni i mówiąca do siebie.");
 		npc.setEntityClass("granmanpc");
+		npc.setGender("F");
 		npc.setDirection(Direction.RIGHT);
 		npc.setPosition(4, 4);
-		npc.initHP(100);
 		zone.add(npc);
 	}
 }

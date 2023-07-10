@@ -1,4 +1,4 @@
-/* $Id: PlinksToyTest.java,v 1.17 2011/03/27 10:14:03 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -19,6 +19,10 @@ import static utilities.SpeakerNPCTestHelper.getReply;
 
 import java.util.Arrays;
 
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.entity.item.Item;
@@ -27,11 +31,6 @@ import games.stendhal.server.entity.npc.fsm.Engine;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.MockStendlRPWorld;
 import games.stendhal.server.maps.semos.plains.LittleBoyNPC;
-
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import utilities.PlayerTestHelper;
 import utilities.QuestHelper;
 import utilities.RPClass.ItemTestHelper;
@@ -48,7 +47,7 @@ public class PlinksToyTest {
 
 		PassiveEntityRespawnPointTestHelper.generateRPClasses();
 	}
-	
+
 	@Before
 	public void setUp() {
 		final StendhalRPZone zone = new StendhalRPZone("0_semos_plains_n");
@@ -65,37 +64,37 @@ public class PlinksToyTest {
 	 * Tests for quest.
 	 */
 	@Test
-	public void testQuest() {	
+	public void testQuest() {
 		npc = SingletonRepository.getNPCList().get("Plink");
 		en = npc.getEngine();
-		
+
 		en.step(player, "hi");
-		assertEquals("*cries* There were wolves in the #park! *sniff* I ran away, but I dropped my #teddy! Please will you get it for me? *sniff* Please?", getReply(npc));
+		assertEquals("*płacz* Wilki są w #parku! *płacz* Uciekłem, ale upuściłem mojego #misia! Proszę przyniesiesz go dla mnie? *siąknięcie* Proszę?", getReply(npc));
 		en.step(player, "park!");
-		assertEquals("My parents told me not to go to the park by myself, but I got lost when I was playing... Please don't tell them! Can you bring my #teddy back?", getReply(npc));
+		assertEquals("Moi rodzice mówili mi żebym sam nie chodził do parku, ale się zgubiłem podczas zabawy... Proszę nie mów moim rodzicom! Czy możesz mi przynieść misia #teddy z powrotem?", getReply(npc));
 		en.step(player, "yes");
-		assertEquals("*sniff* Thanks a lot! *smile*", getReply(npc));
+		assertEquals("*siąknięcie* Dziękuję bardzo! *uśmiech*", getReply(npc));
 
 		// -----------------------------------------------
 
 		en.step(player, "hi");
-		assertEquals("*cries* There were wolves in the #park! *sniff* I ran away, but I dropped my #teddy! Please will you get it for me? *sniff* Please?", getReply(npc));
-		en.step(player, "teddy");
-		assertEquals("Teddy is my favourite toy! Please will you bring him back?", getReply(npc));
+		assertEquals("*płacz* Wilki są w #parku! *płacz* Uciekłem, ale upuściłem mojego #misia! Proszę przyniesiesz go dla mnie? *siąknięcie* Proszę?", getReply(npc));
+		en.step(player, "pluszowy miś");
+		assertEquals("Miś jest moją ulubioną zabawką! Przyniesiesz mi ją?", getReply(npc));
 		en.step(player, "no");
-		assertEquals("*sniff* But... but... PLEASE! *cries*", getReply(npc));
+		assertEquals("*pociągnięcie nosem* Ale... ale... PROSZĘ! *płacz*", getReply(npc));
 
 		en.step(player, "teddy bear");
-		assertEquals("Teddy is my favourite toy! Please will you bring him back?", getReply(npc));
+		assertEquals("Miś jest moją ulubioną zabawką! Przyniesiesz mi ją?", getReply(npc));
 		en.step(player, "yes");
-		assertEquals("*sniff* Thanks a lot! *smile*", getReply(npc));
+		assertEquals("*siąknięcie* Dziękuję bardzo! *uśmiech*", getReply(npc));
 
 		// -----------------------------------------------
-		
-		final Item teddy = ItemTestHelper.createItem("teddy");
+
+		final Item teddy = ItemTestHelper.createItem("pluszowy miś");
 		teddy.setEquipableSlots(Arrays.asList("bag"));
 		player.equipToInventoryOnly(teddy);
-		assertTrue(player.isEquipped("teddy"));
+		assertTrue(player.isEquipped("pluszowy miś"));
 
 		System.out.println(player.getSlot("!quests"));
 		System.out.println(player.getSlot("lhand"));
@@ -103,15 +102,15 @@ public class PlinksToyTest {
 
 		en.step(player, "hi");
 		// [21:25] player earns 10 experience points.
-		assertEquals("You found him! *hugs teddy* Thank you, thank you! *smile*", getReply(npc));
+		assertEquals("Znalazłeś go! *przytula misia* Dziękuję, dziękuję! *uśmiech*", getReply(npc));
 
-		assertFalse(player.isEquipped("teddy"));
+		assertFalse(player.isEquipped("pluszowy miś"));
 
 		en.step(player, "help");
-		assertEquals("Be careful out east, there are wolves about!", getReply(npc));
+		assertEquals("Bądź ostrożny idąc na wschód. Tam są wilki!", getReply(npc));
 		en.step(player, "job");
-		assertEquals("I play all day.", getReply(npc));
+		assertEquals("Bawię się cały dzień.", getReply(npc));
 		en.step(player, "bye");
-		assertEquals("Bye.", getReply(npc));
+		assertEquals("Do widzenia.", getReply(npc));
 	}
 }

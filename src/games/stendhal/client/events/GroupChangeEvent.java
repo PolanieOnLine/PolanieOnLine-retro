@@ -1,4 +1,4 @@
-/* $Id: GroupChangeEvent.java,v 1.5 2011/02/18 22:44:06 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -21,8 +21,7 @@ import games.stendhal.client.gui.group.GroupPanelController;
  *
  * @author hendrik
  */
-public class GroupChangeEvent extends Event<RPEntity> {
-
+class GroupChangeEvent extends Event<RPEntity> {
 	/**
 	 * executes the event
 	 */
@@ -36,5 +35,4 @@ public class GroupChangeEvent extends Event<RPEntity> {
 			GroupPanelController.get().update(null, null, null);
 		}
 	}
-
 }

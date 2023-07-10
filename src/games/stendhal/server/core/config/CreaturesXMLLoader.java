@@ -1,4 +1,4 @@
-/* $Id: CreaturesXMLLoader.java,v 1.15 2012/07/10 20:38:21 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -11,11 +11,6 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.core.config;
-
-import games.stendhal.common.constants.Nature;
-import games.stendhal.server.core.rule.defaultruleset.DefaultCreature;
-import games.stendhal.server.entity.creature.impl.DropItem;
-import games.stendhal.server.entity.creature.impl.EquipItem;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -37,79 +32,73 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import games.stendhal.common.constants.Nature;
+import games.stendhal.server.core.rule.defaultruleset.DefaultCreature;
+import games.stendhal.server.entity.creature.impl.DropItem;
+import games.stendhal.server.entity.creature.impl.EquipItem;
+
 public final class CreaturesXMLLoader extends DefaultHandler {
 	/** the logger instance. */
 	private static final Logger logger = Logger.getLogger(CreaturesXMLLoader.class);
 
 	private String name;
-
 	private String clazz;
-
 	private String subclass;
-
+	private String shadow_style;
 	private String description;
-
 	private String text;
-
 	private String tileid;
-
 	private int atk;
-
+	private Integer ratk = 0;
 	private int def;
-
 	private int hp;
-
+	private double speed;
+	private int sizeWidth;
+	private int sizeHeight;
+	private int xp;
+	private int level;
+	private int respawn;
 	private int resistance;
-
 	private int visibility;
 
-	private double speed;
-
-	private int sizeWidth;
-
-	private int sizeHeight;
-
-	private int xp;
-
-	private int level;
-
-	private int respawn;
-
 	private List<DropItem> dropsItems;
-
 	private List<EquipItem> equipsItems;
+
+	/** List of possible sound events. */
+	private List<String> sounds;
+	/** Sound played on creature death */
+	private String deathSound;
+	/** Looped sound effect for moving creature */
+	private String movementSound;
 
 	private LinkedHashMap<String, LinkedList<String>> creatureSays;
 
 	private Map<String, String> aiProfiles;
-
 	private List<DefaultCreature> list;
-	
+
+	private String bloodName;
 	private String corpseName;
-	
+	private String harmlessCorpseName;
 	private int corpseWidth;
-	
 	private int corpseHeight;
-
 	private boolean drops;
-
 	private boolean equips;
-
 	private boolean ai;
-
 	private boolean says;
-
 	private boolean attributes;
-
 	private boolean abilities;
+	private String statusAttack;
+	private double statusAttackProbability;
 
 	/** Susceptibilities of a creature */
 	private EnumMap<Nature, Double> susceptibilities;
-	
+
 	/** Type of the damage caused by the creature */
 	private Nature damageType;
 	/** Type of the damage caused by the creature when using ranged attacks. */
 	private Nature rangedDamageType;
+
+	private String condition;
 
 	CreaturesXMLLoader() {
 		// hide constructor, use the CreatureGroupsXMLLoader instead
@@ -160,18 +149,24 @@ public final class CreaturesXMLLoader extends DefaultHandler {
 		text = "";
 		if (qName.equals("creature")) {
 			name = attrs.getValue("name");
+			condition = attrs.getValue("condition");
 			drops = false;
 			ai = false;
 			dropsItems = new LinkedList<DropItem>();
 			equipsItems = new LinkedList<EquipItem>();
+			sounds = new LinkedList<String>();
 			creatureSays = new LinkedHashMap<String, LinkedList<String>>();
 			aiProfiles = new LinkedHashMap<String, String>();
 			description = null;
 			damageType = Nature.CUT;
 			susceptibilities = new EnumMap<Nature, Double>(Nature.class);
+			deathSound = null;
+			statusAttack = null;
+			statusAttackProbability = 0;
 		} else if (qName.equals("type")) {
 			clazz = attrs.getValue("class");
 			subclass = attrs.getValue("subclass");
+			shadow_style = attrs.getValue("shadow");
 
 			tileid = "../../tileset/logic/creature/" + attrs.getValue("tileid");
 		} else if (qName.equals("level")) {
@@ -200,23 +195,26 @@ public final class CreaturesXMLLoader extends DefaultHandler {
 			}
 		} else if (qName.equals("respawn")) {
 			respawn = Integer.parseInt(attrs.getValue("value"));
+		} else if (qName.equals("blood")) {
+			bloodName = attrs.getValue("name");
 		} else if (qName.equals("corpse")) {
 			corpseName = attrs.getValue("name");
+			harmlessCorpseName = attrs.getValue("harmless");
 			String value = attrs.getValue("width");
-			
-			// Default to 1 for width and height to save the fingers 
+
+			// Default to entity size for width and height to save the fingers
 			// of the people writing the creatures
 			if (value != null) {
 				corpseWidth = Integer.parseInt(value);
 			} else {
-				corpseWidth = 1;
+				corpseWidth = sizeWidth;
 			}
 
 			value = attrs.getValue("height");
 			if (value != null) {
 				corpseHeight = Integer.parseInt(value);
 			} else {
-				corpseHeight = 1;
+				corpseHeight = sizeHeight;
 			}
 		} else if (qName.equals("drops")) {
 			drops = true;
@@ -252,90 +250,128 @@ public final class CreaturesXMLLoader extends DefaultHandler {
 			}
 		} else if (qName.equals("attributes")) {
 			attributes = true;
-		} else if (attributes && qName.equals("atk")) {
-			atk = Integer.parseInt(attrs.getValue("value"));
-		} else if (attributes && qName.equals("def")) {
-			def = Integer.parseInt(attrs.getValue("value"));
-		} else if (attributes && qName.equals("hp")) {
-			hp = Integer.parseInt(attrs.getValue("value"));
-		} else if (attributes && qName.equals("speed")) {
-			speed = Double.parseDouble(attrs.getValue("value"));
-		} else if (attributes && qName.equals("size")) {
-			final String[] size = attrs.getValue("value").split(",");
+		} else if (attributes) {
+			boolean resistanceTag = qName.equals("resistance");
+			boolean visibilityTag = qName.equals("visibility");
 
-			sizeWidth = Integer.parseInt(size[0]);
-			sizeHeight = Integer.parseInt(size[1]);
-		} else if (attributes && qName.equals("resistance")) {
-			resistance = Integer.parseInt(attrs.getValue("value"));
-		} else if (attributes && qName.equals("visibility")) {
-			visibility = Integer.parseInt(attrs.getValue("value"));
+			if (qName.equals("atk")) {
+				atk = Integer.parseInt(attrs.getValue("value"));
+			} else if (qName.equals("ratk")) {
+				ratk = Integer.parseInt(attrs.getValue("value"));
+			} else if (qName.equals("def")) {
+				def = Integer.parseInt(attrs.getValue("value"));
+			} else if (qName.equals("hp")) {
+				hp = Integer.parseInt(attrs.getValue("value"));
+			} else if (qName.equals("speed")) {
+				speed = Double.parseDouble(attrs.getValue("value"));
+			} else if (qName.equals("size")) {
+				final String[] size = attrs.getValue("value").split(",");
+
+				sizeWidth = Integer.parseInt(size[0]);
+				sizeHeight = Integer.parseInt(size[1]);
+			}
+
+			if (resistanceTag) {
+				resistance = Integer.parseInt(attrs.getValue("value"));
+			} else {
+				resistance = 100;
+			}
+			if (visibilityTag) {
+				visibility = Integer.parseInt(attrs.getValue("value"));
+			} else {
+				visibility = 100;
+			}
 		} else if (qName.equals("ai")) {
 			ai = true;
-		} else if (ai && qName.equals("profile")) {
-			aiProfiles.put(attrs.getValue("name"), attrs.getValue("params"));
-		} else if (ai && qName.equals("says")) {
-			says = true;
-		} else if (says && qName.equals("noise")) {
-			final String states = attrs.getValue("state");
-			final String value = attrs.getValue("value");
-			final List<String> keys=Arrays.asList(states.split(" "));
-			// no such state in noises, will add it
-			for (int i=0; i<keys.size(); i++) {
-				final String key=keys.get(i);
-				if(creatureSays.get(key)==null) {
-					final LinkedList<String> ll=new LinkedList<String>();
-					ll.add(value);
-					creatureSays.put(key, ll);
-					// no such value in existing state, will add it
-				} else if (creatureSays.get(key).indexOf(value)==-1) {
-					creatureSays.get(key).add(value);
-					// both state and value already exists
-				} else {
-					logger.warn("CreatureXMLLoader: creature ("+name+
-								"): double definition for noise \""+key+"\" ("+value+")");
+		} else if (ai) {
+			if (qName.equals("profile")) {
+				aiProfiles.put(attrs.getValue("name"), attrs.getValue("params"));
+			} else if (qName.equals("says")) {
+				says = true;
+			} else if (says) {
+				if (qName.equals("text") || qName.equals("noise")) {
+					final String states = attrs.getValue("state");
+					final String value = attrs.getValue("value");
+					final List<String> keys=Arrays.asList(states.split(" "));
+					// no such state in noises, will add it
+					for (int i=0; i<keys.size(); i++) {
+						final String key=keys.get(i);
+						if(creatureSays.get(key)==null) {
+							final LinkedList<String> ll=new LinkedList<String>();
+							ll.add(value);
+							creatureSays.put(key, ll);
+							// no such value in existing state, will add it
+						} else if (creatureSays.get(key).indexOf(value)==-1) {
+							creatureSays.get(key).add(value);
+							// both state and value already exists
+						} else {
+							logger.warn("CreatureXMLLoader: creature ("+name+
+										"): double definition for noise \""+key+"\" ("+value+")");
+						}
+					}
+				} else if (qName.equals("sound")) {
+					sounds.add(attrs.getValue("value"));
+				} else if (qName.equals("movement")) {
+					movementSound = attrs.getValue("value");
+	            } else if (qName.equals("death")) {
+	                deathSound = attrs.getValue("value");
 				}
 			}
 		} else if (qName.equals("abilities")) {
 			abilities = true;
-		} else if (abilities && qName.equals("damage")) {
-			String value = attrs.getValue("type");
-			if (value == null) {
-				value = "cut";
+		} else if (abilities) {
+			if (qName.equals("damage")) {
+				String value = attrs.getValue("type");
+				if (value == null) {
+					value = "cut";
+				}
+				damageType = Nature.parse(value);
+				value = attrs.getValue("rangedType");
+				if (value != null) {
+					rangedDamageType = Nature.parse(value);
+				}
+			} else if (qName.equals("susceptibility")) {
+				Nature type = Nature.parse(attrs.getValue("type"));
+				Double value = Double.valueOf(attrs.getValue("value"));
+				susceptibilities.put(type, value);
+			} else if (qName.equals("statusattack")) {
+			    statusAttack = attrs.getValue("type");
+			    statusAttackProbability = Double.valueOf(attrs.getValue("value"));
 			}
-			damageType = Nature.parse(value);
-			value = attrs.getValue("rangedType");
-			if (value != null) {
-				rangedDamageType = Nature.parse(value);
-			}
-		} else if (abilities && qName.equals("susceptibility")) {
-			Nature type = Nature.parse(attrs.getValue("type"));
-			Double value = Double.valueOf(attrs.getValue("value"));
-			susceptibilities.put(type, value);
 		}
 	}
 
 	@Override
 	public void endElement(final String namespaceURI, final String sName, final String qName) {
 		if (qName.equals("creature")) {
-			if (!tileid.contains(":")) {
-				logger.error("Corrupt XML file: Bad tileid for creature("
-						+ name + ")");
+
+			if (!XMLUtil.checkCondition(condition)) {
 				return;
 			}
 
-			final DefaultCreature creature = new DefaultCreature(clazz, subclass,
-					name, tileid);
-			creature.setRPStats(hp, atk, def, speed);
+			if (!tileid.contains(":")) {
+				logger.error("Corrupt XML file: Bad tileid for creature(" + name + ")");
+				return;
+			}
+
+			final DefaultCreature creature = new DefaultCreature(clazz, subclass, name, tileid);
+			creature.setRPStats(hp, atk, ratk, def, speed);
 			creature.setLevel(level, xp);
 			creature.setSize(sizeWidth, sizeHeight);
 			creature.setResistance(resistance);
 			creature.setVisibility(visibility);
 			creature.setEquipedItems(equipsItems);
-			
-			creature.setCorpse(corpseName, corpseWidth, corpseHeight);
+
+			creature.setShadowStyle(shadow_style);
+
+			creature.setBlood(bloodName);
+			bloodName = null;
+
+			creature.setCorpse(corpseName, harmlessCorpseName, corpseWidth, corpseHeight);
 			corpseName = null;
+			harmlessCorpseName = null;
 			corpseWidth = corpseHeight = 1;
-			
+
 			creature.setDropItems(dropsItems);
 			creature.setAIProfiles(aiProfiles);
 			creature.setNoiseLines(creatureSays);
@@ -343,6 +379,14 @@ public final class CreaturesXMLLoader extends DefaultHandler {
 			creature.setDescription(description);
 			creature.setSusceptibilities(susceptibilities);
 			creature.setDamageTypes(damageType, rangedDamageType);
+			creature.setCreatureSounds(sounds);
+			creature.setCreatureDeathSound(deathSound);
+			creature.setCreatureMovementSound(movementSound);
+
+			if (statusAttack != null) {
+			    creature.setStatusAttack(statusAttack, statusAttackProbability);
+			}
+
 			list.add(creature);
 		} else if (qName.equals("attributes")) {
 			attributes = false;

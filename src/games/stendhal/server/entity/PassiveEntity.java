@@ -1,4 +1,4 @@
-/* $Id: PassiveEntity.java,v 1.14 2010/09/19 02:23:51 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -27,7 +27,7 @@ public abstract class PassiveEntity extends Entity {
 
 	/**
 	 * Create a passive entity.
-	 * 
+	 *
 	 * @param object
 	 *            The template object.
 	 */

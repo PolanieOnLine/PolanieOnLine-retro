@@ -1,4 +1,3 @@
-/* $Id: WikipediaAccess.java,v 1.20 2010/11/28 17:00:45 martinfuchs Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,8 +11,6 @@
  ***************************************************************************/
 package games.stendhal.server.util;
 
-import games.stendhal.client.update.HttpClient;
-
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
@@ -21,16 +18,18 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import games.stendhal.client.update.HttpClient;
+
 /**
  * Gets the first text paragraph from the specified Wikipedia article using the
  * MediaWiki bot API.
- * 
+ *
  * You can invoke the parser either inline using the method parse() or start it
  * in a new thread.
- * 
+ *
  * TODO: handle redirects (but take care, there might be two redirects that
  * point to each other).
- * 
+ *
  * @author hendrik
  */
 public class WikipediaAccess extends DefaultHandler implements Runnable {
@@ -49,7 +48,7 @@ public class WikipediaAccess extends DefaultHandler implements Runnable {
 
 	/**
 	 * Creates a new WikipeidaAccess.
-	 * 
+	 *
 	 * @param title
 	 *            title of the page to access
 	 */
@@ -72,7 +71,7 @@ public class WikipediaAccess extends DefaultHandler implements Runnable {
 
 	/**
 	 * Returns the unparsed text.
-	 * 
+	 *
 	 * @return content
 	 */
 	public String getText() {
@@ -81,7 +80,7 @@ public class WikipediaAccess extends DefaultHandler implements Runnable {
 
 	/**
 	 * Gets the last error message.
-	 * 
+	 *
 	 * @return error message or <code>null</code> in case no error occurred
 	 */
 	public String getError() {
@@ -90,7 +89,7 @@ public class WikipediaAccess extends DefaultHandler implements Runnable {
 
 	/**
 	 * Returns the first paragraph of the specified article without wiki code.
-	 * 
+	 *
 	 * @return content
 	 */
 	public String getProcessedText() {
@@ -110,8 +109,9 @@ public class WikipediaAccess extends DefaultHandler implements Runnable {
 
 	/**
 	 * Extract plain text from Wikipedia article content.
+	 *
 	 * @param content
-	 * @return
+	 * @return plain text
 	 */
 	private static String wikiToPlainText(String content) {
 		// remove image links
@@ -123,7 +123,9 @@ public class WikipediaAccess extends DefaultHandler implements Runnable {
 		content = content.replaceAll("(?s)<ref>.*?</ref>", "");
 
 		// remove templates
-		// first for two level deep templates
+		// first for three level deep templates
+		content = content.replaceAll("(?s)\\{\\{([^{}]*?\\{\\{([^{}]*?\\{\\{[^{}]*?\\}\\})+[^{}]*?\\}\\})+[^{}]*?}}", "");
+		// then for two level deep templates
 		content = content.replaceAll("(?s)\\{\\{([^{}]*?\\{\\{[^{}]*?\\}\\})+[^{}].*?\\}\\}", "");
 		// then handle one level templates (This doesn't work with templates inside templates.)
 		content = content.replaceAll("(?s)\\{\\{.*?\\}\\}", "");
@@ -156,9 +158,9 @@ public class WikipediaAccess extends DefaultHandler implements Runnable {
 
 	/**
 	 * Starts the parsing of the specified article.
-	 * 
-	 * @throws Exception
-	 *             in case of an unexpected error
+	 *
+	 * @return <code>true</code> on successful parsing, <code>false</code> on
+	 * 	failure
 	 */
 	private boolean parse() {
 		String keyword = title;
@@ -166,38 +168,32 @@ public class WikipediaAccess extends DefaultHandler implements Runnable {
 
 		try {
 			while(keyword != null) {
-			// look it up using the Wikipedia API
-			final HttpClient httpClient = new HttpClient(
-					"http://pl.wikipedia.org/w/api.php?action=query&titles="
-							+ keyword.replace(' ', '_').replace("%", "%25")
-							+ "&prop=revisions&rvprop=content&format=xml");
-			final SAXParserFactory factory = SAXParserFactory.newInstance();
+				// look it up using the Wikipedia API
+				final HttpClient httpClient = new HttpClient(
+						"https://en.wikipedia.org/w/api.php?action=query&titles="
+								+ keyword.replace(' ', '_').replace("%", "%25")
+								+ "&prop=revisions&rvprop=content&format=xml");
+				final SAXParserFactory factory = SAXParserFactory.newInstance();
+				factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
 
-			// Parse the input
-			final SAXParser saxParser = factory.newSAXParser();
-			saxParser.parse(httpClient.getInputStream(), this);
+				// Parse the input
+				final SAXParser saxParser = factory.newSAXParser();
+				saxParser.parse(httpClient.getInputStream(), this);
 
 				final String response = getText();
 
 				if (response.startsWith("#REDIRECT")) {
 					// extract the new keyword
-					final String redirect = wikiToPlainText(response).substring(9);
-
-					// check for new line to detect if we got only a one liner to redirect
-					if (redirect.indexOf('\n') > -1) {
-						// We found the redirected article.
+					final String redirect = wikiToPlainText(response).substring(9).replaceAll("\\n.*", "").trim();
+					if (keyword.equalsIgnoreCase(redirect)) {
+						// stop to avoid an infinite loop
 						keyword = null;
 					} else {
-						if (keyword.equalsIgnoreCase(redirect)) {
-							// stop to avoid an infinite loop
-							keyword = null;
-						} else {
-							reset();
-							keyword = redirect;
-						}
+						reset();
+						keyword = redirect;
 					}
 				} else {
-			// finished
+					// finished
 					keyword = null;
 				}
 			}
@@ -219,17 +215,19 @@ public class WikipediaAccess extends DefaultHandler implements Runnable {
 	private void reset() {
 		isContent = false;
 		finished = false;
+		text.setLength(0);
 	}
 
+	@Override
 	public void run() {
-			parse();
+		parse();
 
 		// ignore failures as they are already logged in the parse()-method itself
 	}
 
 	/**
 	 * Returns true when the XML response was completely parsed.
-	 * 
+	 *
 	 * @return true if the parsing was completed, false otherwise
 	 */
 	public boolean isFinished() {

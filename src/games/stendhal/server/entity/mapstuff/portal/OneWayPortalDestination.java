@@ -1,4 +1,4 @@
-/* $Id: OneWayPortalDestination.java,v 1.6 2010/09/19 02:24:39 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -25,7 +25,7 @@ public class OneWayPortalDestination extends Portal {
 	 * Creates a OneWayPortalDestination.
 	 */
 	public OneWayPortalDestination() {
-		put("hidden", "");
+		setHidden(true);
 		setResistance(0);
 	}
 
@@ -42,7 +42,7 @@ public class OneWayPortalDestination extends Portal {
 	@Override
 	public boolean loaded() {
 		// Always loaded
-		return true; 
+		return true;
 	}
 
 	@Override

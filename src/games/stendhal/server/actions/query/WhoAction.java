@@ -1,6 +1,5 @@
-/* $Id: WhoAction.java,v 1.1 2010/12/04 20:28:35 nhnb Exp $ */
 /***************************************************************************
- *                      (C) Copyright 2003 - Marauroa                      *
+ *                   (C) Copyright 2003-2015 - Marauroa                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -13,18 +12,19 @@
 package games.stendhal.server.actions.query;
 
 import static games.stendhal.common.constants.Actions.WHO;
-import games.stendhal.common.filter.FilterCriteria;
-import games.stendhal.server.actions.ActionListener;
-import games.stendhal.server.actions.CommandCenter;
-import games.stendhal.server.actions.admin.AdministrationAction;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.core.engine.StendhalRPRuleProcessor;
-import games.stendhal.server.core.engine.Task;
-import games.stendhal.server.entity.player.Player;
 
 import java.util.Set;
 import java.util.TreeSet;
 
+import games.stendhal.common.filter.FilterCriteria;
+import games.stendhal.server.actions.ActionListener;
+import games.stendhal.server.actions.CommandCenter;
+import games.stendhal.server.actions.admin.AdministrationAction;
+import games.stendhal.server.core.engine.GameEvent;
+import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.core.engine.StendhalRPRuleProcessor;
+import games.stendhal.server.core.engine.Task;
+import games.stendhal.server.entity.player.Player;
 import marauroa.common.game.RPAction;
 
 /**
@@ -39,12 +39,15 @@ public class WhoAction implements ActionListener {
 		CommandCenter.register(WHO, query);
 	}
 
+	@Override
 	public void onAction(final Player player, final RPAction action) {
 		final StendhalRPRuleProcessor rules = SingletonRepository.getRuleProcessor();
 		final Set<String> players = new TreeSet<String>();
 
+		new GameEvent(player.getName(), WHO).raise();
 		if (player.getAdminLevel() >= AdministrationAction.getLevelForCommand("ghostmode")) {
 			rules.getOnlinePlayers().forAllPlayersExecute(new Task<Player>() {
+				@Override
 				public void execute(final Player p) {
 					final StringBuilder text = new StringBuilder(p.getTitle());
 
@@ -61,6 +64,7 @@ public class WhoAction implements ActionListener {
 			});
 		} else {
 			rules.getOnlinePlayers().forFilteredPlayersExecute(new Task<Player>() {
+				@Override
 				public void execute(final Player p) {
 					final StringBuilder text = new StringBuilder(p.getTitle());
 					text.append("(");
@@ -69,6 +73,7 @@ public class WhoAction implements ActionListener {
 					players.add(text.toString());
 				}
 			}, new FilterCriteria<Player>() {
+				@Override
 				public boolean passes(final Player o) {
 					return !o.isGhost();
 				}

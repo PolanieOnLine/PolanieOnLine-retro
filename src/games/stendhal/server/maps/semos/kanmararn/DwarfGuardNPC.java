@@ -1,6 +1,5 @@
-/* $Id: DwarfGuardNPC.java,v 1.21 2012/08/23 20:05:43 yoriy Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,36 +11,30 @@
  ***************************************************************************/
 package games.stendhal.server.maps.semos.kanmararn;
 
-import games.stendhal.server.core.config.ZoneConfigurator;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.core.pathfinder.FixedPath;
-import games.stendhal.server.core.pathfinder.Node;
-import games.stendhal.server.entity.npc.ShopList;
-import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.behaviour.adder.BuyerAdder;
-import games.stendhal.server.entity.npc.behaviour.impl.BuyerBehaviour;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class DwarfGuardNPC implements ZoneConfigurator {
-	private final ShopList shops = SingletonRepository.getShopList();
+import games.stendhal.server.core.config.ZoneConfigurator;
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.core.pathfinder.FixedPath;
+import games.stendhal.server.core.pathfinder.Node;
+import games.stendhal.server.entity.npc.SpeakerNPC;
 
-		/**
+public class DwarfGuardNPC implements ZoneConfigurator {
+	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
-		buildPrisonArea(zone, attributes);
+		buildPrisonArea(zone);
 	}
 
-	private void buildPrisonArea(final StendhalRPZone zone, final Map<String, String> attributes) {
+	private void buildPrisonArea(final StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Hunel") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -54,18 +47,15 @@ public class DwarfGuardNPC implements ZoneConfigurator {
 			protected void createDialog() {
 			    addQuest("Boję się stąd wychodzić... Czy możesz mi #zaoferować naprawdę dobry sprzęt?");
 				addJob("Byłem strażnikiem w więzieniu. Dopóki... cóż pewnie znasz resztę.");
-				new BuyerAdder().addBuyer(this, new BuyerBehaviour(shops.get("buychaos")), true);
-
-				addGoodbye("Dowidzenia ... bądź ostrożny ...");
+				addGoodbye("Do widzenia... bądź ostrożny...");
 			}
-			// remaining behaviour is defined in maps.quests.JailedDwarf.
 		};
 
+		npc.setDescription("Oto Hunel, jest przyjaznym krasnoludem. Jak on tu wszedł i dlaczego on jest przestraszony?");
 		npc.setEntityClass("dwarfguardnpc");
-		npc.setDescription("Hunel jest przyjaznym krasnoludem. Jak on tu wszedł i dlaczego on jest przestraszony?");
+		npc.setGender("M");
 		npc.setPosition(10, 23);
 		npc.setPerceptionRange(7);
-		npc.initHP(100);
 		zone.add(npc);
 	}
 }

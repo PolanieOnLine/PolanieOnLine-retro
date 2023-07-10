@@ -1,6 +1,5 @@
-/* $Id: CIDListAction.java,v 1.5 2012/01/19 23:38:53 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -14,14 +13,14 @@ package games.stendhal.server.actions.admin;
 
 import static games.stendhal.common.constants.Actions.CIDLIST;
 import static games.stendhal.common.constants.Actions.TARGET;
+
+import java.util.Map;
+
 import games.stendhal.server.actions.CStatusAction;
 import games.stendhal.server.actions.CommandCenter;
 import games.stendhal.server.core.engine.GameEvent;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.Map;
-
 import marauroa.common.game.RPAction;
 
 class CIDListAction extends AdministrationAction {
@@ -32,7 +31,7 @@ class CIDListAction extends AdministrationAction {
 
 	@Override
 	public void perform(final Player player, final RPAction action) {
-		
+
 		if (action.has(TARGET)) {
 
 			final String inputName = action.get(TARGET);
@@ -45,10 +44,10 @@ class CIDListAction extends AdministrationAction {
 
 			final Map<String, String> nameList = CStatusAction.nameList;
 			final Map<String, String> idList = CStatusAction.idList;
-			
+
 			//Lets use a clean name instead of what ever the admin inputed
 			String playerName = target.getName();
-			
+
 			if (nameList.containsKey(playerName)) {
 				String tid = nameList.get(playerName);
 				if (idList.containsKey(tid)) {
@@ -57,11 +56,11 @@ class CIDListAction extends AdministrationAction {
 					new GameEvent(player.getName(), "cidlist", playerName, group).raise();
 				}
 			}
-			
+
 		} else {
 			player.sendPrivateText("Wymagana nazwa wojownika");
 		}
-		
+
 	}
 
 }

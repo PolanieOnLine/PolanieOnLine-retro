@@ -1,4 +1,3 @@
-/* $Id: DeathmatchArea.java,v 1.12 2011/03/15 23:12:30 kymara Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -33,21 +32,17 @@ public class DeathmatchArea implements LoginListener {
 	}
 
 	protected void initialize() {
-
 		SingletonRepository.getLoginNotifier().addListener(this);
-
 	}
 
+	@Override
 	public void onLoggedIn(final Player player) {
-
 		if (area.contains(player)) {
 			teleportToCowardPlace(player);
 		}
-
 	}
 
 	private void teleportToCowardPlace(final Player player) {
-		
 		if (cowardSpot == null) {
 			cowardSpot = new Spot(SingletonRepository.getRPWorld().getZone(
 			"0_semos_mountain_n2_w"), 104, 123);
@@ -61,12 +56,10 @@ public class DeathmatchArea implements LoginListener {
 	}
 
 	public boolean contains(final Player player) {
-
 		return area.contains(player);
 	}
-	
+
 	public List<Player> getPlayers() {
 		return area.getPlayers();
 	}
-
 }

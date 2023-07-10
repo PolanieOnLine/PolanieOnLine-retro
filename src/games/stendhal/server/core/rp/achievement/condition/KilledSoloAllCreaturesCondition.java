@@ -1,5 +1,5 @@
 /***************************************************************************
- *                   (C) Copyright 2003-2011 - Stendhal                    *
+ *                   (C) Copyright 2003-2013 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -11,6 +11,8 @@
  ***************************************************************************/
 package games.stendhal.server.core.rp.achievement.condition;
 
+import java.util.Collection;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.Entity;
@@ -18,23 +20,17 @@ import games.stendhal.server.entity.creature.Creature;
 import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.Collection;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
-
 /**
  * Did the player kill all creatures, solo? (excluding rare)
  *
  * @author kymara
  */
 public class KilledSoloAllCreaturesCondition implements ChatCondition {
-
-
+	@Override
 	public boolean fire(final Player player, final Sentence sentence, final Entity entity) {
 		final Collection<Creature> creatures = SingletonRepository.getEntityManager().getCreatures();
 		for (Creature creature : creatures) {
-			if (!creature.isRare()) {
+			if (!creature.isAbnormal()) {
 				if (!player.hasKilledSolo(creature.getName())) {
 					return false;
 				}
@@ -48,14 +44,14 @@ public class KilledSoloAllCreaturesCondition implements ChatCondition {
 		return "KilledSoloAllCreaturesCondition";
 	}
 
+
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return -1273986;
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				KilledSoloAllCreaturesCondition.class);
+		return (obj instanceof KilledSoloAllCreaturesCondition);
 	}
 }

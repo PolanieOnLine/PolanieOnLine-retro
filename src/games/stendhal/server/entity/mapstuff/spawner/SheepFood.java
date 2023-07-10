@@ -1,6 +1,5 @@
-/* $Id: SheepFood.java,v 1.10 2011/04/02 15:44:19 kymara Exp $ */
 /***************************************************************************
- *                      (C) Copyright 2003 - Marauroa                      *
+ *                   (C) Copyright 2003-2020 - Marauroa                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -15,9 +14,10 @@ package games.stendhal.server.entity.mapstuff.spawner;
 import games.stendhal.common.grammar.Grammar;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.item.Item;
+import games.stendhal.server.entity.player.Player;
+import marauroa.common.game.Definition.Type;
 import marauroa.common.game.RPClass;
 import marauroa.common.game.RPObject;
-import marauroa.common.game.Definition.Type;
 
 /**
  * A regenerative source of food that can be eaten by sheep.
@@ -72,7 +72,7 @@ public class SheepFood extends PassiveEntityRespawnPoint {
 
 	/**
 	 * Gets the number of ripe fruits that are on.
-	 * 
+	 *
 	 * @return number of ripe fruits
 	 */
 	public int getAmount() {
@@ -87,8 +87,8 @@ public class SheepFood extends PassiveEntityRespawnPoint {
 
 	@Override
 	public String describe() {
-		final String text = "To kępka "
-				+ Grammar.quantityplnoun(getAmount(), "traw.", "one")
+		final String text = "Oto kępka "
+				+ Grammar.quantityplnoun(getAmount(), "traw.")
 				+ " Tylko owce lubią tu się paść.";
 		return text;
 	}
@@ -99,9 +99,14 @@ public class SheepFood extends PassiveEntityRespawnPoint {
 		// don't grow anything new until someone picks a fruit
 		SingletonRepository.getTurnNotifier().dontNotify(this);
 	}
-	
+
 	@Override
 	public void setStartState() {
 		setToFullGrowth();
+	}
+
+	@Override
+	public void onItemPickedUp(Player player) {
+		// do nothing, players cannot pick up sheep food
 	}
 }

@@ -1,6 +1,5 @@
-/* $Id: AdminMaker.java,v 1.33 2012/05/27 19:16:47 madmetzger Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -11,6 +10,12 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.script;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
+
+import org.apache.log4j.Logger;
 
 import games.stendhal.common.Level;
 import games.stendhal.common.parser.Sentence;
@@ -27,18 +32,12 @@ import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
-
-import org.apache.log4j.Logger;
-
 /**
  * Creates a portable NPC who gives ALL players powerful items, increases their
  * level and makes them admins. This is used on test-systems only. Therefore it
  * is disabled in default install and you have to use this parameter:
  * -Dstendhal.testserver=junk as a vm argument.
- * 
+ *
  * As admin uses /script AdminMaker.class to summon her right next to him/her.
  * Please unload it with /script -unload AdminMaker.class
  */
@@ -48,15 +47,15 @@ public class AdminMaker extends ScriptImpl {
 	private static Logger logger = Logger.getLogger(AdminMaker.class);
 	private static final String TELE_QUEST_SLOT = "AdminMakerTele";
 
-	private final List<String> itemsSingle = Arrays.asList("rod of the gm",
+	private final List<String> itemsSingle = Arrays.asList("rózga GM",
 			"złota tarcza", "złota zbroja", "złoty płaszcz",
-			"złoty hełm", "złote spodnie", "buty złote",
+			"złoty hełm", "złote spodnie", "złote buty",
 			"kusza łowcy");
 
 	private final List<String> itemsStack = Arrays.asList("money",
 			"duży eliksir", "mocne antidotum", "strzała płonąca",
 			"śmiertelna trucizna");
-	
+
 
 	protected class UpgradeAction implements ChatAction {
 
@@ -82,7 +81,7 @@ public class AdminMaker extends ScriptImpl {
 			// set the atk and def to half the level (is a good rule of thumb)
 			final int skills = ((Level.getXP(level) + xlevel) / 2);
 			player.setAtkXP(skills);
-			player.setDefXP(skills);	
+			player.setDefXP(skills);
 			player.incAtkXP();
 			player.incDefXP();
 		}
@@ -110,7 +109,7 @@ public class AdminMaker extends ScriptImpl {
 				}
 			}
 			// turn on their keyring for them
-			player.setFeature("keyring", true);
+			player.setFeature("keyring", "6 2");
 		}
 
 		private void admin(final Player player) {
@@ -122,8 +121,9 @@ public class AdminMaker extends ScriptImpl {
 			}
 		}
 
+		@Override
 		public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
-			raiser.say("Dostaniesz trochę przedmiotów oraz poziomów i skili oraz odblokowany rzemyk.");
+			raiser.say("Dostaniesz trochę przedmiotów, poziomów i umiejętności oraz odblokowany tobie rzemyk.");
 			xpGain(player);
 			equip(player);
 			admin(player);
@@ -200,6 +200,7 @@ public class AdminMaker extends ScriptImpl {
 		}
 
 
+		@Override
 		public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 
 			// before we send the player off into the unknown give a marked

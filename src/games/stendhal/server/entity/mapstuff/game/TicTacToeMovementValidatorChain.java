@@ -1,4 +1,4 @@
-/* $Id: TicTacToeMovementValidatorChain.java,v 1.3 2010/09/19 02:24:43 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +12,9 @@
  ***************************************************************************/
 package games.stendhal.server.entity.mapstuff.game;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import games.stendhal.server.entity.item.token.BoardToken;
 import games.stendhal.server.entity.mapstuff.game.movevalidator.GameIsActiveValidator;
 import games.stendhal.server.entity.mapstuff.game.movevalidator.MoveValidator;
@@ -22,9 +25,6 @@ import games.stendhal.server.entity.mapstuff.game.movevalidator.PlayerIsParticip
 import games.stendhal.server.entity.mapstuff.game.movevalidator.PlayerIsPlayingRightTokenTypeValidator;
 import games.stendhal.server.entity.mapstuff.game.movevalidator.PlayersTurnValidator;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * a validator chain for the Tick Tack Toe game.
@@ -47,6 +47,7 @@ public class TicTacToeMovementValidatorChain implements MoveValidator {
 		validators.add(new MovementTargetEmptyValidator());
 	}
 
+	@Override
 	public boolean validate(GameBoard board, Player player, BoardToken token, int xIndex, int yIndex) {
 		for (MoveValidator validator : validators) {
 			if (!validator.validate(board, player, token, xIndex, yIndex)) {

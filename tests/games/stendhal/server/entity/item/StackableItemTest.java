@@ -1,4 +1,4 @@
-/* $Id: StackableItemTest.java,v 1.8 2010/09/19 02:39:48 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -16,41 +16,23 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.maps.MockStendlRPWorld;
 
 import java.util.LinkedList;
 import java.util.List;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.maps.MockStendlRPWorld;
 import utilities.RPClass.ItemTestHelper;
 
 public class StackableItemTest {
-
-	
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		MockStendlRPWorld.get();
 		ItemTestHelper.generateRPClasses();
-	}
-
-	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
-	
-	}
-
-	@Before
-	public void setUp() throws Exception {
-	}
-
-	@After
-	public void tearDown() throws Exception {
 	}
 
 	/**
@@ -60,7 +42,6 @@ public class StackableItemTest {
 	public void testGetQuantity() {
 		StackableItem stack = new StackableItem("item", "clazz", "subclass", null);
 		assertThat(stack.getQuantity(), is(1));
-		
 	}
 
 	/**
@@ -100,20 +81,19 @@ public class StackableItemTest {
 		assertThat(stack.getQuantity(), is(1));
 		stack.sub(0);
 		assertThat(stack.getQuantity(), is(1));
-		
-		
+
+
 		stack.setQuantity(1);
 		assertThat(stack.getQuantity(), is(1));
 		stack.sub(1);
 		assertThat(stack.getQuantity(), is(0));
-		
-		stack.setQuantity(100); 
+
+		stack.setQuantity(100);
 		assertThat(stack.getQuantity(), is(100));
 		stack.sub(1);
 		assertThat(stack.getQuantity(), is(99));
-		
 	}
-	
+
 	/**
 	 * Tests for subNegativeNumber.
 	 */
@@ -125,8 +105,8 @@ public class StackableItemTest {
 		stack.sub(-1);
 		assertThat("similar to splitOff()", stack.getQuantity(), is(1));
 	}
-	
-	
+
+
 	/**
 	 * Tests for subNegativeNumberSimilarToSplitOff.
 	 */
@@ -142,7 +122,7 @@ public class StackableItemTest {
 		splitStack.splitOff(-1);
 		assertThat(subStack.getQuantity(), is(splitStack.getQuantity()));
 	}
-	
+
 	/**
 	 * Tests for addStackable.
 	 */
@@ -166,14 +146,13 @@ public class StackableItemTest {
 		assertThat(stack.getQuantity(), is(1));
 		stack.splitOff(0);
 		assertThat(stack.getQuantity(), is(1));
-		
-		
+
 		stack.setQuantity(1);
 		assertThat(stack.getQuantity(), is(1));
 		stack.splitOff(1);
 		assertThat(stack.getQuantity(), is(0));
-		
-		stack.setQuantity(100); 
+
+		stack.setQuantity(100);
 		assertThat(stack.getQuantity(), is(100));
 		stack.splitOff(1);
 		assertThat(stack.getQuantity(), is(99));
@@ -190,7 +169,7 @@ public class StackableItemTest {
 		stack.splitOff(-1);
 		assertThat("similar to sub()", stack.getQuantity(), is(1));
 	}
-	
+
 	/**
 	 * Tests for isStackableMoney.
 	 */
@@ -202,86 +181,86 @@ public class StackableItemTest {
 		assertTrue(stackOnTop.isStackable(stack));
 		assertFalse(stack.isStackable(stack));
 	}
-	
+
 	/**
 	 * Tests for isStackableBaloon.
 	 */
 	@Test
 	public void testIsStackableBaloon() {
-		final StackableItem stack = (StackableItem) SingletonRepository.getEntityManager().getItem("balloon");
-		final StackableItem stackOnTop = (StackableItem) SingletonRepository.getEntityManager().getItem("balloon");
+		final StackableItem stack = (StackableItem) SingletonRepository.getEntityManager().getItem("balonik");
+		final StackableItem stackOnTop = (StackableItem) SingletonRepository.getEntityManager().getItem("balonik");
 		assertTrue(stack.isStackable(stackOnTop));
 		assertTrue(stackOnTop.isStackable(stack));
 		assertFalse(stack.isStackable(stack));
 	}
-	
+
 	/**
 	 * Tests for isStackableBaloonOnMoney.
 	 */
 	@Test
 	public void testIsStackableBaloonOnMoney() {
-		final StackableItem stack = (StackableItem) SingletonRepository.getEntityManager().getItem("balloon");
+		final StackableItem stack = (StackableItem) SingletonRepository.getEntityManager().getItem("balonik");
 		final StackableItem stackOnTop = (StackableItem) SingletonRepository.getEntityManager().getItem("money");
 		assertFalse(stack.isStackable(stackOnTop));
 		assertFalse(stackOnTop.isStackable(stack));
 		assertFalse(stack.isStackable(stack));
 	}
-	
+
 	/**
 	 * Tests for isStackableSummonScrolls.
 	 */
 	@Test
 	public void testIsStackableSummonScrolls() {
-		final StackableItem stack = (StackableItem) SingletonRepository.getEntityManager().getItem("summon scroll");
-		final StackableItem stackOnTop = (StackableItem) SingletonRepository.getEntityManager().getItem("summon scroll");
+		final StackableItem stack = (StackableItem) SingletonRepository.getEntityManager().getItem("zwój przywołania");
+		final StackableItem stackOnTop = (StackableItem) SingletonRepository.getEntityManager().getItem("zwój przywołania");
 		assertTrue(stack.isStackable(stackOnTop));
 		assertTrue(stackOnTop.isStackable(stack));
 		assertFalse(stack.isStackable(stack));
 	}
-	
+
 	/**
 	 * Tests for isStackableInvitationScrolls.
 	 */
 	@Test
 	public void testIsStackableInvitationScrolls() {
-		final StackableItem stack = (StackableItem) SingletonRepository.getEntityManager().getItem("invitation scroll");
-		final StackableItem stackOnTop = (StackableItem) SingletonRepository.getEntityManager().getItem("invitation scroll");
+		final StackableItem stack = (StackableItem) SingletonRepository.getEntityManager().getItem("zwój weselny");
+		final StackableItem stackOnTop = (StackableItem) SingletonRepository.getEntityManager().getItem("zwój weselny");
 		assertTrue(stack.isStackable(stackOnTop));
 		assertTrue(stackOnTop.isStackable(stack));
 		assertFalse(stack.isStackable(stack));
 	}
-	
+
 	/**
 	 * Tests for isStackableDifferentScrolls.
 	 */
 	@Test
 	public void testIsStackableDifferentScrolls() {
 	    final List<StackableItem> stackables = new LinkedList<StackableItem>();
-	    final StackableItem summonStack = (StackableItem) SingletonRepository.getEntityManager().getItem("summon scroll");
+	    final StackableItem summonStack = (StackableItem) SingletonRepository.getEntityManager().getItem("zwój przywołania");
 	    stackables.add(summonStack);
-	    final StackableItem invitationStack = (StackableItem) SingletonRepository.getEntityManager().getItem("invitation scroll");
+	    final StackableItem invitationStack = (StackableItem) SingletonRepository.getEntityManager().getItem("zwój weselny");
 	    stackables.add(invitationStack);
-	    final StackableItem nalworStack = (StackableItem) SingletonRepository.getEntityManager().getItem("nalwor city scroll");
+	    final StackableItem nalworStack = (StackableItem) SingletonRepository.getEntityManager().getItem("zwój nalwor");
 	    stackables.add(nalworStack);
-	    final StackableItem adosStack = (StackableItem) SingletonRepository.getEntityManager().getItem("ados city scroll");
+	    final StackableItem adosStack = (StackableItem) SingletonRepository.getEntityManager().getItem("zwój ados");
 	    stackables.add(adosStack);
-	    final StackableItem fadoStack = (StackableItem) SingletonRepository.getEntityManager().getItem("fado city scroll");
+	    final StackableItem fadoStack = (StackableItem) SingletonRepository.getEntityManager().getItem("zwój fado");
 	    stackables.add(fadoStack);
-	    final StackableItem kirdnehStack = (StackableItem) SingletonRepository.getEntityManager().getItem("kirdneh city scroll");
+	    final StackableItem kirdnehStack = (StackableItem) SingletonRepository.getEntityManager().getItem("zwój kirdneh");
 	    stackables.add(kirdnehStack);
-        final StackableItem kalavanStack = (StackableItem) SingletonRepository.getEntityManager().getItem("kalavan city scroll");
+        final StackableItem kalavanStack = (StackableItem) SingletonRepository.getEntityManager().getItem("zwój kalavan");
         stackables.add(kalavanStack);
-        final StackableItem markedStack = (StackableItem) SingletonRepository.getEntityManager().getItem("marked scroll");
+        final StackableItem markedStack = (StackableItem) SingletonRepository.getEntityManager().getItem("zwój zapisany");
         stackables.add(markedStack);
-        final StackableItem homeStack = (StackableItem) SingletonRepository.getEntityManager().getItem("home scroll");
+        final StackableItem homeStack = (StackableItem) SingletonRepository.getEntityManager().getItem("zwój semos");
         stackables.add(homeStack);
-        final StackableItem emptyStack = (StackableItem) SingletonRepository.getEntityManager().getItem("empty scroll");
+        final StackableItem emptyStack = (StackableItem) SingletonRepository.getEntityManager().getItem("niezapisany zwój");
         stackables.add(emptyStack);
-        final StackableItem rainbowStack = (StackableItem) SingletonRepository.getEntityManager().getItem("rainbow beans");
+        final StackableItem rainbowStack = (StackableItem) SingletonRepository.getEntityManager().getItem("magiczne fasolki");
         stackables.add(rainbowStack);
-        final StackableItem balloonStack = (StackableItem) SingletonRepository.getEntityManager().getItem("balloon");
+        final StackableItem balloonStack = (StackableItem) SingletonRepository.getEntityManager().getItem("balonik");
         stackables.add(balloonStack);
-        final StackableItem twilightStack = (StackableItem) SingletonRepository.getEntityManager().getItem("twilight moss");
+        final StackableItem twilightStack = (StackableItem) SingletonRepository.getEntityManager().getItem("mroczny mech");
         stackables.add(twilightStack);
         for (StackableItem stackable : stackables) {
             for (StackableItem onTop : stackables) {

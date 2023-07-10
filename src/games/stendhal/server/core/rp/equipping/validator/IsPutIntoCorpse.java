@@ -22,6 +22,7 @@ import games.stendhal.server.entity.item.Corpse;
  */
 class IsPutIntoCorpse implements Validator {
 
+	@Override
 	public boolean validate(EquipmentActionData data) {
 		// players sometimes accidentally drop items into corpses, so inform about all drops into a corpse
 		// which aren't just a movement from one corpse to another.
@@ -30,8 +31,9 @@ class IsPutIntoCorpse implements Validator {
 		boolean sourceIsCorpse = (data.getSourceRoot() instanceof Corpse);
 		boolean targetIsCorpse = (data.getTargetRoot() instanceof Corpse);
 		if (!sourceIsCorpse && targetIsCorpse) {
-			data.setWarningMessage("Właśnie odłożyłeś "
-				+ Grammar.quantityplnounWithHash(data.getQuantity(), data.getItemName()) + " do zwłok leżących obok ciebie.");
+			data.setWarningMessage("For your information, you just dropped "
+				+ Grammar.quantityplnounWithMarker(data.getQuantity(), data.getItemName(), '§')
+				+ " into a corpse next to you.");
 		}
 
 		return true;

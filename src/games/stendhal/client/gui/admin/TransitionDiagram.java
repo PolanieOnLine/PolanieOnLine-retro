@@ -1,6 +1,5 @@
-/* $Id: TransitionDiagram.java,v 1.16 2010/09/27 20:47:56 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2013 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,17 +11,11 @@
  ***************************************************************************/
 package games.stendhal.client.gui.admin;
 
-import games.stendhal.client.gui.j2DClient;
-import games.stendhal.client.gui.chatlog.HeaderLessEventLine;
-import games.stendhal.client.gui.wt.core.WtWindowManager;
-import games.stendhal.common.NotificationType;
-
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Image;
 import java.awt.Toolkit;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.PrintStream;
 
 import javax.swing.ImageIcon;
@@ -32,9 +25,14 @@ import javax.swing.WindowConstants;
 
 import org.apache.log4j.Logger;
 
+import games.stendhal.client.gui.j2DClient;
+import games.stendhal.client.gui.chatlog.HeaderLessEventLine;
+import games.stendhal.client.gui.wt.core.WtWindowManager;
+import games.stendhal.common.NotificationType;
+
 /**
  * Displays the state-transition chart of an NPC.
- * 
+ *
  * @author timothyb89
  */
 public class TransitionDiagram {
@@ -45,13 +43,13 @@ public class TransitionDiagram {
 		showTransitionDiagram(data, null);
 	}
 
-	public void showTransitionDiagram(final String data, final Frame parent) {
+	private void showTransitionDiagram(final String data, final Frame parent) {
 		try {
-			final File dat = File.createTempFile("polskaonline-graph-data", ".txt");
-			final File image = File.createTempFile("polskaonline-graph", ".png");
+			final File dat = File.createTempFile("polanieonline-graph-data", ".txt");
+			final File image = File.createTempFile("polanieonline-graph", ".png");
 
 			// print the data
-			final PrintStream ps = new PrintStream(new FileOutputStream(dat));
+			final PrintStream ps = new PrintStream(dat, "UTF-8");
 			ps.print(data);
 			ps.close();
 
@@ -63,9 +61,13 @@ public class TransitionDiagram {
 			}
 
 			// execute
-			final Process p = Runtime.getRuntime().exec(
-					dotPath + " -Tpng -o " + image.getAbsolutePath() + " "
-							+ dat.getAbsolutePath());
+			final Process p = Runtime.getRuntime().exec(new String[] {
+					dotPath,
+					"-Tpng",
+					"-o",
+					image.getAbsolutePath(),
+					dat.getAbsolutePath()
+				});
 			p.waitFor();
 
 			// open up the image
@@ -89,14 +91,14 @@ public class TransitionDiagram {
 		} catch (final Exception e) {
 			logger.error("Failed creating graph: ", e);
 			j2DClient.get().addEventLine(new HeaderLessEventLine(
-					"Nie powiodło się tworzenie grafu (Czy graphviz jest zainstalowany i znajduje się w ścieżce systemowej?): "
+					"Failed creating graph (Is graphviz installed and on your system search path?): "
 							+ e.getMessage(), NotificationType.ERROR));
 		}
 	}
 
 	/**
 	 * Testcode.
-	 * 
+	 *
 	 * @param args
 	 *            ignored
 	 */
@@ -107,24 +109,14 @@ public class TransitionDiagram {
 				+ "IDLE -> ATTENDING [ label = \"hello\" ];\n"
 				+ "IDLE -> ATTENDING [ label = \"greetings\" ];\n"
 				+ "IDLE -> ATTENDING [ label = \"hola\" ];\n"
-				+ "IDLE -> ATTENDING [ label = \"witaj\" ];\n"
-				+ "IDLE -> ATTENDING [ label = \"witam\" ];\n"
-				+ "IDLE -> ATTENDING [ label = \"cześć\" ];\n"
 				+ "ATTENDING -> ATTENDING [ label = \"job\" ];\n"
-				+ "ATTENDING -> ATTENDING [ label = \"praca\" ];\n"
 				+ "HEAL_OFFERED -> ATTENDING [ label = \"yes *\" ];\n"
 				+ "HEAL_OFFERED -> ATTENDING [ label = \"ok *\" ];\n"
 				+ "HEAL_OFFERED -> ATTENDING [ label = \"no\" ];\n"
-				+ "HEAL_OFFERED -> ATTENDING [ label = \"tak\" ];\n"
-				+ "HEAL_OFFERED -> ATTENDING [ label = \"dobrze\" ];\n"
-				+ "HEAL_OFFERED -> ATTENDING [ label = \"nie\" ];\n"
-				+ "HEAL_OFFERED -> ATTENDING [ label = \"nic\" ];\n"
 				+ "ANY -> IDLE [ label = \"bye *\" ];\n"
 				+ "ANY -> IDLE [ label = \"farewell *\" ];\n"
 				+ "ANY -> IDLE [ label = \"cya *\" ];\n"
-				+ "ANY -> IDLE [ label = \"adios *\" ];\n"
-				+ "ANY -> IDLE [ label = \"dowidzenia *\" ];\n"
-				+ "ANY -> IDLE [ label = \"nara *\" ];\n" + "}");
+				+ "ANY -> IDLE [ label = \"adios *\" ];\n" + "}");
 	}
 
 	private ImageIcon scale(final ImageIcon image) {
@@ -133,7 +125,7 @@ public class TransitionDiagram {
 		final int ow = img.getWidth(null);
 		final int oh = img.getHeight(null);
 		// screens are usually wide..
-		final int w = ssize.width - 20; 
+		final int w = ssize.width - 20;
 		final int h = ssize.height - 100;
 
 		if ((ow >= w) || (oh >= h)) {

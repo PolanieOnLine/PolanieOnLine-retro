@@ -1,4 +1,3 @@
-/* $Id: InmateNPC.java,v 1.11 2010/10/31 17:19:46 kymara Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,44 +11,44 @@
  ***************************************************************************/
 package games.stendhal.server.maps.semos.jail;
 
+import java.util.Map;
+
 import games.stendhal.common.Direction;
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.entity.RPEntity;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 
-import java.util.Map;
-
 /**
- * An elven inmate (original name: Conual). He's just decoration. 
- * 
+ * An elven inmate (original name: Conual). He's just decoration.
+ *
  * @author hendrik
  */
 public class InmateNPC implements ZoneConfigurator  {
-
-	public void configureZone(StendhalRPZone zone,
-			Map<String, String> attributes) {
+	@Override
+	public void configureZone(StendhalRPZone zone, Map<String, String> attributes) {
 		buildNPC(zone);
 	}
 
 	private void buildNPC(StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Conual") {
-
-			@Override
-			protected void createPath() {
-				setPath(null);
-			}
-
 			@Override
 			public void createDialog() {
 				addGreeting("Wypuście mnie! Jestem niewinny!");
 				addGoodbye();
+			}
 
-			}};
-			npc.setPosition(13, 3);
-			npc.setEntityClass("militiaelfnpc");
-			npc.setDirection(Direction.DOWN);
-			npc.setDescription("Oto Conual. On jest skazany na dożywocie. Wydaje się, że naprawdę zrobił coś złego.");
-			zone.add(npc);		
+			@Override
+			protected void onGoodbye(final RPEntity player) {
+				setDirection(Direction.DOWN);
+			}
+		};
+
+		npc.setDescription("Oto Conual. Został skazany na dożywocie. Wydaje się, że naprawdę zrobił coś złego.");
+		npc.setEntityClass("militiaelfnpc");
+		npc.setGender("M");
+		npc.setPosition(13, 3);
+		npc.setDirection(Direction.DOWN);
+		zone.add(npc);
 	}
 }
-

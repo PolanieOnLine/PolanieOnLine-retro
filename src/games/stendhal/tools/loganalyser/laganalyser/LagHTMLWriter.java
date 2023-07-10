@@ -1,4 +1,4 @@
-/* $Id: LagHTMLWriter.java,v 1.5 2010/09/19 01:29:20 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -27,7 +27,7 @@ public class LagHTMLWriter {
 	 * creates a new LagHTMLWriter
 	 *
 	 * @param outputFileName name of file to write
-	 * @throws FileNotFoundException in case 
+	 * @throws FileNotFoundException in case
 	 */
 	public LagHTMLWriter(String outputFileName) throws FileNotFoundException {
 		this.ps = new PrintStream(outputFileName);

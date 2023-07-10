@@ -1,6 +1,5 @@
-/* $Id: CrownForTheWannaBeKing.java,v 1.49 2012/04/24 17:01:18 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -11,6 +10,11 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 import games.stendhal.common.NotificationType;
 import games.stendhal.common.grammar.Grammar;
@@ -39,15 +43,10 @@ import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.Region;
 import games.stendhal.server.util.ItemCollection;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
 /**
  * QUEST: CrownForTheWannaBeKing
  *
- * PARTICIPANTS: 
+ * PARTICIPANTS:
  * <ul>
  * <li> Ivan Abe, the wannabe king who lives in Sedah</li>
  * <li> Kendra Mattori, priestess living in Magic City</li>
@@ -62,7 +61,8 @@ import java.util.Map;
  *
  * REWARD:
  * <ul>
- * <li> 10,000 XP</li>
+ * <li> 100,000 XP</li>
+ * <li> karma (100) </li>
  * <li> Player's ATK XP is increased by 0.1% of his/her XP.</li>
  * </ul>
  *
@@ -72,7 +72,6 @@ import java.util.Map;
  * </ul>
  */
 public class CrownForTheWannaBeKing extends AbstractQuest {
-
 	/**
 	 * required items for the quest.
 	 */
@@ -102,13 +101,8 @@ public class CrownForTheWannaBeKing extends AbstractQuest {
 	/**
 	 * how much XP is given as the reward.
 	 */
-	private static final int XP_REWARD = 10000;
+	private static final int XP_REWARD = 100000;
 
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
-	
 	/**
 	 * initialize the introduction and start of the quest.
 	 */
@@ -143,16 +137,16 @@ public class CrownForTheWannaBeKing extends AbstractQuest {
 		/* player says yes */
 		npc.add(ConversationStates.QUEST_OFFERED,
 				ConversationPhrases.YES_MESSAGES, null,
-				ConversationStates.QUESTION_1, null, 
+				ConversationStates.QUESTION_1, null,
 				new MultipleActions(new SetQuestAndModifyKarmaAction(QUEST_SLOT, NEEDED_ITEMS, 5),
 								    new SayRequiredItemsFromCollectionAction(QUEST_SLOT, "Chcę, aby moja korona była piękna i lśniąca. Potrzebuję [items]. " +
 										"Masz coś z tego przy sobie?")));
 
 
 		/* player is not willing to help */
-		npc.add(ConversationStates.QUEST_OFFERED, 
+		npc.add(ConversationStates.QUEST_OFFERED,
 				ConversationPhrases.NO_MESSAGES, null,
-				ConversationStates.IDLE, 
+				ConversationStates.IDLE,
 				"Och. Nie chcesz mi pomóc?! Wynoś się stąd marnujesz mój cenny czas!",
 				new SetQuestAndModifyKarmaAction(QUEST_SLOT, "rejected", -5.0));
 	}
@@ -199,21 +193,21 @@ public class CrownForTheWannaBeKing extends AbstractQuest {
 					ConversationStates.QUESTION_1, null,
 					new CollectRequestedItemsAction(
 							item.getKey(), QUEST_SLOT,
-							"Dobra, masz coś jeszcze? ","Już to przynisłeś!",
+							"Dobra, masz coś jeszcze?","Już to przynisłeś!",
 							completeAction, ConversationStates.ATTENDING));
 		}
 
 		/* player says he didn't bring any items (says no) */
 		npc.add(ConversationStates.ATTENDING, ConversationPhrases.NO_MESSAGES,
-				new AndCondition(new QuestActiveCondition(QUEST_SLOT), new QuestNotInStateCondition(QUEST_SLOT, "reward")), 
+				new AndCondition(new QuestActiveCondition(QUEST_SLOT), new QuestNotInStateCondition(QUEST_SLOT, "reward")),
 				ConversationStates.IDLE,
 				"Cóż, nie wracaj dopóki nie znajdziesz czegoś dla mnie!", null);
 
 		/* player says he didn't bring any items to different question */
 		npc.add(ConversationStates.QUESTION_1, ConversationPhrases.NO_MESSAGES,
-				new AndCondition(new QuestActiveCondition(QUEST_SLOT), new QuestNotInStateCondition(QUEST_SLOT, "reward")), 
+				new AndCondition(new QuestActiveCondition(QUEST_SLOT), new QuestNotInStateCondition(QUEST_SLOT, "reward")),
 				ConversationStates.IDLE,
-				"Dowidzenia. Wróć gdy zdobędziesz to czego potrzebuję!", null);
+				"Do widzenia. Wróć gdy zdobędziesz to czego potrzebuję!", null);
 
 
 		/* player says reward */
@@ -248,6 +242,7 @@ public class CrownForTheWannaBeKing extends AbstractQuest {
 				new QuestInStateCondition(QUEST_SLOT, "reward"),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser entity) {
 						entity.say("Och tak "
 									+ NPC_NAME
@@ -264,12 +259,23 @@ public class CrownForTheWannaBeKing extends AbstractQuest {
 	 * @param player
 	 */
 	protected void rewardPlayer(final Player player) {
-		player.addKarma(10.0);
+		player.addKarma(100.0);
 		player.setAtkXP(player.getAtkXP() + (int) (player.getXP() * ATK_REWARD_RATE));
 		player.incAtkXP();
 		player.sendPrivateText(NotificationType.POSITIVE, "Otrzymałeś " + Integer.toString((int) (player.getXP() * ATK_REWARD_RATE)) + " punktów doświadczenia ataku.");
 	}
-	
+
+	@Override
+	public void addToWorld() {
+		step_1();
+		step_2();
+		step_3();
+		fillQuestInfo(
+				"Korona Niedoszłego Króla",
+				"Ivan Abe chce rządzić Kalavan... i potrzebuje korony.",
+				false);
+	}
+
 	@Override
 	public List<String> getHistory(final Player player) {
 		final List<String> res = new ArrayList<String>();
@@ -284,31 +290,24 @@ public class CrownForTheWannaBeKing extends AbstractQuest {
 			final ItemCollection missingItems = new ItemCollection();
 			missingItems.addFromQuestStateString(questState);
 			res.add(Grammar.enumerateCollection(missingItems.toStringList()) + " są nadal potrzebne do korony.");
-		} else if ("reward".equals(questState)) {	
-			res.add("Oddałem drogocenne kamienie do korony, a " + REWARD_NPC_NAME + " została poinformowana aby dać mi nagrodę.");
+		} else if ("reward".equals(questState)) {
+			res.add(Grammar.genderVerb(player.getGender(), "Oddałem") + " drogocenne kamienie do korony, a " + REWARD_NPC_NAME + " została poinformowana aby dać mi nagrodę.");
 		} else {
-			res.add("Oddałem drogocenne kamienie do korony, a " + REWARD_NPC_NAME + " nagrodziła mnie, podnosząc moje zdolności ataku.");
+			res.add(Grammar.genderVerb(player.getGender(), "Oddałem") + " drogocenne kamienie do korony, a " + REWARD_NPC_NAME + " nagrodziła mnie, podnosząc moje zdolności ataku.");
 		}
 		return res;
 	}
 
 	@Override
-	public void addToWorld() {
-		super.addToWorld();
-		step_1();
-		step_2();
-		step_3();
-		fillQuestInfo(
-				"Korona dla Niedoszłego Króla",
-				"Ivan Abe chce rządzić Kalavan ... i potrzebuje korony.",
-				false);
+	public String getSlotName() {
+		return QUEST_SLOT;
 	}
 
 	@Override
 	public String getName() {
-		return "CrownForTheWannaBeKing";
+		return "Korona Niedoszłego Króla";
 	}
-	
+
 	@Override
 	public int getMinLevel() {
 		return 100;
@@ -316,9 +315,9 @@ public class CrownForTheWannaBeKing extends AbstractQuest {
 
 	@Override
 	public String getNPCName() {
-		return "Ivan Abe";
+		return NPC_NAME;
 	}
-	
+
 	@Override
 	public String getRegion() {
 		return Region.FADO_CAVES;

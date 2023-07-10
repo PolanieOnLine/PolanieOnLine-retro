@@ -11,28 +11,29 @@
  ***************************************************************************/
 package games.stendhal.client.actions;
 
-import games.stendhal.client.gui.j2DClient;
-import games.stendhal.client.gui.settings.SettingsDialog;
-
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+
+import games.stendhal.client.gui.j2DClient;
+import games.stendhal.client.gui.settings.SettingsDialog;
 
 /**
  * Show the settings dialog
  */
-public class SettingsAction implements SlashAction {
+class SettingsAction implements SlashAction {
 	private SettingsDialog dialog;
 
 	/**
 	 * Execute a chat command.
-	 * 
+	 *
 	 * @param params
 	 *            The formal parameters.
 	 * @param remainder
 	 *            Line content after parameters.
-	 * 
+	 *
 	 * @return <code>true</code> if was handled.
 	 */
+	@Override
 	public boolean execute(String[] params, String remainder) {
 		if (dialog == null) {
 			dialog = new SettingsDialog(j2DClient.get().getMainFrame());
@@ -45,24 +46,26 @@ public class SettingsAction implements SlashAction {
 		}
 		dialog.setVisible(true);
 		dialog.toFront();
-		
+
 		return true;
 	}
 
 	/**
 	 * Get the maximum number of formal parameters.
-	 * 
+	 *
 	 * @return The parameter count.
 	 */
+	@Override
 	public int getMaximumParameters() {
 		return 0;
 	}
 
 	/**
 	 * Get the minimum number of formal parameters.
-	 * 
+	 *
 	 * @return The parameter count.
 	 */
+	@Override
 	public int getMinimumParameters() {
 		return 0;
 	}

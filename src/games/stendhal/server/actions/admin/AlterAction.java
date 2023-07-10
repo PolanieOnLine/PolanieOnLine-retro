@@ -1,6 +1,5 @@
-/* $Id: AlterAction.java,v 1.21 2011/04/02 15:44:19 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -24,21 +23,21 @@ import static games.stendhal.common.constants.Actions.TARGET;
 import static games.stendhal.common.constants.Actions.TITLE;
 import static games.stendhal.common.constants.Actions.UNSET;
 import static games.stendhal.common.constants.Actions.VALUE;
-import games.stendhal.common.grammar.Grammar;
+
 import games.stendhal.server.actions.CommandCenter;
 import games.stendhal.server.core.engine.GameEvent;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.player.Player;
 import marauroa.common.game.Definition;
-import marauroa.common.game.RPAction;
-import marauroa.common.game.RPClass;
 import marauroa.common.game.Definition.DefinitionClass;
 import marauroa.common.game.Definition.Type;
+import marauroa.common.game.RPAction;
+import marauroa.common.game.RPClass;
 
 public class AlterAction extends AdministrationAction {
 
 	public static void register() {
-		CommandCenter.register(ALTER, new AlterAction(), 16);
+		CommandCenter.register(ALTER, new AlterAction(), 30);
 	}
 
 	@Override
@@ -83,13 +82,35 @@ public class AlterAction extends AdministrationAction {
 				final String value = action.get(VALUE);
 				final String mode = action.get(MODE);
 
-				if ((mode.length() > 0) && !mode.equalsIgnoreCase(ADD) 
+				if ((mode.length() > 0) && !mode.equalsIgnoreCase(ADD)
 						&& !mode.equalsIgnoreCase(SUB) && !mode.equalsIgnoreCase(SET) && !mode.equalsIgnoreCase(UNSET)) {
 					player.sendPrivateText("Użyj jednego z trybów 'add', 'sub', 'set' lub 'unset'.");
 					return;
 				}
 
-				if (isParsableByInteger(type)) {
+				if (stat.equals("features") && changed instanceof Player) {
+					if (!mode.equalsIgnoreCase(ADD) && !mode.equalsIgnoreCase(SUB)) {
+						player.sendPrivateText("Użuj jednego z trybów 'add' lub 'sub'.");
+						return;
+					}
+
+					if (mode.equalsIgnoreCase(ADD)) {
+						String f_key;
+						String f_value;
+
+						if (value.contains(" ")) {
+							f_key = value.split(" ")[0];
+							f_value = value.replace(f_key, "").trim();
+						} else {
+							f_key = value;
+							f_value = "";
+						}
+
+						((Player) changed).setFeature(f_key, f_value);
+					} else if (mode.equalsIgnoreCase(SUB)) {
+						((Player) changed).unsetFeature(value);
+					}
+				} else if (isParsableByInteger(type)) {
 					int numberValue;
 
 					try {
@@ -109,38 +130,38 @@ public class AlterAction extends AdministrationAction {
 
 					if (ATTR_HP.equals(stat) && (changed.getInt("base_hp") < numberValue)) {
 						logger.info("Admin " + player.getName() + " trying to set entity "
-								+ Grammar.suffix_s(action.get(TARGET)) + " HP over its Base HP, "
+								+ action.get(TARGET) + " HP over its Base HP, "
 								+ "we instead restored entity " + action.get(TARGET) + " to full health.");
 						numberValue = changed.getInt("base_hp");
 					}
 
 					if (ATTR_HP.equals(stat) && (numberValue <= 0)) {
 						logger.error("DENIED: Admin " + player.getName() + " trying to set entity "
-								+ Grammar.suffix_s(action.get(TARGET)) + " HP to 0, making it so unkillable.");
+								+ action.get(TARGET) + " HP to 0, making it so unkillable.");
 						return;
 					}
 
 					switch (type.getType()) {
-					case BYTE:
-						if ((numberValue > Byte.MAX_VALUE)
-								|| (numberValue < Byte.MIN_VALUE)) {
-							return;
-						}
-						break;
-					case SHORT:
-						if ((numberValue > Short.MAX_VALUE)
-								|| (numberValue < Short.MIN_VALUE)) {
-							return;
-						}
-						break;
-					case INT:
-						/*
-						 * as numberValue is currently of type integer, this is
-						 * pointless: if ((numberValue > Integer.MAX_VALUE) ||
-						 * (numberValue < Integer.MIN_VALUE)) { return; }
-						 */
-						break;
-					default:
+						case BYTE:
+							if ((numberValue > Byte.MAX_VALUE)
+									|| (numberValue < Byte.MIN_VALUE)) {
+								return;
+							}
+							break;
+						case SHORT:
+							if ((numberValue > Short.MAX_VALUE)
+									|| (numberValue < Short.MIN_VALUE)) {
+								return;
+							}
+							break;
+						case INT:
+							/*
+							 * as numberValue is currently of type integer, this is
+							 * pointless: if ((numberValue > Integer.MAX_VALUE) ||
+							 * (numberValue < Integer.MIN_VALUE)) { return; }
+							 */
+							break;
+						default:
 							// we switch over an enum
 							break;
 					}

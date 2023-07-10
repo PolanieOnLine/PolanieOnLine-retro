@@ -1,4 +1,4 @@
-/* $Id: ExpressionTest.java,v 1.1 2011/05/01 19:41:43 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -15,9 +15,6 @@ package games.stendhal.common.parser;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import games.stendhal.common.parser.ConversationParser;
-import games.stendhal.common.parser.Expression;
-import games.stendhal.common.parser.Sentence;
 
 import org.junit.Test;
 

@@ -5,6 +5,12 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.junit.Assert.assertThat;
+
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.events.TurnNotifier;
@@ -18,20 +24,14 @@ import games.stendhal.server.entity.spell.exception.SpellNotCooledDownException;
 import games.stendhal.server.maps.MockStendhalRPRuleProcessor;
 import games.stendhal.server.maps.MockStendlRPWorld;
 import marauroa.common.game.RPObject.ID;
-
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import utilities.PlayerTestHelper;
 /**
  * Tests for Spells
- * 
+ *
  * @author madmetzger
  */
 public class SpellTest {
-	
+
 	private Spell healingSpell;
 	private Spell attackSpell;
 
@@ -40,18 +40,18 @@ public class SpellTest {
 		MockStendlRPWorld.get();
 		MockStendhalRPRuleProcessor.get();
 	}
-	
+
 	@AfterClass
 	public static void tearDownAfterClass() {
 		MockStendlRPWorld.reset();
 	}
-	
+
 	@Before
 	public void setUp() {
 		this.healingSpell = SingletonRepository.getEntityManager().getSpell("heal");
 		this.attackSpell = SingletonRepository.getEntityManager().getSpell("fireball");
 	}
-	
+
 	private Player createWizard() {
 		Player caster = PlayerTestHelper.createPlayer("wizard");
 		caster.setLevel(10);
@@ -59,22 +59,22 @@ public class SpellTest {
 		caster.setMana(1000);
 		return caster;
 	}
-	
+
 	private Player createTarget() {
 		Player target = PlayerTestHelper.createPlayer("target");
 		return target;
 	}
-	
+
 	@Test
 	public void testIsTargetValid() {
 		Player caster = createWizard();
 		Player target = createTarget();
 		boolean targetValid = healingSpell.isTargetValid(caster, target);
 		assertThat(Boolean.valueOf(targetValid), is(Boolean.TRUE));
-		Creature creature = SingletonRepository.getEntityManager().getCreature("rat");
+		Creature creature = SingletonRepository.getEntityManager().getCreature("szczur");
 		boolean creatureTargetValid = healingSpell.isTargetValid(caster, creature);
 		assertThat(Boolean.valueOf(creatureTargetValid), is(Boolean.FALSE));
-		Item i = SingletonRepository.getEntityManager().getItem("axe");
+		Item i = SingletonRepository.getEntityManager().getItem("topór");
 		boolean itemIsInvalid = healingSpell.isTargetValid(caster, i);
 		assertThat(Boolean.valueOf(itemIsInvalid), is(Boolean.FALSE));
 	}
@@ -82,27 +82,27 @@ public class SpellTest {
 	@Test(expected=InvalidSpellTargetException.class)
 	public void testIsTargetValidCreature() throws Exception {
 		Player caster = createWizard();
-		Creature creature = SingletonRepository.getEntityManager().getCreature("rat");
+		Creature creature = SingletonRepository.getEntityManager().getCreature("szczur");
 		boolean creatureTargetValid = healingSpell.isTargetValid(caster, creature);
 		assertThat(Boolean.valueOf(creatureTargetValid), is(Boolean.FALSE));
 		healingSpell.cast(caster, creature);
 	}
-	
+
 	@Test(expected=InvalidSpellTargetException.class)
 	public void testIsTargetValidItem() throws Exception {
 		Player caster = createWizard();
-		Item i = SingletonRepository.getEntityManager().getItem("axe");
+		Item i = SingletonRepository.getEntityManager().getItem("topór");
 		boolean itemIsInvalid = healingSpell.isTargetValid(caster, i);
 		assertThat(Boolean.valueOf(itemIsInvalid), is(Boolean.FALSE));
 		healingSpell.cast(caster, i);
 	}
-	
+
 	@Test
 	public void testCopyConstructor() throws Exception {
 		Spell copy = new HealingSpell(healingSpell);
 		assertThat(copy, is(healingSpell));
 	}
-	
+
 	@Test(expected=SpellNotCooledDownException.class)
 	public void testCoolDownNegative() throws Exception {
 		long lastCastTime = System.currentTimeMillis() + healingSpell.getCooldown();
@@ -111,7 +111,7 @@ public class SpellTest {
 		Player caster = createWizard();
 		healingSpell.cast(caster, target);
 	}
-	
+
 	@Test
 	public void testCoolDownPositive() throws Exception {
 		healingSpell.put("timestamp", String.valueOf(0L));
@@ -120,7 +120,7 @@ public class SpellTest {
 		Player caster = createWizard();
 		healingSpell.cast(caster, target);
 	}
-	
+
 	@Test
 	public void testPossibleSlots() throws Exception {
 		boolean inSpells = healingSpell.canBeEquippedIn("spells");
@@ -128,7 +128,7 @@ public class SpellTest {
 		boolean inBag = healingSpell.canBeEquippedIn("bag");
 		assertThat(Boolean.valueOf(inBag), is(Boolean.FALSE));
 	}
-	
+
 	@Test(expected=InsufficientManaException.class)
 	public void testManaCheckNegative() throws Exception {
 		Player caster = createWizard();
@@ -137,14 +137,14 @@ public class SpellTest {
 		Player target = createTarget();
 		healingSpell.cast(caster, target);
 	}
-	
+
 	@Test
 	public void testManaCheckPositive() throws Exception {
 		Player caster = createWizard();
 		Player target = createTarget();
 		healingSpell.cast(caster, target);
 	}
-	
+
 	@Test(expected=LevelRequirementNotFulfilledException.class)
 	public void testLevelCheckNegative() throws Exception {
 		Player caster = createWizard();
@@ -152,7 +152,7 @@ public class SpellTest {
 		Player target = createTarget();
 		healingSpell.cast(caster, target);
 	}
-	
+
 	@Test
 	public void testLevelCheckPositive() throws Exception {
 		Player caster = createWizard();
@@ -174,30 +174,30 @@ public class SpellTest {
 		assertThat(Integer.valueOf(target.getHP()), greaterThan(Integer.valueOf(1)));
 		assertThat(caster.getMagicSkillXp(healingSpell.getNature()), is(1));
 	}
-	
+
 	@Test
 	public void testAttackTargetPositive() throws Exception {
 		Player caster = createWizard();
 		Player target = createTarget();
-		Creature targetCreature = SingletonRepository.getEntityManager().getCreature("rat");
+		Creature targetCreature = SingletonRepository.getEntityManager().getCreature("szczur");
 		assertThat(Boolean.valueOf(attackSpell.isTargetValid(caster, target)), is(Boolean.TRUE));
 		assertThat(Boolean.valueOf(attackSpell.isTargetValid(caster, targetCreature)), is(Boolean.TRUE));
 	}
-	
+
 	@Test
 	public void testAttackTargetNegative() throws Exception {
 		Player caster = createWizard();
-		Item target = SingletonRepository.getEntityManager().getItem("axe");
+		Item target = SingletonRepository.getEntityManager().getItem("topór");
 		assertThat(Boolean.valueOf(attackSpell.isTargetValid(caster, target)), is(Boolean.FALSE));
 	}
-	
+
 	@Test
 	public void testAttackCastPositive() throws Exception {
 		StendhalRPZone zone = new StendhalRPZone("test");
 		Player caster = createWizard();
 		caster.setID(new ID(99, "test"));
 		caster.setAtk(10);
-		Creature targetCreature = SingletonRepository.getEntityManager().getCreature("rat");
+		Creature targetCreature = SingletonRepository.getEntityManager().getCreature("szczur");
 		targetCreature.setID(new ID(999, "test"));
 		Integer startingValue = Integer.valueOf(targetCreature.getHP());
 		zone.add(targetCreature);

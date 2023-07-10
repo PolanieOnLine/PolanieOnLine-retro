@@ -11,10 +11,10 @@
  ***************************************************************************/
 package games.stendhal.client.gui.j2d;
 
+import java.awt.Graphics;
+
 import games.stendhal.client.sprite.Sprite;
 import games.stendhal.client.sprite.SpriteStore;
-
-import java.awt.Graphics;
 
 /**
  * A painter for a background image that consists of 9 tiles, with the
@@ -26,15 +26,11 @@ import java.awt.Graphics;
  * dimensions.
  */
 public class BackgroundPainter {
-	final Sprite[] images;
-	/** Width of the tiles. */
-	private final int tileWidth;
-	/** Height of the tiles. */
-	private final int tileHeight;
-	
+	private final Sprite[] images;
+
 	/**
 	 * Create a new BackgroundPainter.
-	 * 
+	 *
 	 * @param image image name. The image dimensions should be multiples of 3.
 	 * 	The tiles used for painting will be the image divided uniformly to three
 	 *	in both vertical and horizontal directions
@@ -42,8 +38,8 @@ public class BackgroundPainter {
 	public BackgroundPainter(String image) {
 		SpriteStore store = SpriteStore.get();
 		Sprite mother = store.getSprite(image);
-		this.tileWidth = mother.getWidth() / 3;
-		this.tileHeight = mother.getHeight() / 3;
+		int tileWidth = mother.getWidth() / 3;
+		int tileHeight = mother.getHeight() / 3;
 		images = new Sprite[9];
 		int i = 0;
 		for (int y = 0; y < 3 * tileHeight; y += tileHeight) {
@@ -58,24 +54,22 @@ public class BackgroundPainter {
 	 * Create a new BackgroundPainter. The tiles used for painting will be cut
 	 * non-uniformly, so that the grid will be placed according to the given
 	 * dimensions.
-	 * 
+	 *
 	 * @param image image name
-	 * @param leftWidth width of the left tile row 
+	 * @param leftWidth width of the left tile row
 	 * @param centerWidth width of the center tile row
 	 * @param topHeight height of the top tile row
 	 * @param centerHeight height of the center tile row
 	 */
 	public BackgroundPainter(String image, int leftWidth, int centerWidth,
 			int topHeight, int centerHeight) {
-		tileWidth = 0;
-		tileHeight = 0;
 		SpriteStore store = SpriteStore.get();
 		Sprite mother = store.getSprite(image);
 		images = new Sprite[9];
 		int[] widths = new int[3];
 		widths[0] = leftWidth;
 		widths[1] = centerWidth;
-		widths[2] = mother.getWidth() - leftWidth - centerWidth; 
+		widths[2] = mother.getWidth() - leftWidth - centerWidth;
 		int[] heights = new int[3];
 		heights[0] = topHeight;
 		heights[1] = centerHeight;
@@ -96,7 +90,7 @@ public class BackgroundPainter {
 
 	/**
 	 * Paint an area with the image pattern.
-	 * 
+	 *
 	 * @param g graphics
 	 * @param width width of the painted area
 	 * @param height height of the painted area
@@ -111,7 +105,7 @@ public class BackgroundPainter {
 				centerSprite.draw(g, x, y);
 			}
 		}
-		
+
 		// Sides
 		// Some needed dimensions (and sprites)
 		Sprite rightSprite = images[5];
@@ -122,7 +116,7 @@ public class BackgroundPainter {
 		int topHeight = topSprite.getHeight();
 		Sprite bottomSprite = images[7];
 		int bottomHeight = bottomSprite.getHeight();
-		
+
 		// Top row.
 		for (int x = leftWidth; x < width - rightWidth; x += centerWidth) {
 			topSprite.draw(g, x, 0);
@@ -133,7 +127,7 @@ public class BackgroundPainter {
 		}
 		/*
 		 * The rest of the sides will not tile properly, but the background
-		 * pattern is subtle enough that it will not be immediately noticeable. 
+		 * pattern is subtle enough that it will not be immediately noticeable.
 		 */
 		// right side
 		// Do not draw over the left side, but let the image overflow from the
@@ -149,7 +143,7 @@ public class BackgroundPainter {
 		for (int x = centerWidth; x < width - centerWidth; x += centerWidth) {
 			bottomSprite.draw(g, x, bottomY);
 		}
-		
+
 		// Corners. Again, only the first one will tile properly
 		// Top left corner
 		Sprite sprite = images[0];

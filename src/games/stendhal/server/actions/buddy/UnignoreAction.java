@@ -1,6 +1,5 @@
-/* $Id: UnignoreAction.java,v 1.7 2010/09/19 02:21:47 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2013 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -13,21 +12,24 @@
 package games.stendhal.server.actions.buddy;
 
 import static games.stendhal.common.constants.Actions.TARGET;
+
 import games.stendhal.server.actions.ActionListener;
 import games.stendhal.server.entity.player.Player;
 import marauroa.common.game.RPAction;
 
+/**
+ * removes a player from the ignore list
+ */
 class UnignoreAction implements ActionListener {
 
+	@Override
 	public void onAction(final Player player, final RPAction action) {
 		if (action.has(TARGET)) {
 			final String who = action.get(TARGET);
 			if (player.getIgnore(who) == null) {
-				player.sendPrivateText(who
-						+ " nie jest ignorowany przez Ciebie.");
+				player.sendPrivateText(who + " nie jest ignorowany przez Ciebie.");
 			} else if (player.removeIgnore(who)) {
-				player.sendPrivateText(who
-						+ " został usunięty z listy ignorowanych.");
+				player.sendPrivateText(who + " został usunięty z listy ignorowanych.");
 			}
 		}
 

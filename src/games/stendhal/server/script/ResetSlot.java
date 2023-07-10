@@ -1,6 +1,5 @@
-/* $Id: ResetSlot.java,v 1.4 2012/05/30 18:50:04 kiheru Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,19 +11,18 @@
  ***************************************************************************/
 package games.stendhal.server.script;
 
+import java.util.List;
+
 import games.stendhal.common.NotificationType;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.scripting.ScriptImpl;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.List;
-
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPSlot;
 
 /**
  * Resets an RPSlot.
- * 
+ *
  * @author kymara
  */
 public class ResetSlot extends ScriptImpl {
@@ -59,7 +57,7 @@ public class ResetSlot extends ScriptImpl {
 		slot.add(new RPObject());
 
 		// notify the player
-		player.sendPrivateText(NotificationType.SUPPORT, 
+		player.sendPrivateText(NotificationType.SUPPORT,
 				"Stan twojego " + args.get(1) + " został zresetowany przez "
 				+ admin.getTitle());
 	}

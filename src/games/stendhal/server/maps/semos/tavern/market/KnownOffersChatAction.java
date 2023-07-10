@@ -1,4 +1,3 @@
-/* $Id: KnownOffersChatAction.java,v 1.6 2011/05/01 19:50:07 martinfuchs Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -19,14 +18,14 @@ import games.stendhal.server.entity.npc.ChatAction;
 
 /**
  * abstract class for handling offer numbers in sentences
- *  
+ *
  * @author madmetzger
  */
 public abstract class KnownOffersChatAction implements ChatAction {
 	protected Integer getOfferNumberFromSentence(Sentence sentence) {
 		final SimilarExprMatcher matcher = new SimilarExprMatcher();
 		final int last = sentence.getExpressions().size();
-	
+
 		for (Expression expr : sentence.getExpressions().subList(1, last)) {
 			if (matcher.match(expr, new Expression("number", "NUM"))) {
 				/*

@@ -1,6 +1,5 @@
-/* $Id: FishSoup.java,v 1.15 2012/01/23 19:40:09 bluelads99 Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2011 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -11,6 +10,11 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 
 import games.stendhal.common.grammar.Grammar;
 import games.stendhal.common.parser.Sentence;
@@ -33,51 +37,41 @@ import games.stendhal.server.entity.npc.condition.QuestStateStartsWithCondition;
 import games.stendhal.server.entity.npc.condition.TimePassedCondition;
 import games.stendhal.server.entity.npc.condition.TriggerInListCondition;
 import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.entity.status.PoisonStatus;
 import games.stendhal.server.maps.Region;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-
 import marauroa.common.game.IRPZone;
 
 /**
  * QUEST: Special Fish Soup.
  * <p>
  * PARTICIPANTS: <ul><li> Florence Boullabaisse on Ados market</ul>
- * 
+ *
  * STEPS: <ul><li> Florence Boullabaisse tells you the ingredients of a special fish soup <li> You
  * collect the ingredients <li> You bring the ingredients to Florence <li> The soup
  * is served at a market table<li> Eating the soup heals you fully over time <li> Making it adds karma
  * </ul>
- * 
+ *
  * REWARD: <ul><li>healing soup <li> Karma bonus of 10 (if ingredients given individually)<li>50 XP</ul>
- * 
+ *
  * REPETITIONS: <ul><li> as many as desired <li> Only possible to repeat once every twenty
  * minutes</ul>
- * 
+ *
  * @author Vanessa Julius and Krupi (idea)
  */
 public class FishSoup extends AbstractQuest {
+	private static final String QUEST_SLOT = "fishsoup_maker";
+	private final SpeakerNPC npc = npcs.get("Florence Boullabaisse");
 
 	private static final List<String> NEEDED_FOOD = Arrays.asList("pokolec",
 			"dorsz", "palia alpejska", "płotka", "błazenek", "cebula", "makrela",
 			"czosnek", "por", "okoń", "pomidor");
 
-	private static final String QUEST_SLOT = "fishsoup_maker";
-
 	private static final int REQUIRED_MINUTES = 20;
 
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
-	
 	/**
 	 * Returns a list of the names of all food that the given player still has
 	 * to bring to fulfil the quest.
-	 * 
+	 *
 	 * @param player
 	 *            The player doing the quest
 	 * @param hash
@@ -122,8 +116,6 @@ public class FishSoup extends AbstractQuest {
 	}
 
 	private void step_1() {
-		final SpeakerNPC npc = npcs.get("Florence Boullabaisse");
-
 		// player says hi before starting the quest
 		npc.add(
 			ConversationStates.IDLE,
@@ -141,9 +133,9 @@ public class FishSoup extends AbstractQuest {
 			ConversationPhrases.GREETING_MESSAGES,
 			new AndCondition(new GreetingMatchesNameCondition(npc.getName()),
 					new QuestCompletedCondition(QUEST_SLOT),
-					new TimePassedCondition(QUEST_SLOT, 1, REQUIRED_MINUTES)),  
+					new TimePassedCondition(QUEST_SLOT, 1, REQUIRED_MINUTES)),
 			ConversationStates.QUEST_OFFERED,
-			"Witaj ponownie. Wróciłeś po mój specjał zupę rybną?",
+			"Witaj ponownie. Wróciłeś po mój specjał, zupę rybną?",
 			null);
 
 		// player returns after finishing the quest (it is repeatable) before
@@ -152,21 +144,22 @@ public class FishSoup extends AbstractQuest {
 				ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new GreetingMatchesNameCondition(npc.getName()),
 						new QuestCompletedCondition(QUEST_SLOT),
-						new NotCondition(new TimePassedCondition(QUEST_SLOT, 1, REQUIRED_MINUTES))), 
-				ConversationStates.ATTENDING, 
+						new NotCondition(new TimePassedCondition(QUEST_SLOT, 1, REQUIRED_MINUTES))),
+				ConversationStates.ATTENDING,
 				null,
 				new SayTimeRemainingAction(QUEST_SLOT, 1, REQUIRED_MINUTES , "Przykro mi, ale muszę umyć mój garnek nim zacznę gotować moją zupę dla Ciebie. Wróć za ")
 			);
 
 		// player responds to word 'revive'
-		npc.add(ConversationStates.INFORMATION_1, 
+		npc.add(ConversationStates.INFORMATION_1,
 				Arrays.asList("revive", "zobaczyć"),
 				new QuestNotStartedCondition(QUEST_SLOT),
-				ConversationStates.QUEST_OFFERED, 
+				ConversationStates.QUEST_OFFERED,
 				null,
 				new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
-					if (player.hasQuest(QUEST_SLOT) && player.isQuestCompleted(QUEST_SLOT)) { 
+					if (player.hasQuest(QUEST_SLOT) && player.isQuestCompleted(QUEST_SLOT)) {
 						npc.say("Mam teraz wszystko z przepisu na zupę rybną.");
 						npc.setCurrentState(ConversationStates.ATTENDING);
 					} else {
@@ -180,11 +173,11 @@ public class FishSoup extends AbstractQuest {
 		npc.add(ConversationStates.QUEST_OFFERED, Arrays.asList("ingredients", "składniki"), null,
 			ConversationStates.QUEST_OFFERED, null,
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					final List<String> needed = missingFood(player, true);
 					npc.say("Potrzebuję "
-							+ Grammar.quantityplnoun(needed.size(),
-									"składników", "one")
+							+ Grammar.quantityplnoun(needed.size(), "składników")
 							+ " nim ugotuję zupę: "
 							+ Grammar.enumerateCollection(needed)
 							+ ". Zbierzesz je?");
@@ -194,15 +187,15 @@ public class FishSoup extends AbstractQuest {
 		// player is willing to collect
 		npc.add(ConversationStates.QUEST_OFFERED,
 			ConversationPhrases.YES_MESSAGES, null,
-			ConversationStates.QUESTION_1, 
+			ConversationStates.QUESTION_1,
 			"Dokonałeś dobrego wyboru i założe się, że nie będziesz rozczarowany. Masz wszystko czego potrzebuję?",
 			new SetQuestAction(QUEST_SLOT, ""));
 
 		// player is not willing to help
 		npc.add(ConversationStates.QUEST_OFFERED,
-				ConversationPhrases.NO_MESSAGES, null,
-				ConversationStates.ATTENDING,
-				"Mam nadzieję, że kiedyś zmienisz zdanie. Tracisz to co najlepsze!", null);
+			ConversationPhrases.NO_MESSAGES, null,
+			ConversationStates.ATTENDING,
+			"Mam nadzieję, że kiedyś zmienisz zdanie. Tracisz to co najlepsze!", null);
 
 		// players asks about the ingredients individually
 		npc.add(
@@ -210,8 +203,8 @@ public class FishSoup extends AbstractQuest {
 			Arrays.asList("pokolec","dorsz", "palia alpejska", "płotka", "błazenek", "makrela", "okoń"),
 			null,
 			ConversationStates.QUEST_OFFERED,
-			"Są różne miejsca połowów w Faiumoni. Jeżęli chcesz wiedzieć gdzie możesz znaleść każdy z rodzjów ryby" +
-			" to zajrzyj do biblioteki w Ados. Przyniesziesz mi składniki?",
+			"Są różne miejsca połowów w Faiumoni. Jeżęli chcesz wiedzieć gdzie możesz znaleźć każdy z rodzjów ryby" +
+			" to zajrzyj do biblioteki w Ados. Przyniesiesz mi te składniki?",
 			null);
 
 		// players asks about the ingredients individually
@@ -222,14 +215,14 @@ public class FishSoup extends AbstractQuest {
 			ConversationStates.QUEST_OFFERED,
 			"Znajdziesz je w Fado. Przyniesiesz mi te składniki?",
 			null);
-		
+
 		// players asks about the ingredients individually
 		npc.add(
 			ConversationStates.QUEST_OFFERED,
 			Arrays.asList("pomidor", "czosnek"),
 			null,
 			ConversationStates.QUEST_OFFERED,
-			"Są z ogrodów w Kalavan City, a dostaniesz je od miłej ogrodniczki Sue, która sprzedaje te warzywa. " 
+			"Znajdziesz w ogrodach zaraz przy wiosce Kalavan. Dostaniesz je od miłej ogrodniczki Sue, która sprzedaje te warzywa. "
 			+ "Przyniesiesz mi te składniki?", null);
 	}
 
@@ -238,8 +231,6 @@ public class FishSoup extends AbstractQuest {
 	}
 
 	private void step_3() {
-		final SpeakerNPC npc = npcs.get("Florence Boullabaisse");
-
 		// player returns while quest is still active
 		npc.add(
 			ConversationStates.IDLE,
@@ -256,11 +247,12 @@ public class FishSoup extends AbstractQuest {
 			new AndCondition(new QuestStartedCondition(QUEST_SLOT), new NotCondition(new QuestStateStartsWithCondition(QUEST_SLOT, "done"))),
 			ConversationStates.QUESTION_1, null,
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					final List<String> needed = missingFood(player, true);
 					npc.say("Wciąż potrzebuję "
 							+ Grammar.quantityplnoun(needed.size(),
-									"składniki", "one") + ": "
+									"składniki") + ": "
 							+ Grammar.enumerateCollection(needed)
 							+ ". Przyniosłeś coś może?");
 				}
@@ -275,6 +267,7 @@ public class FishSoup extends AbstractQuest {
 			npc.add(ConversationStates.QUESTION_1, itemName, null,
 				ConversationStates.QUESTION_1, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 						List<String> missing = missingFood(player, false);
 
@@ -293,9 +286,8 @@ public class FishSoup extends AbstractQuest {
 									player.addKarma(15.0);
 									player.addXP(50);
 									placeSoupFor(player);
-									player.healPoison();
-									npc.say("Zupa dla Ciebie jest na stole na rynku. Uleczy Ciebie. "
-											+ "Mój magiczny sposób gotowania zupy daje też trochę karmy.");
+									player.getStatusList().removeAll(PoisonStatus.class);
+									npc.say("Zupa dla Ciebie jest na stole na rynku. Uzdrowi Ciebie. Mój magiczny sposób gotowania zupy daje też trochę karmy.");
 									player.setQuest(QUEST_SLOT, "done;"
 											+ System.currentTimeMillis());
 									player.notifyWorldAboutChanges();
@@ -303,7 +295,7 @@ public class FishSoup extends AbstractQuest {
 								}
 							} else {
 								npc.say("No nie. Nie mam czasu na żarty! Nie masz "
-									+ Grammar.a_noun(itemName)
+									+ itemName
 									+ " ze sobą.");
 							}
 						} else {
@@ -312,14 +304,15 @@ public class FishSoup extends AbstractQuest {
 					}
 				});
 		}
-		
+
 		// Perhaps player wants to give all the ingredients at once
 		npc.add(ConversationStates.QUESTION_1, Arrays.asList("everything", "wszystko"),
 				null,
 				ConversationStates.QUESTION_1,
 				null,
 				new ChatAction() {
-			    public void fire(final Player player, final Sentence sentence,
+			    @Override
+				public void fire(final Player player, final Sentence sentence,
 					   final EventRaiser npc) {
 			    	checkForAllIngredients(player, npc);
 			}
@@ -333,12 +326,12 @@ public class FishSoup extends AbstractQuest {
 
 		// allow to say goodbye while Florence is listening for food names
 		npc.add(ConversationStates.QUESTION_1, ConversationPhrases.GOODBYE_MESSAGES, null,
-				ConversationStates.IDLE, "Dowidzenia.", null);
+				ConversationStates.IDLE, "Do widzenia.", null);
 
 		npc.add(ConversationStates.ATTENDING, ConversationPhrases.NO_MESSAGES,
 			new AndCondition(new QuestStartedCondition(QUEST_SLOT), new NotCondition(new QuestStateStartsWithCondition(QUEST_SLOT, "done"))),
 			ConversationStates.ATTENDING,
-			"Nie jestem pewien czego ode mnie oczekujesz.", null);
+			"Nie jestem pewna czego ode mnie oczekujesz.", null);
 
 		// player says he didn't bring any Food to different question
 		npc.add(ConversationStates.QUESTION_1, ConversationPhrases.NO_MESSAGES,
@@ -361,11 +354,10 @@ public class FishSoup extends AbstractQuest {
 		missing = missingFood(player, true);
 		if (missing.size() > 0) {
 			npc.say("Nie miałeś wszystkich składników, które potrzebuje. Wciąż potrzebuję "
-							+ Grammar.quantityplnoun(missing.size(),
-									"składniki", "one") + ": "
+							+ Grammar.quantityplnoun(missing.size(), "składników") + ": "
 							+ Grammar.enumerateCollection(missing)
 							+ ". Dostaniesz złą karmę jeżeli nadal będziesz popełniał błędy takie jak ten!");
-			// to fix bug [ 2517439 ] 
+			// to fix bug [ 2517439 ]
 			player.addKarma(-5.0);
 			return;
 		} else {
@@ -373,18 +365,17 @@ public class FishSoup extends AbstractQuest {
 			// and no karma
 			player.addXP(30);
 			placeSoupFor(player);
-			player.healPoison();
-			npc.say("Zupa dla Ciebie jest na stole na rynku. Uleczy cię. Powiedz mi jeżeli mógłbym jeszcze w czymś pomóc.");
+			player.getStatusList().removeAll(PoisonStatus.class);
+			npc.say("Zupa dla Ciebie jest na stole na rynku. Uzdrowi cię. Powiedz mi jeżeli mógłbym jeszcze w czymś pomóc.");
 			player.setQuest(QUEST_SLOT, "done;"
 					+ System.currentTimeMillis());
 			player.notifyWorldAboutChanges();
 			npc.setCurrentState(ConversationStates.ATTENDING);
 		}
 	}
-	
+
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
 				"Zupa Rybna",
 				"Spróbuj zdobyć wszystkie składniki, które potrzebuję do zdrowej i smacznej zupy rybnej Florence Boullabaisse.",
@@ -393,7 +384,7 @@ public class FishSoup extends AbstractQuest {
 		step_2();
 		step_3();
 	}
-	
+
 	@Override
 	public List<String> getHistory(final Player player) {
 			final List<String> res = new ArrayList<String>();
@@ -411,16 +402,15 @@ public class FishSoup extends AbstractQuest {
 	}
 
 	@Override
-	public String getName() {
-		return "FishSoup";
+	public String getSlotName() {
+		return QUEST_SLOT;
 	}
-	
+
 	@Override
-	public boolean isRepeatable(final Player player) {
-		return	new AndCondition(new QuestCompletedCondition(QUEST_SLOT),
-						 new TimePassedCondition(QUEST_SLOT,1,REQUIRED_MINUTES)).fire(player, null, null);
+	public String getName() {
+		return "Zupa Rybna";
 	}
-	
+
 	@Override
 	public String getRegion() {
 		return Region.ADOS_CITY;
@@ -428,6 +418,12 @@ public class FishSoup extends AbstractQuest {
 
 	@Override
 	public String getNPCName() {
-		return "Florence Boullabaisse";
+		return npc.getName();
+	}
+
+	@Override
+	public boolean isRepeatable(final Player player) {
+		return	new AndCondition(new QuestCompletedCondition(QUEST_SLOT),
+					new TimePassedCondition(QUEST_SLOT,1,REQUIRED_MINUTES)).fire(player, null, null);
 	}
 }

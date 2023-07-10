@@ -14,10 +14,12 @@ package games.stendhal.server.entity.npc.behaviour.impl;
 
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.entity.status.BleedingStatus;
+import games.stendhal.server.entity.status.PoisonStatus;
 
 /**
  * <p>Represents the behaviour of a NPC who is able to heal a player. This can
- * either be done for free or paid in a lump sum, or for a price depending on 
+ * either be done for free or paid in a lump sum, or for a price depending on
  * level of the player</p>
  *
  * <p>Use SpeakerNPC.addHealer() to assign this behaviour to an NPC.</p>
@@ -26,7 +28,7 @@ public class HealerBehaviour extends SellerBehaviour {
 
 	/**
 	 * Creates a new HealerBehaviour.
-	 * 
+	 *
 	 * @param cost
 	 *            The lump sum that is required to heal
 	 */
@@ -38,13 +40,14 @@ public class HealerBehaviour extends SellerBehaviour {
 	/**
 	 * Restores the given player's health to the maximum possible at the
 	 * player's current level.
-	 * 
+	 *
 	 * @param player
 	 *            The player who should be healed.
 	 */
 	public void heal(final Player player) {
 		player.heal();
-		player.healPoison();
+		player.getStatusList().removeAll(PoisonStatus.class);
+		player.getStatusList().removeAll(BleedingStatus.class);
 		SingletonRepository.getRPWorld().modify(player);
 	}
 }

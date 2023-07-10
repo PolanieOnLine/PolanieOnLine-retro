@@ -1,7 +1,7 @@
 /*
  * @(#) src/games/stendhal/server/actions/AwayAction.java
  *
- * $Id: AwayAction.java,v 1.5 2010/08/07 13:53:00 kymara Exp $
+ * $Id$
  */
 
 package games.stendhal.server.actions.chat;
@@ -9,6 +9,7 @@ package games.stendhal.server.actions.chat;
 import static games.stendhal.common.constants.Actions.AWAY;
 import static games.stendhal.common.constants.Actions.MESSAGE;
 import static games.stendhal.common.constants.Actions.TYPE;
+
 import games.stendhal.server.actions.ActionListener;
 import games.stendhal.server.actions.CommandCenter;
 import games.stendhal.server.entity.player.GagManager;
@@ -31,22 +32,24 @@ public class AwayAction implements ActionListener {
 
 	/**
 	 * changes away status depending on existence of MESSAGE in action.
-	 * 
+	 *
 	 * If action contains MESSAGE, the away status is set else the away status
 	 * is unset.
-	 * 
+	 *
 	 * @param player
 	 *            The player.
 	 * @param action
 	 *            The action.
 	 */
+	@Override
 	public void onAction(final Player player, final RPAction action) {
 		if (Jail.isInJail(player) || GagManager.isGagged(player)) {
 			player.sendPrivateText("Nie możesz zmienić stanu na zajęty.");
 		} else {
 			if (AWAY.equals(action.get(TYPE))) {
 				if (action.has(MESSAGE)) {
-					player.setAwayMessage(action.get(MESSAGE));
+				player.setAwayMessage(QuoteSpecials.quote(
+						"\"" + action.get(MESSAGE) + "\""));
 				} else {
 					player.setAwayMessage(null);
 					// get the postman messages you might have received when you were away

@@ -1,6 +1,5 @@
-/* $Id: StendhalClient.java,v 1.258 2012/08/02 21:19:14 kiheru Exp $ */
 /***************************************************************************
- *                      (C) Copyright 2003 - Marauroa                      *
+ *                   (C) Copyright 2003-2018 - Marauroa                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,20 +11,13 @@
  ***************************************************************************/
 package games.stendhal.client;
 
-import games.stendhal.client.entity.User;
-import games.stendhal.client.gui.login.CharacterDialog;
-import games.stendhal.client.listener.FeatureChangeListener;
-import games.stendhal.client.sprite.DataLoader;
-import games.stendhal.client.update.ClientGameConfiguration;
-import games.stendhal.client.update.HttpClient;
-import games.stendhal.common.Direction;
-import games.stendhal.common.Version;
-
+import java.awt.event.KeyEvent;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -37,6 +29,17 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
+import org.apache.log4j.Logger;
+
+import games.stendhal.client.entity.User;
+import games.stendhal.client.gui.chatlog.HeaderLessEventLine;
+import games.stendhal.client.gui.login.CharacterDialog;
+import games.stendhal.client.sprite.DataLoader;
+import games.stendhal.client.update.ClientGameConfiguration;
+import games.stendhal.client.update.HttpClient;
+import games.stendhal.common.Direction;
+import games.stendhal.common.NotificationType;
+import games.stendhal.common.Version;
 import marauroa.client.BannedAddressException;
 import marauroa.client.ClientFramework;
 import marauroa.client.TimeoutException;
@@ -50,8 +53,6 @@ import marauroa.common.net.InvalidVersionException;
 import marauroa.common.net.message.MessageS2CPerception;
 import marauroa.common.net.message.TransferContent;
 
-import org.apache.log4j.Logger;
-
 /**
  * This class is the glue to Marauroa, it extends ClientFramework and allows us
  * to easily connect to an marauroa server and operate it easily.
@@ -61,7 +62,7 @@ public class StendhalClient extends ClientFramework {
 	/** the logger instance. */
 	private static final Logger logger = Logger.getLogger(StendhalClient.class);
 
-	final Map<RPObject.ID, RPObject> world_objects;
+	private final Map<RPObject.ID, RPObject> worldObjects;
 
 	private final PerceptionHandler handler;
 
@@ -75,19 +76,22 @@ public class StendhalClient extends ClientFramework {
 
 	private final Cache cache;
 
-	private final ArrayList<Direction> directions;
+	private final List<Direction> directions;
+
+	/** List of keys that are currently in the "pressed" state. */
+	private static List<Integer> pressedStateKeys = new ArrayList<Integer>();
 
 	private static final String LOG4J_PROPERTIES = "data/conf/log4j.properties";
 
 	private String userName = "";
 
-	private String character = null;
+	private String character;
 
 	private final UserContext userContext;
 
 	/** Listeners to be called when zone changes. */
 	private final List<ZoneChangeListener> zoneChangeListeners = new ArrayList<ZoneChangeListener>();
-	
+
 	/**
 	 * The amount of content yet to be transfered.
 	 */
@@ -96,39 +100,51 @@ public class StendhalClient extends ClientFramework {
 	/**
 	 * Whether the client is in a batch update.
 	 */
-	private boolean inBatchUpdate = false;
+	private boolean inBatchUpdate;
 	private final ReentrantLock drawingSemaphore = new ReentrantLock();
 
-	private final StendhalPerceptionListener stendhalPerceptionListener;
 	/** The zone currently under loading. */
 	private Zone currentZone;
-	
+
 	private JFrame splashScreen;
 
+	/**
+	 * Get the client instance.
+	 *
+	 * @return client instance
+	 */
 	public static StendhalClient get() {
 		return client;
 	}
 
+	/**
+	 * Set the client instance to <code>null</code>.
+	 */
 	public static void resetClient() {
 		client = null;
 	}
 
-	public StendhalClient(final UserContext userContext, final PerceptionDispatcher perceptionDispatcher) {
+	/**
+	 * Create a new StendhalClient.
+	 *
+	 * @param userContext
+	 * @param perceptionDispatcher
+	 */
+	StendhalClient(final UserContext userContext, final PerceptionDispatcher perceptionDispatcher) {
 		super(LOG4J_PROPERTIES);
 		client = this;
 		ClientSingletonRepository.setClientFramework(this);
 
-		world_objects = new HashMap<RPObject.ID, RPObject>();
+		worldObjects = new HashMap<RPObject.ID, RPObject>();
 		staticLayers = new StaticGameLayers();
 		gameObjects = GameObjects.createInstance(staticLayers);
 		this.userContext = userContext;
 
 		rpobjDispatcher = new RPObjectChangeDispatcher(gameObjects, userContext);
 		final PerceptionToObject po = new PerceptionToObject();
-		po.setObjectFactory(new ObjectFactory());
 		perceptionDispatcher.register(po);
-		stendhalPerceptionListener = new StendhalPerceptionListener(perceptionDispatcher, rpobjDispatcher, userContext, world_objects);
-		handler = new PerceptionHandler(stendhalPerceptionListener);
+		StendhalPerceptionListener perceptionListener = new StendhalPerceptionListener(perceptionDispatcher, rpobjDispatcher, userContext, worldObjects);
+		handler = new PerceptionHandler(perceptionListener);
 
 		cache = new Cache();
 		cache.init();
@@ -146,25 +162,32 @@ public class StendhalClient extends ClientFramework {
 		return stendhal.VERSION;
 	}
 
+	/**
+	 * Get the map layers.
+	 *
+	 * @return map layers
+	 */
 	public StaticGameLayers getStaticGameLayers() {
 		return staticLayers;
 	}
 
+	/**
+	 * Get the game objects container.
+	 *
+	 * @return game objects
+	 */
 	public GameObjects getGameObjects() {
 		return gameObjects;
 	}
 
 	/**
 	 * Handle sync events before they are dispatched.
-	 * 
-	 * @param zoneid
-	 *            The zone entered.
 	 */
-	protected void onBeforeSync(final String zoneid) {
+	private void onBeforeSync() {
 		/*
 		 * Simulate object disassembly
 		 */
-		for (final RPObject object : world_objects.values()) {
+		for (final RPObject object : worldObjects.values()) {
 			if (object != userContext.getPlayer()) {
 				rpobjDispatcher.dispatchRemoved(object);
 			}
@@ -175,14 +198,6 @@ public class StendhalClient extends ClientFramework {
 		}
 
 		gameObjects.clear();
-
-		// If player exists, notify zone leaving.
-		if (!User.isNull()) {
-			WorldObjects.fireZoneLeft(User.get().getID().getZoneID());
-		}
-
-		// Notify zone entering.
-		WorldObjects.fireZoneEntered(zoneid);
 	}
 
 	@Override
@@ -193,10 +208,10 @@ public class StendhalClient extends ClientFramework {
 			}
 
 			if (message.getPerceptionType() == Perception.SYNC) {
-				onBeforeSync(message.getRPZoneID().getID());
+				onBeforeSync();
 			}
 
-			handler.apply(message, world_objects);
+			handler.apply(message, worldObjects);
 		} catch (final Exception e) {
 			logger.error("error processing message " + message, e);
 		}
@@ -205,7 +220,7 @@ public class StendhalClient extends ClientFramework {
 			validateAndUpdateZone(currentZone);
 			inBatchUpdate = false;
 			/*
-			 * Rapid zone change can cause two content transfers in a row. 
+			 * Rapid zone change can cause two content transfers in a row.
 			 * Similarly a zone update that happens when the player changes
 			 * zones. Only the latter will ever get a perception, so we need to
 			 * release any locks we are holding, or the game screen will be
@@ -230,7 +245,7 @@ public class StendhalClient extends ClientFramework {
 			final String name = item.name;
 			final int i = name.indexOf(".0_floor");
 			if (i > -1) {
-			currentZone = new Zone(name.substring(0, i));
+				currentZone = new Zone(name.substring(0, i));
 				break;
 			}
 		}
@@ -245,7 +260,7 @@ public class StendhalClient extends ClientFramework {
 				drawingSemaphore.lock();
 				staticLayers.clear();
 				for (ZoneChangeListener listener : zoneChangeListeners) {
-					listener.onZoneChange();
+					listener.onZoneChange(currentZone);
 				}
 			}
 		}
@@ -267,7 +282,6 @@ public class StendhalClient extends ClientFramework {
 					contentHandling(item.name, is);
 					is.close();
 				} catch (final Exception e) {
-					e.printStackTrace();
 					logger.error(e, e);
 
 					// request retransmission
@@ -288,27 +302,29 @@ public class StendhalClient extends ClientFramework {
 
 	/**
 	 * Add a listener to be called when the player changes zone.
-	 * 
-	 * @param listener
+	 *
+	 * @param listener added listener
 	 */
 	public void addZoneChangeListener(ZoneChangeListener listener) {
 		zoneChangeListeners.add(listener);
 	}
 
 	/**
-	 * Determine if we are in the middle of transfering new content.
-	 * 
+	 * Determine if we are in the middle of transferring new content that should
+	 * suppress drawing during the transfer.
+	 *
 	 * @return <code>true</code> if more content is to be transfered.
 	 */
 	public boolean isInTransfer() {
-		return (contentToLoad != 0);
+		// Keep drawing normally during coloring update transfers.
+		return ((contentToLoad != 0) && (currentZone != null) && !currentZone.isUpdate());
 	}
 
 	/**
-	 * Load layer data
-	 * 
+	 * Load layer data.
+	 *
 	 * @param name name of the layer
-	 * @param in
+	 * @param in data source
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
@@ -342,7 +358,7 @@ public class StendhalClient extends ClientFramework {
 				 * data.
 				 */
 				if (item.name.startsWith(currentZone.getName() + ".")) {
-				contentHandling(item.name, new ByteArrayInputStream(item.data));
+					contentHandling(item.name, new ByteArrayInputStream(item.data));
 				} else {
 					// Still waiting for the real data
 					contentToLoad++;
@@ -372,7 +388,7 @@ public class StendhalClient extends ClientFramework {
 	protected void onAvailableCharacterDetails(final Map<String, RPObject> characters) {
 
 		// if there are no characters, create one with the specified name automatically
-		if (characters.size() == 0) {
+		if (characters.isEmpty()) {
 			if (character == null) {
 				character = getAccountUsername();
 			}
@@ -391,7 +407,7 @@ public class StendhalClient extends ClientFramework {
 		}
 
 		// autologin if a valid character was specified.
-		if ((character != null) && (characters.keySet().contains(character))) {
+		if ((character != null) && (characters.containsKey(character))) {
 			try {
 				chooseCharacter(character);
 				stendhal.setDoLogin();
@@ -406,6 +422,7 @@ public class StendhalClient extends ClientFramework {
 
 		// show character dialog
 		SwingUtilities.invokeLater(new Runnable() {
+			@Override
 			public void run() {
 				new CharacterDialog(characters, splashScreen);
 			}
@@ -419,18 +436,27 @@ public class StendhalClient extends ClientFramework {
 
 	@Override
 	protected void onPreviousLogins(final List<String> previousLogins) {
-		// TODO: display this to the player
+		GameLoop.get().runOnce(new Runnable() {
+			@Override
+			public void run() {
+				for (String login : previousLogins) {
+					NotificationType type = (login.indexOf("FAILED") != -1) ? NotificationType.WARNING : NotificationType.SERVER;
+					ClientSingletonRepository.getUserInterface().addEventLine(new HeaderLessEventLine("Poprzednie " + login, type));
+				}
+			}
+		});
 	}
 
 	/**
 	 * Add an active player movement direction.
-	 * 
+	 *
 	 * @param dir
 	 *            The direction.
-	 * @param face
-	 *            If to face direction only.
+	 * @param face If to face direction only.
+	 *
+	 * @return <code>true</code> if an action was sent, otherwise <code>false</code>
 	 */
-	public void addDirection(final Direction dir, final boolean face) {
+	public boolean addDirection(final Direction dir, final boolean face) {
 		RPAction action;
 		Direction odir;
 		int idx;
@@ -462,7 +488,7 @@ public class StendhalClient extends ClientFramework {
 
 			if (idx == (directions.size() - 1)) {
 				logger.debug("Ignoring same direction: " + dir);
-				return;
+				return false;
 			}
 
 			/*
@@ -473,19 +499,21 @@ public class StendhalClient extends ClientFramework {
 
 		directions.add(dir);
 
-	if (face) {
-		action = new FaceRPAction(dir);
-	} else {
-		action = new MoveRPAction(dir);
-	}
-		
-	send(action);
+		if (face) {
+			action = new FaceRPAction(dir);
+		} else {
+			action = new MoveRPAction(dir);
+		}
+
+		send(action);
+
+		return true;
 	}
 
 
 /**
 	 * Remove a player movement direction.
-	 * 
+	 *
 	 * @param dir
 	 *            The direction.
 	 * @param face
@@ -517,10 +545,8 @@ public class StendhalClient extends ClientFramework {
 		} else {
 			if (face) {
 				action = new FaceRPAction(directions.get(size - 1));
-
 			} else {
 				action = new MoveRPAction(directions.get(size - 1));
-
 			}
 		}
 
@@ -541,40 +567,48 @@ public class StendhalClient extends ClientFramework {
 		send(rpaction);
 	}
 
-	public void addFeatureChangeListener(final FeatureChangeListener l) {
-		userContext.addFeatureChangeListener(l);
-	}
-
-	public void removeFeatureChangeListener(final FeatureChangeListener l) {
-		userContext.removeFeatureChangeListener(l);
-	}
-
-
-	//
-	//
-
+	/**
+	 * Set the account name.
+	 *
+	 * @param username account name
+	 */
 	public void setAccountUsername(final String username) {
 		userContext.setName(username);
 		userName = username;
 	}
 
+	/**
+	 * Get the character name.
+	 *
+	 * @return character name
+	 */
 	public String getCharacter() {
 		return character;
 	}
 
+	/**
+	 * Set the character name.
+	 *
+	 * @param character name
+	 */
 	public void setCharacter(String character) {
 		this.character = character;
 	}
 
 	/**
 	 * Set the splash screen window. Used for transient windows.
-	 * 
+	 *
 	 * @param splash first screen window
 	 */
 	public void setSplashScreen(JFrame splash) {
 		splashScreen = splash;
 	}
 
+	/**
+	 * Get the account name.
+	 *
+	 * @return account name
+	 */
 	public String getAccountUsername() {
 		return userName;
 	}
@@ -586,10 +620,10 @@ public class StendhalClient extends ClientFramework {
 	 *
 	 * @param object
 	 *            An object.
-	 * 
+	 *
 	 * @return <code>true</code> if it is the user object.
 	 */
-	public boolean isUser(final RPObject object) {
+	boolean isUser(final RPObject object) {
 		if (object.getRPClass().subclassOf("player")) {
 			return getCharacter().equalsIgnoreCase(object.get("name"));
 		} else {
@@ -599,29 +633,50 @@ public class StendhalClient extends ClientFramework {
 
 	/**
 	 * Return the Cache instance.
-	 * 
+	 *
 	 * @return cache
 	 */
 	public Cache getCache() {
 		return cache;
 	}
-	static class MoveRPAction extends RPAction {
-		public MoveRPAction(final Direction dir) {
+
+	/**
+	 * Action for moving by direction.
+	 */
+	private static final class MoveRPAction extends RPAction {
+		/**
+		 * Create a MoveRPAction.
+		 *
+		 * @param dir movement direction
+		 */
+		private MoveRPAction(final Direction dir) {
 			put("type", "move");
 			put("dir", dir.get());
 		}
 	}
 
-	static class FaceRPAction extends RPAction {
-		public FaceRPAction(final Direction dir) {
+	/**
+	 * Action for turning the player.
+	 */
+	private static final class FaceRPAction extends RPAction {
+		/**
+		 * Create a FaceRPAction.
+		 *
+		 * @param dir looking direction
+		 */
+		private FaceRPAction(final Direction dir) {
 			put("type", "face");
 			put("dir", dir.get());
 		}
 	}
 
+	/**
+	 * Get the RPObject of the user.
+	 *
+	 * @return player object
+	 */
 	public RPObject getPlayer() {
 		return userContext.getPlayer();
-		
 	}
 
 	@Override
@@ -635,10 +690,19 @@ public class StendhalClient extends ClientFramework {
 		return res;
 	}
 
+	/**
+	 * Release the drawing semaphore.
+	 */
 	public void releaseDrawingSemaphore() {
 		drawingSemaphore.unlock();
 	}
 
+	/**
+	 * Try to acquire the drawing semaphore.
+	 *
+	 * @return <code>true</code> if the semaphore was acquired, otherwise
+	 * 	<code>false</code>
+	 */
 	public boolean tryAcquireDrawingSemaphore() {
 		return drawingSemaphore.tryLock();
 	}
@@ -647,17 +711,28 @@ public class StendhalClient extends ClientFramework {
 	 * Interface for listeners that need to be informed when the user is
 	 * changing zone.
 	 */
-	public static interface ZoneChangeListener {
+	public interface ZoneChangeListener {
 		/**
 		 * Called when the user is changing zone.
+		 *
+		 * @param zone the new zone to be changed to. <b>This is not guaranteed
+		 * 	to have complete zone data at this stage.</b>
 		 */
-		void onZoneChange();
+		void onZoneChange(Zone zone);
+		/**
+		 * Called when the user has changed zone.
+		 *
+		 * @param zone the new zone
+		 */
+		void onZoneChangeCompleted(Zone zone);
 		/**
 		 * Called when the zone is updated, such as when the coloring changes.
+		 *
+		 * @param zone the updated zone
 		 */
-		void onZoneUpdate();
+		void onZoneUpdate(Zone zone);
 	}
-	
+
 	/**
 	 * Validate a zone (prepare the tilesets), and set it as the current zone.
 	 * Zones that are just updates (changed colors, for example), get validated
@@ -677,6 +752,7 @@ public class StendhalClient extends ClientFramework {
 					// name checking works correctly, and that there aren't two
 					// zone changes happening from two different threads.
 					GameLoop.get().runOnce(new Runnable() {
+						@Override
 						public void run() {
 							if (!zone.getName().equals(staticLayers.getAreaName())) {
 								/*
@@ -688,7 +764,7 @@ public class StendhalClient extends ClientFramework {
 							}
 							staticLayers.setZone(zone);
 							for (ZoneChangeListener listener : zoneChangeListeners) {
-								listener.onZoneUpdate();
+								listener.onZoneUpdate(zone);
 							}
 						}
 					});
@@ -698,12 +774,17 @@ public class StendhalClient extends ClientFramework {
 		} else {
 			zone.validate();
 			staticLayers.setZone(zone);
+			for (ZoneChangeListener listener : zoneChangeListeners) {
+				listener.onZoneChangeCompleted(zone);
+			}
 		}
 	}
 
 	/**
 	 * Connect to the server, and if our version is too outdated, display a message.
 	 *
+	 * @param host host name
+	 * @param port host port
 	 * @throws IOException in case of an input/output error
 	 */
 	@Override
@@ -713,7 +794,7 @@ public class StendhalClient extends ClientFramework {
 		// include gamename, so that arianne.sf.net can ignore non stendhal games
 		// include server name and port because we want to support different versions for
 		// the main server and the test server
-		String url = "http://polskaonline.sourceforge.net/versioncheck/"
+		String url = ClientGameConfiguration.get("DEFAULT_SERVER_WEB") + "/versioncheck/"
 				+ URLEncoder.encode(gameName, "UTF-8") + "/"
 				+ URLEncoder.encode(host, "UTF-8") + "/"
 				+ URLEncoder.encode(Integer.toString(port), "UTF-8") + "/"
@@ -734,11 +815,80 @@ public class StendhalClient extends ClientFramework {
 
 		// work around a bug in the chat-action definition in 0.98 and below
 		String type = action.get("type");
-		String serverVersion = User.getServerRelease();
-		if (((serverVersion == null) || (serverVersion.compareTo("0.40")) >= 0) && (RPClass.getRPClass(type) != null)) {
+		if (serverVersionAtLeast("0.99") && (RPClass.getRPClass(type) != null)) {
 			action.setRPClass(type);
 			action.remove("type");
 		}
 		super.send(action);
+	}
+
+	/**
+	 * Check if the connected server is of at least as recent as the specified
+	 * version.
+	 *
+	 * @param required string representation of required server version
+	 * @return <code>true</code> if the server is new enough, or the version
+	 * is unknown, <code>false</code> if the server is older than the required
+	 * version
+	 */
+	public static boolean serverVersionAtLeast(String required) {
+		String serverVersion = User.getServerRelease();
+		return (serverVersion == null) || (Version.compare(serverVersion, required) >= 0);
+	}
+
+	/**
+	 * Check if a keyboard key is in the "pressed" state.
+	 *
+	 * @param keyCode
+	 *        The integer code for the key
+	 * @return
+	 *         <b>true</b> if code is found in pressedStateKeys list
+	 */
+	public boolean keyIsPressed(final int keyCode) {
+		return pressedStateKeys.contains(keyCode);
+	}
+
+	/**
+	 * Check if any direction key is in "pressed" state.
+	 *
+	 * @return
+	 *         Direction key found in pressedStateKeys list
+	 */
+	public boolean directionKeyIsPressed() {
+		return pressedStateKeys.contains(KeyEvent.VK_UP)
+				|| pressedStateKeys.contains(KeyEvent.VK_DOWN)
+				|| pressedStateKeys.contains(KeyEvent.VK_LEFT)
+				|| pressedStateKeys.contains(KeyEvent.VK_RIGHT)
+				|| pressedStateKeys.contains(KeyEvent.VK_KP_LEFT)
+				|| pressedStateKeys.contains(KeyEvent.VK_KP_RIGHT)
+				|| pressedStateKeys.contains(KeyEvent.VK_KP_UP)
+				|| pressedStateKeys.contains(KeyEvent.VK_KP_DOWN);
+	}
+
+	/**
+	 * Add a keypress to pressedStateKeys list.
+	 *
+	 * @param keyCode
+	 *        Key to add
+	 */
+	public void onKeyPressed(final int keyCode) {
+		if (!pressedStateKeys.contains(keyCode)) {
+			pressedStateKeys.add(keyCode);
+		}
+	}
+
+	/**
+	 * Remove a keypress from pressedStateKeys list.
+	 *
+	 * @param keyCode
+	 *        Key to remove
+	 */
+	public void onKeyReleased(final int keyCode) {
+		if (pressedStateKeys.contains(keyCode)) {
+			pressedStateKeys.removeAll(Collections.singleton(keyCode));
+		} else {
+			logger.warn("Released key " + Integer.toString(keyCode)
+					+ " was not found in pressedStateKeys list");
+		}
 	}
 }

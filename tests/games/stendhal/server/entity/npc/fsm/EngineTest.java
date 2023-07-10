@@ -1,4 +1,4 @@
-/* $Id: EngineTest.java,v 1.26 2011/05/01 19:50:08 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -19,6 +19,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static utilities.SpeakerNPCTestHelper.getReply;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.npc.ChatAction;
@@ -28,10 +32,6 @@ import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.player.Player;
 import marauroa.common.Log4J;
-
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import utilities.PlayerTestHelper;
 
 public class EngineTest {
@@ -65,6 +65,7 @@ public class EngineTest {
 		final ConversationStates nextState = ConversationStates.ATTENDING;
 		final String reply = "huch";
 		final ChatAction action = new ChatAction() {
+			@Override
 			public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 				assertEquals("boo", sentence.getTriggerExpression().getNormalized());
 			}
@@ -79,7 +80,7 @@ public class EngineTest {
 	 * Tests for addBothActionsNull.
 	 */
 	@Test
-	public void testaddBothActionsNull() throws Exception {
+	public void testaddBothActionsNull() {
 		final Engine en = new Engine(new SpeakerNPC("bob"));
 		assertTrue(en.getTransitions().isEmpty());
 		en.add(IDLE, (String)null, null, false, IDLE, null, null);
@@ -92,12 +93,13 @@ public class EngineTest {
 	 * Tests for addExistingActionNull.
 	 */
 	@Test
-	public void testaddExistingActionNull() throws Exception {
+	public void testaddExistingActionNull() {
 		final Engine en = new Engine(new SpeakerNPC("bob"));
 
 		en.add(IDLE, (String)null, null, false, IDLE, null, null);
 		assertThat(en.getTransitions().size(), is(1));
 		en.add(IDLE, (String)null, null, false, IDLE, null, new ChatAction() {
+			@Override
 			public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 				// empty method
 			}
@@ -109,11 +111,12 @@ public class EngineTest {
 	 * Tests for addnewNullAction.
 	 */
 	@Test
-	public void testaddnewNullAction() throws Exception {
+	public void testaddnewNullAction() {
 		final Engine en = new Engine(new SpeakerNPC("bob"));
 
 
 		en.add(IDLE, (String)null, null, false, IDLE, null, new ChatAction() {
+			@Override
 			public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 				// empty method
 			}
@@ -128,10 +131,11 @@ public class EngineTest {
 	 * Tests for addSameAction.
 	 */
 	@Test
-	public void testaddSameAction() throws Exception {
+	public void testaddSameAction() {
 		final Engine en = new Engine(new SpeakerNPC("bob"));
 		ChatAction chatAction = new ChatAction() {
 
+			@Override
 			public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 				// empty method
 			}
@@ -147,16 +151,18 @@ public class EngineTest {
 	 * Tests for addNotSameAction.
 	 */
 	@Test
-	public void testaddNotSameAction() throws Exception {
+	public void testaddNotSameAction() {
 		final Engine en = new Engine(new SpeakerNPC("bob"));
 		ChatAction chatAction1 = new ChatAction() {
 
+			@Override
 			public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 				// empty method
 			}
 		};
 		ChatAction chatAction2 = new ChatAction() {
 
+			@Override
 			public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 				// empty method
 			}
@@ -182,6 +188,7 @@ public class EngineTest {
 		final String triggers = "boo";
 
 		final ChatCondition cc = new ChatCondition() {
+			@Override
 			public boolean fire(final Player player, final Sentence sentence, final Entity npc) {
 				assertEquals(triggers, sentence.getTriggerExpression().getNormalized());
 				return true;
@@ -190,6 +197,7 @@ public class EngineTest {
 
 		final String reply = "huch";
 		final ChatAction action = new ChatAction() {
+			@Override
 			public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 				assertEquals(triggers, sentence.getTriggerExpression().getNormalized());
 			}

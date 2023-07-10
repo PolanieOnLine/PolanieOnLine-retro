@@ -1,4 +1,4 @@
-/* $Id: WalkBlockerMapObject.java,v 1.2 2010/09/19 02:19:20 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -17,16 +17,16 @@ import java.awt.Graphics;
 
 import games.stendhal.client.entity.IEntity;
 
-public class WalkBlockerMapObject extends StaticMapObject {
+class WalkBlockerMapObject extends StaticMapObject {
 	/**
 	 * The colour of walk blockers (dark pink) .
 	 */
     private static final Color COLOR = new Color(209, 144, 224);
-    
-	public WalkBlockerMapObject(final IEntity entity) {
+
+	WalkBlockerMapObject(final IEntity entity) {
 		super(entity);
 	}
-	
+
 	@Override
 	public void draw(final Graphics g, final int scale) {
 		draw(g, scale, COLOR, null);

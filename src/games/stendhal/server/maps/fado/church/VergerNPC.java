@@ -1,4 +1,3 @@
-/* $Id: VergerNPC.java,v 1.16 2010/09/19 02:30:57 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,17 +11,17 @@
  ***************************************************************************/
 package games.stendhal.server.maps.fado.church;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 public class VergerNPC implements ZoneConfigurator {
 	/**
@@ -31,13 +30,13 @@ public class VergerNPC implements ZoneConfigurator {
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildNPC(zone);
 	}
 
 	private void buildNPC(final StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Lukas") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -59,14 +58,14 @@ public class VergerNPC implements ZoneConfigurator {
 				addReply(Arrays.asList("married", "wziąć", "ślub", "poślubionych"), "Jeżeli chcesz być zaręczony to porozmawiaj z Sister Benedicta. Ona da znać księdzu o twoich planach.");
 				addReply(ConversationPhrases.YES_MESSAGES, "Gratulacje!");
 				addReply(ConversationPhrases.NO_MESSAGES, "Co za szkoda. Mam nadzieję, że kiedyś znajdziesz partnera.");
-				addGoodbye("Dowidzenia i idź bezpiecznie.");
+				addGoodbye("Do widzenia i idź bezpiecznie.");
 			}
 		};
 
-		npc.setDescription("Oto Lukas pokorny kościelny.");
+		npc.setDescription("Oto Lukas, pokorny kościelny.");
 		npc.setEntityClass("vergernpc");
+		npc.setGender("M");
 		npc.setPosition(22, 9);
-		npc.initHP(100);
 		zone.add(npc);
 	}
 }

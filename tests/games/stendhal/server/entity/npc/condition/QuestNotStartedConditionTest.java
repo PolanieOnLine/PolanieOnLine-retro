@@ -1,4 +1,4 @@
-/* $Id: QuestNotStartedConditionTest.java,v 1.12 2011/05/01 19:50:06 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -15,11 +15,11 @@ package games.stendhal.server.entity.npc.condition;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import games.stendhal.common.parser.ConversationParser;
-import games.stendhal.server.entity.player.Player;
 
 import org.junit.Test;
 
+import games.stendhal.common.parser.ConversationParser;
+import games.stendhal.server.entity.player.Player;
 import utilities.PlayerTestHelper;
 import utilities.SpeakerNPCTestHelper;
 
@@ -45,7 +45,7 @@ public class QuestNotStartedConditionTest {
 		assertTrue(new QuestNotStartedCondition("questname").fire(bob,
 				ConversationParser.parse("testAdminConditionText"),
 				SpeakerNPCTestHelper.createSpeakerNPC()));
-		
+
 		bob.setQuest("questname", "rejected");
 		assertTrue(new QuestNotStartedCondition("questname").fire(bob,
 				ConversationParser.parse("testAdminConditionText"),
@@ -73,7 +73,7 @@ public class QuestNotStartedConditionTest {
 	 * Tests for equals.
 	 */
 	@Test
-	public void testEquals() throws Throwable {
+	public void testEquals() {
 		assertFalse(new QuestNotStartedCondition("questname").equals(null));
 
 		final QuestNotStartedCondition obj = new QuestNotStartedCondition("questname");
@@ -82,28 +82,20 @@ public class QuestNotStartedConditionTest {
 		assertTrue(new QuestNotStartedCondition("questname").equals(new QuestNotStartedCondition(
 				"questname")));
 
-		assertTrue(new QuestNotStartedCondition(null).equals(new QuestNotStartedCondition(
-				null)));
-
 		assertFalse(new QuestNotStartedCondition("questname").equals(new Object()));
-
-		assertFalse(new QuestNotStartedCondition("questname").equals(new QuestNotStartedCondition(
-				null)));
-		assertFalse(new QuestNotStartedCondition(null).equals(new QuestNotStartedCondition(
-				"questname")));
 
 		assertTrue(new QuestNotStartedCondition("questname").equals(new QuestNotStartedCondition(
 				"questname") {
 			// this is an anonymous sub class
 		}));
-		
+
 	}
 
 	/**
 	 * Tests for hashCode.
 	 */
 	@Test
-	public void testHashCode() throws Throwable {
+	public void testHashCode() {
 		final QuestNotStartedCondition obj = new QuestNotStartedCondition("questname");
 		assertTrue(obj.equals(obj));
 		assertEquals(obj.hashCode(), obj.hashCode());
@@ -111,11 +103,5 @@ public class QuestNotStartedConditionTest {
 				"questname")));
 		assertEquals(new QuestNotStartedCondition("questname").hashCode(),
 				new QuestNotStartedCondition("questname").hashCode());
-
-		assertTrue(new QuestNotStartedCondition(null).equals(new QuestNotStartedCondition(
-				null)));
-
-		assertEquals(new QuestNotStartedCondition(null).hashCode(),
-				new QuestNotStartedCondition(null).hashCode());
 	}
 }

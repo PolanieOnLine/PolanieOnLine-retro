@@ -1,5 +1,5 @@
 /***************************************************************************
- *                   (C) Copyright 2003-2011 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -21,11 +21,13 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URL;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * a very simple http client.
- * 
+ *
  * @author hendrik
  */
 public class HttpClient {
@@ -39,7 +41,7 @@ public class HttpClient {
 	private ProgressListener progressListener;
 
 	// 1.5 seconds
-	private final static int timeout = 1500; 
+	private final static int timeout = 1500;
 
 	private boolean tryVeryHard;
 
@@ -47,11 +49,11 @@ public class HttpClient {
 	 * An interface to notify some other parts of the program about download
 	 * process.
 	 */
-	public interface ProgressListener {
+	interface ProgressListener {
 
 		/**
 		 * update download status.
-		 * 
+		 *
 		 * @param downloadedBytes
 		 *            bytes downloaded now
 		 */
@@ -59,7 +61,7 @@ public class HttpClient {
 
 		/**
 		 * completed download of this file.
-		 * 
+		 *
 		 * @param downloadedBytes
 		 *            completed download
 		 */
@@ -68,7 +70,7 @@ public class HttpClient {
 
 	/**
 	 * Creates a HTTP-Client which will connect to the specified URL.
-	 * 
+	 *
 	 * @param url
 	 *            URL to connect to
 	 */
@@ -78,20 +80,20 @@ public class HttpClient {
 
 	/**
 	 * Creates a HTTP-Client which will connect to the specified URL.
-	 * 
+	 *
 	 * @param url
 	 *            URL to connect to
 	 * @param tryVeryHard
 	 *            true, to do several attempts.
 	 */
-	public HttpClient(final String url, final boolean tryVeryHard) {
+	HttpClient(final String url, final boolean tryVeryHard) {
 		this.urlString = url;
 		this.tryVeryHard = tryVeryHard;
 	}
 
 	/**
 	 * Sets a ProgressListener to be informed of download progress.
-	 * 
+	 *
 	 * @param progressListener
 	 *            ProgressListener
 	 */
@@ -113,15 +115,39 @@ public class HttpClient {
 			while (is == null) {
 				retryCount++;
 				try {
-					HttpURLConnection.setFollowRedirects(true);
 					connection = (HttpURLConnection) url.openConnection();
 					connection.setConnectTimeout(myTimeout);
-					if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
-						System.err.println("HttpServer returned an error code ("
-								+ urlString
-								+ "): "
-								+ connection.getResponseCode());
-						connection = null;
+					connection.setInstanceFollowRedirects(true);
+					connection.setUseCaches(false);
+					int responseCode = connection.getResponseCode();
+					if (responseCode != HttpURLConnection.HTTP_OK) {
+						// handle redirects
+						if(isRedirect(responseCode)) {
+							boolean redirect = true;
+							Set<String> passedRedirects = new HashSet<String>();
+							passedRedirects.add(urlString);
+
+							while(redirect) {
+								String newUrl = connection.getHeaderField("Location");
+
+								// check if we already were redirected to this url
+								if(!passedRedirects.contains(newUrl)) {
+									// open the new connnection again
+									passedRedirects.add(newUrl);
+									connection = (HttpURLConnection) new URL(newUrl).openConnection();
+									redirect = isRedirect(connection.getResponseCode());
+								} else {
+									System.err.println(String.format("The URL '%s' leads into a circular redirect.", url));
+									connection = null;
+								}
+							}
+						} else {
+							System.err.println("HttpServer returned an error code ("
+									+ urlString
+									+ "): "
+									+ responseCode);
+							connection = null;
+						}
 					}
 					if (connection != null) {
 						is = connection.getInputStream();
@@ -147,11 +173,21 @@ public class HttpClient {
 	}
 
 	/**
+	 * Determine if a repsonse code is a redirect
+	 *
+	 * @param responseCode
+	 * @return
+	 */
+	private boolean isRedirect(int responseCode) {
+		return responseCode == HttpURLConnection.HTTP_MOVED_TEMP || responseCode == HttpURLConnection.HTTP_MOVED_PERM || responseCode == HttpURLConnection.HTTP_SEE_OTHER;
+	}
+
+	/**
 	 * Return an InputStream to read the requested file from. You have to close
 	 * it using
-	 * 
+	 *
 	 * @see #close
-	 * 
+	 *
 	 * @return InputStream or null on error.
 	 */
 	public InputStream getInputStream() {
@@ -162,7 +198,7 @@ public class HttpClient {
 	/**
 	 * Closes the connection and associated streams.
 	 */
-	public void close() {
+	void close() {
 		if (is != null) {
 			try {
 				is.close();
@@ -179,7 +215,7 @@ public class HttpClient {
 	/**
 	 * fetches the first line of a file using http and closes the connection
 	 * automatically.
-	 * 
+	 *
 	 * @return the first line
 	 */
 	public String fetchFirstLine() {
@@ -203,10 +239,10 @@ public class HttpClient {
 	/**
 	 * fetches a file using http as Properties object and closes the connection
 	 * automatically.
-	 * 
+	 *
 	 * @return the first line
 	 */
-	public Properties fetchProperties() {
+	Properties fetchProperties() {
 		Properties prop = null;
 		openInputStream();
 		if (is == null) {
@@ -225,12 +261,12 @@ public class HttpClient {
 
 	/**
 	 * Fetches a file from the HTTP-Server and stores it on disk.
-	 * 
+	 *
 	 * @param filename
 	 *            name of the file to write
 	 * @return true on success, false otherwise
 	 */
-	public boolean fetchFile(final String filename) {
+	boolean fetchFile(final String filename) {
 		boolean res = false;
 
 		openInputStream();
@@ -255,7 +291,7 @@ public class HttpClient {
 	/**
 	 * Copies data from an inputStream to an outputStream and closes both
 	 * streams after work.
-	 * 
+	 *
 	 * @param inputStream
 	 *            stream to read from
 	 * @param outputStream

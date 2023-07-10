@@ -1,6 +1,5 @@
-/* $Id: DropPlayerItems.java,v 1.15 2011/04/02 15:44:20 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,17 +11,17 @@
  ***************************************************************************/
 package games.stendhal.server.script;
 
+import java.util.List;
+
 import games.stendhal.common.grammar.Grammar;
 import games.stendhal.server.core.engine.GameEvent;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.scripting.ScriptImpl;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.List;
-
 /**
  * drop the specified amount of items from the player.
- * 
+ *
  * @author hendrik
  */
 public class DropPlayerItems extends ScriptImpl {
@@ -36,18 +35,18 @@ public class DropPlayerItems extends ScriptImpl {
 			return;
 		}
 
-				if (args.size() > 3) {
-						admin.sendPrivateText("<wojownik> [<ilość>] '<przedmiot>' - i nie zapomnij o cudzysłowach jeżeli nazwa przedmiotu zawiera spacje");
-						return;
-				}
+		if (args.size() > 3) {
+			admin.sendPrivateText("<wojownik> [<ilość>] '<przedmiot>' - i nie zapomnij o cudzysłowach jeżeli nazwa przedmiotu zawiera spacje");
+			return;
+		}
 
 		final Player player = SingletonRepository.getRuleProcessor().getPlayer(args.get(0));
-		
+
 		if (player == null) {
 			admin.sendPrivateText("Player " + args.get(0) + " is not online.");
 			return;
 		}
-		
+
 		String itemName = null;
 		int amount = 1;
 

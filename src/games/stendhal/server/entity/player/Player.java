@@ -1,82 +1,89 @@
-/* $Id: Player.java,v 1.366 2012/09/02 21:36:24 kiheru Exp $ */
 /***************************************************************************
- *						(C) Copyright 2003 - Marauroa					   *
+ *                    Copyright © 2003-2023 - Arianne                      *
  ***************************************************************************
  ***************************************************************************
- *																		   *
- *	 This program is free software; you can redistribute it and/or modify  *
- *	 it under the terms of the GNU General Public License as published by  *
- *	 the Free Software Foundation; either version 2 of the License, or	   *
- *	 (at your option) any later version.								   *
- *																		   *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.entity.player;
 
 import static games.stendhal.common.NotificationType.getServerNotificationType;
 import static games.stendhal.common.constants.Actions.ADMINLEVEL;
+import static games.stendhal.common.constants.Actions.AUTOWALK;
 import static games.stendhal.common.constants.Actions.AWAY;
 import static games.stendhal.common.constants.Actions.GHOSTMODE;
 import static games.stendhal.common.constants.Actions.GRUMPY;
 import static games.stendhal.common.constants.Actions.INVISIBLE;
 import static games.stendhal.common.constants.Actions.TELECLICKMODE;
-import games.stendhal.common.Constants;
-import games.stendhal.common.Direction;
-import games.stendhal.common.FeatureList;
-import games.stendhal.common.ItemTools;
-import games.stendhal.common.KeyedSlotUtil;
-import games.stendhal.common.Level;
-import games.stendhal.common.MathHelper;
-import games.stendhal.common.NotificationType;
-import games.stendhal.common.TradeState;
-import games.stendhal.common.Version;
-import games.stendhal.common.constants.Nature;
-import games.stendhal.common.constants.SoundLayer;
-import games.stendhal.common.parser.WordList;
-import games.stendhal.server.core.engine.GameEvent;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.core.events.TutorialNotifier;
-import games.stendhal.server.core.events.UseListener;
-import games.stendhal.server.core.rp.StendhalRPAction;
-import games.stendhal.server.core.rp.achievement.AchievementNotifier;
-import games.stendhal.server.entity.Entity;
-import games.stendhal.server.entity.Outfit;
-import games.stendhal.server.entity.RPEntity;
-import games.stendhal.server.entity.creature.DomesticAnimal;
-import games.stendhal.server.entity.creature.Pet;
-import games.stendhal.server.entity.creature.Sheep;
-import games.stendhal.server.entity.item.ConsumableItem;
-import games.stendhal.server.entity.item.Corpse;
-import games.stendhal.server.entity.item.Item;
-import games.stendhal.server.entity.item.RingOfLife;
-import games.stendhal.server.entity.item.Stackable;
-import games.stendhal.server.entity.npc.behaviour.impl.OutfitChangerBehaviour.ExpireOutfit;
-import games.stendhal.server.events.PrivateTextEvent;
-import games.stendhal.server.events.SoundEvent;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
+
+import games.stendhal.common.Direction;
+import games.stendhal.common.ItemTools;
+import games.stendhal.common.KeyedSlotUtil;
+import games.stendhal.common.Level;
+import games.stendhal.common.NotificationType;
+import games.stendhal.common.TradeState;
+import games.stendhal.common.Version;
+import games.stendhal.common.constants.Nature;
+import games.stendhal.common.constants.Occasion;
+import games.stendhal.common.constants.SoundID;
+import games.stendhal.common.constants.SoundLayer;
+import games.stendhal.common.constants.Testing;
+import games.stendhal.common.grammar.Grammar;
+import games.stendhal.common.parser.WordList;
+import games.stendhal.server.core.engine.GameEvent;
+import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.core.events.TurnListener;
+import games.stendhal.server.core.events.TurnNotifier;
+import games.stendhal.server.core.events.TutorialNotifier;
+import games.stendhal.server.core.events.UseListener;
+import games.stendhal.server.core.rp.StendhalRPAction;
+import games.stendhal.server.core.rp.achievement.AchievementNotifier;
+import games.stendhal.server.entity.DressedEntity;
+import games.stendhal.server.entity.Entity;
+import games.stendhal.server.entity.Killer;
+import games.stendhal.server.entity.Outfit;
+import games.stendhal.server.entity.RPEntity;
+import games.stendhal.server.entity.creature.DomesticAnimal;
+import games.stendhal.server.entity.creature.Goat;
+import games.stendhal.server.entity.creature.Pet;
+import games.stendhal.server.entity.creature.Sheep;
+import games.stendhal.server.entity.item.Corpse;
+import games.stendhal.server.entity.item.Item;
+import games.stendhal.server.entity.item.RingOfLife;
+import games.stendhal.server.entity.npc.behaviour.impl.OutfitChangerBehaviour.ExpireOutfit;
+import games.stendhal.server.entity.slot.Slots;
+import games.stendhal.server.entity.status.StatusType;
+import games.stendhal.server.events.PrivateTextEvent;
+import games.stendhal.server.events.SoundEvent;
+import marauroa.common.game.RPEvent;
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPSlot;
 import marauroa.common.game.SyntaxException;
 
-import org.apache.log4j.Logger;
-
-public class Player extends RPEntity implements UseListener {
-
-	private static final String LAST_PLAYER_KILL_TIME = "last_player_kill_time";
-	private static final String[] RECOLORABLE_OUTFIT_PARTS = { "dress", "hair" };
-
+public class Player extends DressedEntity implements UseListener {
 	/** the logger instance. */
 	private static final Logger logger = Logger.getLogger(Player.class);
+
+	private static final String LAST_PLAYER_KILL_TIME = "last_player_kill_time";
 
 	/**
 	 * A random generator (for karma payout).
@@ -86,42 +93,26 @@ public class Player extends RPEntity implements UseListener {
 	/**
 	 * Currently active client directions (in oldest-newest order).
 	 */
-	protected List<Direction> directions;
+	private final List<Direction> directions;
 
 	/**
 	 * Karma (luck).
 	 */
-	protected double karma;
-	/**
-	 * number of successful trades
-	 */
-	protected int tradescore;
+	private double karma;
 
 	/**
-	 * A list of enabled client features.
+	 * Number of successful trades.
 	 */
-	protected FeatureList features;
+	private int tradescore;
 
 	/**
-	 * A list of away replies sent to players.
+	 * List of portals that have been "unlocked" for this player.
 	 */
-	protected HashMap<String, Long> awayReplies;
-
-	/**
-	 * Food, drinks etc. that the player wants to consume and has not finished
-	 * with.
-	 */
-	List<ConsumableItem> itemsToConsume;
-
-	/**
-	 * Poisonous items that the player still has to consume. This also includes
-	 * poison that was the result of fighting against a poisonous creature.
-	 */
-	List<ConsumableItem> poisonToConsume;
+	private final List<Integer> unlockedPortals;
 
 	private final PlayerQuests quests = new PlayerQuests(this);
-	private final PlayerDieer  dieer  = new PlayerDieer(this);
-	private final PlayerTrade  trade  = new PlayerTrade(this);
+	private final PlayerDieer dieer = new PlayerDieer(this);
+	private final PlayerTrade trade = new PlayerTrade(this);
 	private final KillRecording killRec = new KillRecording(this);
 	private final PetOwner petOwner = new PetOwner(this);
 	private final PlayerLootedItemsHandler itemCounter = new PlayerLootedItemsHandler(this);
@@ -130,13 +121,6 @@ public class Player extends RPEntity implements UseListener {
 	 * The number of minutes that this player has been logged in on the server.
 	 */
 	private int age;
-
-
-	/**
-	 * Shows if this player is currently under the influence of an antidote, and
-	 * thus immune from poison.
-	 */
-	private boolean isImmune;
 
 	/**
 	 * The last player who privately talked to this player using the /tell
@@ -161,7 +145,15 @@ public class Player extends RPEntity implements UseListener {
 	 * version of the client
 	 */
 	private String clientVersion;
-
+	/**
+	 * The turn when the player last time pushed something.
+	 */
+	private int turnOfLastPush;
+	/**
+	 * The turn the player started moving using the keyboard. Used for detecting
+	 * quick presses ment to move one tile.
+	 */
+	private int startMoveTurn;
 
 	/**
 	 * last client action timestamp
@@ -176,7 +168,8 @@ public class Player extends RPEntity implements UseListener {
 		}
 	}
 
-	public static Player createZeroLevelPlayer(final String characterName, RPObject template) {
+	public static Player createZeroLevelPlayer(final String characterName,
+			RPObject template) {
 		/*
 		 * TODO: Update to use Player and RPEntity methods.
 		 */
@@ -191,26 +184,41 @@ public class Player extends RPEntity implements UseListener {
 		player.put("atk_xp", 0);
 		player.put("def", 10);
 		player.put("def_xp", 0);
+		if (Testing.COMBAT) {
+			player.put("ratk", 10);
+			player.put("ratk_xp", 0);
+		}
+		player.put("mining", 10);
+		player.put("mining_xp", 0);
 		player.put("level", 0);
 		player.setXP(0);
+		if (Testing.WEIGHT) {
+			player.put("capacity", 0.0);
+			player.put("base_capacity", 60.0);
+		}
 
 		// define outfit
 		Outfit outfit = null;
-		if ((template != null) && template.has("outfit")) {
-			outfit = new Outfit(template.getInt("outfit"));
+		if (template != null) {
+			if (template.has("outfit_ext")) {
+				outfit = new Outfit(template.get("outfit_ext"));
+			} else if (template.has("outfit")) {
+				outfit = new Outfit(Integer.toString(template.getInt("outfit")));
+			}
 		}
-		if ((outfit == null) || !outfit.isChoosableByPlayers()) {
+
+		if (outfit == null || !outfit.isChoosableByPlayers()) {
 			outfit = Outfit.getRandomOutfit();
 		}
 		player.setOutfit(outfit);
 
-		if (((player.getOutfit().getBase() > 5) && (player.getOutfit().getBase() < 12)) || (player.getOutfit().getBase() == 13)) {
-			player.put("gender", "F");
+		if (player.getOutfit().isFemale()) {
+			player.setGender("F");
 		} else {
-			player.put("gender", "M");
+			player.setGender("M");
 		}
 
-		for (final String slot : Constants.CARRYING_SLOTS) {
+		for (final String slot : Arrays.asList("armor", "rhand", "bag")) {
 			player.addSlot(slot);
 		}
 
@@ -222,6 +230,13 @@ public class Player extends RPEntity implements UseListener {
 		entity = SingletonRepository.getEntityManager().getItem("maczuga");
 		slot = player.getSlot("rhand");
 		slot.add(entity);
+
+		if (!Occasion.SECOND_WORLD) {
+			entity = SingletonRepository.getEntityManager().getItem("ciupaga startowa");
+			((Item) entity).setBoundTo(player.getName());
+			slot = player.getSlot("bag");
+			slot.add(entity);
+		}
 
 		return player;
 	}
@@ -262,7 +277,7 @@ public class Player extends RPEntity implements UseListener {
 			put("title_type", "npc");
 		}
 
-		if (getAdminLevel() > 20) {
+		if (getAdminLevel() > 1000) {
 			chatBucket = new AdminChatBucket();
 		} else {
 			chatBucket = new PlayerChatBucket();
@@ -270,10 +285,7 @@ public class Player extends RPEntity implements UseListener {
 
 		setSize(1, 1);
 
-		itemsToConsume = new LinkedList<ConsumableItem>();
-		poisonToConsume = new LinkedList<ConsumableItem>();
 		directions = new ArrayList<Direction>();
-		awayReplies = new HashMap<String, Long>();
 
 		// Beginner's luck (unless overridden by update)
 		karma = 10.0;
@@ -283,21 +295,27 @@ public class Player extends RPEntity implements UseListener {
 		// Ensure that players do not accidentally get stored with zones
 		if (isStorable()) {
 			unstore();
-			logger.error("Player " + getName() + " was marked storable.", new Throwable());
+			logger.error("Player " + getName() + " was marked storable.",
+					new Throwable());
 		}
+
+		unlockedPortals = new LinkedList<Integer>();
+
 		updateModifiedAttributes();
 	}
 
 	/**
 	 * Add an active client direction.
 	 *
-	 * @param direction direction
+	 * @param direction
+	 *			direction
 	 */
 	public void addClientDirection(final Direction direction) {
 		if (hasPath()) {
 			clearPath();
 		}
 
+		startMoveTurn = SingletonRepository.getRuleProcessor().getTurn();
 		directions.remove(direction);
 		directions.add(direction);
 	}
@@ -305,7 +323,8 @@ public class Player extends RPEntity implements UseListener {
 	/**
 	 * Remove an active client direction.
 	 *
-	 * @param direction direction
+	 * @param direction
+	 *			direction
 	 */
 	public void removeClientDirection(final Direction direction) {
 		directions.remove(direction);
@@ -315,8 +334,8 @@ public class Player extends RPEntity implements UseListener {
 	 * Apply the most recent active client direction.
 	 *
 	 * @param stopOnNone
-	 *            Stop movement if no (valid) directions are active if
-	 *            <code>true</code>.
+	 *			Stop movement if no (valid) directions are active if
+	 *			<code>true</code>.
 	 */
 	public void applyClientDirection(final boolean stopOnNone) {
 		int size;
@@ -334,14 +353,12 @@ public class Player extends RPEntity implements UseListener {
 
 			// as an effect of the poisoning, the player's controls
 			// are switched to make it difficult to navigate.
-			if (isPoisoned()) {
+			if (hasStatus(StatusType.POISONED) || has("status_confuse")) {
 				direction = direction.oppositeDirection();
 			}
 
 			setDirection(direction);
 			setSpeed(getBaseSpeed());
-		} else if (stopOnNone) {
-			stop();
 		}
 	}
 
@@ -357,10 +374,48 @@ public class Player extends RPEntity implements UseListener {
 	}
 
 	/**
+	 * Request stopping the player, unless the player started moving the same
+	 * turn. Intended for client initiated stops, that should not prevent the
+	 * player moving one tile with a quick key press.
+	 */
+	public void requestStop() {
+		int turn = SingletonRepository.getRuleProcessor().getTurn();
+
+		if (turn != startMoveTurn) {
+			stop();
+		} else {
+			TurnNotifier.get().notifyInTurns(1, new TurnListener() {
+				@Override
+				public void onTurnReached(int currentTurn) {
+					/*
+					 * Check the turn again. The player may have sent yet
+					 * another move command, and we do not want to cancel that.
+					 */
+					if (currentTurn != startMoveTurn) {
+						stop();
+					}
+				}
+			});
+		}
+	}
+
+	/**
 	 * Stop and clear any active directions.
 	 */
 	@Override
 	public void stop() {
+		/* Bypass stopping the player if autoWalkState is <b>true</b>. */
+		if (!this.has(AUTOWALK)) {
+			directions.clear();
+			super.stop();
+		}
+	}
+
+	/**
+	 * Forces player to stop moving, bypassing auto-walk
+	 */
+	public void forceStop() {
+		this.remove(AUTOWALK);
 		directions.clear();
 		super.stop();
 	}
@@ -378,7 +433,7 @@ public class Player extends RPEntity implements UseListener {
 	 * Set the away message.
 	 *
 	 * @param message
-	 *            An away message, or <code>null</code>.
+	 *			An away message, or <code>null</code>.
 	 */
 	public void setAwayMessage(final String message) {
 		if (message != null) {
@@ -388,15 +443,6 @@ public class Player extends RPEntity implements UseListener {
 			remove(AWAY);
 			setVisibility(100);
 		}
-
-		resetAwayReplies();
-	}
-
-	/**
-	 * Clear out all recorded away responses.
-	 */
-	public void resetAwayReplies() {
-		awayReplies.clear();
 	}
 
 	/**
@@ -412,7 +458,7 @@ public class Player extends RPEntity implements UseListener {
 	 * Set the grumpy message.
 	 *
 	 * @param message
-	 *            A grumpy message, or <code>null</code>.
+	 *			A grumpy message, or <code>null</code>.
 	 */
 	public void setGrumpyMessage(final String message) {
 		if (message != null) {
@@ -427,13 +473,16 @@ public class Player extends RPEntity implements UseListener {
 	 * Give the player some karma (good or bad).
 	 *
 	 * @param karmaToAdd
-	 *            An amount of karma to add/subtract.
+	 *			An amount of karma to add/subtract.
 	 */
 	@Override
 	public void addKarma(final double karmaToAdd) {
 		this.karma += karmaToAdd;
 
 		put("karma", this.karma);
+		new GameEvent(this.getName(), "added karma",
+				Integer.toString((int) karmaToAdd),
+				Integer.toString((int) karma)).raise();
 	}
 
 	/**
@@ -454,7 +503,7 @@ public class Player extends RPEntity implements UseListener {
 	 * should cause no change on an action or outcome.
 	 *
 	 * @param scale
-	 *            A positive number.
+	 *			A positive number.
 	 *
 	 * @return A number between -scale and scale.
 	 */
@@ -470,9 +519,9 @@ public class Player extends RPEntity implements UseListener {
 	 * <code>0.01</code> (%1 unit).
 	 *
 	 * @param negLimit
-	 *            The lowest negative value returned.
+	 *			The lowest negative value returned.
 	 * @param posLimit
-	 *            The highest positive value returned.
+	 *			The highest positive value returned.
 	 *
 	 * @return A number within negLimit &lt;= 0 &lt;= posLimit.
 	 */
@@ -487,16 +536,17 @@ public class Player extends RPEntity implements UseListener {
 	 * should cause no change on an action or outcome.
 	 *
 	 * @param negLimit
-	 *            The lowest negative value returned.
+	 *			The lowest negative value returned.
 	 * @param posLimit
-	 *            The highest positive value returned.
+	 *			The highest positive value returned.
 	 * @param granularity
-	 *            The amount that any extracted karma is a multiple of.
+	 *			The amount that any extracted karma is a multiple of.
 	 *
 	 * @return A number within negLimit &lt;= 0 &lt;= posLimit.
 	 */
 	@Override
-	public double useKarma(final double negLimit, final double posLimit, final double granularity) {
+	public double useKarma(final double negLimit, final double posLimit,
+			final double granularity) {
 		double limit;
 		double score;
 
@@ -528,11 +578,11 @@ public class Player extends RPEntity implements UseListener {
 		/*
 		 * Give at least 20% of possible payout
 		 */
-		score = (0.2 + (KARMA_RANDOMIZER.nextDouble() * 0.8)) * limit;
+		score = (0.2 + KARMA_RANDOMIZER.nextDouble() * 0.8) * limit;
 
 		/*
-		 * Clip to granularity. Use floor() instead of round() so that the player
-		 * never uses more karma than she has.
+		 * Clip to granularity. Use floor() instead of round() so that the
+		 * player never uses more karma than she has.
 		 */
 		score = Math.floor(score / granularity) * granularity;
 
@@ -540,7 +590,7 @@ public class Player extends RPEntity implements UseListener {
 		 * with a lucky charm you use up less karma to be just as lucky
 		 */
 		if (this.isEquipped("czterolistna koniczyna")) {
-			karma -= 0.5 * score;
+			karma -= 0.75 * score;
 		} else {
 			karma -= score;
 		}
@@ -555,7 +605,7 @@ public class Player extends RPEntity implements UseListener {
 	}
 
 	/**
-	 * increments the number of successful trades by 1
+	 * Increments the number of successful trades by 1
 	 */
 	public void incrementTradescore() {
 		this.tradescore += 1;
@@ -565,6 +615,49 @@ public class Player extends RPEntity implements UseListener {
 	public int getTradescore() {
 		return this.tradescore;
 	}
+
+	/**
+	 * @return List of portals that have been unlocked for this player.
+	 */
+	public List<Integer> getUnlockedPortals() {
+		return unlockedPortals;
+	}
+
+	/**
+	 * Removes the portal from the list of unlocked portals.
+	 *
+	 * @param ID
+	 *			Portal's ID
+	 */
+	public void lockPortal(final int ID) {
+		int index = unlockedPortals.size() - 1;
+		if (unlockedPortals.contains(ID)) {
+			// Iterate list backwards
+			while (index >= 0) {
+				if (unlockedPortals.get(index) == ID) {
+					unlockedPortals.remove(index);
+					logger.debug("Removed portal ID " + Integer.toString(ID)
+							+ " from player " + getName() + ".");
+				}
+				index -= 1;
+			}
+		}
+	}
+
+	/**
+	 * Adds a portal ID to a list of "unlocked" portals for player.
+	 *
+	 * @param ID
+	 *			Portal's ID
+	 */
+	public void unlockPortal(final int ID) {
+		if (!unlockedPortals.contains(ID)) {
+			unlockedPortals.add(ID);
+			logger.debug("Added portal ID " + Integer.toString(ID)
+					+ " to unlocked portals for player " + getName() + ".");
+		}
+	}
+
 	/**
 	 * Process changes that to the object attributes. This may be called several
 	 * times (unfortunately) due to the requirements of the class's constructor,
@@ -595,21 +688,22 @@ public class Player extends RPEntity implements UseListener {
 	 * Add a player ignore entry.
 	 *
 	 * @param name
-	 *            The player name.
+	 *			The player name.
 	 * @param duration
-	 *            The ignore duration (in minutes), or <code>0</code> for
-	 *            infinite.
+	 *			The ignore duration (in minutes), or <code>0</code> for
+	 *			infinite.
 	 * @param reply
-	 *            The reply.
+	 *			The reply.
 	 *
-	 * @return <code>true</code> if value changed, <code>false</code> if
-	 *         there was a problem.
+	 * @return <code>true</code> if value changed, <code>false</code> if there
+	 *		 was a problem.
 	 */
-	public boolean addIgnore(final String name, final int duration, final String reply) {
+	public boolean addIgnore(final String name, final int duration,
+			final String reply) {
 		final StringBuilder sbuf = new StringBuilder();
 
 		if (duration != 0) {
-			sbuf.append(System.currentTimeMillis() + (duration * 60000L));
+			sbuf.append(System.currentTimeMillis() + duration * 60000L);
 		}
 
 		sbuf.append(';');
@@ -626,10 +720,10 @@ public class Player extends RPEntity implements UseListener {
 	 * message.
 	 *
 	 * @param name
-	 *            The player name.
+	 *			The player name.
 	 *
 	 * @return The custom reply message (including an empty string), or
-	 *         <code>null</code> if not ignoring.
+	 *		 <code>null</code> if not ignoring.
 	 */
 	public String getIgnore(final String name) {
 		String info = getKeyedSlot("!ignore", "_" + name);
@@ -672,36 +766,74 @@ public class Player extends RPEntity implements UseListener {
 	 * Remove a player ignore entry.
 	 *
 	 * @param name
-	 *            The player name.
+	 *			The player name.
 	 *
-	 * @return <code>true</code> if value changed, <code>false</code> if
-	 *         there was a problem.
+	 * @return <code>true</code> if value changed, <code>false</code> if there
+	 *		 was a problem.
 	 */
 	public boolean removeIgnore(final String name) {
 		return setKeyedSlot("!ignore", "_" + name, null);
 	}
 
 	/**
+	 * @return all buddy names for this player
+	 */
+	public Set<String> getIgnores() {
+		Set<String> res = new HashSet<String>();
+
+		if (!this.hasSlot("!ignore")) {
+			return res;
+		}
+
+		RPObject ignoreObject = KeyedSlotUtil.getKeyedSlotObject(this,
+				"!ignore");
+
+		// character names are prefixed with an "_" to tell them apart from
+		// generic attributes such as "id".
+		for (String key : ignoreObject) {
+			if (key.charAt(0) != '_') {
+				continue;
+			}
+
+			// skip expired entries
+			String info = ignoreObject.get(key);
+			int i = info.indexOf(';');
+			if (i > 0) {
+				long expiration = Long.parseLong(info.substring(0, i));
+				if (System.currentTimeMillis() >= expiration) {
+					continue;
+				}
+			}
+
+			res.add(key.substring(1));
+		}
+
+		return res;
+	}
+
+	/**
 	 * Get a named skills value.
 	 *
 	 * @param key
-	 *            The skill key.
+	 *			The skill key.
 	 *
 	 * @return The skill value, or <code>null</code> if not set.
 	 */
 	public String getSkill(final String key) {
 		return getKeyedSlot("skills", key);
 	}
-	
+
 	/**
 	 * Get the current value for the skill of a magic nature
-	 * @param nature the nature to get the skill for
+	 *
+	 * @param nature
+	 *			the nature to get the skill for
 	 * @return current skill value
 	 */
 	public int getMagicSkillXp(final Nature nature) {
 		int skillValue = 0;
-		String skill = getSkill(nature.toString()+"_xp");
-		if(skill != null) {
+		String skill = getSkill(nature.toString() + "_xp");
+		if (skill != null) {
 			try {
 				Integer skillInteger = Integer.parseInt(skill);
 				skillValue = skillInteger.intValue();
@@ -711,9 +843,10 @@ public class Player extends RPEntity implements UseListener {
 		}
 		return skillValue;
 	}
-	
+
 	/**
 	 * Increase the skill points for a magic nature by a given amount
+	 *
 	 * @param nature
 	 * @param amount
 	 */
@@ -727,20 +860,22 @@ public class Player extends RPEntity implements UseListener {
 
 		// In case we level up several levels at a single time.
 		for (int i = 0; i < Math.abs(levels); i++) {
-			Integer oneup = getMagicSkill(nature) + (int) Math.signum(levels) * 1;
+			Integer oneup = getMagicSkill(nature) + (int) Math.signum(levels)
+					* 1;
 			// set in map
 			setSkill(nature.toString(), oneup.toString());
 			// log event
-			new GameEvent(getName(), "nature-"+nature.toString(), oneup.toString()).raise();
+			new GameEvent(getName(), "nature-" + nature.toString(),
+					oneup.toString()).raise();
 		}
-		setSkill(nature.toString()+"_xp", 
-				Integer.valueOf(newValue).toString());
+		setSkill(nature.toString() + "_xp", Integer.valueOf(newValue)
+				.toString());
 	}
-	
-	public int getMagicSkill(final Nature nature) {
+
+	private int getMagicSkill(final Nature nature) {
 		int skillLevel = 0;
 		String skillString = getSkill(nature.toString());
-		if(skillString != null) {
+		if (skillString != null) {
 			try {
 				Integer skillInteger = Integer.parseInt(skillString);
 				skillLevel = skillInteger.intValue();
@@ -755,12 +890,12 @@ public class Player extends RPEntity implements UseListener {
 	 * Set a named skills value.
 	 *
 	 * @param key
-	 *            The skill key.
+	 *			The skill key.
 	 * @param value
-	 *            The skill value.
+	 *			The skill value.
 	 *
-	 * @return <code>true</code> if value changed, <code>false</code> if
-	 *         there was a problem.
+	 * @return <code>true</code> if value changed, <code>false</code> if there
+	 *		 was a problem.
 	 */
 	public boolean setSkill(final String key, final String value) {
 		return setKeyedSlot("skills", key, value);
@@ -770,9 +905,9 @@ public class Player extends RPEntity implements UseListener {
 	 * Get a keyed string value on a named slot.
 	 *
 	 * @param name
-	 *            The slot name.
+	 *			The slot name.
 	 * @param key
-	 *            The value key.
+	 *			The value key.
 	 *
 	 * @return The keyed value of the slot, or <code>null</code> if not set.
 	 */
@@ -784,25 +919,36 @@ public class Player extends RPEntity implements UseListener {
 	 * Set a keyed string value on a named slot.
 	 *
 	 * @param name
-	 *            The slot name.
+	 *			The slot name.
 	 * @param key
-	 *            The value key.
+	 *			The value key.
 	 * @param value
-	 *            The value to assign (or remove if <code>null</code>).
+	 *			The value to assign (or remove if <code>null</code>).
 	 *
-	 * @return <code>true</code> if value changed, <code>false</code> if
-	 *         there was a problem.
+	 * @return <code>true</code> if value changed, <code>false</code> if there
+	 *		 was a problem.
 	 */
-	public boolean setKeyedSlot(final String name, final String key, final String value) {
+	public boolean setKeyedSlot(final String name, final String key,
+			final String value) {
 		return KeyedSlotUtil.setKeyedSlot(this, name, key, value);
 	}
 
+	/**
+	 * Checks if player has a feature.
+	 *
+	 * @param name
+	 *	 The feature mnemonic.
+	 * @return <code>true</code> if the feature value is not <code>null</code>.
+	 */
+	public boolean hasFeature(final String name) {
+		return getFeature(name) != null;
+	}
 
 	/**
 	 * Get a client feature value.
 	 *
 	 * @param name
-	 *            The feature mnemonic.
+	 *			The feature mnemonic.
 	 *
 	 * @return The feature value, or <code>null</code> is not-enabled.
 	 */
@@ -811,24 +957,12 @@ public class Player extends RPEntity implements UseListener {
 	}
 
 	/**
-	 * Determine if a client feature is enabled.
-	 *
-	 * @param name
-	 *            The feature mnemonic.
-	 *
-	 * @return <code>true</code> if the feature is enabled.
-	 */
-	public boolean hasFeature(final String name) {
-		return (get("features", name) != null);
-	}
-
-	/**
 	 * Enable/disable a client feature.
 	 *
 	 * @param name
-	 *            The feature mnemonic.
+	 *			The feature mnemonic.
 	 * @param enabled
-	 *            Flag indicating if enabled.
+	 *			Flag indicating if enabled.
 	 */
 	public void setFeature(final String name, final boolean enabled) {
 		if (enabled) {
@@ -840,13 +974,14 @@ public class Player extends RPEntity implements UseListener {
 
 	/**
 	 * Sets/removes a client feature.
-	 * <p> <strong>NOTE: The names and values MUST NOT
-	 * contain <code>=</code> (equals), or <code>:</code> (colon). </strong>
+	 * <p>
+	 * <strong>NOTE: The names and values MUST NOT contain <code>=</code>
+	 * (equals), or <code>:</code> (colon). </strong>
 	 *
 	 * @param name
-	 *            The feature mnemonic.
+	 *			The feature mnemonic.
 	 * @param value
-	 *            The feature value, or <code>null</code> to disable.
+	 *			The feature value, or <code>null</code> to disable.
 	 */
 	public void setFeature(final String name, final String value) {
 		put("features", name, value);
@@ -855,7 +990,8 @@ public class Player extends RPEntity implements UseListener {
 	/**
 	 * Unset a client feature
 	 *
-	 * @param name The feature mnemonic
+	 * @param name
+	 *			The feature mnemonic
 	 */
 	public void unsetFeature(final String name) {
 		remove("features", name);
@@ -875,7 +1011,7 @@ public class Player extends RPEntity implements UseListener {
 	 * Set whether this player is invisible to creatures.
 	 *
 	 * @param invisible
-	 *            <code>true</code> if invisible.
+	 *			<code>true</code> if invisible.
 	 */
 	public void setInvisible(final boolean invisible) {
 		if (invisible) {
@@ -891,7 +1027,7 @@ public class Player extends RPEntity implements UseListener {
 	 * players (or relevant NPC messages), use sendPrivateText(PRIVMSG, text)
 	 *
 	 * @param text
-	 *            the message.
+	 *			the message.
 	 */
 	@Override
 	public void sendPrivateText(final String text) {
@@ -902,16 +1038,20 @@ public class Player extends RPEntity implements UseListener {
 		}
 	}
 
-	/**
-	 * Sends a message that only this player can read.
+ 	/**
+	 * Sends a message that only this entity can read.
 	 *
 	 * @param type
-	 *            NotificationType
+	 * 			NotificationType
 	 * @param text
-	 *            the message.
+	 * 			The message.
+	 * @param headless
+	 * 			If <code>true</code>, does not draw a chat balloon on canvas.
 	 */
+	@Override
 	public void sendPrivateText(final NotificationType type, final String text) {
-		addEvent(new PrivateTextEvent(type, text));
+		RPEvent event = new PrivateTextEvent(type, text);
+		this.addEvent(event);
 		this.notifyWorldAboutChanges();
 	}
 
@@ -919,6 +1059,7 @@ public class Player extends RPEntity implements UseListener {
 	 * Sets the name of the last player who privately talked to this player
 	 * using the /tell command. It needs to be stored non-persistently so that
 	 * /answer can be used.
+	 *
 	 * @param lastPrivateChatterName
 	 */
 	public void setLastPrivateChatter(final String lastPrivateChatterName) {
@@ -930,6 +1071,7 @@ public class Player extends RPEntity implements UseListener {
 	 * Gets the name of the last player who privately talked to this player
 	 * using the /tell command, or null if nobody has talked to this player
 	 * since he logged in.
+	 *
 	 * @return name of last player
 	 */
 	public String getLastPrivateChatter() {
@@ -954,7 +1096,7 @@ public class Player extends RPEntity implements UseListener {
 	 * Set the player's admin level.
 	 *
 	 * @param adminlevel
-	 *            The new admin level.
+	 *			The new admin level.
 	 */
 	public void setAdminLevel(final int adminlevel) {
 		put(ADMINLEVEL, adminlevel);
@@ -967,7 +1109,14 @@ public class Player extends RPEntity implements UseListener {
 	}
 
 	@Override
-	public void onDead(final Entity killer, final boolean remove) {
+	public void onDead(final Killer killer, final boolean remove) {
+		/*
+		 * Don't try to kill disconnected players. May be triggered on damage
+		 * done from turn listeners.
+		 */
+		if (isDisconnected()) {
+			return;
+		}
 		// Always use remove=false for players, as documented
 		// in RPEntity.onDead()
 		super.onDead(killer, false);
@@ -983,12 +1132,20 @@ public class Player extends RPEntity implements UseListener {
 		getPetOwner().removeSheep(sheep);
 	}
 
+	public void removeGoat(final Goat goat) {
+		getPetOwner().removeGoat(goat);
+	}
+
 	public void removePet(final Pet pet) {
 		getPetOwner().removePet(pet);
 	}
 
 	public boolean hasSheep() {
 		return getPetOwner().hasSheep();
+	}
+
+	public boolean hasGoat() {
+		return getPetOwner().hasGoat();
 	}
 
 	public boolean hasPet() {
@@ -999,7 +1156,7 @@ public class Player extends RPEntity implements UseListener {
 	 * Set the player's pet. This will also set the pet's owner.
 	 *
 	 * @param pet
-	 *            The pet.
+	 *			The pet.
 	 */
 	public void setPet(final Pet pet) {
 		getPetOwner().setPet(pet);
@@ -1009,7 +1166,7 @@ public class Player extends RPEntity implements UseListener {
 	 * Set the player's sheep. This will also set the sheep's owner.
 	 *
 	 * @param sheep
-	 *            The sheep.
+	 *			The sheep.
 	 */
 	public void setSheep(final Sheep sheep) {
 		getPetOwner().setSheep(sheep);
@@ -1024,6 +1181,14 @@ public class Player extends RPEntity implements UseListener {
 		return getPetOwner().getSheep();
 	}
 
+	public void setGoat(final Goat goat) {
+		getPetOwner().setGoat(goat);
+	}
+
+	public Goat getGoat() {
+		return getPetOwner().getGoat();
+	}
+
 	public Pet getPet() {
 		return getPetOwner().getPet();
 	}
@@ -1031,6 +1196,7 @@ public class Player extends RPEntity implements UseListener {
 	/**
 	 * Gets the number of minutes that this player has been logged in on the
 	 * server.
+	 *
 	 * @return age of player in minutes
 	 */
 	public int getAge() {
@@ -1043,8 +1209,8 @@ public class Player extends RPEntity implements UseListener {
 	 * @return true if it is a new player, false otherwise
 	 */
 	public boolean isNew() {
-		return (getAge() < 2 * 60) || (getAtk() < 15) || (getDef() < 15)
-				|| (getLevel() < 5);
+		return getAge() < 2 * 60 || getAtk() < 15 || getDef() < 15
+				|| getLevel() < 5;
 	}
 
 	/**
@@ -1052,7 +1218,7 @@ public class Player extends RPEntity implements UseListener {
 	 * server.
 	 *
 	 * @param age
-	 *            minutes
+	 *			minutes
 	 */
 	public void setAge(final int age) {
 		this.age = age;
@@ -1084,7 +1250,7 @@ public class Player extends RPEntity implements UseListener {
 	 * Notifies this player that the given player has logged in.
 	 *
 	 * @param who
-	 *            The name of the player who has logged in.
+	 *			The name of the player who has logged in.
 	 */
 	public void notifyOnline(final String who) {
 		boolean found = false;
@@ -1105,7 +1271,7 @@ public class Player extends RPEntity implements UseListener {
 	 * Notifies this player that the given player has logged out.
 	 *
 	 * @param who
-	 *            The name of the player who has logged out.
+	 *			The name of the player who has logged out.
 	 */
 	public void notifyOffline(final String who) {
 		boolean found = false;
@@ -1124,11 +1290,13 @@ public class Player extends RPEntity implements UseListener {
 
 	/**
 	 * Sets the online status for a buddy in the players' buddy list
+	 *
 	 * @param buddyName
-	 * @param isOnline buddy is online?
+	 * @param isOnline
+	 *			buddy is online?
 	 */
 	public void setBuddyOnlineStatus(String buddyName, boolean isOnline) {
-		//maps handling:
+		// maps handling:
 		if (containsKey("buddies", buddyName)) {
 			put("buddies", buddyName, isOnline);
 		}
@@ -1170,7 +1338,7 @@ public class Player extends RPEntity implements UseListener {
 	 * Checks whether the player has completed the given quest or not.
 	 *
 	 * @param name
-	 *            The quest's name
+	 *			The quest's name
 	 * @return true iff the quest has been completed by the player
 	 */
 	public boolean isQuestCompleted(final String name) {
@@ -1183,7 +1351,7 @@ public class Player extends RPEntity implements UseListener {
 	 * started.
 	 *
 	 * @param name
-	 *            The quest's name
+	 *			The quest's name
 	 * @return true if the player has made any progress in the quest
 	 */
 	public boolean hasQuest(final String name) {
@@ -1194,7 +1362,7 @@ public class Player extends RPEntity implements UseListener {
 	 * Gets the player's current status in the given quest.
 	 *
 	 * @param name
-	 *            The quest's name
+	 *			The quest's name
 	 * @return the player's status in the quest
 	 */
 	public String getQuest(final String name) {
@@ -1205,14 +1373,15 @@ public class Player extends RPEntity implements UseListener {
 	 * Gets the player's current status in the given quest.
 	 *
 	 * @param name
-	 *            The quest's name
+	 *			The quest's name
 	 * @param index
-	 *            the index of the sub state to change (separated by ";")
+	 *			the index of the sub state to change (separated by ";")
 	 * @return the player's status in the quest
 	 */
 	public String getQuest(final String name, final int index) {
 		return quests.getQuest(name, index);
 	}
+
 	/**
 	 * Allows to store the player's current status in a quest in a string. This
 	 * string may, for instance, be "started", "done", a semicolon- separated
@@ -1221,10 +1390,10 @@ public class Player extends RPEntity implements UseListener {
 	 * "done" has a special meaning: see isQuestCompleted().
 	 *
 	 * @param name
-	 *            The quest's name
+	 *			The quest's name
 	 * @param status
-	 *            the player's status in the quest. Set it to null to completely
-	 *            reset the player's status for the quest.
+	 *			the player's status in the quest. Set it to null to completely
+	 *			reset the player's status for the quest.
 	 */
 	public void setQuest(final String name, final String status) {
 		quests.setQuest(name, status);
@@ -1238,12 +1407,12 @@ public class Player extends RPEntity implements UseListener {
 	 * "done" has a special meaning: see isQuestComplete().
 	 *
 	 * @param name
-	 *            The quest's name
+	 *			The quest's name
 	 * @param index
-	 *            the index of the sub state to change (separated by ";")
+	 *			the index of the sub state to change (separated by ";")
 	 * @param status
-	 *            the player's status in the quest. Set it to null to completely
-	 *            reset the player's status for the quest.
+	 *			the player's status in the quest. Set it to null to completely
+	 *			reset the player's status for the quest.
 	 */
 	public void setQuest(final String name, final int index, final String status) {
 		quests.setQuest(name, index, status);
@@ -1261,10 +1430,12 @@ public class Player extends RPEntity implements UseListener {
 	 * Is the named quest in one of the listed states?
 	 *
 	 * @param name
-	 *            quest
+	 *	 Quest name.
 	 * @param states
-	 *            valid states
-	 * @return true, if the quest is in one of theses states, false otherwise
+	 *	 Valid states.
+	 * @return
+	 *	 <code>true</code> if the quest is in one of theses states,
+	 *	 <code>false</code> otherwise.
 	 */
 	public boolean isQuestInState(final String name, final String... states) {
 		return quests.isQuestInState(name, states);
@@ -1274,14 +1445,17 @@ public class Player extends RPEntity implements UseListener {
 	 * Is the named quest in one of the listed states?
 	 *
 	 * @param name
-	 *            quest
+	 *	 Quest name.
 	 * @param index
-	 *            quest index
+	 *	 Quest index.
 	 * @param states
-	 *            valid states
-	 * @return true, if the quest is in one of theses states, false otherwise
+	 *	 Valid states.
+	 * @return
+	 *	 <code>true</code> if the quest is in one of theses states,
+	 *	 <code>false</code> otherwise.
 	 */
-	public boolean isQuestInState(final String name, final int index, final String... states) {
+	public boolean isQuestInState(final String name, final int index,
+			final String... states) {
 		return quests.isQuestInState(name, index, states);
 	}
 
@@ -1289,30 +1463,38 @@ public class Player extends RPEntity implements UseListener {
 	 * Checks if the player has ever killed a creature, with or without the help
 	 * of any other player.
 	 *
-	 * @param name of the creature to check.
-	 * @return true iff this player has ever killed this creature.
+	 * @param name
+	 *	 Name of creature to check.
+	 * @return
+	 *	 <code>true</code> if this player has ever killed this creature.
 	 */
 	public boolean hasKilled(final String name) {
 		return killRec.hasKilled(name);
 	}
 
 	/**
-	 * Checks if the player has ever 'solo killed' a creature, i.e. without the help
-	 * of any other player.
+	 * Checks if the player has ever 'solo killed' a creature, i.e.
+	 * without the help of any other player.
 	 *
-	 * @param name of the creature to check.
-	 * @return true iff this player has ever killed this creature on his own.
+	 * @param name
+	 *	 Name of creature to check.
+	 * @return
+	 *	 <code>true</code> if this player has ever killed this creature
+	 *	 without help.
 	 */
 	public boolean hasKilledSolo(final String name) {
 		return killRec.hasKilledSolo(name);
 	}
 
 	/**
-	 * Checks if the player has ever 'shared killed' a creature, i.e. with the help
-	 * of any other player.
+	 * Checks if the player has ever 'shared killed' a creature, i.e.
+	 * with the help of any other player.
 	 *
-	 * @param name of the creature to check.
-	 * @return true iff this player has ever killed this creature in a team.
+	 * @param name
+	 *	 Name of creature to check.
+	 * @return
+	 *	 <code>true</code> if this player has ever killed this creature
+	 *	 with help.
 	 */
 	public boolean hasKilledShared(final String name) {
 		return killRec.hasKilledShared(name);
@@ -1320,8 +1502,10 @@ public class Player extends RPEntity implements UseListener {
 
 	/**
 	 * Stores that the player has killed 'name' solo. Overwrites shared kills of
-	 * 'name'
-	 * @param name of the victim
+	 * 'name'.
+	 *
+	 * @param name
+	 *	 Name of the victim.
 	 */
 	public void setSoloKill(final String name) {
 		killRec.setSoloKill(name);
@@ -1329,183 +1513,120 @@ public class Player extends RPEntity implements UseListener {
 
 	/**
 	 * Stores that the player has killed 'name' with help of others. Does not
-	 * overwrite solo kills of 'name'
-	 * @param name of victim
+	 * overwrite solo kills of 'name'.
 	 *
+	 * @param name
+	 *	 Name of victim.
 	 */
 	public void setSharedKill(final String name) {
 		killRec.setSharedKill(name);
 	}
 
 	/**
-	 * Returns how much the player has killed 'name' solo.
-	 * @param name of the victim
-	 * @return number of solo kills
+	 * Changes solo kills count to specified value.
+	 *
+	 * @param name
+	 *	 Name of victim.
+	 * @param count
+	 *	 Value to set.
+	 */
+	public void setSoloKillCount(final String name, final int count) {
+		killRec.setSoloKillCount(name, count);
+	}
+
+	/**
+	 * Increments number of counted solo kills by 1.
+	 *
+	 * @param name
+	 *	 Name of victim.
+	 */
+	public void incSoloKillCount(final String name) {
+		setSoloKillCount(name, getSoloKill(name) + 1);
+	}
+
+	/**
+	 * Changes shared kills count to specified value.
+	 *
+	 * @param name
+	 *	 Name of victim.
+	 * @param count
+	 *	 Value to set.
+	 */
+	public void setSharedKillCount(final String name, final int count) {
+		killRec.setSharedKillCount(name, count);
+	}
+
+	/**
+	 * Increments number of counted shared kills by 1.
+	 *
+	 * @param name
+	 *	 Name of victim.
+	 */
+	public void incSharedKillCount(final String name) {
+		setSharedKillCount(name, getSharedKill(name) + 1);
+	}
+
+	/**
+	 * Retrieves number of creatures killed alone by this player.
+	 *
+	 * @param name
+	 *	 Name of victim.
+	 * @return
+	 *	 Number of solo kills.
 	 */
 	public int getSoloKill(final String name) {
-		return(killRec.getSoloKill(name));
+		return killRec.getSoloKill(name);
 	}
 
 	/**
-	 * Returns how much the player has killed 'name' with help of others.
-	 * @param name of victim
-	 * @return number of shared kills
+	 * Retrieves number of creatures killed alone by this player.
+	 *
+	 * @param name
+	 *	 Name of victim.
+	 * @return
+	 *	 Number of solo kills.
+	 */
+	public int getSoloKillCount(final String name) {
+		return getSoloKill(name);
+	}
+
+	/**
+	 * Retrieves number of creatures killed by this player with help
+	 * from others.
+	 *
+	 * @param name
+	 *	 Name of victim.
+	 * @return
+	 *	 Number of shared kills.
 	 */
 	public int getSharedKill(final String name) {
-		return(killRec.getSharedKill(name));
+		return killRec.getSharedKill(name);
 	}
 
 	/**
-	 * return differences between stored in quest slot info about killed creatures
-	 *    and number of killed creatures.
-	 * @param questSlot  - name of quest
-	 * @param questIndex - index of quest's record
-	 * @param creature   - name of creature
-	 * @return - difference in killed creatures
-	 */
-	public int getQuestKills(final String questSlot, final int questIndex, final String creature) {
-		final List<String> content = Arrays.asList(getQuest(questSlot, questIndex).split(","));
-		final int index = content.indexOf(creature);
-		final int solo = MathHelper.parseIntDefault(content.get(index+1),0);
-		final int shared = MathHelper.parseIntDefault(content.get(index+2),0);
-		return(getSoloKill(creature)+getSharedKill(creature)-solo-shared);
-	}
-
-	/**
-	 * Checks whether the player is still suffering from the effect of a
-	 * poisonous item/creature or not.
-	 * @return true if player still has poisons to consume
-	 */
-	public boolean isPoisoned() {
-		return !(poisonToConsume.size() == 0);
-	}
-
-	/**
-	 * Disburdens the player from the effect of a poisonous item/creature.
-	 */
-	public void healPoison() {
-		poisonToConsume.clear();
-	}
-
-	/**
-	 * Poisons the player with a poisonous item. Note that this method is also
-	 * used when a player has been poisoned while fighting against a poisonous
-	 * creature.
+	 * Retrieves number of creatures killed by this player with help
+	 * from others.
 	 *
-	 * @param item
-	 *            the poisonous item
-	 * @return true iff the poisoning was effective, i.e. iff the player is not
-	 *         immune
+	 * @param name
+	 *	 Name of victim.
+	 * @return
+	 *	 Number of shared kills.
 	 */
-	public boolean poison(final ConsumableItem item) {
-		if (isImmune) {
-			return false;
-		} else {
-			// put("poisoned", "0");
-			poisonToConsume.add(item);
-			TutorialNotifier.poisoned(this);
-			return true;
-		}
+	public int getSharedKillCount(final String name) {
+		return getSharedKill(name);
 	}
 
-	public boolean isFull() {
-		return itemsToConsume.size() > 4;
-	}
-
-	public boolean isChoking() {
-		return itemsToConsume.size() > 5;
-	}
-
-	public boolean isChokingToDeath() {
-		return itemsToConsume.size() > 8;
-	}
-
-	public void eat(final ConsumableItem item) {
-		if (isChoking()) {
-			put("choking", 0);
-		} else {
-			put("eating", 0);
-		}
-		itemsToConsume.add(item);
-	}
-
-	public void setImmune() {
-		if (has("poisoned")) {
-			remove("poisoned");
-		}
-		poisonToConsume.clear();
-		isImmune = true;
-	}
-
-	public void removeImmunity() {
-		isImmune = false;
-		sendPrivateText("Już nie jesteś odporny na trucizę.");
-	}
-
-	public void consume(final int turn) {
-		Collections.sort(itemsToConsume);
-		if (itemsToConsume.size() > 0) {
-			final ConsumableItem food = itemsToConsume.get(0);
-			if (food.consumed()) {
-				itemsToConsume.remove(0);
-			} else {
-				if (turn % food.getFrecuency() == 0) {
-					logger.debug("Consumed item: " + food);
-					final int amount = food.consume();
-					if (isChoking()) {
-						put("choking", amount);
-					} else {
-						if (has("choking")) {
-							remove("choking");
-						}
-						put("eating", amount);
-					}
-					if (heal(amount, true) == 0) {
-						itemsToConsume.clear();
-					}
-				}
-			}
-		} else {
-			if (has("eating")) {
-				remove("eating");
-			}
-			if (has("choking")) {
-				remove("choking");
-			}
-		}
-
-		if ((poisonToConsume.size() == 0)) {
-			if (has("poisoned")) {
-				remove("poisoned");
-			}
-		} else {
-			final List<ConsumableItem> poisonstoRemove = new LinkedList<ConsumableItem>();
-			int sum = 0;
-			int amount = 0;
-			for (final ConsumableItem poison : new LinkedList<ConsumableItem>(
-					poisonToConsume)) {
-				if (turn % poison.getFrecuency() == 0) {
-					if (poison.consumed()) {
-						poisonstoRemove.add(poison);
-					} else {
-						amount = poison.consume();
-						damage(-amount, poison);
-						sum += amount;
-						put("poisoned", sum);
-					}
-				}
-
-			}
-			for (final ConsumableItem poison : poisonstoRemove) {
-				poisonToConsume.remove(poison);
-			}
-		}
-
-		notifyWorldAboutChanges();
-	}
-
-	public void clearFoodList() {
-		itemsToConsume.clear();
+	/**
+	 * Retrieves number of creatures kill by this player alone and/or
+	 * with help from others.
+	 *
+	 * @param name
+	 *	 Name of victim.
+	 * @return
+	 *	 Total number of kills.
+	 */
+	public int getAllKillCount(final String name) {
+		return getSoloKill(name) + getSharedKill(name);
 	}
 
 	@Override
@@ -1513,115 +1634,108 @@ public class Player extends RPEntity implements UseListener {
 
 		// A special description was specified
 		if (hasDescription()) {
-			return (getDescription());
+			return getDescription();
 		}
 
 		// default description for player includes their name, level and play
 		// time
+		final String name = getTitle();
 		final int hours = age / 60;
 		final int minutes = age % 60;
 		final String time = hours + " godzinę" + " i " + minutes + " " + "minutę";
-		final String textparobek = "Oto parobek " + getTitle() + ".\n" + getTitle()
-				+ " posiada poziom " + getLevel() + ". Wiek " + time
-				+ ".";
-		final String textchlop = "Oto chłop " + getTitle() + ".\n" + getTitle()
-				+ " posiada poziom " + getLevel() + ". Wiek " + time
-				+ ".";
-		final String textkmiec = "Oto kmieć " + getTitle() + ".\n" + getTitle()
-				+ " posiada poziom " + getLevel() + ". Wiek " + time
-				+ ".";
-		final String textmieszczanin = "Oto mieszczanin " + getTitle() + ".\n" + getTitle()
-				+ " posiada poziom " + getLevel() + ". Wiek " + time
-				+ ".";
-		final String textszlachcic = "Oto szlachcic " + getTitle() + ".\n" + getTitle()
-				+ " posiada poziom " + getLevel() + ". Wiek " + time
-				+ ".";
-		final String textrycerz = "Oto rycerz " + getTitle() + ".\n" + getTitle()
-				+ " posiada poziom " + getLevel() + ". Wiek " + time
-				+ ".";
-		final String textbaronet = "Oto baronet " + getTitle() + ".\n" + getTitle()
-				+ " posiada poziom " + getLevel() + ". Wiek " + time
-				+ ".";
-		final String textbaron = "Oto baron " + getTitle() + ".\n" + getTitle()
-				+ " posiada poziom " + getLevel() + ". Wiek " + time
-				+ ".";
-		final String textwicehrabia = "Oto wicehrabia " + getTitle() + ".\n" + getTitle()
-				+ " posiada poziom " + getLevel() + ". Wiek " + time
-				+ ".";
-		final String texthrabia = "Oto hrabia " + getTitle() + ".\n" + getTitle()
-				+ " posiada poziom " + getLevel() + ". Wiek " + time
-				+ ".";
-		final String textmagnat = "Oto magnat " + getTitle() + ".\n" + getTitle()
-				+ " posiada poziom " + getLevel() + ". Wiek " + time
-				+ ".";
-		final String textksiaze = "Oto książe " + getTitle() + ".\n" + getTitle()
-				+ " posiada poziom " + getLevel() + ". Wiek " + time
-				+ ".";
 
-/*		final String text = "Oto " + getTitle() + ".\n" + getTitle()
+		@SuppressWarnings("serial")
+		Map<String, Integer> titles = new HashMap<String, Integer>() {{
+			put("parobek", 0);
+			put("chłop", 50);
+			put("kmieć", 100);
+			put("mieszczanin", 150);
+			put("szlachcic", 200);
+			put("rycerz", 250);
+			put("baronet", 300);
+			put("baron", 350);
+			put("wicehrabia", 400);
+			put("hrabia", 450);
+			put("magnat", 500);
+			put("książe", 550);
+		}};
+
+		String title = "";
+		if (getAdminLevel() > 0) {
+			if (getAdminLevel() < 7) {
+				title = "#tutor";
+			} else if (getAdminLevel() < 1000) {
+				title = "#GameMaster";
+			} else if (getAdminLevel() < 5000) {
+				title = "#GameAdministrator";
+			} else if (getAdminLevel() == 5000) {
+				title = "#GameSupervisor";
+			}
+		} else {
+			for (final Map.Entry<String, Integer> entry: titles.entrySet()) {
+				if (getLevel() == 597) {
+					title = Grammar.genderVerb(getGender(), "król");
+				} else if (getLevel() >= entry.getValue() && getLevel() < (entry.getValue() + 50)) {
+					title = Grammar.genderVerb(getGender(), entry.getKey());
+				}
+			}
+		}
+
+		final String text = "Oto " + title + " " + name + ".\n" + name
 				+ " posiada poziom " + getLevel() + ". Wiek " + time
-				+ ".";*/
+				+ ".";
 
 		final StringBuilder sb = new StringBuilder();
-		if (getLevel() < 50) {
-			sb.append(textparobek);
-		} else if ((getLevel() >= 50) && (getLevel() < 100)){
-			sb.append(textchlop);
-		} else if ((getLevel() >= 100) && (getLevel() < 150)){
-			sb.append(textkmiec);
-		} else if ((getLevel() >= 150) && (getLevel() < 200)){
-			sb.append(textmieszczanin);
-		} else if ((getLevel() >= 200) && (getLevel() < 250)){
-			sb.append(textszlachcic);
-		} else if ((getLevel() >= 250) && (getLevel() < 300)){
-			sb.append(textrycerz);
-		} else if ((getLevel() >= 300) && (getLevel() < 350)){
-			sb.append(textbaronet);
-		} else if ((getLevel() >= 350) && (getLevel() < 400)){
-			sb.append(textbaron);
-		} else if ((getLevel() >= 400) && (getLevel() < 450)){
-			sb.append(textwicehrabia);
-		} else if ((getLevel() >= 450) && (getLevel() < 500)){
-			sb.append(texthrabia);
-		} else if ((getLevel() >= 500) && (getLevel() < 550)){
-			sb.append(textmagnat);
-		} else if ((getLevel() >= 550) && (getLevel() < 598)){
-			sb.append(textksiaze);
+		if (name.equals("postman")) {
+			sb.append("Oto " + name + ". Listonosz, który stara się, aby wszelkie listy dotarły do ich odbiorców. Wiek " + time + ".");
+		} else {
+			sb.append(text);
 		}
 
 		final String awayMessage = getAwayMessage();
 		if (awayMessage != null) {
-			sb.append("\n" + getTitle() + " nie ma go teraz, ale zostawił wiadomość: ");
+			sb.append("\n" + name + " nie ma " + Grammar.genderVerb(getGender(), "go") + " teraz, ale " + Grammar.genderVerb(getGender(), "zostawił") + " wiadomość: ");
 			sb.append(awayMessage);
 		}
 		final String grumpyMessage = getGrumpyMessage();
 		if (grumpyMessage != null) {
-			sb.append("\n" + getTitle() + " ukrywa się i zostawił wiadomość: ");
+			sb.append("\n" + name + " ukrywa się i " + Grammar.genderVerb(getGender(), "zostawił") + " wiadomość: ");
 			sb.append(grumpyMessage);
 		}
-		return (sb.toString());
+
+		/* Show a sentence set by player if not away or grumpy */
+		if ((awayMessage == null) && (grumpyMessage == null)) {
+			final String sentence = getSentence();
+			if (!sentence.isEmpty()) {
+				sb.append("\n");
+				sb.append("Opis " + name);
+				sb.append(" jest: \"" + sentence + "\"");
+			}
+		}
+
+		return sb.toString();
 	}
 
 	/**
 	 * Teleports this player to the given destination.
 	 *
 	 * @param zone
-	 *            The zone where this player should be teleported to.
+	 *			The zone where this player should be teleported to.
 	 * @param x
-	 *            The destination's x coordinate
+	 *			The destination's x coordinate
 	 * @param y
-	 *            The destination's y coordinate
+	 *			The destination's y coordinate
 	 * @param dir
-	 *            The direction in which the player should look after
-	 *            teleporting, or null if the direction shouldn't change
+	 *			The direction in which the player should look after
+	 *			teleporting, or null if the direction shouldn't change
 	 * @param teleporter
-	 *            The player who initiated the teleporting, or null if no player
-	 *            is responsible. This is only to give feedback if something
-	 *            goes wrong. If no feedback is wanted, use null.
-	 * @return true iff teleporting was successful
+	 *			The player who initiated the teleporting, or null if no player
+	 *			is responsible. This is only to give feedback if something
+	 *			goes wrong. If no feedback is wanted, use null.
+	 * @return <code>true</code> if teleporting was successful.
 	 */
-	public boolean teleport(final StendhalRPZone zone, final int x, final int y, final Direction dir,
-			final Player teleporter) {
+	public boolean teleport(final StendhalRPZone zone, final int x,
+			final int y, final Direction dir, final Player teleporter) {
 		if (StendhalRPAction.placeat(zone, this, x, y)) {
 			if (dir != null) {
 				this.setDirection(dir);
@@ -1637,23 +1751,29 @@ public class Player extends RPEntity implements UseListener {
 			}
 			return false;
 		}
-
 	}
 
 	/**
-	 * Removes all units of an item from the RPEntity. The item can either be
-	 * stackable or non-stackable. If the RPEntity doesn't have any of the item,
-	 * doesn't remove anything.
+	 * Teleports player to given destination using zoneid string.
 	 *
-	 * @param name
-	 *            The name of the item
-	 * @return true iff dropping the item was successful.
+	 * @param zoneid
+	 * 		<code>String</code> name/ID of zone.
+	 * @param x
+	 * 		Destination's horizontal coordinate.
+	 * @param y
+	 * 		Distination's vertical coordinate.
+	 * @param dir
+	 * 		The direction in which the player should look after
+	 * 		teleporting, or null if the direction shouldn't change.
+	 * @param teleporter
+	 * @return
+	 * 		<code>true</code> if teleporting was successful.
 	 */
-	public boolean dropAll(final String name) {
-		return drop(name, getNumberOfEquipped(name));
+	public boolean teleport(final String zoneid, final int x,
+			final int y, final Direction dir, final Player teleporter) {
+		final StendhalRPZone zone = SingletonRepository.getRPWorld().getZone(zoneid);
+		return teleport(zone, x, y, dir, teleporter);
 	}
-
-	private int turnOfLastPush;
 
 	/**
 	 * Called when player push entity. The entity displacement is handled by the
@@ -1672,73 +1792,237 @@ public class Player extends RPEntity implements UseListener {
 	 * @return true iff pushing is possible
 	 */
 	public boolean canPush(final RPEntity entity) {
-		return ((this != entity) && (SingletonRepository.getRuleProcessor().getTurn()
-				- turnOfLastPush > 10));
-	}
-
-	@Override
-	public void setOutfit(final Outfit outfit) {
-		setOutfit(outfit, false);
+		return this != entity
+				&& SingletonRepository.getRuleProcessor().getTurn()
+						- turnOfLastPush > 10;
 	}
 
 	/**
-	 * Makes this player wear the given outfit. If the given outfit contains
-	 * null parts, the current outfit will be kept for these parts. If the
-	 * outfit change includes any colors, they should be changed <b>after</b>
-	 * calling this.
+	 * Sets the player's original outfit. Useful for updating original outfit information while
+	 * wearing a temporary outfit.
 	 *
 	 * @param outfit
-	 *            The new outfit.
-	 * @param temporary
-	 *            If true, the original outfit will be stored so that it can be
-	 *            restored later.
+	 *     The new outfit.
+	 * @param colors
+	 *     New outfit colors.
 	 */
-	public void setOutfit(final Outfit outfit, final boolean temporary) {
-		// if the new outfit is temporary and the player is not wearing
-		// a temporary outfit already, store the current outfit in a
-		// second slot so that we can return to it later.
-		if (temporary && !has("outfit_org")) {
-			put("outfit_org", get("outfit"));
-
-			// remember the old color selections.
-			for (String part : RECOLORABLE_OUTFIT_PARTS) {
-				String tmp = part + "_orig";
-				String color = get("outfit_colors", part);
-				if (color != null) {
-					put("outfit_colors", tmp, color);
-					if (!"hair".equals(part)) {
-					remove("outfit_colors", part);
-					}
-				} else if (has("outfit_colors", tmp)) {
-					// old saved colors need to be cleared in any case
-					remove("outfit_colors", tmp);
+	public void setOriginalOutfit(final Outfit outfit, final Map<String, Integer> colors) {
+		String oattr = "outfit_ext";
+		String csuffix = "";
+		if (outfitIsTemporary()) {
+			oattr += "_orig";
+			csuffix = "_orig";
+		}
+		if (colors != null) {
+			for (final String part: getColorableLayers()) {
+				// clear old color
+				remove("outfit_colors", part + csuffix);
+				if (colors.containsKey(part)) {
+					put("outfit_colors", part + csuffix, colors.get(part));
 				}
 			}
 		}
-
-		// if the new outfit is not temporary, remove the backup
-		if (!temporary && has("outfit_org")) {
-			remove("outfit_org");
-			// clear colors
-			for (String part : RECOLORABLE_OUTFIT_PARTS) {
-				if (has("outfit_colors", part)) {
-					remove("outfit_colors", part);
-				}
-			}
-		}
-
-		// combine the old outfit with the new one, as the new one might
-		// contain null parts.
-		final Outfit newOutfit = outfit.putOver(getOutfit());
-		put("outfit", newOutfit.getCode());
+		put(oattr, outfit.putOver(getOriginalOutfit()).toString());
 		notifyWorldAboutChanges();
 	}
 
-	public Outfit getOriginalOutfit() {
-		if (has("outfit_org")) {
-			return new Outfit(getInt("outfit_org"));
+	/**
+	 * Sets the player's original outfit. Useful for updating original outfit information while
+	 * wearing a temporary outfit.
+	 *
+	 * @param outfit
+	 *     The new outfit.
+	 */
+	public void setOriginalOutfit(final Outfit outfit) {
+		setOriginalOutfit(outfit, null);
+	}
+
+	/**
+	 * Sets the player's original outfit. Useful for updating original outfit information while
+	 * wearing a temporary outfit.
+	 *
+	 * @param outfit
+	 *     The new outfit string representation.
+	 * @param colors
+	 *     New outfit colors string representation.
+	 */
+	public void setOriginalOutfit(final String outfit, final String colors) {
+		Map<String, Integer> colorMap = null;
+		if (colors != null) {
+			colorMap = new HashMap<>();
+			for (final String tmp1: colors.split(",")) {
+				try {
+					final String[] tmp2 = tmp1.split("=");
+					colorMap.put(tmp2[0], Integer.parseInt(tmp2[1]));
+				} catch (final NumberFormatException e) {
+					logger.error("Cannot convert outfit color", e);
+				}
+			}
 		}
-		return null;
+		setOriginalOutfit(new Outfit(outfit), colorMap);
+	}
+
+	/**
+	 * Sets the player's original outfit. Useful for updating original outfit information while
+	 * wearing a temporary outfit.
+	 *
+	 * @param outfit
+	 *     The new outfit string representation.
+	 */
+	public void setOriginalOutfit(final String outfit) {
+		setOriginalOutfit(outfit, null);
+	}
+
+	/**
+	 * Use this method to add a new temporary outfit or override an old one.
+	 *
+	 * @param outfit
+	 *     The temporary outfit to be worn.
+	 * @param expireAge
+	 *     Player age when outfit will expire.
+	 * @param clearColors
+	 *     Should layer color information be forgotten? (default: true)
+	 */
+	public void setTemporaryOutfit(final Outfit outfit, final int expireAge, final boolean clearColors) {
+		// update original outfit only if not currently wearing a temporary one
+		if (!has("outfit_ext_orig")) {
+			storeOriginalOutfit();
+		}
+		if (clearColors) {
+			clearColors();
+		}
+		// - combine the old outfit with the new one, as the new one might
+		//   contain null parts.
+		// - new temporary outfits must remove old ones.
+		put("outfit_ext", outfit.putOver(getOriginalOutfit()).toString());
+		registerOutfitExpireTime(expireAge);
+		notifyWorldAboutChanges();
+	}
+
+	/**
+	 * Use this method to add a new temporary outfit or override an old one.
+	 *
+	 * @param outfit
+	 *     The temporary outfit to be worn.
+	 * @param expireAge
+	 *     Player age when outfit will expire.
+	 */
+	public void setTemporaryOutfit(final Outfit outfit, final int expireAge) {
+		setTemporaryOutfit(outfit, expireAge, true);
+	}
+
+	/**
+	 * Use this method to add a new temporary outfit or override an old one.
+	 *
+	 * @param outfit
+	 *     Temporary outfit string representation.
+	 * @param expireAge
+	 *     Player age when outfit will expire.
+	 * @param clearColors
+	 *     Should layer color information be forgotten? (default: true);
+	 */
+	public void setTemporaryOutfit(final String outfit, final int expireAge, final boolean clearColors) {
+		setTemporaryOutfit(new Outfit(outfit), expireAge, clearColors);
+	}
+
+	/**
+	 * Use this method to add a new temporary outfit or override an old one. Layer color information
+	 * is removed.
+	 *
+	 * @param outfit
+	 *     Temporary outfit string representation.
+	 * @param expireAge
+	 *     Player age when outfit will expire.
+	 */
+	public void setTemporaryOutfit(final String outfit, final int expireAge) {
+		setTemporaryOutfit(outfit, expireAge, true);
+	}
+
+	/**
+	 * Sets a layer for both the player's original & temporary outfits without changing temporary
+	 * expiration.
+	 *
+	 * @param layer
+	 *     Layer name.
+	 * @param index
+	 *     Index to set layer to.
+	 */
+	public void setPerpetualOutfitLayer(final String layer, final int index) {
+		final Outfit newLayer = new Outfit(layer + "=" + index);
+		put("outfit_ext", newLayer.putOver(getOutfit()).toString());
+		if (outfitIsTemporary()) {
+			put("outfit_ext_orig", newLayer.putOver(getOriginalOutfit()).toString());
+		}
+		notifyWorldAboutChanges();
+	}
+
+	/**
+	 * Sets a layer color for both the player's original & temporary outfits.
+	 *
+	 * @param layer
+	 *     Layer name.
+	 * @param color
+	 *     New color.
+	 */
+	public void setPerpetualOutfitColor(final String layer, final String color) {
+		put("outfit_colors", layer, color);
+		if (outfitIsTemporary()) {
+			put("outfit_colors", layer + "_orig", color);
+		}
+	}
+
+	/**
+	 * Sets a layer color for both the player's original & temporary outfits.
+	 *
+	 * @param layer
+	 *     Layer name.
+	 * @param color
+	 *     New color.
+	 */
+	public void setPerpetualOutfitColor(final String layer, final int color) {
+		setPerpetualOutfitColor(layer, String.valueOf(color));
+	}
+
+	/**
+	 * Checks if entity is wearnig a temporary outfit.
+	 *
+	 * @return
+	 *     True if the entiry has stored an original outfit.
+	 */
+	public boolean outfitIsTemporary() {
+		return has("outfit_ext_orig") || has("outfit_org");
+	}
+
+	/**
+	 * sets the time a outfit wears off
+	 *
+	 * @param expire
+	 *            expire age
+	 */
+	public void registerOutfitExpireTime(int expire) {
+		// ignore outfits that do not expire
+		if (expire < 0) {
+			return;
+		}
+
+		// currently we keep only track of one expire, so takes the smallest
+		// to prevent players from keeping a highly special outfit longer
+		// by renting an outfit with a longer expire time later
+		int oldExpire = Integer.MAX_VALUE;
+		if (has("outfit_expire_age")) {
+			oldExpire = getInt("outfit_expire_age");
+		}
+		if (oldExpire < age) {
+			logger.error("oldExpire " + oldExpire + " for age " + age);
+			oldExpire = Integer.MAX_VALUE;
+		}
+		int newExpire = Math.min(expire + age, oldExpire);
+		put("outfit_expire_age", newExpire);
+
+		ExpireOutfit expireOutfit = new ExpireOutfit(getName());
+		SingletonRepository.getTurnNotifier().dontNotify(expireOutfit);
+		SingletonRepository.getTurnNotifier().notifyInSeconds(
+				(newExpire - age) * 60, expireOutfit);
 	}
 
 	/**
@@ -1749,36 +2033,20 @@ public class Player extends RPEntity implements UseListener {
 	 * @return true iff returning was successful.
 	 */
 	public boolean returnToOriginalOutfit() {
-		final Outfit originalOutfit = getOriginalOutfit();
-		if (originalOutfit != null) {
+		removeOutfitExpireNotification();
 
-			// do not restore details layer, unless the detail is still present
-			/*if (originalOutfit.getDetail() > 0) {
-				final Outfit currentOutfit = getOutfit();
-				if (!currentOutfit.getDetail().equals(originalOutfit.getDetail())) {
-					originalOutfit.removeDetail();
-				}
-			}*/
+		final String outfit_orig = get("outfit_ext_orig");
+		restoreOriginalOutfit();
 
-			remove("outfit_org");
-			setOutfit(originalOutfit, false);
+		// FIXME: need to check outfit colors as well
+		return get("outfit_ext").equals(outfit_orig);
+	}
 
-			// restore old colors
-			for (String part : RECOLORABLE_OUTFIT_PARTS) {
-				String tmp = part + "_orig";
-				String color = get("outfit_colors", tmp);
-				if (color != null) {
-					put("outfit_colors", part, color);
-					remove("outfit_colors", tmp);
-				} else if (has("outfit_colors", part)) {
-					// clear any colors from the temporary outfit if there was
-					// no saved color
-					remove("outfit_colors", part);
-				}
-			}
-			return true;
-		}
-		return false;
+	private void removeOutfitExpireNotification() {
+		ExpireOutfit expireOutfit = new ExpireOutfit(getName());
+		SingletonRepository.getTurnNotifier().dontNotify(expireOutfit);
+
+		remove("outfit_expire_age");
 	}
 
 	//
@@ -1797,17 +2065,23 @@ public class Player extends RPEntity implements UseListener {
 		 * If we are too far from dependents, then disallow zone change
 		 */
 		final Sheep sheep = getSheep();
-
 		if (sheep != null) {
-			if (squaredDistance(sheep) > (7 * 7)) {
+			if (squaredDistance(sheep) > 7 * 7) {
+				this.sendPrivateText("Twoja owieczka oddaliła się nieco za daleko!");
+				return false;
+			}
+		}
+
+		final Goat goat = getGoat();
+		if (goat != null) {
+			if (squaredDistance(goat) > 7 * 7) {
 				return false;
 			}
 		}
 
 		final Pet pet = getPet();
-
 		if (pet != null) {
-			if (squaredDistance(pet) > (7 * 7)) {
+			if (squaredDistance(pet) > 7 * 7) {
 				return false;
 			}
 		}
@@ -1860,28 +2134,25 @@ public class Player extends RPEntity implements UseListener {
 		applyMovement();
 
 		final int turn = SingletonRepository.getRuleProcessor().getTurn();
-		// punishment for PVP
-		if(isBadBoy()) {
-			int attackRate = 2;
-			if(getAttackRate() < 5) {
-				attackRate = getAttackRate() * 2;
-			} else {
-				attackRate = getAttackRate() + (getAttackRate() % 2);
+		
+		int attackRate = getAttackRate();
+		if (isBadBoy()) {
+			attackRate = getAttackRate() * 2;
+		}
+		if (isAttacking() && turn % attackRate == 0) {
+			RPEntity attackTarget = getAttackTarget();
+
+			// Face target if player is not moving
+			if (stopped() && isInSight(attackTarget)
+					&& !isFacingToward(attackTarget)) {
+				faceToward(attackTarget);
+				notifyWorldAboutChanges();
 			}
-			if (isAttacking()
-					&& ((turn % getAttackRate()) == 0)) {
-				StendhalRPAction.playerAttack(this, getAttackTarget());
-			}
-		} else {
-			if (isAttacking()
-					&& ((turn % getAttackRate()) == 0)) {
-				StendhalRPAction.playerAttack(this, getAttackTarget());
-			}
+
+			StendhalRPAction.playerAttack(this, attackTarget);
 		}
 
 		agePlayer(turn);
-
-		consume(turn);
 	}
 
 	private void agePlayer(final int turn) {
@@ -1889,7 +2160,7 @@ public class Player extends RPEntity implements UseListener {
 		 * 200 means 60 seconds x 300mx per turn.
 		 */
 		if (!isGhost()) {
-			if ((turn % 200) == 0) {
+			if (turn % 200 == 0) {
 				setAge(getAge() + 1);
 				notifyWorldAboutChanges();
 			}
@@ -1910,7 +2181,7 @@ public class Player extends RPEntity implements UseListener {
 	 * Set whether this player is a ghost (invisible/non-interactive).
 	 *
 	 * @param ghost
-	 *            <code>true</code> if a ghost.
+	 *			<code>true</code> if a ghost.
 	 */
 	public void setGhost(final boolean ghost) {
 		if (ghost) {
@@ -1933,7 +2204,7 @@ public class Player extends RPEntity implements UseListener {
 	 * Set whether this player has teleclick enabled.
 	 *
 	 * @param teleclick
-	 *            <code>true</code> if teleclick enabled.
+	 *			<code>true</code> if teleclick enabled.
 	 */
 	public void setTeleclickEnabled(final boolean teleclick) {
 		if (teleclick) {
@@ -1947,7 +2218,7 @@ public class Player extends RPEntity implements UseListener {
 	 * Called when this object is added to a zone.
 	 *
 	 * @param zone
-	 *            The zone this was added to.
+	 *			The zone this was added to.
 	 */
 	@Override
 	public void onAdded(final StendhalRPZone zone) {
@@ -1971,9 +2242,10 @@ public class Player extends RPEntity implements UseListener {
 
 		if((zoneName.equals("0_ados_city_n")) || (zoneName.equals("0_fado_city"))
 			|| (zoneName.equals("0_kalavan_city")) || (zoneName.equals("0_kirdneh_city"))
-			|| (zoneName.equals("0_krakow_wawel_w")) || (zoneName.equals("0_nalwor_city"))
-			|| (zoneName.equals("0_semos_city")) || (zoneName.equals("0_warszawa_nw"))
-			|| (zoneName.equals("0_zakopane_s"))) {
+			|| (zoneName.equals("0_nalwor_city")) || (zoneName.equals("0_semos_city"))
+			|| (zoneName.equals("0_zakopane_s")) || (zoneName.equals("0_krakow_wawel_w"))
+			|| (zoneName.equals("0_warszawa_w")) || (zoneName.equals("0_wieliczka_c"))
+			|| (zoneName.equals("0_gdansk_city_n"))) {
 			if(getQuest(zoneName) == null) {
 				setQuest(zoneName,"done");
 			}
@@ -1984,7 +2256,7 @@ public class Player extends RPEntity implements UseListener {
 	 * Called when this object is being removed from a zone.
 	 *
 	 * @param zone
-	 *            The zone this will be removed from.
+	 *			The zone this will be removed from.
 	 */
 	@Override
 	public void onRemoved(final StendhalRPZone zone) {
@@ -2014,7 +2286,8 @@ public class Player extends RPEntity implements UseListener {
 		}
 		if (obj instanceof Player) {
 			final Player other = (Player) obj;
-			return this.getName().toLowerCase().equals(other.getName().toLowerCase());
+			return this.getName().toLowerCase(Locale.ENGLISH)
+					.equals(other.getName().toLowerCase(Locale.ENGLISH));
 		}
 		return false;
 	}
@@ -2030,7 +2303,8 @@ public class Player extends RPEntity implements UseListener {
 	/**
 	 * sets the player sentence
 	 *
-	 * @param sentence sentence to store
+	 * @param sentence
+	 *			sentence to store
 	 */
 	public void setSentence(final String sentence) {
 		put("sentence", sentence);
@@ -2074,7 +2348,8 @@ public class Player extends RPEntity implements UseListener {
 	/**
 	 * checks if the client is newer than the requested version
 	 *
-	 * @param version requested version
+	 * @param version
+	 *			requested version
 	 * @return check the client is newer
 	 */
 	public boolean isClientNewerThan(String version) {
@@ -2092,8 +2367,7 @@ public class Player extends RPEntity implements UseListener {
 	public List<RingOfLife> getAllEquippedWorkingRingOfLife() {
 		final List<RingOfLife> result = new LinkedList<RingOfLife>();
 
-		for (final String slotName : Constants.CARRYING_SLOTS) {
-			final RPSlot slot = getSlot(slotName);
+		for (RPSlot slot : this.slots(Slots.CARRYING)) {
 
 			for (final RPObject object : slot) {
 				searchForWorkingRingsOfLife(object, result);
@@ -2102,11 +2376,11 @@ public class Player extends RPEntity implements UseListener {
 
 		return result;
 	}
-	
+
 	/**
 	 * Search recursively for working rings of life inside objects and their
 	 * content slots.
-	 *   
+	 *
 	 * @param obj
 	 * @param list
 	 */
@@ -2141,15 +2415,21 @@ public class Player extends RPEntity implements UseListener {
 			animals.add(getSheep());
 		}
 
+		if (hasGoat()) {
+			animals.add(getGoat());
+		}
+
 		return animals;
-    }
+	}
 
 	/**
 	 * Search for an animal with the given name or type.
 	 *
-	 * @param name the name or type of the pet to search
-	 * @param exactly <code>true</code> if looking only for matching
-	 * 	name instead of both name and type.
+	 * @param name
+	 *			the name or type of the pet to search
+	 * @param exactly
+	 *			<code>true</code> if looking only for matching name instead of
+	 *			both name and type.
 	 * @return the found pet
 	 */
 	public DomesticAnimal searchAnimal(final String name, final boolean exactly) {
@@ -2157,20 +2437,22 @@ public class Player extends RPEntity implements UseListener {
 
 		for (final DomesticAnimal animal : animals) {
 			if (animal != null) {
-    			if (animal.getTitle().equalsIgnoreCase(name)) {
-    				return animal;
-    			}
+				if (animal.getTitle().equalsIgnoreCase(name)) {
+					return animal;
+				}
 
-    			if (!exactly) {
-        			final String type = animal.get("type");
-        			if ((type != null) && ItemTools.itemNameToDisplayName(type).equals(name)) {
-        				return animal;
-        			}
+				if (!exactly) {
+					final String type = animal.get("type");
+					if (type != null
+							&& ItemTools.itemNameToDisplayName(type).equals(
+									name)) {
+						return animal;
+					}
 
-        			if ("pet".equals(name)) {
-        				return animal;
-        			}
-    			}
+					if ("pet".equals(name)) {
+						return animal;
+					}
+				}
 			}
 		}
 
@@ -2178,23 +2460,19 @@ public class Player extends RPEntity implements UseListener {
 	}
 
 	@Override
-	protected void applyDefXP(final RPEntity entity) {
-		if (getsFightXpFrom(entity)) {
-			incDefXP();
-		}
-	}
-	@Override
 	protected void handleObjectCollision() {
 		if (hasPath()) {
 			reroute();
 		}
 	}
 
-	public boolean isImmune() {
-		return isImmune;
-	}
+	// public boolean isImmune() {
+	// return isImmune;
+	// }
+
 	void setLastPlayerKill(final long milliseconds) {
 		put(LAST_PLAYER_KILL_TIME, milliseconds);
+		SingletonRepository.getAchievementNotifier().onKill(this);
 	}
 
 	public boolean isBadBoy() {
@@ -2204,7 +2482,8 @@ public class Player extends RPEntity implements UseListener {
 	/**
 	 * Returns the time the player last did a player kill.
 	 *
-	 * @return time in milliseconds
+	 * @return
+	 *	 <code>time</code> in milliseconds.
 	 */
 	public long getLastPlayerKillTime() {
 		if (has(LAST_PLAYER_KILL_TIME)) {
@@ -2215,7 +2494,6 @@ public class Player extends RPEntity implements UseListener {
 
 	public void rehabilitate() {
 		remove(LAST_PLAYER_KILL_TIME);
-
 	}
 
 	@Override
@@ -2223,26 +2501,15 @@ public class Player extends RPEntity implements UseListener {
 		// Don't reward for killing players
 		// process tutorial event for first player kill
 
-		for (final String killerName : playersToReward) {
-            final Player killer = SingletonRepository.getRuleProcessor().getPlayer(killerName);
-            // check logout
-            if (killer != null) {
+		for (Entry<Entity, Integer> entry : damageReceived.entrySet()) {
+			if (entry.getValue() == 0) {
+				continue;
+			}
+			Player killer = entityAsOnlinePlayer(entry.getKey());
+			if (killer != null) {
 				TutorialNotifier.killedPlayer(killer);
-            }
-		}
-	}
-
-
-	public void equip(final Item item, final int amount) {
-		if (item instanceof Stackable<?>) {
-			((Stackable<?>) item).setQuantity(amount);
-			super.equipToInventoryOnly(item);
-		} else {
-			for (int i = 1; i <= amount; i++) {
-				super.equipOrPutOnGround(item);
 			}
 		}
-		super.equipToInventoryOnly(item);
 	}
 
 	public PetOwner getPetOwner() {
@@ -2254,7 +2521,7 @@ public class Player extends RPEntity implements UseListener {
 	}
 
 	/**
-	 * gets the PlayerChatBucket
+	 * Gets the PlayerChatBucket.
 	 *
 	 * @return PlayerChatBucket
 	 */
@@ -2264,9 +2531,16 @@ public class Player extends RPEntity implements UseListener {
 
 	@Override
 	public Nature getDamageType() {
-		// Use the damage type of arrows, if the player is shooting with them
-		if (getRangeWeapon() != null) {
+		// Use the damage type of arrows, if the player is shooting with them.
+		if (getProjectileLauncher() != null) {
 			Item missile = getAmmunition();
+			if (missile != null) {
+				return missile.getDamageType();
+			}
+		}
+		// Use the damage type of magic spells, if the player is shooting with them.
+		if (getWandWeapon() != null) {
+			Item missile = getMagicSpells();
 			if (missile != null) {
 				return missile.getDamageType();
 			}
@@ -2282,9 +2556,9 @@ public class Player extends RPEntity implements UseListener {
 	@Override
 	protected double getSusceptibility(Nature type) {
 		double sus = 1.0;
-		/*
-		 * check weapon and shield separately, so that holding
-		 * 2 resistant shields does not help
+		/**
+		 * Check weapon and shield separately, so that holding 2 resistant
+		 * shields does not help.
 		 */
 		Item weapon = getWeapon();
 		if (weapon != null) {
@@ -2295,7 +2569,7 @@ public class Player extends RPEntity implements UseListener {
 			sus *= shield.getSusceptibility(type);
 		}
 
-		String[] armorSlots = { "armor", "head", "legs", "feet", "cloak", "glove", "neck", "finger", "fingerb" };
+		String[] armorSlots = { "armor", "head", "legs", "feet", "cloak", "glove", "neck", "finger", "fingerb", "pas" };
 		for (String slot : armorSlots) {
 			RPObject object = getSlot(slot).getFirst();
 			if (object instanceof Item) {
@@ -2307,14 +2581,18 @@ public class Player extends RPEntity implements UseListener {
 	}
 
 	/**
-	 * adds a buddy to the player's buddy list
+	 * Adds a buddy to the player's buddy list.
 	 *
-	 * @param name the name of the buddy
-	 * @param online if the player is online
-	 * @return true if the buddy has been added
+	 * @param name
+	 *	 The name of the buddy.
+	 * @param online
+	 *	 If the player is online.
+	 * @return
+	 *	 <code>true</code> if the buddy has been added.
 	 */
 	public boolean addBuddy(String name, boolean online) {
-		boolean isNew = !hasMap("buddies") || !getMap("buddies").containsKey(name);
+		boolean isNew = !hasMap("buddies")
+				|| !getMap("buddies").containsKey(name);
 
 		put("buddies", name, online);
 
@@ -2322,29 +2600,80 @@ public class Player extends RPEntity implements UseListener {
 	}
 
 	/**
-	 * removes a buddy to the player's buddy list
+	 * Removes a buddy to the player's buddy list.
 	 *
-	 * @param name the name of the buddy
-	 * @return true if a buddy was removed
+	 * @param name
+	 *	 The name of the buddy.
+	 * @return
+	 *	 <code>true</code> if a buddy was removed.
 	 */
 	public boolean removeBuddy(String name) {
 		return remove("buddies", name) != null;
 	}
 
 	@Override
-	public void setLevel(int level) {
-		final int oldLevel = super.getLevel();
+	public void setLevel(final int level) {
+		final int oldLevel = getLevel();
 		super.setLevel(level);
 
 		// reward players on level up
 		if (oldLevel < level) {
 			AchievementNotifier.get().onLevelChange(this);
-			addEvent(new SoundEvent("tadaa-1", SoundLayer.USER_INTERFACE));
+			this.addEvent(new SoundEvent(SoundID.LEVEL_UP, SoundLayer.USER_INTERFACE));
+			this.notifyWorldAboutChanges();
+		}
+	}
+
+	@Override
+	protected void setDefInternal(final int def, final boolean notify) {
+		final int oldDef = getDef();
+		super.setDefInternal(def, notify);
+
+		if (oldDef < def) {
+			AchievementNotifier.get().onDefChange(this);
+			this.addEvent(new SoundEvent(SoundID.STAT_UP, SoundLayer.USER_INTERFACE));
+			this.notifyWorldAboutChanges();
+		}
+	}
+
+	@Override
+	protected void setAtkInternal(final int atk, final boolean notify) {
+		final int oldAtk = getAtk();
+		super.setAtkInternal(atk, notify);
+
+		if (oldAtk < atk) {
+			AchievementNotifier.get().onAtkChange(this);
+			this.addEvent(new SoundEvent(SoundID.STAT_UP, SoundLayer.USER_INTERFACE));
+			this.notifyWorldAboutChanges();
+		}
+	}
+
+	@Override
+	protected void setMiningInternal(final int mining, final boolean notify) {
+		final int oldMining = getMining();
+		super.setMiningInternal(mining, notify);
+
+		if (oldMining < mining) {
+			AchievementNotifier.get().onMiningChange(this);
+			this.addEvent(new SoundEvent(SoundID.STAT_UP, SoundLayer.USER_INTERFACE));
+			this.notifyWorldAboutChanges();
+		}
+	}
+
+	@Override
+	protected void setRatkInternal(final int ratk, final boolean notify) {
+		final int oldRatk = getRatk();
+		super.setRatkInternal(ratk, notify);
+
+		if (oldRatk < ratk) {
+			AchievementNotifier.get().onRatkChange(this);
+			this.addEvent(new SoundEvent(SoundID.STAT_UP, SoundLayer.USER_INTERFACE));
+			this.notifyWorldAboutChanges();
 		}
 	}
 
 	/**
-	 * Adds the identifier of an achievement to the reached achievements
+	 * Adds the identifier of an achievement to the reached achievements.
 	 *
 	 * @param identifier
 	 */
@@ -2361,41 +2690,62 @@ public class Player extends RPEntity implements UseListener {
 	}
 
 	/**
-	 * checks if the achievements of this player object are already loaded
+	 * Checks if the achievements of this player object are already loaded.
 	 *
-	 * @return true, if the achievement set is loaded, false otherwise
+	 * @return
+	 *	 <code>true</code>, if the achievement set is loaded, false otherwise.
 	 */
 	public boolean arePlayerAchievementsLoaded() {
 		return reachedAchievements != null;
 	}
 
 	/**
-	 * Checks if a player has reached the achievement with the given identifier
+	 * Checks if a player has reached the achievement with the given identifier.
 	 *
 	 * @param identifier
-	 * @return true if player had reached the achievement with the given identifier
+	 * @return
+	 *	  <code>true</code> if player had reached the achievement with the given
+	 *		identifier.
 	 */
 	public boolean hasReachedAchievement(String identifier) {
 		if (getAchievements() != null) {
 			return getAchievements().contains(identifier);
 		} else {
-			// if there were no reached achievements at all then the achievement can't have been reached
+			// if there were no reached achievements at all then the achievement
+			// can't have been reached
 			return false;
 		}
 	}
+
 	/**
-	 * Checks if the player has visited the given zone
-	 * @param zone the zone to check for
-	 * @return true if player visited the zone
+	 * Checks if the player has visited the given zone.
+	 *
+	 * @param zoneName
+	 *	 String name of the zone to check for.
+	 * @return
+	 *	 <code>true</code> if player visited the zone.
 	 */
-	public boolean hasVisitedZone(StendhalRPZone zone) {
-		return null != getKeyedSlot("!visited", zone.getName());
+	public boolean hasVisitedZone(final String zoneName) {
+		return getKeyedSlot("!visited", zoneName) != null;
+	}
+
+	/**
+	 * Checks if the player has visited the given zone.
+	 *
+	 * @param zone
+	 *	 The zone to check for.
+	 * @return
+	 *	 <code>true</code> if player visited the zone.
+	 */
+	public boolean hasVisitedZone(final StendhalRPZone zone) {
+		return hasVisitedZone(zone.getName());
 	}
 
 	/**
 	 * offers the other player to start a trading session
 	 *
-	 * @param partner to offer the trade to
+	 * @param partner
+	 *			to offer the trade to
 	 */
 	public void offerTrade(Player partner) {
 		trade.offerTrade(partner);
@@ -2422,7 +2772,8 @@ public class Player extends RPEntity implements UseListener {
 	/**
 	 * starts a trade with this partner
 	 *
-	 * @param partner partner to trade with
+	 * @param partner
+	 *			partner to trade with
 	 */
 	protected void startTrade(Player partner) {
 		trade.startTrade(partner);
@@ -2431,7 +2782,9 @@ public class Player extends RPEntity implements UseListener {
 	/**
 	 * cancels a trade and moves the items back.
 	 *
-	 * @param partnerName name of partner (to make sure the correct trade offer is canceled)
+	 * @param partnerName
+	 *			name of partner (to make sure the correct trade offer is
+	 *			canceled)
 	 */
 	public void cancelTradeInternally(String partnerName) {
 		trade.cancelTradeInternally(partnerName);
@@ -2445,8 +2798,8 @@ public class Player extends RPEntity implements UseListener {
 	}
 
 	/**
-	 * unlocks a trade item offer for example because of some modifications
-	 * on the trade slot.
+	 * unlocks a trade item offer for example because of some modifications on
+	 * the trade slot.
 	 */
 	public void unlockTradeItemOffer() {
 		trade.unlockItemOffer();
@@ -2455,10 +2808,12 @@ public class Player extends RPEntity implements UseListener {
 	/**
 	 * internally unlocks
 	 *
-	 * @param partnerName name of partner (to make sure the correct trade offer is canceled)
+	 * @param partnerName
+	 *			name of partner (to make sure the correct trade offer is
+	 *			canceled)
 	 * @return true, if a trade was unlocked, false if it was already unlocked
 	 */
-	public boolean unlockTradeItemOfferInternally(String partnerName) {
+	boolean unlockTradeItemOfferInternally(String partnerName) {
 		return trade.unlockItemOfferInternally(partnerName);
 	}
 
@@ -2486,17 +2841,23 @@ public class Player extends RPEntity implements UseListener {
 	/**
 	 * Gets the how often this player has looted the given item
 	 *
-	 * @param item the item name
+	 * @param item
+	 *			the item name
 	 * @return the number of loots from corpses
 	 */
 	public int getNumberOfLootsForItem(String item) {
 		return itemCounter.getNumberOfLootsForItem(item);
 	}
 
+	public int getNumberOfImprovedForItem(String item) {
+		return itemCounter.getNumberOfImprovedForItem(item);
+	}
+
 	/**
 	 * Gets the amount a player as produced of an item
 	 *
-	 * @param item the item name
+	 * @param item
+	 *			the item name
 	 * @return the produced amount
 	 */
 	public int getQuantityOfProducedItems(String item) {
@@ -2506,7 +2867,8 @@ public class Player extends RPEntity implements UseListener {
 	/**
 	 * Gets the amount a player as mined of an item
 	 *
-	 * @param item the item name
+	 * @param item
+	 *			the item name
 	 * @return the mined amount
 	 */
 	public int getQuantityOfMinedItems(String item) {
@@ -2514,23 +2876,26 @@ public class Player extends RPEntity implements UseListener {
 	}
 
 	/**
-	 * Gets the amount a player has harvested of an item
+	 * Retrieve the amount of items sown by player.
 	 *
-	 * @param item the item name
-	 * @return the harvested amount
+	 * @param item
+	 *   Item Name.
+	 * @return
+	 *   Integer sown quanity.
 	 */
-	public int getQuantityOfHarvestedItems(String item) {
-		return itemCounter.getQuantityOfHarvestedItems(item);
+	public int getQuantityOfSownItems(String item) {
+		return itemCounter.getQuantityOfSownItems(item);
 	}
 
 	/**
 	 * Gets the amount a player has harvested of an item
 	 *
-	 * @param item the item name
+	 * @param item
+	 *			the item name
 	 * @return the harvested amount
 	 */
-	public int getQuantityOfBoughtItems(String item) {
-		return itemCounter.getQuantityOfBoughtItems(item);
+	public int getQuantityOfHarvestedItems(String item) {
+		return itemCounter.getQuantityOfHarvestedItems(item);
 	}
 
 	/**
@@ -2541,75 +2906,217 @@ public class Player extends RPEntity implements UseListener {
 	}
 
 	/**
+	 * Gets the amount of an item bought by player.
+	 *
+	 * @param item
+	 * 		Item name.
+	 * @return
+	 * 		Number bought of the item.
+	 */
+	public int getQuantityOfBoughtItems(final String item) {
+		return itemCounter.getQuantityOfBoughtItems(item);
+	}
+
+	/**
+	 * Gets the amount of an item sold by player.
+	 *
+	 * @param item
+	 * 		Item name.
+	 * @return
+	 * 		Number sold of the item.
+	 */
+	public int getQuantityOfSoldItems(final String item) {
+		return itemCounter.getQuantityOfSoldItems(item);
+	}
+
+	/**
+	 * Gets the amount of an item improved by player.
+	 *
+	 * @param item
+	 * 		Item name.
+	 * @return
+	 * 		Number improves of the item.
+	 */
+	public int getQuantityOfImprovedItems(final String item) {
+		return itemCounter.getQuantityOfImprovedItems(item);
+	}
+
+	/**
 	 * Increases the count of loots for the given item
-	 * @param item the item name
+	 *
+	 * @param item
+	 *			the item name
 	 * @param count
 	 */
 	public void incLootForItem(String item, int count) {
 		itemCounter.incLootForItem(item, count);
+		// check achievements in item category
+		AchievementNotifier.get().onItemLoot(this);
 	}
 
 	/**
 	 * Increases the count of producings for the given item
-	 * @param item the item name
+	 *
+	 * @param item
+	 *			the item name
 	 * @param count
 	 */
-	public void incProducedCountForItem(String item, int count) {
+	public void incProducedForItem(String item, int count) {
 		itemCounter.incProducedForItem(item, count);
+		// check achievements in production category
+		AchievementNotifier.get().onProduction(this);
 	}
 
 	/**
 	 * Increases the count of obtains from the well for the given item
-	 * @param name the item name
+	 *
+	 * @param name
+	 *			the item name
 	 * @param quantity
 	 */
 	public void incObtainedForItem(String name, int quantity) {
 		itemCounter.incObtainedForItem(name, quantity);
+		// check achievements in obtain category
+		AchievementNotifier.get().onObtain(this);
 	}
 
 	/**
-	 * Increases the count of sales for the given item
-	 * @param name the item name
-	 * @param quantity
+	 * Increses the quanity an item was sown by player.
+	 *
+	 * @param item
+	 *   Item name.
+	 * @param count
+	 *   Increment amount.
 	 */
-	public void incSoldForItem(String name, int quantity) {
-		itemCounter.incSoldForItem(name, quantity);
+	public void incSownForItem(String name, int quantity) {
+		itemCounter.incSownForItem(name, quantity);
+		// this isn't the same as producing with an NPC but production is the most appropriate category
+		AchievementNotifier.get().onProduction(this);
+	}
+
+	/**
+	 * Stores information about amount of money used & gained in NPC transactions.
+	 *
+	 * @param npcName
+	 *	 Name of NPC with whom transactions is being done.
+	 * @param price
+	 *	 Amount of money exchanged.
+	 * @param soldToNPC
+	 *	 <code>true</code> means player is selling to NPC, <code>false</code> player is buying from.
+	 */
+	public void incCommerceTransaction(final String npcName, final int price, final boolean soldToNPC) {
+		int curAmount = 0;
+		if (soldToNPC) {
+			if (has("npc_sales", npcName)) {
+				curAmount = Integer.parseInt(get("npc_sales", npcName));
+			}
+		} else {
+			if (has("npc_purchases", npcName)) {
+				curAmount = Integer.parseInt(get("npc_purchases", npcName));
+			}
+		}
+
+		if (soldToNPC) {
+			put("npc_sales", npcName, curAmount + price);
+		} else {
+			put("npc_purchases", npcName, curAmount + price);
+		}
+
+		AchievementNotifier.get().onTrade(this);
 	}
 
 	/**
 	 * Increases the amount of successful minings for the given item
-	 * @param name the item name
+	 *
+	 * @param name
+	 *			the item name
 	 * @param quantity
 	 */
 	public void incMinedForItem(String name, int quantity) {
 		itemCounter.incMinedForItem(name, quantity);
+		// check achievements in obtain category
+		AchievementNotifier.get().onObtain(this);
 	}
 
 	/**
 	 * Increases the amount of successful harvestings for the given item
-	 * @param name the item name
+	 *
+	 * @param name
+	 *			the item name
 	 * @param quantity
 	 */
 	public void incHarvestedForItem(String name, int quantity) {
 		itemCounter.incHarvestedForItem(name, quantity);
+		// check achievements in obtain category
+		AchievementNotifier.get().onObtain(this);
 	}
 
 	/**
 	 * Increases the amount of successful buyings for the given item
-	 * @param name the item name
+	 *
+	 * @param name
+	 *			the item name
 	 * @param quantity
 	 */
 	public void incBoughtForItem(String name, int quantity) {
 		itemCounter.incBoughtForItem(name, quantity);
+		// check achievements in commerce category
+		AchievementNotifier.get().onTrade(this);
+	}
+
+	/**
+	 * Increases the count of sales for the given item
+	 *
+	 * @param name
+	 *			the item name
+	 * @param quantity
+	 */
+	public void incSoldForItem(String name, int quantity) {
+		itemCounter.incSoldForItem(name, quantity);
+		// check achievements in commerce category
+		AchievementNotifier.get().onTrade(this);
+	}
+
+	/**
+	 * Increases the count of improves item
+	 *
+	 * @param name
+	 *			the item name
+	 * @param quantity
+	 */
+	public void incImprovedForItem(String name, int quantity) {
+		itemCounter.incImprovedForItem(name, quantity);
+		// check achievements in upgrade category
+		AchievementNotifier.get().onUpgrade(this);
+	}
+
+	public int getCommerceTransactionAmount(final String npcName, final boolean soldToNPC) {
+		int amount = 0;
+
+		try {
+			if (soldToNPC) {
+				if (has("npc_sales", npcName)) {
+					amount = Integer.parseInt(get("npc_sales", npcName));
+				}
+			} else {
+				if (has("npc_purchases", npcName)) {
+					amount = Integer.parseInt(get("npc_purchases", npcName));
+				}
+			}
+		} catch (final NumberFormatException e) {
+			logger.error(e, e);
+		}
+
+		return amount;
 	}
 
 	/**
 	 * Gets the recorded item stored in a substate of quest slot
 	 *
 	 * @param questname
-	 *            The quest's name
+	 *			The quest's name
 	 * @param index
-	 *            the index of the sub state to get (separated by ";")
+	 *			the index of the sub state to get (separated by ";")
 	 * @return the name of the required item (no formatting)
 	 */
 	public String getRequiredItemName(String questname, int index) {
@@ -2620,28 +3127,39 @@ public class Player extends RPEntity implements UseListener {
 	 * Gets the recorded item quantity stored in a substate of quest slot
 	 *
 	 * @param questname
-	 *            The quest's name
+	 *			The quest's name
 	 * @param index
-	 *            the index of the sub state to get (separated by ";")
+	 *			the index of the sub state to get (separated by ";")
 	 * @return required item quantity
 	 */
 	public int getRequiredItemQuantity(String questname, int index) {
 		return quests.getRequiredItemQuantity(questname, index);
 	}
 
+	@Override
+	protected void handleLeaveZone(int nx, final int ny) {
+		// Players using continuous movement should stop if they cross
+		// the zone border when using mouse for movement
+		boolean stopAfter = hasPath();
+		super.handleLeaveZone(nx, ny);
+		if (stopAfter) {
+			stop();
+		}
+	}
+
 	/**
 	 * Gets the number of repetitions in a substate of quest slot
 	 *
 	 * @param questname
-	 *            The quest's name
+	 *			The quest's name
 	 * @param index
-	 *            the index of the sub state to get (separated by ";")
-	 * @return the integer value in the index of the quest slot, used to represent a number of repetitions
+	 *			the index of the sub state to get (separated by ";")
+	 * @return the integer value in the index of the quest slot, used to
+	 *		 represent a number of repetitions
 	 */
 	public int getNumberOfRepetitions(final String questname, final int index) {
 		return quests.getNumberOfRepetitions(questname, index);
 	}
-
 
 	/**
 	 * gets the timestmap this client sent the last action
@@ -2655,7 +3173,8 @@ public class Player extends RPEntity implements UseListener {
 	/**
 	 * sets the timestamp at which this client sent the last action.
 	 *
-	 * @param lastClientActionTimestamp action timestmap
+	 * @param lastClientActionTimestamp
+	 *			action timestmap
 	 */
 	public void setLastClientActionTimestamp(long lastClientActionTimestamp) {
 		this.lastClientActionTimestamp = lastClientActionTimestamp;
@@ -2674,16 +3193,21 @@ public class Player extends RPEntity implements UseListener {
 	/**
 	 * sets the language
 	 *
-	 * @param language language
+	 * @param language
+	 *			language
 	 */
 	public void setLanguage(String language) {
 		this.language = language;
 	}
 
 	/**
-	 * adds a use listener causing the client to add an use action with the specified name
-	 * @param actionDisplayName name of useaction visible in the client
-	 * @param listener use event listener
+	 * adds a use listener causing the client to add an use action with the
+	 * specified name
+	 *
+	 * @param actionDisplayName
+	 *			name of useaction visible in the client
+	 * @param listener
+	 *			use event listener
 	 */
 	public void setUseListener(String actionDisplayName, UseListener listener) {
 		put("menu", actionDisplayName);
@@ -2713,51 +3237,22 @@ public class Player extends RPEntity implements UseListener {
 	 * @return true if there is a use listener registered, false otherwise
 	 */
 	public boolean hasUseListener() {
-		return (this.useListener != null);
+		return this.useListener != null;
 	}
 
 	/**
 	 * Invoked when the object is used.
 	 *
-	 * @param user the RPEntity who uses the object
+	 * @param user
+	 *			the RPEntity who uses the object
 	 * @return true if successful
 	 */
 	@Override
 	public boolean onUsed(RPEntity user) {
-		if ((useListener == null) || (!(user instanceof Player))) {
+		if (useListener == null || !(user instanceof Player)) {
 			return false;
 		}
 		return useListener.onUsed(user);
-	}
-
-	/**
-	 * sets the time a outfit wears off
-	 *
-	 * @param expire expire age
-	 */
-	public void registerOutfitExpireTime(int expire) {
-		// ignore outfits that do not expire
-		if (expire < 0) {
-			return;
-		}
-
-		// currently we keep only track of one expire, so takes the smallest
-		// to prevent players from keeping a highly special outfit longer
-		// by renting an outfit with a longer expire time later
-		int oldExpire = Integer.MAX_VALUE;
-		if (has("outfit_expire_age")) {
-			oldExpire = getInt("outfit_expire_age");
-		}
-		if (oldExpire < age) {
-			logger.error("oldExpire " + oldExpire + " for age " + age);
-			oldExpire = Integer.MAX_VALUE;
-		}
-		int newExpire = Math.min(expire + age, oldExpire);
-		put("outfit_expire_age", newExpire);
-
-		ExpireOutfit expireOutfit = new ExpireOutfit(super.getName());
-		SingletonRepository.getTurnNotifier().dontNotify(expireOutfit);
-		SingletonRepository.getTurnNotifier().notifyInSeconds((newExpire - age) * 60, expireOutfit);
 	}
 
 	/**
@@ -2769,4 +3264,157 @@ public class Player extends RPEntity implements UseListener {
 		return clientVersion;
 	}
 
+	/**
+	 * Get the maximum allowed ATK for a level.
+	 *
+	 * @param level
+	 *			checked level
+	 * @return maximum ATK
+	 */
+	private int getMaxAtkForLevel(int level) {
+		return (int) (5 * Math.sqrt(level + 10));
+	}
+
+	/**
+	 * Get the maximum allowed DEF for a level.
+	 *
+	 * @param level
+	 *			checked level
+	 * @return maximum DEF
+	 */
+	private int getMaxDefForLevel(int level) {
+		if (level >= 150) {
+			// After the stat boost quest
+			return (int) (10 * Math.cbrt(level) + 60);
+		}
+		return getMaxAtkForLevel(level);
+	}
+
+	/**
+	 * Get the maximum allowed mining for a level.
+	 *
+	 * @param level
+	 *			checked level
+	 * @return maximum mining
+	 */
+	private int getMaxMiningForLevel(int level) {
+		return (int) (10 * Math.cbrt(level) + 60);
+	}
+
+	/**
+	 * gets the capped atk level, which prevent players from training their atk
+	 * way beyond what is reasonable for their level
+	 *
+	 * @return capped atk
+	 */
+	@Override
+	public int getCappedAtk() {
+		// Blue line in https://sourceforge.net/p/arianne/feature-requests/1330/
+		// reduced using median instead of average as reference
+		return Math.min(this.atk, getMaxAtkForLevel(level));
+	}
+
+	/**
+	 * gets the capped def level, which prevent players from training their def
+	 * way beyond what is reasonable for their level
+	 *
+	 * @return capped atk
+	 */
+	@Override
+	public int getCappedDef() {
+		// Red line in https://sourceforge.net/p/arianne/feature-requests/1330/
+		return Math.min(this.def, getMaxDefForLevel(level));
+	}
+
+	/**
+	 * gets the capped mining level, which prevent players from training their mining
+	 * way beyond what is reasonable for their level
+	 *
+	 * @return capped mining
+	 */
+	@Override
+	public int getCappedMining() {
+		// Blue line in https://sourceforge.net/p/arianne/feature-requests/1330/
+		// reduced using median instead of average as reference
+		return Math.min(this.mining, getMaxMiningForLevel(level));
+	}
+
+	/**
+	 * Gets the capped ratk level, which prevent players from training their
+	 * ratk way beyond what is reasonable for their level.
+	 *
+	 * XXX: Should use getMaxRatkForLevel() method instead?
+	 *
+	 * @return capped ratk
+	 */
+	@Override
+	public int getCappedRatk() {
+		return Math.min(this.ratk, getMaxAtkForLevel(level));
+	}
+
+	/**
+	 * Collision handling instructions for players.
+	 *
+	 * @param nx
+	 *		New horizontal position
+	 * @param ny
+	 *		New vertical position
+	 */
+	@Override
+	protected void handleSimpleCollision(final int nx, final int ny) {
+		if (isZoneChangeAllowed()) {
+			if (getZone().leavesZone(this, nx, ny)) {
+				handleLeaveZone(nx, ny);
+				return;
+			}
+		}
+		if (isGhost()) {
+			this.move(getX(), getY(), nx, ny);
+		} else {
+			if (this.has(AUTOWALK)) {
+				this.remove(AUTOWALK);
+			}
+
+			this.stop();
+		}
+	}
+
+	/**
+	 * returns the maximum size of a slot
+	 *
+	 * @param slot name of slot
+	 * @return size, or -1 if no maximum is known
+	 */
+	public int getMaxSlotSize(String slot) {
+		String value = this.getFeature(slot);
+		if (value == null || value.equals("")) {
+			return -1;
+		}
+		String[] values = value.split(" ");
+		return Integer.parseInt(values[0]) * Integer.parseInt(values[1]);
+	}
+
+	/**
+	 * This handicap increases chance that a player can hit an enemy to
+	 * make the game feel more fair. Hit chance is based on raw atk stat,
+	 * which is much higher for creatues. In order to avoid drastic
+	 * changes to the game's balance, we also need to reduce the amount
+	 * of damage done by players. See:
+	 *	 Player.damageDone.
+	 */
+	@Override
+	protected int calculateRiskForCanHit(final int roll, final int defenderDEF, final int attackerATK) {
+		// use 30 as multiple for players instead of 20
+		return ((int) Math.round(HIT_CHANCE_MULTIPLIER * 1.5)) * attackerATK - roll * defenderDEF;
+	}
+
+	/**
+	 * This is overridden to reduce damage done by players to creatures
+	 * to make up for the increased hit chance.
+	 */
+	@Override
+	public int damageDone(final RPEntity defender, double attackingWeaponsValue, final Nature damageType) {
+		// compensate for player hit chance handicap
+		return (int) Math.round(super.damageDone(defender, attackingWeaponsValue, damageType) / 1.35);
+	}
 }

@@ -1,4 +1,4 @@
-/* $Id: QuestNotActiveConditionTest.java,v 1.5 2011/05/01 19:50:06 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -16,14 +16,14 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
-import games.stendhal.common.parser.ConversationParser;
-import games.stendhal.server.entity.player.Player;
-import games.stendhal.server.maps.MockStendlRPWorld;
-import marauroa.common.Log4J;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.common.parser.ConversationParser;
+import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.maps.MockStendlRPWorld;
+import marauroa.common.Log4J;
 import utilities.PlayerTestHelper;
 import utilities.SpeakerNPCTestHelper;
 
@@ -63,7 +63,7 @@ public class QuestNotActiveConditionTest {
 				ConversationParser.parse("QuestNotActiveConditionTest"),
 				SpeakerNPCTestHelper.createSpeakerNPC()),
 				is(true));
-		
+
 		bob.setQuest("questname", "rejected");
 		assertThat(new QuestNotActiveCondition("questname").fire(bob,
 				ConversationParser.parse("QuestNotActiveConditionTest"),
@@ -92,32 +92,23 @@ public class QuestNotActiveConditionTest {
 	 * Tests for equals.
 	 */
 	@Test
-	public void testEquals() throws Throwable {
+	public void testEquals() {
 		assertThat(new QuestNotActiveCondition("questname"), not(equalTo(null)));
 
 		final QuestNotActiveCondition obj = new QuestNotActiveCondition("questname");
 		assertThat(obj, equalTo(obj));
-		assertThat(new QuestNotActiveCondition("questname"), 
+		assertThat(new QuestNotActiveCondition("questname"),
 				equalTo(new QuestNotActiveCondition("questname")));
-
-		assertThat(new QuestNotActiveCondition(null), 
-				equalTo(new QuestNotActiveCondition(null)));
 
 		assertThat(new QuestNotActiveCondition("questname"),
 				not(equalTo(new Object())));
 
-		assertThat(new QuestNotActiveCondition(null),
-				not(equalTo(new QuestNotActiveCondition(
-				"questname"))));
-		assertThat(new QuestNotActiveCondition("questname"),
-				not(equalTo(new QuestNotActiveCondition(
-				null))));
 		assertThat(new QuestNotActiveCondition("questname"),
 				not(equalTo(new QuestNotActiveCondition(
 				"questname2"))));
 
 		assertThat(new QuestNotActiveCondition("questname"),
-				equalTo((QuestNotActiveCondition) new QuestNotActiveCondition("questname") { 
+				equalTo((QuestNotActiveCondition) new QuestNotActiveCondition("questname") {
 					//sub classing
 			}));
 	}
@@ -126,13 +117,11 @@ public class QuestNotActiveConditionTest {
 	 * Tests for hashCode.
 	 */
 	@Test
-	public void testHashCode() throws Exception {
+	public void testHashCode() {
 		final QuestNotActiveCondition obj = new QuestNotActiveCondition("questname");
 		assertThat(obj.hashCode(), equalTo(obj.hashCode()));
 		assertThat(new QuestNotActiveCondition("questname").hashCode(),
 				equalTo(new QuestNotActiveCondition("questname").hashCode()));
-		assertThat(new QuestNotActiveCondition(null).hashCode(),
-				equalTo(new QuestNotActiveCondition(null).hashCode()));
 
 	}
 

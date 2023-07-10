@@ -11,12 +11,11 @@
  ***************************************************************************/
 package games.stendhal.server.core.engine.dbcommand;
 
-import games.stendhal.server.core.engine.db.PendingAchievementDAO;
-import games.stendhal.server.entity.player.Player;
-
 import java.io.IOException;
 import java.sql.SQLException;
 
+import games.stendhal.server.core.engine.db.PendingAchievementDAO;
+import games.stendhal.server.entity.player.Player;
 import marauroa.server.db.DBTransaction;
 import marauroa.server.db.command.AbstractDBCommand;
 import marauroa.server.game.db.DAORegister;
@@ -24,10 +23,10 @@ import marauroa.server.game.db.DAORegister;
 /**
  * Deletes used details for pending or partially gained achievements from a table
  *
- * @author kymara 
+ * @author kymara
  */
 public class DeletePendingAchievementDetailsCommand extends AbstractDBCommand {
-	
+
 	private final Player player;
 
 	/**

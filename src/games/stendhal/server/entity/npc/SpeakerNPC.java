@@ -1,6 +1,5 @@
-/* $Id: SpeakerNPC.java,v 1.185 2012/07/21 16:11:21 yoriy Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2022 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,11 +11,25 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+
+import games.stendhal.common.Direction;
 import games.stendhal.common.parser.ConversationParser;
+import games.stendhal.common.parser.Expression;
 import games.stendhal.common.parser.ExpressionMatcher;
+import games.stendhal.common.parser.ExpressionType;
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.entity.Entity;
+import games.stendhal.server.core.engine.StendhalRPWorld;
+import games.stendhal.server.entity.CollisionAction;
+import games.stendhal.server.entity.Killer;
 import games.stendhal.server.entity.RPEntity;
 import games.stendhal.server.entity.item.Corpse;
 import games.stendhal.server.entity.npc.action.NPCEmoteAction;
@@ -26,16 +39,9 @@ import games.stendhal.server.entity.npc.fsm.Engine;
 import games.stendhal.server.entity.npc.fsm.Transition;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-
-import org.apache.log4j.Logger;
-
 /**
  * This is a finite state machine that implements a chat system. See:
- * http://en.wikipedia.org/wiki/Finite_state_machine In fact, it is a
+ * https://en.wikipedia.org/wiki/Finite_state_machine In fact, it is a
  * transducer.
  * States are denoted by the enum ConversationStates. Input is the text
  * that the player says to the SpeakerNPC. Output is the text that the
@@ -115,17 +121,22 @@ import org.apache.log4j.Logger;
  * transition happens, no matter in which state the FSM really is, with the
  * exception of the IDLE state.
  */
-public class SpeakerNPC extends NPC {
+public class SpeakerNPC extends PassiveNPC {
 	/** the logger instance. */
 	private static final Logger logger = Logger.getLogger(SpeakerNPC.class);
+
+	/** The default distance from which an NPC should end a conversation. */
+	private static final int DEFAULT_GOODBYE_RANGE = 8;
 
 	private final Engine engine = new Engine(this);
 
 	/**
 	 * Determines how long a conversation can be paused before it will
-	 * terminated by the NPC. Defaults to 30 seconds at 300 ms / turn.
+	 * terminated by the NPC. Defaults to 30 seconds.
 	 */
-	private long playerChatTimeout = 100;
+	private long playerChatTimeout = secondsToTurns(30);
+
+	private int squaredGoodByeRange = getSquaredGoodByeRange();
 
 	// Default wait message when NPC is busy
 	private String waitMessage;
@@ -165,22 +176,31 @@ public class SpeakerNPC extends NPC {
 	private boolean actingAlone=false;
 
 	/**
+	 * if set, determines direction entity will face while idle
+	 */
+	private Direction idleDirection = null;
+
+	private LinkedHashMap<ChatCondition, Object> prioritizedGreetingTransitions;
+
+	/**
 	 * Creates a new SpeakerNPC.
 	 *
 	 * @param name
 	 *            The NPC's name. Please note that names should be unique.
 	 */
 	public SpeakerNPC(final String name) {
-		baseSpeed = 0.2;
-		createPath();
+		super();
 
 		lastMessageTurn = 0;
 
 		setName(name);
 		createDialog();
-		put("title_type", "npc");
+		createDefaultReplies();
 
-		setSize(1, 1);
+		initHP(100);
+		setGender("0");
+		// Set default collision action to reverse.
+		setCollisionAction(CollisionAction.REVERSE);
 
 		// set the default perception range for player chatting
 		setPerceptionRange(5);
@@ -198,13 +218,13 @@ public class SpeakerNPC extends NPC {
 	public boolean isAllowedToActAlone() {
 		return(actingAlone);
 	}
-	
-	protected void createPath() {
-		// sub classes can implement this method
-	}
 
 	protected void createDialog() {
 		// sub classes can implement this method
+	}
+
+	private void createDefaultReplies() {
+		addWaitMessage();
 	}
 
 	/**
@@ -212,7 +232,7 @@ public class SpeakerNPC extends NPC {
 	 * needed.
 	 * @param attending2 who has been talked to.
 	 */
-	protected void onGoodbye(final RPEntity attending2) {
+	protected void onGoodbye(@SuppressWarnings("unused") final RPEntity attending2) {
 		// do nothing
 	}
 
@@ -315,11 +335,30 @@ public class SpeakerNPC extends NPC {
 			}
 			setIdea(null);
 		}
+
+		// set facing direction
+		if (idleDirection != null && !hasPath() && engine.getCurrentState() == ConversationStates.IDLE) {
+			setDirection(idleDirection);
+		}
+	}
+
+	/**
+	 * Sets the direction the entity should face while idle (not moving
+	 * & not attending).
+	 *
+	 * @param dir
+	 * 		Direction to face.
+	 */
+	public void setIdleDirection(final Direction dir) {
+		idleDirection = dir;
+
+		if (idleDirection != null && stopped()) {
+			setDirection(idleDirection);
+		}
 	}
 
 	@Override
-	public void onDead(final Entity killer, final boolean remove) {
-
+	public void onDead(final Killer killer, final boolean remove) {
 		heal();
 		notifyWorldAboutChanges();
 	}
@@ -335,10 +374,25 @@ public class SpeakerNPC extends NPC {
 	 * by the NPC.
 	 *
 	 * @param playerChatTimeout
-	 *            the time, in turns
+	 *            the time, in seconds
 	 */
 	public void setPlayerChatTimeout(final long playerChatTimeout) {
-		this.playerChatTimeout = playerChatTimeout;
+		this.playerChatTimeout = secondsToTurns(playerChatTimeout);
+	}
+
+	@Override
+	public void setPerceptionRange(int perceptionRange) {
+		super.setPerceptionRange(perceptionRange);
+		squaredGoodByeRange = getSquaredGoodByeRange();
+	}
+
+	private long secondsToTurns(final long seconds) {
+		return seconds * 1000 / StendhalRPWorld.MILLISECONDS_PER_TURN;
+	}
+
+	private int getSquaredGoodByeRange() {
+		int goodByeRange = Math.max(getPerceptionRange(), DEFAULT_GOODBYE_RANGE);
+		return goodByeRange * goodByeRange;
 	}
 
 	@Override
@@ -370,18 +424,13 @@ public class SpeakerNPC extends NPC {
 			applyMovement();
 		} else if (attending != null) {
 			// If the player is too far away
-			if ((attending.squaredDistance(this) > 8 * 8)
+			if ((attending.squaredDistance(this) > squaredGoodByeRange)
 					|| ((attending instanceof Player) && (((Player) attending).isDisconnected()))
 			// or if the player fell asleep ;)
 					|| ((attending instanceof Player) && (SingletonRepository.getRuleProcessor().getTurn()
 							- lastMessageTurn > playerChatTimeout))) {
 				// we force him to say bye to NPC :)
-				if (goodbyeMessage != null) {
-					say(goodbyeMessage);
-				}
-				onGoodbye(attending);
-				engine.setCurrentState(ConversationStates.IDLE);
-				setAttending(null);
+				endConversation();
 			}
 		}
 
@@ -405,7 +454,25 @@ public class SpeakerNPC extends NPC {
 			tell(speaker, speaker.get("text"));
 		}
 
+		maybeMakeSound();
 		notifyWorldAboutChanges();
+	}
+
+	public void endConversation() {
+		if (goodbyeMessage != null) {
+			say(goodbyeMessage);
+		}
+		onGoodbye(attending);
+		engine.setCurrentState(ConversationStates.IDLE);
+		setAttending(null);
+	}
+
+	public boolean inConversationRange() {
+		if (attending == null) {
+			return false;
+		}
+
+		return attending.squaredDistance(this) <= squaredGoodByeRange;
 	}
 
 	public boolean isTalking() {
@@ -522,6 +589,7 @@ public class SpeakerNPC extends NPC {
 	 *            a simple text reply (may be null for no reply)
 	 * @param action
 	 *            a special action to be taken (may be null)
+	 * @param label
 	 */
 	public void add(final ConversationStates state, final Collection<String> triggerStrings, final ChatCondition condition,
 			final ConversationStates nextState, final String reply, final ChatAction action, final String label) {
@@ -634,18 +702,18 @@ public class SpeakerNPC extends NPC {
 			final String reply, final ChatAction action, final String label) {
 		add(state, triggerStrings, null, nextState, reply, action, label);
 	}
-	
+
 	/**
 	 * delete transition that match label
-	 * 
+	 *
 	 * @param label
 	 * @return - deleting state
 	 */
 	public boolean del(final String label) {
 		return(engine.remove(label));
 	}
-	
-	
+
+
 
 	public void listenTo(final Player player, final String text) {
 		tell(player, text);
@@ -676,7 +744,7 @@ public class SpeakerNPC extends NPC {
 					final Sentence sentence = ConversationParser.parse(text);
 					// Note: sentence is currently not yet used in
 					// the called handler functions.
-					waitAction.fire(player, sentence, new EventRaiser(this)); 
+					waitAction.fire(player, sentence, new EventRaiser(this));
 				}
 			}
 
@@ -686,9 +754,9 @@ public class SpeakerNPC extends NPC {
 		return false;
 	}
 
-	/** This function evolves the FSM. 
-	 * @param player 
-	 * @param text 
+	/** This function evolves the FSM.
+	 * @param player
+	 * @param text
 	 * @return true if step was successfully executed*/
 	private boolean tell(final Player player, final String text) {
 		if (getRidOfPlayerIfAlreadySpeaking(player, text)) {
@@ -739,14 +807,6 @@ public class SpeakerNPC extends NPC {
 		add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new GreetingMatchesNameCondition(getName()), true,
 				ConversationStates.ATTENDING, text, action);
-
-		addWaitMessage(null, new ChatAction() {
-			public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
-				npc.say("Proszę zaczekaj " + player.getTitle()
-						+ "! Wciąż rozmawiam z "
-						+ npc.getAttending().getTitle() + ".");
-			}
-		});
 	}
 
 	/**
@@ -782,14 +842,6 @@ public class SpeakerNPC extends NPC {
 	public void addReply(final String trigger, final String text, final ChatAction action) {
 		add(ConversationStates.ATTENDING, trigger, null,
 				ConversationStates.ATTENDING, text, action);
-
-		addWaitMessage(null, new ChatAction() {
-			public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
-				npc.say("Proszę zaczekaj " + player.getTitle()
-						+ "! Wciąż rozmawiam z "
-						+ npc.getAttending().getTitle() + ".");
-			}
-		});
 	}
 
 	/**
@@ -802,14 +854,6 @@ public class SpeakerNPC extends NPC {
 	public void addReply(final Collection<String> triggerStrings, final String text, final ChatAction action) {
 		add(ConversationStates.ATTENDING, triggerStrings, null,
 				ConversationStates.ATTENDING, text, action);
-
-		addWaitMessage(null, new ChatAction() {
-			public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
-				npc.say("Proszę zaczekaj " + player.getTitle()
-						+ "! Wciąż rozmawiam z "
-						+ npc.getAttending().getTitle() + ".");
-			}
-		});
 	}
 
 	public void addQuest(final String text) {
@@ -865,7 +909,7 @@ public class SpeakerNPC extends NPC {
 		add(ConversationStates.ATTENDING, Arrays.asList(trigger),
 				ConversationStates.ATTENDING, null, new NPCEmoteAction(npcAction));
 	}
-	
+
 	/**
 	 * make npc's reply on player's emotion
 	 * @param playerAction - what player doing with npc
@@ -873,13 +917,13 @@ public class SpeakerNPC extends NPC {
 	 */
 	public void addReplyOnEmotion(final String playerAction, final String reply) {
 		add(ConversationStates.IDLE, Arrays.asList("!me "),new EmoteCondition(playerAction),
-				ConversationStates.IDLE, reply, null);	
+				ConversationStates.IDLE, reply, null);
 		add(ConversationStates.ATTENDING, Arrays.asList("!me "),new EmoteCondition(playerAction),
 				ConversationStates.ATTENDING, reply, null);
 	}
-		
+
 	public void addGoodbye() {
-		addGoodbye("Dowidzenia.");
+		addGoodbye("Do widzenia.");
 	}
 
 	public void addGoodbye(final String text) {
@@ -887,6 +931,7 @@ public class SpeakerNPC extends NPC {
 		add(ConversationStates.ANY, ConversationPhrases.GOODBYE_MESSAGES,
 				ConversationStates.IDLE, text, new ChatAction() {
 
+					@Override
 					public void fire(final Player player, final Sentence sentence,
 							final EventRaiser npc) {
 						((SpeakerNPC) npc.getEntity()).onGoodbye(player);
@@ -912,16 +957,6 @@ public class SpeakerNPC extends NPC {
 		return engine;
 	}
 
-	@Override
-	protected void handleObjectCollision() {
-		stop();
-	}
-
-	@Override
-	protected void handleSimpleCollision(final int nx, final int ny) {
-		stop();
-	}
-
 	/**
 	 * gets an alternative image for example for the website
 	 *
@@ -940,5 +975,122 @@ public class SpeakerNPC extends NPC {
 		this.alternativeImage = alternativeImage;
 	}
 
-	
+	private void addWaitMessage() {
+		addWaitMessage(null, new ChatAction() {
+			@Override
+			public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
+				npc.say("Proszę zaczekaj " + player.getTitle()
+					+ "! Wciąż rozmawiam z "
+					+ npc.getAttending().getTitle() + ".");
+			}
+		});
+	}
+
+
+	/**
+	 * gets the answer to the "job" question in ATTENDING state.
+	 *
+	 * @return the answer to the job question or null in case there is no job specified
+	 */
+	public String getJob() {
+		List<Transition> transitions = engine.getTransitions();
+		for (Transition transition : transitions) {
+			if (transition.getState() == ConversationStates.ATTENDING) {
+				for(Expression triggerExpr : transition.getTriggers()) {
+					if (triggerExpr.getOriginal().equals("job") 
+						|| (triggerExpr.getOriginal().equals("praca"))) {
+							return transition.getReply();
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Retrieves string reply to trigger word.
+	 *
+	 * @param trigger
+	 * 		Word or phrase that triggers reply.
+	 * @param state
+	 * 		The conversation state the NPC is in when trigger is activated.
+	 * @param expressionType
+	 * @return
+	 * 		String reply or <code>null</code>.
+	 */
+	public String getReply(final String trigger, ConversationStates state, String expressionType) {
+		// default to attending
+		if (state == null) {
+			state = ConversationStates.ATTENDING;
+		}
+		if (expressionType == null) {
+			expressionType = ExpressionType.UNKNOWN;
+		}
+
+		for (final Transition tr: getTransitions()) {
+			if (tr.matches(state, new Expression(trigger, expressionType))) {
+				return tr.getReply();
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Retrieves string reply to trigger word when NPC is in attending state.
+	 *
+	 * @param trigger
+	 * 		Word or phrase that triggers reply.
+	 * @return
+	 * 		String reply or <code>null</code>.
+	 */
+	public String getReply(final String trigger) {
+		return getReply(trigger, ConversationStates.ATTENDING, ExpressionType.UNKNOWN);
+	}
+
+	/**
+	 * someone tried to attack us
+	 * 
+	 * @param attacker
+	 */
+	@Override
+	public void onRejectedAttackStart(RPEntity attacker) {
+		say(attacker.getName() + ", jeśli chcesz zwrócić moją uwagę to powiedz #'cześć'.");
+	}
+
+	/**
+	 * marks a greeting transition as priority over other greeting conditions
+	 *
+	 * @param condition ChatCondition
+	 * @param owner     owner of the condition (e. g. a quest)
+	 */
+	public void registerPrioritizedGreetingTransition(ChatCondition condition, Object owner) {
+		if (prioritizedGreetingTransitions == null) {
+			prioritizedGreetingTransitions = new LinkedHashMap<>();
+		}
+		prioritizedGreetingTransitions.put(condition, owner);
+	}
+
+	/**
+	 * checks that there are no other greeting transitions with higher priority
+	 *
+	 * @param owner    owner that likes to execute a greeting condition
+	 * @param player   Player
+	 * @param sentence Sentance
+	 * @return true, if the transition may be executed; false if another transition has a higher priority
+	 */
+	public boolean mayGreetingConditionBeExecuted(Object owner, Player player, Sentence sentence) {
+		if (prioritizedGreetingTransitions == null) {
+			return true;
+		}
+		for (Map.Entry<ChatCondition, Object> entry : prioritizedGreetingTransitions.entrySet()) {
+			if (entry.getValue() == owner) {
+				return true;
+			}
+			if (entry.getKey().fire(player, sentence, this)) {
+				return false;
+			}
+		}
+		return true;
+	}
 }

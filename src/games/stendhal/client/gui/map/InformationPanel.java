@@ -11,25 +11,32 @@
  ***************************************************************************/
 package games.stendhal.client.gui.map;
 
-import games.stendhal.client.entity.User;
-import games.stendhal.client.gui.layout.SBoxLayout;
-import games.stendhal.client.sprite.DataLoader;
-
-import java.awt.Font;
+import java.awt.Color;
 
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JTextPane;
+import javax.swing.OverlayLayout;
+import javax.swing.SwingUtilities;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
+
+import games.stendhal.client.entity.User;
+import games.stendhal.client.gui.layout.SBoxLayout;
+import games.stendhal.client.gui.layout.SLayout;
+import games.stendhal.client.sprite.DataLoader;
 
 /**
  * Area for displaying information about a zone.
  */
-public class InformationPanel extends JComponent {
+class InformationPanel extends JComponent {
 	/** Maximum number of skull icons in the danger indicator. */
 	private static final int MAX_SKULLS = 5;
 	/**
 	 * Value to added to the player level when calculating the amount of skulls
-	 * to show. <b>Must be at least 1.</b>. Higher values mean that low level 
+	 * to show. <b>Must be at least 1.</b>. Higher values mean that low level
 	 * players require higher danger level at a zone for a certain amount of
 	 * skulls.
 	 */
@@ -46,52 +53,81 @@ public class InformationPanel extends JComponent {
 		"Ten obszar jest bardzo niebezpieczny!",
 		"Ten obszar jest wyjątkowo niebezpieczny. Uciekaj!"
 	};
-	
+
 	/** Zone name display. */
-	private final JLabel nameLabel;
+	private final JTextPane nameField;
+	/** Attribute set needed for centering the zone name text. */
+	private final SimpleAttributeSet center = new SimpleAttributeSet();
 	/** Danger level icons */
 	private final DangerIndicator dangerIndicator;
 	/** Current relative danger level. */
 	private int dangerLevel;
-	
+	/**
+	 * A component overlaying the zone text and the danger indicator. This is
+	 * for holding a common tool tip for them both. JTextPane consumes mouse
+	 * events so setting a tool tip for the common parent does not work.
+	 */
+	private final JComponent glassPane;
+
 	/**
 	 * Create a new InformationPanel.
 	 */
 	InformationPanel() {
-		setLayout(new SBoxLayout(SBoxLayout.VERTICAL));
-		
+		setLayout(new OverlayLayout(this));
+		JComponent container = SBoxLayout.createContainer(SBoxLayout.VERTICAL);
+		glassPane = new JComponent(){};
+		add(glassPane);
+		add(container);
+
 		// ** Zone name **
-		nameLabel = new JLabel();
-		// "unbold". The label is wide enough as it is
-		Font f = nameLabel.getFont();
-		if ((f.getStyle() & Font.BOLD) != 0) {
-			nameLabel.setFont(f.deriveFont(f.getStyle() ^ Font.BOLD));
-		}
-		nameLabel.setAlignmentX(CENTER_ALIGNMENT);
-		nameLabel.setOpaque(true);
-		nameLabel.setBackground(getBackground());
-		add(nameLabel);
-		
+		nameField = new JTextPane();
+		StyleConstants.setAlignment(center, StyleConstants.ALIGN_CENTER);
+		nameField.setAlignmentX(CENTER_ALIGNMENT);
+		nameField.setOpaque(true);
+		nameField.setBackground(getBackground());
+		nameField.setForeground(Color.WHITE);
+		nameField.setFocusable(false);
+		nameField.setEditable(false);
+		container.add(nameField, SLayout.EXPAND_X);
+
 		// ** Danger display **
 		dangerIndicator = new DangerIndicator(MAX_SKULLS);
 		dangerIndicator.setAlignmentX(CENTER_ALIGNMENT);
-		add(dangerIndicator);
+		container.add(dangerIndicator);
 		// Default to safe, so that we always have a tooltip
-		setToolTipText(dangerLevelStrings[0]);
+		describeDanger(0);
 	}
-	
+
+	/**
+	 * Set the tool tip describing zone danger level.
+	 *
+	 * @param dangerLevel zone danger level, value in range [0-5].
+	 */
+	private void describeDanger(int dangerLevel) {
+		glassPane.setToolTipText(dangerLevelStrings[dangerLevel]);
+	}
+
 	/**
 	 * Set the name of the zone.
-	 * 
+	 *
 	 * @param name
 	 */
 	void setZoneName(String name) {
-		nameLabel.setText(name);
+		nameField.setText(name);
+		StyledDocument doc = nameField.getStyledDocument();
+		doc.setParagraphAttributes(0, doc.getLength(), center, false);
+		// Necessary when the needed space gets smaller.
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				nameField.revalidate();
+			}
+		});
 	}
-	
+
 	/**
 	 * Set the zone danger level.
-	 * 
+	 *
 	 * @param dangerLevel danger level
 	 */
 	void setDangerLevel(double dangerLevel) {
@@ -99,10 +135,10 @@ public class InformationPanel extends JComponent {
 		if (this.dangerLevel != skulls) {
 			this.dangerLevel = skulls;
 			dangerIndicator.setRelativeDanger(skulls);
-			setToolTipText(dangerLevelStrings[skulls]);
+			describeDanger(skulls);
 		}
 	}
-	
+
 	/**
 	 * A skull row component for danger level display.
 	 */
@@ -112,10 +148,10 @@ public class InformationPanel extends JComponent {
 
 		/** The indicator icons */
 		private final JComponent[] indicators;
-		
+
 		/**
 		 * Create a new DangerIndicator.
-		 * 
+		 *
 		 * @param maxSkulls maximum number of skulls to display
 		 */
 		DangerIndicator(int maxSkulls) {
@@ -129,10 +165,10 @@ public class InformationPanel extends JComponent {
 				indicators[i] = indicator;
 			}
 		}
-		
+
 		/**
 		 * Set the relative danger level.
-		 * 
+		 *
 		 * @param skulls amount of skulls to show
 		 */
 		void setRelativeDanger(int skulls) {

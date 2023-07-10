@@ -1,4 +1,4 @@
-/* $Id: AdminNoteAction.java,v 1.4 2010/09/24 20:52:18 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -17,21 +17,22 @@ import marauroa.common.game.RPAction;
 
 /**
  * Logs a note visible to admins about the specified character.
- * 
+ *
  * @author hendrik
  */
-public class AdminNoteAction implements SlashAction {
+class AdminNoteAction implements SlashAction {
 
 	/**
 	 * Execute a chat command.
-	 * 
+	 *
 	 * @param params
 	 *            The formal parameters.
 	 * @param remainder
 	 *            Line content after parameters.
-	 * 
+	 *
 	 * @return <code>true</code> if was handled.
 	 */
+	@Override
 	public boolean execute(final String[] params, final String remainder) {
 		final RPAction action = new RPAction();
 
@@ -46,18 +47,20 @@ public class AdminNoteAction implements SlashAction {
 
 	/**
 	 * Get the maximum number of formal parameters.
-	 * 
+	 *
 	 * @return The parameter count.
 	 */
+	@Override
 	public int getMaximumParameters() {
 		return 1;
 	}
 
 	/**
 	 * Get the minimum number of formal parameters.
-	 * 
+	 *
 	 * @return The parameter count.
 	 */
+	@Override
 	public int getMinimumParameters() {
 		return 1;
 	}

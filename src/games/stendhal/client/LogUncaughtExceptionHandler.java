@@ -1,4 +1,4 @@
-/* $Id: LogUncaughtExceptionHandler.java,v 1.1 2010/03/04 21:35:24 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *					(C) Copyright 2003-2010 - Marauroa					   *
  ***************************************************************************
@@ -22,10 +22,11 @@ import marauroa.common.Logger;
  * there would be no information in the logfile without
  * this class.
  */
-public class LogUncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
+class LogUncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
 	private static Logger logger = Log4J.getLogger(LogUncaughtExceptionHandler.class);
 	private Thread.UncaughtExceptionHandler next;
 
+	@Override
 	public void uncaughtException(Thread thread, Throwable exception) {
 		logger.error("Exception in thread " + thread.getName(), exception);
 		System.err.println("Exception in thread " + thread.getName());
@@ -38,7 +39,7 @@ public class LogUncaughtExceptionHandler implements Thread.UncaughtExceptionHand
 	/**
 	 * installs this uncaught exception handler
 	 */
-	public static void setup() {
+	static void setup() {
 		LogUncaughtExceptionHandler handler = new LogUncaughtExceptionHandler();
 		handler.next = Thread.getDefaultUncaughtExceptionHandler();
 		Thread.setDefaultUncaughtExceptionHandler(handler);

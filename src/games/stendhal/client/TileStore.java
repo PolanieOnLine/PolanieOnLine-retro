@@ -1,6 +1,5 @@
-/* $Id: TileStore.java,v 1.65 2012/09/09 12:38:19 kymara Exp $ */
 /***************************************************************************
- *                      (C) Copyright 2003 - Marauroa                      *
+ *                   (C) Copyright 2003-2023 - Marauroa                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,29 +11,44 @@
  ***************************************************************************/
 package games.stendhal.client;
 
+import java.awt.Color;
+import java.awt.Composite;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
+
 import games.stendhal.client.sprite.DataLoader;
+import games.stendhal.client.sprite.FlippedSprite;
 import games.stendhal.client.sprite.Sprite;
 import games.stendhal.client.sprite.SpriteStore;
 import games.stendhal.client.sprite.SpriteTileset;
 import games.stendhal.client.sprite.Tileset;
 import games.stendhal.client.sprite.TilesetAnimationMap;
 import games.stendhal.client.sprite.TilesetGroupAnimationMap;
+import games.stendhal.client.util.JSONLoader;
 import games.stendhal.common.tiled.TileSetDefinition;
-
-import java.awt.Color;
-import java.awt.Composite;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-
 import marauroa.common.net.InputSerializer;
 
-import org.apache.log4j.Logger;
-
 /** It is class to get tiles from the tileset. */
-public class TileStore implements Tileset {
+class TileStore implements Tileset {
+	/** Tiled reserves 3 highest bits for tile flipping. */
+	private static final int TILE_FLIP_MASK = 0xE0000000;
+	/**
+	 * Tiled reserves 3 highest bits for tile flipping. Mask for getting the
+	 * actual tile number.
+	 */
+	private static final int TILE_ID_MASK = 0xFFFFFFFF ^ TILE_FLIP_MASK;
 	/** the logger instance. */
 	private static final Logger logger = Logger.getLogger(TileStore.class);
 
@@ -46,7 +60,11 @@ public class TileStore implements Tileset {
 	/**
 	 * The tileset animation map.
 	 */
-	private static final TilesetGroupAnimationMap animationMap = createAnimationMap();
+	private static TilesetGroupAnimationMap landscapeAnimationMap;
+	/**
+	 * The weather animation map.
+	 */
+	private static TilesetGroupAnimationMap weatherAnimationMap;
 
 	/**
 	 * A cache of loaded tilesets.
@@ -71,10 +89,57 @@ public class TileStore implements Tileset {
 	private boolean validated;
 
 	/**
+	 * Get the animation map used for landscape tilesets.
+	 *
+	 * @return
+	 *     Landscape animation map.
+	 */
+	public static TilesetGroupAnimationMap getLandscapeAnimationMap() {
+		return landscapeAnimationMap;
+	}
+
+	/**
+	 * Get the animation map used for weather tilesets.
+	 *
+	 * @return
+	 *     Weather animation map.
+	 */
+	public static TilesetGroupAnimationMap getWeatherAnimationMap() {
+		return weatherAnimationMap;
+	}
+
+	/**
 	 * Create a tile store.
 	 */
 	public TileStore() {
 		this(SpriteStore.get());
+	}
+
+	/**
+	 * Initializes landscape & weather tile animations.
+	 */
+	public static void init() {
+		if (landscapeAnimationMap != null && weatherAnimationMap != null) {
+			logger.warn("tried to re-initialize TileStore");
+			return;
+		}
+
+		final JSONLoader loader = new JSONLoader();
+		loader.onDataReady = new Runnable() {
+			@Override
+			public void run() {
+				final JSONObject document = (JSONObject) loader.data;
+				if (document.containsKey("landscape")) {
+					landscapeAnimationMap = loadAnimations(
+							(Map<String, List<String>>) document.get("landscape"), "tileset/");
+				}
+				if (document.containsKey("weather")) {
+					weatherAnimationMap = loadAnimations(
+							(Map<String, List<String>>) document.get("weather"), "data/sprites/weather/");
+				}
+			}
+		};
+		loader.load(baseFolder + "tileset/animation.json");
 	}
 
 	/**
@@ -161,7 +226,7 @@ public class TileStore implements Tileset {
 		/*
 		 * Override the animated tiles (if any)
 		 */
-		final TilesetAnimationMap tsam = animationMap.get(ref);
+		final TilesetAnimationMap tsam = landscapeAnimationMap.get(ref);
 
 		if (tsam != null) {
 			for (int i = 0; i < size; i++) {
@@ -184,13 +249,12 @@ public class TileStore implements Tileset {
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
-	public void addTilesets(final InputSerializer in) throws IOException,
+	void addTilesets(final InputSerializer in) throws IOException,
 			ClassNotFoundException {
 		final int amount = in.readInt();
 
 		for (int i = 0; i < amount; i++) {
-			final TileSetDefinition tileset = (TileSetDefinition) in.readObject(new TileSetDefinition(
-					null, -1));
+			final TileSetDefinition tileset = (TileSetDefinition) in.readObject(new TileSetDefinition(null, null, -1));
 			tilesets.add(tileset);
 		}
 	}
@@ -223,7 +287,9 @@ public class TileStore implements Tileset {
 	 *
 	 * @return A tileset animation map.
 	 */
-	protected static TilesetGroupAnimationMap createAnimationMap() {
+	@SuppressWarnings("unused")
+	@Deprecated
+	private static TilesetGroupAnimationMap createAnimationMap() {
 		final TilesetGroupAnimationMap map = new TilesetGroupAnimationMap();
 
 		final URL url = DataLoader.getResource(baseFolder + "tileset/animation.seq");
@@ -239,6 +305,130 @@ public class TileStore implements Tileset {
 				}
 			} catch (final IOException ex) {
 				logger.error("Error loading tileset animation map", ex);
+			}
+		}
+
+		return map;
+	}
+
+	/**
+	 * Animations are stored using the tileset name as key with value
+	 * being a map indexed by initial frames. Frame map contains two
+	 * lists: <code>frames</code> (a list of frames used in animation)
+	 * & <code>delays</code> (a list of delay values for the
+	 * corresponding frame of each index).
+	 *
+	 * ani = animationMap[tileset_name];
+	 * frames = ani[0].frames
+	 * delays = ani[0].delays
+	 *
+	 * @param def
+	 *     Unformatted animations lists indexed by tileset name.
+	 *     Example: {ts1: [ani1, ani2, ...], ts2: [ani1, ani2, ...], ...}
+	 * @param prefix
+	 *     Parent directory containing the target tileset images.
+	 * @return
+	 *     Map of animations.
+	 */
+	private static TilesetGroupAnimationMap loadAnimations(final Map<String, List<String>> def,
+			final String prefix) {
+		final Map<String, List<String>> animations = new HashMap<>();
+		for (final Map.Entry entry: def.entrySet()) {
+			animations.put((String) entry.getKey(), (List<String>) entry.getValue());
+		}
+		final TilesetGroupAnimationMap map = new TilesetGroupAnimationMap();
+		final List<String> lines = formatLines(animations, prefix);
+		if (lines.size() > 0) {
+			map.load(lines);
+		}
+		return map;
+	}
+
+	/**
+	 * Loads animations from <code>tileset/animation.json</code>.
+	 *
+	 * TODO: fix unchecked casts
+	 *
+	 * @param id
+	 *     Key to load from <code>animations.json</code>.
+	 * @return
+	 *     Animations listed under <code>id</code>.
+	 */
+	@SuppressWarnings("unused")
+	@Deprecated
+	private static Map<String, List<String>> loadAnimations(final String id) {
+		final Map<String, List<String>> animations = new HashMap<>();
+
+		final String ani_file = baseFolder + "tileset/animation.json";
+		final URL url = DataLoader.getResource(ani_file);
+		if (url != null) {
+			try {
+				final InputStreamReader isr = new InputStreamReader(url.openStream(), StandardCharsets.UTF_8);
+				final JSONObject document = (JSONObject) JSONValue.parse(isr);
+
+				if (document == null) {
+					logger.error("failed to read animations file: " + ani_file);
+					return null;
+				}
+
+				if (document.containsKey(id)) {
+					for (final Map.Entry entry: ((Map<String, List<String>>) document.get(id)).entrySet()) {
+						animations.put((String) entry.getKey(), (List<String>) entry.getValue());
+					}
+				}
+			} catch (final IOException ex) {
+				logger.error("Error loading tileset animation map key: " + id, ex);
+			}
+		}
+
+		return animations;
+	}
+
+	/**
+	 * Formats animation map to list of strings.
+	 *
+	 * TODO: fix unchecked casts
+	 *
+	 * @param animations
+	 *     Map to parse.
+	 * @param prefix
+	 *     Tileset directory prefix.
+	 * @return
+	 *     List of strings formatted as: <tileset> <frame> <frames>
+	 */
+	private static List<String> formatLines(final Map<String, List<String>> animations,
+			final String prefix) {
+		final List<String> lines = new LinkedList<>();
+		for (final Map.Entry entry: animations.entrySet()) {
+			for (final String val: (List<String>) entry.getValue()) {
+				lines.add(prefix + entry.getKey() + ".png " + val);
+			}
+		}
+
+		return lines;
+	}
+
+	/**
+	 * Create a tileset animation map.
+	 *
+	 * @param id
+	 *     Key to load from <code>animations.json</code>.
+	 * @param prefix
+	 *     Tileset directory prefix.
+	 * @return
+	 *     A tileset animation map.
+	 */
+	@SuppressWarnings("unused")
+	@Deprecated
+	private static TilesetGroupAnimationMap createAnimationMap(final String id,
+			final String prefix) {
+		final TilesetGroupAnimationMap map = new TilesetGroupAnimationMap();
+
+		final Map<String, List<String>> animations = loadAnimations(id);
+		if (animations != null) {
+			final List<String> lines = formatLines(animations, prefix);
+			if (lines.size() > 0) {
+				map.load(lines);
 			}
 		}
 
@@ -272,6 +462,7 @@ public class TileStore implements Tileset {
 	 *
 	 * @return The number of tiles.
 	 */
+	@Override
 	public int getSize() {
 		return tiles.size();
 	}
@@ -284,17 +475,24 @@ public class TileStore implements Tileset {
 	 *
 	 * @return A sprite, or <code>null</code> if no mapped sprite.
 	 */
-	public Sprite getSprite(final int index) {
+	@Override
+	public Sprite getSprite(int index) {
+		int flip = index & TILE_FLIP_MASK;
+		index &= TILE_ID_MASK;
 		if (index >= tiles.size()) {
 			logger.error("Accessing unassigned sprite at: " + index);
 			return store.getEmptySprite();
 		}
 
-		final Sprite sprite = tiles.get(index);
+		Sprite sprite = tiles.get(index);
 
 		if (sprite == null) {
 			logger.error("Accessing unassigned sprite at: " + index);
 			return store.getEmptySprite();
+		}
+
+		if (flip != 0) {
+			sprite = new FlippedSprite(sprite, flip);
 		}
 
 		return sprite;

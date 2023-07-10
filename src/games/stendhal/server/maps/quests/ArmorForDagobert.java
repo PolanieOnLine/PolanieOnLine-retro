@@ -1,6 +1,5 @@
-/* $Id: ArmorForDagobert.java,v 1.53 2011/11/13 17:12:18 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2011 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,6 +11,12 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
+import games.stendhal.common.grammar.Grammar;
 import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
@@ -34,11 +39,6 @@ import games.stendhal.server.entity.npc.condition.QuestNotCompletedCondition;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.Region;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-
 /**
  * QUEST: Armor for Dagobert
  *
@@ -57,7 +57,7 @@ import java.util.List;
  * REWARD:
  * <ul>
  * <li>50 XP</li>
- * <li>80 gold</li>
+ * <li>100 gold</li>
  * <li>Karma: 10</li>
  * <li>Access to vault</li>
  * </ul>
@@ -68,37 +68,10 @@ import java.util.List;
  * </ul>
  */
 public class ArmorForDagobert extends AbstractQuest {
-
 	private static final String QUEST_SLOT = "armor_dagobert";
-
-	
-
-	@Override
-	public List<String> getHistory(final Player player) {
-		final List<String> res = new ArrayList<String>();
-		if (!player.hasQuest(QUEST_SLOT)) {
-			return res;
-		}
-		res.add("Spotkałem Dagobert. Jest konsultantem w banku w Semos.");
-		final String questState = player.getQuest(QUEST_SLOT);
-		if ("rejected".equals(questState)) {
-			res.add("Poprosił mnie o znalezienie skórzanego kirysu, ale odrzuciłem jego proźbę.");
-		}
-		if (player.isQuestInState(QUEST_SLOT, "start", "done")) {
-			res.add("Przyrzekłem, że znajdę dla niego skórzany kirys ponieważ został okradziony.");
-		}
-		if (("start".equals(questState) && (player.isEquipped("skórzany kirys") || player.isEquipped("skórzany kirys z naramiennikami"))) || "done".equals(questState)) {
-			res.add("Znalazłem skórzany kirys i zabiorę go do Dagoberta.");
-		}
-		if ("done".equals(questState)) {
-			res.add("Wziąłem skórzany kirys do Dagoberta. Podziękował i dał mi nagrodę.");
-		}
-		return res;
-	}
+	private final SpeakerNPC npc = npcs.get("Dagobert");
 
 	private void prepareRequestingStep() {
-		final SpeakerNPC npc = npcs.get("Dagobert");
-
 		npc.add(
 			ConversationStates.ATTENDING,
 			ConversationPhrases.QUEST_MESSAGES,
@@ -122,14 +95,14 @@ public class ArmorForDagobert extends AbstractQuest {
 			null,
 			ConversationStates.ATTENDING,
 			"Raz miałem #'skórzany kirys', ale został zniszczony podczas ostatniej kradzieży. Jeżeli znajdziesz nowy to dam Tobie nagrodę.",
-			new SetQuestAndModifyKarmaAction(QUEST_SLOT, "start", 5.0));
+			new SetQuestAction(QUEST_SLOT, "start"));
 
 		// player is not willing to help
 		npc.add(
 			ConversationStates.QUEST_OFFERED,
 			ConversationPhrases.NO_MESSAGES, null,
 			ConversationStates.ATTENDING,
-			"Cóż będę musiał się ukryć..",
+			"Cóż, myślę, że po prostu się ukryję.",
 			new SetQuestAndModifyKarmaAction(QUEST_SLOT, "rejected", -5.0));
 
 		// player wants to know what a leather cuirass is
@@ -143,8 +116,6 @@ public class ArmorForDagobert extends AbstractQuest {
 	}
 
 	private void prepareBringingStep() {
-		final SpeakerNPC npc = npcs.get("Dagobert");
-
 		// player returns while quest is still active
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 			new AndCondition(new GreetingMatchesNameCondition(npc.getName()),
@@ -167,10 +138,10 @@ public class ArmorForDagobert extends AbstractQuest {
 			null);
 
 		final List<ChatAction> reward = new LinkedList<ChatAction>();
-		reward.add(new EquipItemAction("money", 80));
-		reward.add(new IncreaseXPAction(50));
+		reward.add(new EquipItemAction("money", 100));
+		reward.add(new IncreaseXPAction(500));
 		reward.add(new SetQuestAction(QUEST_SLOT, "done"));
-		reward.add(new IncreaseKarmaAction(10));
+		reward.add(new IncreaseKarmaAction(15));
 
 		final List<ChatAction> reward1 = new LinkedList<ChatAction>(reward);
 		reward1.add(new DropItemAction("skórzany kirys"));
@@ -207,8 +178,30 @@ public class ArmorForDagobert extends AbstractQuest {
 	}
 
 	@Override
+	public List<String> getHistory(final Player player) {
+		final List<String> res = new ArrayList<String>();
+		if (!player.hasQuest(QUEST_SLOT)) {
+			return res;
+		}
+		res.add(Grammar.genderVerb(player.getGender(), "Spotkałem") + " Dagobert. Jest konsultantem w banku w Semos.");
+		final String questState = player.getQuest(QUEST_SLOT);
+		if ("rejected".equals(questState)) {
+			res.add("Poprosił mnie o znalezienie skórzanego kirysu, ale odrzuciłem jego prośbę.");
+		}
+		if (player.isQuestInState(QUEST_SLOT, "start", "done")) {
+			res.add(Grammar.genderVerb(player.getGender(), "Przyrzekłem") + ", że znajdę dla niego skórzany kirys ponieważ został okradziony.");
+		}
+		if ("start".equals(questState) && (player.isEquipped("skórzany kirys") || player.isEquipped("skórzany kirys z naramiennikami")) || "done".equals(questState)) {
+			res.add(Grammar.genderVerb(player.getGender(), "Znalazłem") + " skórzany kirys i zabiorę go do Dagoberta.");
+		}
+		if ("done".equals(questState)) {
+			res.add(Grammar.genderVerb(player.getGender(), "Wziąłem") + " skórzany kirys do Dagoberta. Podziękował i dał mi nagrodę.");
+		}
+		return res;
+	}
+
+	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
 				"Zbroja dla Dagoberta",
 				"Dagobert konsultant w banku w Semos poprosił mnie o znalezienie dla niego skórzanego kirysu.",
@@ -224,21 +217,21 @@ public class ArmorForDagobert extends AbstractQuest {
 
 	@Override
 	public String getName() {
-		return "ArmorForDagobert";
+		return "Zbroja dla Dagoberta";
 	}
-	
+
 	@Override
 	public int getMinLevel() {
 		return 0;
 	}
-	
+
 	@Override
 	public String getRegion() {
 		return Region.SEMOS_CITY;
 	}
-	
+
 	@Override
 	public String getNPCName() {
-		return "Dagobert";
+		return npc.getName();
 	}
 }

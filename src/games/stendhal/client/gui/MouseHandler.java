@@ -1,4 +1,4 @@
-/* $Id: MouseHandler.java,v 1.4 2012/03/29 19:42:15 madmetzger Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -31,61 +31,65 @@ public abstract class MouseHandler implements MouseListener, MouseMotionListener
 	/** <code>true</code> if dragging is in progress */
 	private boolean dragging;
 	/**
-	 * <code>true</code> if the last single click was handled; it can't be a 
+	 * <code>true</code> if the last single click was handled; it can't be a
 	 * part of a double click.
 	 */
 	private boolean lastClickWasHandled;
 	/** Event key mask for detecting ctrl and shift clicks */
 	private int flags;
-	
+
 	/**
 	 * Called on left mouse single click.
-	 * 
+	 *
 	 * @param point location
 	 * @return <code>true</code> if the click was handled
 	 */
 	protected abstract boolean onMouseClick(Point point);
-	
+
 	/**
 	 * Called on left double click.
-	 * 
+	 *
 	 * @param point location
 	 * @return <code>true</code> if the click was handled
 	 */
 	protected abstract boolean onMouseDoubleClick(Point point);
-	
+
 	/**
 	 * Called on right mouse single click.
-	 * 
+	 *
 	 * @param point location
 	 */
 	protected abstract void onMouseRightClick(Point point);
-	
+
 	/**
 	 * Called when mouse dragging starts.
-	 * 
+	 *
 	 * @param point location
 	 */
 	protected abstract void onDragStart(Point point);
-	
+
 	/**
 	 * Java's official mouseClick handler; we don't use this because it doesn't
 	 * register clicks while the mouse is moving at all.
-	 * 
+	 *
 	 * @param e
 	 */
+	@Override
 	public void mouseClicked(MouseEvent e) {
 		// do nothing
 	}
 
+	@Override
 	public void mouseEntered(MouseEvent e) {
 		// do nothing
 	}
 
+	@Override
 	public void mouseExited(MouseEvent e) {
 		// do nothing
 	}
 
+	@Override
 	public void mousePressed(MouseEvent e) {
 		if (e.getButton() == MouseEvent.BUTTON3) {
 			rightMouseButtonPressed = true;
@@ -94,6 +98,7 @@ public abstract class MouseHandler implements MouseListener, MouseMotionListener
 		timeOfLastMousePress = System.currentTimeMillis();
 	}
 
+	@Override
 	public void mouseReleased(MouseEvent e) {
 		// be sure to stop dragging operations when the left button is released
 		if (e.getButton() == MouseEvent.BUTTON1) {
@@ -111,6 +116,7 @@ public abstract class MouseHandler implements MouseListener, MouseMotionListener
 		}
 	}
 
+	@Override
 	public void mouseDragged(MouseEvent e) {
 		if (rightMouseButtonPressed) {
 			// Disallow dragging with right button.
@@ -123,6 +129,7 @@ public abstract class MouseHandler implements MouseListener, MouseMotionListener
 		}
 	}
 
+	@Override
 	public void mouseMoved(MouseEvent arg0) {
 		// do nothing
 	}
@@ -150,19 +157,19 @@ public abstract class MouseHandler implements MouseListener, MouseMotionListener
 			onMouseRightClick(p);
 		}
 	}
-	
+
 	/**
 	 * Check if the control key was down during the mouse event.
-	 * 
+	 *
 	 * @return <code>true</code> if the control key was down
 	 */
 	protected boolean isCtrlDown() {
 		return ((flags & InputEvent.CTRL_DOWN_MASK) != 0);
 	}
-	
+
 	/**
 	 * Check if the shift key was down during the mouse event.
-	 * 
+	 *
 	 * @return <code>true</code> if the shift key was down
 	 */
 	protected boolean isShiftDown() {

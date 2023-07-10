@@ -1,4 +1,3 @@
-/* $Id: LibrarianNPC.java,v 1.16 2010/09/19 02:35:43 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,15 +11,15 @@
  ***************************************************************************/
 package games.stendhal.server.maps.semos.library;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 public class LibrarianNPC implements ZoneConfigurator {
 	/**
@@ -29,13 +28,13 @@ public class LibrarianNPC implements ZoneConfigurator {
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
-		buildSemosLibraryArea(zone, attributes);
+		buildSemosLibraryArea(zone);
 	}
 
-	private void buildSemosLibraryArea(final StendhalRPZone zone, final Map<String, String> attributes) {
+	private void buildSemosLibraryArea(final StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Ceryl") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -53,10 +52,10 @@ public class LibrarianNPC implements ZoneConfigurator {
 			}
 		};
 
-		npc.setEntityClass("investigatornpc");
 		npc.setDescription("Oto Ceryl wyglądający na lekko szalonego bibliotekarza.");
+		npc.setEntityClass("investigatornpc");
+		npc.setGender("M");
 		npc.setPosition(28, 12);
-		npc.initHP(100);
 		zone.add(npc);
 	}
 }

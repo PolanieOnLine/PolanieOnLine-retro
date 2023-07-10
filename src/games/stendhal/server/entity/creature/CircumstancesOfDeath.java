@@ -1,6 +1,5 @@
-/* $Id: CircumstancesOfDeath.java,v 1.4 2010/12/05 14:10:13 martinfuchs Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -23,11 +22,11 @@ public class CircumstancesOfDeath {
 // 	public List<RPEntity> killers;
 	private RPEntity victim;
 	private StendhalRPZone zone;
-	
+
 	public RPEntity getKiller() {
 		return(killer);
 	}
-	
+
 	public RPEntity getVictim() {
 		return(victim);
 	}
@@ -35,7 +34,7 @@ public class CircumstancesOfDeath {
 	public StendhalRPZone getZone() {
 		return(zone);
 	}
-	
+
 	public CircumstancesOfDeath(RPEntity killer, RPEntity victim, StendhalRPZone zone) {
 		this.zone=zone;
 		this.killer=killer;

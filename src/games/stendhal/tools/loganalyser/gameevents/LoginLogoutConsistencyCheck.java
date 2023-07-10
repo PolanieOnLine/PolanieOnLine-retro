@@ -1,4 +1,4 @@
-/* $Id: LoginLogoutConsistencyCheck.java,v 1.3 2010/12/28 18:15:12 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -20,12 +20,12 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
+
 import marauroa.common.Log4J;
 import marauroa.server.db.DBTransaction;
 import marauroa.server.db.TransactionPool;
 import marauroa.server.game.db.DatabaseFactory;
-
-import org.apache.log4j.Logger;
 
 /**
  * Analyses login/logout events for suspicious activity.
@@ -52,6 +52,8 @@ public class LoginLogoutConsistencyCheck {
 	 * analyses the log
 	 *
 	 * @param timedate date when to start
+	 * @return <code>false</code> if there were problems, <code>true</code>
+	 * 	otherwise
 	 */
 	public boolean analyse(final String timedate) {
 		boolean okay = true;
@@ -85,7 +87,7 @@ public class LoginLogoutConsistencyCheck {
 	 */
 	public static void main(final String[] args) {
 		Log4J.init();
-		new DatabaseFactory().initializeDatabase();	
+		new DatabaseFactory().initializeDatabase();
 		String timedate = "1900-01-01";
 		if (args.length > 0) {
 			timedate = args[0];

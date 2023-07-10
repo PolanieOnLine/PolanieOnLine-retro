@@ -1,6 +1,5 @@
-/* $Id: UseableItem2DView.java,v 1.8 2012/04/06 14:41:18 kiheru Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2022 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,15 +11,13 @@
  ***************************************************************************/
 package games.stendhal.client.gui.j2d.entity;
 
-//
-//
+import java.util.List;
 
 import games.stendhal.client.entity.ActionType;
 import games.stendhal.client.entity.StackableItem;
 import games.stendhal.client.gui.styled.cursor.StendhalCursor;
 import games.stendhal.client.gui.wt.core.WtWindowManager;
-
-import java.util.List;
+import marauroa.common.game.RPObject;
 
 /**
  * The 2D view of a useable item.
@@ -34,24 +31,34 @@ class UseableItem2DView extends StackableItem2DView<StackableItem> {
 	/**
 	 * Build a list of entity specific actions. <strong>NOTE: The first entry
 	 * should be the default.</strong>
-	 * 
+	 *
 	 * @param list
 	 *            The list to populate.
 	 */
 	@Override
 	protected void buildActions(final List<String> list) {
-		list.add(ActionType.USE.getRepresentation());
+		final RPObject obj = entity.getRPObject();
+		if (!obj.has("menu")) {
+			list.add(ActionType.USE.getRepresentation());
+		}
 
 		super.buildActions(list);
+
+		// command list is cached, so don't check quantity
+		if (obj.isContained() && "niezapisany zwój".equals(obj.get("name"))) {
+			if (list.size() > 1) {
+				list.add(1, "Zapisz wszystkie");
+			}
+		}
 	}
 
 	@Override
 	public StendhalCursor getCursor() {
-		boolean doubleClick = Boolean.parseBoolean(WtWindowManager.getInstance().getProperty("ui.doubleclick", "false"));
+		boolean doubleClick = WtWindowManager.getInstance().getPropertyBoolean("ui.doubleclick", false);
 		if (doubleClick) {
 			return StendhalCursor.ACTIVITY;
 		} else {
-			return StendhalCursor.ITEM_USE; 
+			return StendhalCursor.ITEM_USE;
 		}
 	}
 }

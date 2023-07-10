@@ -1,4 +1,4 @@
-/* $Id: Skrzynka.java,v 1.7 2010/09/19 02:23:49 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,13 +12,12 @@
  ***************************************************************************/
 package games.stendhal.server.entity.item;
 
+import java.util.Map;
+
 import games.stendhal.common.ItemTools;
 import games.stendhal.common.Rand;
-import games.stendhal.common.grammar.Grammar;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.Map;
 
 /**
  * A present which can be unwrapped.
@@ -70,8 +69,8 @@ public class Skrzynka extends Box {
 
 		final String itemName = getInfoString();
 		final Item item = SingletonRepository.getEntityManager().getItem(itemName);
-		player.sendPrivateText("Gratulacje dostałeś " 
-				+ Grammar.a_noun(ItemTools.itemNameToDisplayName(itemName)));
+		player.sendPrivateText("Gratulacje dostałeś "
+				+ ItemTools.itemNameToDisplayName(itemName) + "!");
 
 		player.equipOrPutOnGround(item);
 		player.notifyWorldAboutChanges();

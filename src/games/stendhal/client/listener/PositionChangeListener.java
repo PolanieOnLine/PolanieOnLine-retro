@@ -1,4 +1,4 @@
-/* $Id: PositionChangeListener.java,v 1.2 2010/10/04 19:44:22 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -19,7 +19,7 @@ package games.stendhal.client.listener;
 public interface PositionChangeListener {
 	/**
 	 * The user position changed.
-	 * 
+	 *
 	 * @param x
 	 *            The X coordinate (in world units).
 	 * @param y

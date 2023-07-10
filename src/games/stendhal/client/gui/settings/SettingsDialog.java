@@ -11,9 +11,6 @@
  ***************************************************************************/
 package games.stendhal.client.gui.settings;
 
-import games.stendhal.client.gui.WindowUtils;
-import games.stendhal.client.gui.layout.SBoxLayout;
-
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -23,16 +20,17 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JTabbedPane;
 
+import games.stendhal.client.gui.WindowUtils;
+import games.stendhal.client.gui.layout.SBoxLayout;
+
 /**
  * Dialog for game settings.
  */
 @SuppressWarnings("serial")
 public class SettingsDialog extends JDialog {
-	private JTabbedPane tabs;
-	
 	/**
 	 * Create a new SettingsDialog.
-	 * 
+	 *
 	 * @param parent parent window, or <code>null</code>
 	 */
 	public SettingsDialog(Frame parent) {
@@ -40,9 +38,10 @@ public class SettingsDialog extends JDialog {
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		int pad = SBoxLayout.COMMON_PADDING;
 		setLayout(new SBoxLayout(SBoxLayout.VERTICAL, pad));
-		tabs = new JTabbedPane();
+		JTabbedPane tabs = new JTabbedPane();
 		add(tabs);
 		tabs.add("Ogólne", new GeneralSettings().getComponent());
+		tabs.add("Wizualne", new VisualSettings().getComponent());
 		tabs.add("Dźwięk", new SoundSettings().getComponent());
 		setResizable(false);
 		JButton closeButton = new JButton("Zamknij");
@@ -58,6 +57,7 @@ public class SettingsDialog extends JDialog {
 		add(closeButton);
 		WindowUtils.closeOnEscape(this);
 		WindowUtils.watchFontSize(this);
+		WindowUtils.trackLocation(this, "settings", false);
 		pack();
 	}
 }

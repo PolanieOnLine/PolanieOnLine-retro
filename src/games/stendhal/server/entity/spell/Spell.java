@@ -11,9 +11,13 @@
  ***************************************************************************/
 package games.stendhal.server.entity.spell;
 
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.common.NotificationType;
 import games.stendhal.common.constants.Nature;
-import games.stendhal.common.grammar.Grammar;
 import games.stendhal.server.core.engine.GameEvent;
 import games.stendhal.server.core.events.EquipListener;
 import games.stendhal.server.entity.Entity;
@@ -29,23 +33,17 @@ import games.stendhal.server.entity.spell.exception.LevelRequirementNotFulfilled
 import games.stendhal.server.entity.spell.exception.SpellException;
 import games.stendhal.server.entity.spell.exception.SpellNotCooledDownException;
 import games.stendhal.server.entity.trade.Dateable;
-
-import java.util.Arrays;
-import java.util.List;
-
 import marauroa.common.game.Definition.Type;
 import marauroa.common.game.RPClass;
 import marauroa.common.game.RPObject;
 
-import org.apache.log4j.Logger;
-
 /**
  * The base spell class
- * 
+ *
  * @author timothyb89, madmetzger
  */
 public abstract class Spell extends PassiveEntity implements EquipListener, Dateable {
-	
+
 	private static final Logger LOGGER = Logger.getLogger(Spell.class);
 
 	public static final String RPCLASS_SPELL = "spell";
@@ -83,16 +81,17 @@ public abstract class Spell extends PassiveEntity implements EquipListener, Date
 
 	/** list of possible slots for this item. */
 	private final List<String> possibleSlots = Arrays.asList("spells");
-	
+
 	/**
 	 * Casts this spell if all preconditions are fulfilled:
 	 *  - caster has enough mana
 	 *  - cooldown time expired
 	 *  - caster has the minimum level
 	 *  - target is valid for the spell
-	 *  
+	 *
 	 * @param caster the player who tries to cast this spell
 	 * @param target the entity the spell is aimed at
+	 * @throws SpellException
 	 */
 	public void cast(final Player caster, final Entity target) throws SpellException {
 		if(checkPreConditions(caster, target)) {
@@ -107,23 +106,23 @@ public abstract class Spell extends PassiveEntity implements EquipListener, Date
 			new GameEvent(caster.getName(), "cast-spell", getName(), target.getTitle()).raise();
 		}
 	}
-	
+
 	private boolean checkPreConditions(final Player caster, final Entity target) throws SpellException {
-		
+
 		//check for sufficient mana
 		if (!new PlayerManaGreaterThanCondition(getMana()-1).fire(caster, null, null)) {
 			throw new InsufficientManaException("Nie posiadasz wystarczającej ilości many, aby rzucić zaklęcie \""+getName()+"\".");
 		}
-		
+
 		//check minimum level
 		if (new LevelLessThanCondition(getMinimumLevel()).fire(caster, null, null)) {
 			throw new LevelRequirementNotFulfilledException("Jeszcze nie osiągnąłeś minimalnego poziomu potrzebnego do zaklęcia \""+getName()+"\".");
 		}
-		
+
 		if(!isCooledDown()) {
 			throw new SpellNotCooledDownException("Twoje zaklęcie \""+getName()+"\" jeszcze nie ostygło.");
 		}
-		
+
 		//check if target is valid for spell?
 		if (!isTargetValid(caster, target)) {
 			throw new InvalidSpellTargetException("Cel nie jest odpowiedni dla Twojego zaklęcia \""+getName()+"\".");
@@ -138,7 +137,7 @@ public abstract class Spell extends PassiveEntity implements EquipListener, Date
 		//no check failed so preconditions are fulfilled
 		return true;
 	}
-	
+
 	protected boolean isCooledDown() {
 		long currentTime = System.currentTimeMillis();
 		long lastCastTime = getTimestamp();
@@ -156,7 +155,7 @@ public abstract class Spell extends PassiveEntity implements EquipListener, Date
 					new PlayerHasItemEquippedInSlot(item, "rhand"),
 					new PlayerHasItemEquippedInSlot(item, "lhand"));
 			if(!staffCondition.fire(caster, null, null)) {
-				caster.sendPrivateText(NotificationType.INFORMATION, "Musisz trzymać w dłoni "+Grammar.a_noun(item)+", aby rzucić zaklęcie.");
+				caster.sendPrivateText(NotificationType.INFORMATION, "Musisz trzymać w dłoni " + item + ", aby rzucić zaklęcie.");
 				return false;
 			}
 		}
@@ -165,18 +164,18 @@ public abstract class Spell extends PassiveEntity implements EquipListener, Date
 
 	/**
 	 * Provides the concrete behaviour of each concrete spell, i.e. a healing effect should done here
-	 * 
+	 *
 	 * @param caster
 	 * @param target
 	 */
 	protected abstract void doEffects(Player caster, Entity target);
-	
+
 	/**
 	 * Checks if the target Entity is applicable for this spell. Basically each Entity can target of a spell.
 	 * Subclasses have to override this method if they want to be more strict in the choice of the target.
-	 * 
+	 *
 	 * @param caster the user of the spell
-	 * @param target the target Entity to check the applicability for 
+	 * @param target the target Entity to check the applicability for
 	 * @return true iff target is applicable to this spell
 	 */
 	protected boolean isTargetValid(final Entity caster, final Entity target) {
@@ -207,10 +206,10 @@ public abstract class Spell extends PassiveEntity implements EquipListener, Date
 		entity.addAttribute("class", Type.STRING);
 		entity.addAttribute("subclass", Type.STRING);
 	}
-	
+
 	/**
 	 * Creates a spell from an RPObject
-	 * 
+	 *
 	 * @param object the RPObject to create the spell from
 	 */
 	public Spell(final RPObject object) {
@@ -221,11 +220,11 @@ public abstract class Spell extends PassiveEntity implements EquipListener, Date
 		setNature(Nature.parse(object.get(ATTR_NATURE)));
 		setRPClass(RPCLASS_SPELL);
 	}
-	
+
 	/**
 	 * Creates a new {@link Spell}
 	 * Sub classes of {@link Spell} *have to* provide a constructor with this order of parameters!
-	 * 
+	 *
 	 * @param name the name of the spell
 	 * @param nature the nature of the spell
 	 * @param amount the amount of the effect of this spell
@@ -238,6 +237,7 @@ public abstract class Spell extends PassiveEntity implements EquipListener, Date
 	 * @param range the max distance for the spell target
 	 * @param rate the frequency of the effect of this spell
 	 * @param regen the amount to regen with each effect turn
+	 * @param modifier
 	 */
 	public Spell(	final String name, final Nature nature, final int amount, final int atk, final int cooldown,
 			final int def, final double lifesteal, final int mana, final int minimumlevel,
@@ -262,25 +262,27 @@ public abstract class Spell extends PassiveEntity implements EquipListener, Date
 		put("type", "spell");
 	}
 
+	@Override
 	public boolean canBeEquippedIn(final String slot) {
 		return this.possibleSlots.contains(slot);
 	}
 
 	/**
 	 * Get the spell name.
-	 * 
+	 *
 	 * @return The spell's name, or <code>null</code> if undefined.
 	 */
+	@Override
 	public String getName() {
 		if (has(ATTR_NAME)) {
 			return get(ATTR_NAME);
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Get the spell amount.
-	 * 
+	 *
 	 * @return The spell's amount, or <code>0</code> if undefined.
 	 */
 	public int getAmount() {
@@ -289,10 +291,10 @@ public abstract class Spell extends PassiveEntity implements EquipListener, Date
 		}
 		return 0;
 	}
-	
+
 	/**
 	 * Get the spell atk.
-	 * 
+	 *
 	 * @return The spell's atk, or <code>0</code> if undefined.
 	 */
 	public int getAtk() {
@@ -301,10 +303,10 @@ public abstract class Spell extends PassiveEntity implements EquipListener, Date
 		}
 		return 0;
 	}
-	
+
 	/**
 	 * Get the spell cooldown.
-	 * 
+	 *
 	 * @return The spell's cooldown, or <code>0</code> if undefined.
 	 */
 	public int getCooldown() {
@@ -313,10 +315,10 @@ public abstract class Spell extends PassiveEntity implements EquipListener, Date
 		}
 		return 0;
 	}
-	
+
 	/**
 	 * Get the spell def.
-	 * 
+	 *
 	 * @return The spell's def, or <code>0</code> if undefined.
 	 */
 	public int getDef() {
@@ -325,10 +327,10 @@ public abstract class Spell extends PassiveEntity implements EquipListener, Date
 		}
 		return 0;
 	}
-	
+
 	/**
 	 * Get the spell lifesteal.
-	 * 
+	 *
 	 * @return The spell's lifesteal, or <code>0</code> if undefined.
 	 */
 	public double getLifesteal() {
@@ -337,10 +339,10 @@ public abstract class Spell extends PassiveEntity implements EquipListener, Date
 		}
 		return 0;
 	}
-	
+
 	/**
 	 * Get the spell mana.
-	 * 
+	 *
 	 * @return The spell's mana, or <code>0</code> if undefined.
 	 */
 	public int getMana() {
@@ -349,10 +351,10 @@ public abstract class Spell extends PassiveEntity implements EquipListener, Date
 		}
 		return 0;
 	}
-	
+
 	/**
 	 * Get the spell minimum level.
-	 * 
+	 *
 	 * @return The spell's minimum level, or <code>0</code> if undefined.
 	 */
 	public int getMinimumLevel() {
@@ -361,10 +363,10 @@ public abstract class Spell extends PassiveEntity implements EquipListener, Date
 		}
 		return 0;
 	}
-	
+
 	/**
 	 * Get the spell range.
-	 * 
+	 *
 	 * @return The spell's range, or <code>0</code> if undefined.
 	 */
 	public int getRange() {
@@ -373,10 +375,10 @@ public abstract class Spell extends PassiveEntity implements EquipListener, Date
 		}
 		return 0;
 	}
-	
+
 	/**
 	 * Get the spell rate.
-	 * 
+	 *
 	 * @return The spell's rate, or <code>0</code> if undefined.
 	 */
 	public int getRate() {
@@ -385,10 +387,10 @@ public abstract class Spell extends PassiveEntity implements EquipListener, Date
 		}
 		return 0;
 	}
-	
+
 	/**
 	 * Get the spell regen.
-	 * 
+	 *
 	 * @return The spell's regen, or <code>0</code> if undefined.
 	 */
 	public int getRegen() {
@@ -398,6 +400,7 @@ public abstract class Spell extends PassiveEntity implements EquipListener, Date
 		return 0;
 	}
 
+	@Override
 	public long getTimestamp() {
 		long timeStamp = 0;
 		try {
@@ -407,7 +410,7 @@ public abstract class Spell extends PassiveEntity implements EquipListener, Date
 		}
 		return timeStamp;
 	}
-	
+
 	public void setTimestamp(final long time) {
 		put(ATTR_TIMESTAMP, Long.toString(time));
 	}
@@ -419,14 +422,14 @@ public abstract class Spell extends PassiveEntity implements EquipListener, Date
 	public Nature getNature() {
 		return Nature.parse(get(ATTR_NATURE));
 	}
-	
+
 	public double getModifier() {
 		if(has(ATTR_MODIFIER)) {
 			return getDouble(ATTR_MODIFIER);
 		}
 		return 0d;
 	}
-	
+
 	public void setModifier(double modifier) {
 		put(ATTR_MODIFIER, modifier);
 	}

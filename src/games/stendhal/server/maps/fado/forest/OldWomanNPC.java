@@ -1,4 +1,3 @@
-/* $Id: OldWomanNPC.java,v 1.5 2011/03/03 21:28:10 bluelads99 Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,16 +11,16 @@
  ***************************************************************************/
 package games.stendhal.server.maps.fado.forest;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Creates Jefs mother Amber in Fado Forest and other areas (she moves in different zones)
@@ -29,20 +28,19 @@ import java.util.Map;
  * @author Vanessa Julius
  */
 public class OldWomanNPC implements ZoneConfigurator {
-
 	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
-		buildNPC(zone, attributes);
+		buildNPC(zone);
 	}
 
-	private void buildNPC(final StendhalRPZone zone, final Map<String, String> attributes) {
+	private void buildNPC(final StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Amber") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -53,7 +51,7 @@ public class OldWomanNPC implements ZoneConfigurator {
 				nodes.add(new Node(45,47));
 				nodes.add(new Node(45,61));
 				nodes.add(new Node(70,61));
-				nodes.add(new Node(70,74));		
+				nodes.add(new Node(70,74));
 				nodes.add(new Node(52,74));
 				nodes.add(new Node(52,70));
 				nodes.add(new Node(29,70));
@@ -127,10 +125,10 @@ public class OldWomanNPC implements ZoneConfigurator {
 			}
 		};
 
+		npc.setDescription("Oto starsza kobieta Amber. Wygląda na trochę zdezorientowaną.");
 		npc.setEntityClass("oldwomannpc");
+		npc.setGender("F");
 		npc.setPosition(38, 8);
-		npc.initHP(100);
-		npc.setDescription("Oto starsza kobieta. Wygląda na trochę zdezorientowaną.");
 		zone.add(npc);
 	}
 }

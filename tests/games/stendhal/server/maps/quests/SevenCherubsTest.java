@@ -1,4 +1,4 @@
-/* $Id: SevenCherubsTest.java,v 1.1 2011/06/12 08:49:57 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2011 - Stendhal                    *
  ***************************************************************************
@@ -15,16 +15,14 @@ package games.stendhal.server.maps.quests;
 
 import static org.junit.Assert.assertEquals;
 import static utilities.SpeakerNPCTestHelper.getReply;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.fsm.Engine;
-import games.stendhal.server.entity.player.Player;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import utilities.PlayerTestHelper;
+import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.entity.npc.SpeakerNPC;
+import games.stendhal.server.entity.npc.fsm.Engine;
 import utilities.QuestHelper;
 import utilities.ZonePlayerAndNPCTestImpl;
 
@@ -35,9 +33,8 @@ import utilities.ZonePlayerAndNPCTestImpl;
  */
 public class SevenCherubsTest extends ZonePlayerAndNPCTestImpl {
 
-	private Player player = null;
-	private SpeakerNPC npc = null;
-	private Engine en = null;
+	private SpeakerNPC npc;
+	private Engine en;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -49,10 +46,6 @@ public class SevenCherubsTest extends ZonePlayerAndNPCTestImpl {
 		setupZone("0_orril_mountain_w2");
 		setupZone("0_semos_mountain_n2_w2");
 		setupZone("0_ados_rock");
-
-		final SevenCherubs quest = new SevenCherubs();
-		quest.addToWorld();
-
 	}
 
 	/**
@@ -64,8 +57,11 @@ public class SevenCherubsTest extends ZonePlayerAndNPCTestImpl {
 
 	@Override
 	@Before
-	public void setUp() {
-		player = PlayerTestHelper.createPlayer("bob");
+	public void setUp() throws Exception {
+		super.setUp();
+
+		quest = new SevenCherubs();
+		quest.addToWorld();
 	}
 
 	/**
@@ -77,14 +73,14 @@ public class SevenCherubsTest extends ZonePlayerAndNPCTestImpl {
 		en = npc.getEngine();
 
 		en.step(player, "hi");
-		assertEquals("Well done! You only need to find 6 more. Fare thee well!", getReply(npc));
+		assertEquals("Bardzo dobrze! Potrzebujesz znaleźć jeszcze 6 aniołków. Żegnaj!", getReply(npc));
 		assertEquals(player.getXP(), 20);
 		// [14:53] bluelads heals 1 health point.
 
 		npc = SingletonRepository.getNPCList().get("Gabriel");
 		en = npc.getEngine();
 		en.step(player, "hi");
-		assertEquals("Well done! You only need to find 5 more. Fare thee well!", getReply(npc));
+		assertEquals("Bardzo dobrze! Potrzebujesz znaleźć jeszcze 5 aniołków. Żegnaj!", getReply(npc));
 		assertEquals(player.getXP(), 620);
 		// [14:53] bluelads earns 400 experience points.
 
@@ -92,18 +88,18 @@ public class SevenCherubsTest extends ZonePlayerAndNPCTestImpl {
 		npc = SingletonRepository.getNPCList().get("Ophaniel");
 		en = npc.getEngine();
 		en.step(player, "hi");
-		assertEquals("Well done! You only need to find 4 more. Fare thee well!", getReply(npc));
+		assertEquals("Bardzo dobrze! Potrzebujesz znaleźć jeszcze 4 aniołków. Żegnaj!", getReply(npc));
 		// [14:54] bluelads earns 800 experience points.
 		assertEquals(player.getXP(), 1420);
 		en.step(player, "hi");
-		assertEquals("Seek out the other cherubim to get thy reward!", getReply(npc));
+		assertEquals("Poszukaj innych aniołków, aby dostać nagrodę!", getReply(npc));
 		assertEquals(player.getXP(), 1420);
 
 
 		npc = SingletonRepository.getNPCList().get("Raphael");
 		en = npc.getEngine();
 		en.step(player, "hi");
-		assertEquals("Well done! You only need to find 3 more. Fare thee well!", getReply(npc));
+		assertEquals("Bardzo dobrze! Potrzebujesz znaleźć jeszcze 3 aniołków. Żegnaj!", getReply(npc));
 		// [14:54] bluelads earns 1000 experience points.
 		assertEquals(player.getXP(), 2420);
 
@@ -111,36 +107,36 @@ public class SevenCherubsTest extends ZonePlayerAndNPCTestImpl {
 		npc = SingletonRepository.getNPCList().get("Uriel");
 		en = npc.getEngine();
 		en.step(player, "hi");
-		assertEquals("Well done! You only need to find 2 more. Fare thee well!", getReply(npc));
+		assertEquals("Bardzo dobrze! Potrzebujesz znaleźć jeszcze 2 aniołków. Żegnaj!", getReply(npc));
 		// [14:54] bluelads earns 1200 experience points.
 		assertEquals(player.getXP(), 3620);
 		en.step(player, "hi");
-		assertEquals("Seek out the other cherubim to get thy reward!", getReply(npc));
+		assertEquals("Poszukaj innych aniołków, aby dostać nagrodę!", getReply(npc));
 		assertEquals(player.getXP(), 3620);
 
 
 		npc = SingletonRepository.getNPCList().get("Zophiel");
 		en = npc.getEngine();
 		en.step(player, "hi");
-		assertEquals("Well done! You only need to find 1 more. Fare thee well!", getReply(npc));
+		assertEquals("Bardzo dobrze! Potrzebujesz znaleźć jeszcze 1 aniołków. Żegnaj!", getReply(npc));
 		// [14:54] bluelads earns 1400 experience points.
 		assertEquals(player.getXP(), 5020);
 		en.step(player, "hi");
-		assertEquals("Seek out the other cherubim to get thy reward!", getReply(npc));
+		assertEquals("Poszukaj innych aniołków, aby dostać nagrodę!", getReply(npc));
 		assertEquals(player.getXP(), 5020);
 
 
 		npc = SingletonRepository.getNPCList().get("Azazel");
 		en = npc.getEngine();
 		en.step(player, "hi");
-		assertEquals("Thou hast proven thyself brave enough to bear this mighty relic!", getReply(npc));
+		assertEquals("Udowodniłeś, że jesteś w stanie nosić ten potężny artefakt!", getReply(npc));
 		// [14:55] bluelads earns 2000 experience points.
-		assertEquals(player.getXP(), 7020);
+		assertEquals(player.getXP(), 25020);
 
 		en = npc.getEngine();
 		en.step(player, "hi");
-		assertEquals("Thou hast sought and found each of the seven cherubim! Now, mighty art thou with the rewards so earn'd.", getReply(npc));
+		assertEquals("Szukałeś i znalazłeś wszystkie aniołki! W nagrodę dostałeś potężny artefakt.", getReply(npc));
 		// [14:55] You see a pair of golden boots. They will be heavy to wear but well worth their weight. It is a special quest reward for bluelads, and cannot be used by others. Stats are (DEF: 8).
-		assertEquals(player.getXP(), 7020);
+		assertEquals(player.getXP(), 25020);
 	}
 }

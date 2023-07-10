@@ -1,6 +1,5 @@
-/* $Id: ScytheForFryderyk.java,v 1.40 2011/12/11 02:33:23 Legolas Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2007-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -10,14 +9,19 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-// Based on HatForMonogenes.
 package games.stendhal.server.maps.quests;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
+import games.stendhal.common.grammar.Grammar;
 import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.npc.action.DropItemAction;
+import games.stendhal.server.entity.npc.action.EquipItemAction;
 import games.stendhal.server.entity.npc.action.IncreaseKarmaAction;
 import games.stendhal.server.entity.npc.action.IncreaseXPAction;
 import games.stendhal.server.entity.npc.action.MultipleActions;
@@ -31,97 +35,65 @@ import games.stendhal.server.entity.npc.condition.QuestCompletedCondition;
 import games.stendhal.server.entity.npc.condition.QuestInStateCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotCompletedCondition;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import games.stendhal.server.maps.Region;
 
 /**
- * QUEST: Scythe For Fryderyk 
- * 
- * PARTICIPANTS: 
+ * QUEST: Scythe For Fryderyk
+ *
+ * PARTICIPANTS:
  * <ul>
  * <li>Monogenes, an old man in Semos city.</li>
  * </ul>
- * 
+ *
  * STEPS:
- * <ul> 
+ * <ul>
  * <li> Monogenes asks you to buy a hat for him.</li>
  * <li> Xin Blanca sells you a leather helmet.</li>
  * <li> Monogenes sees your leather helmet and asks for it and then thanks you.</li>
  * </ul>
- * 
- * REWARD: 
+ *
+ * REWARD:
  * <ul>
- * <li>50 XP</li>
+ * <li>2200 XP</li>
  * <li>Karma: 10</li>
  * </ul>
- * 
+ *
  * REPETITIONS: - None.
  */
 public class ScytheForFryderyk extends AbstractQuest {
 	private static final String QUEST_SLOT = "scythe_fryderyk";
-
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
-	@Override
-	public List<String> getHistory(final Player player) {
-		final List<String> res = new ArrayList<String>();
-		if (player.hasQuest(QUEST_SLOT)) {
-			res.add("Spotkałem Fryderyka jakiś czas temu.");
-		}
-		if (!player.hasQuest(QUEST_SLOT)) {
-			return res;
-		}
-		res.add("Mam przynieść Fryderykowi kosę.");
-		if ((player.isQuestInState(QUEST_SLOT, "start") 
-				&& player.isEquipped("kosa"))
-				|| player.isQuestCompleted(QUEST_SLOT)) {
-			res.add("Znalazłem kosę.");
-		}
-		if (player.isQuestCompleted(QUEST_SLOT)) {
-			res.add("Dostarczyłem kosę Fryderykowi.");
-		}
-		return res;
-	}
+	private final SpeakerNPC npc = npcs.get("Fryderyk");
 
 	private void createRequestingStep() {
-		final SpeakerNPC fryderyk = npcs.get("Fryderyk");
-
-		fryderyk.add(ConversationStates.ATTENDING,
+		npc.add(ConversationStates.ATTENDING,
 			ConversationPhrases.QUEST_MESSAGES,
 			new QuestNotCompletedCondition(QUEST_SLOT),
-			ConversationStates.QUEST_OFFERED, 
+			ConversationStates.QUEST_OFFERED,
 			"Czy mógłbyś przynieść mi #kosę? Potrzebuję ją do żniw.",
 			null);
 
-		fryderyk.add(ConversationStates.ATTENDING,
+		npc.add(ConversationStates.ATTENDING,
 			ConversationPhrases.QUEST_MESSAGES,
 			new QuestCompletedCondition(QUEST_SLOT),
 			ConversationStates.ATTENDING,
 			"Dziękuję za ofertę dobry człowieku, ale ta kosa wystarczy mi na pięć wiosen i nie potrzebuję ich więcej.",
 			null);
 
-		fryderyk.add(
-			ConversationStates.QUEST_OFFERED,
+		npc.add(ConversationStates.QUEST_OFFERED,
 			ConversationPhrases.YES_MESSAGES,
 			null,
 			ConversationStates.ATTENDING,
 			"Dziękuję przyjacielu. Będę tutaj czekał na twój powrót!",
 			new SetQuestAndModifyKarmaAction(QUEST_SLOT, "start", 5.0));
 
-		fryderyk.add(
-			ConversationStates.QUEST_OFFERED,
+		npc.add(ConversationStates.QUEST_OFFERED,
 			ConversationPhrases.NO_MESSAGES,
 			null,
 			ConversationStates.ATTENDING,
-			"Jestem pewien, że masz lepsze rzeczy do zrobienia. Będę stał tutaj, a moje plony zmarnieją... *sniff*",
+			"Jestem pewien, że masz lepsze rzeczy do zrobienia. Będę stał tutaj, a moje plony zmarnieją... *wącha*",
 			new SetQuestAndModifyKarmaAction(QUEST_SLOT, "rejected", -5.0));
 
-		fryderyk.add(
-			ConversationStates.QUEST_OFFERED,
+		npc.add(ConversationStates.QUEST_OFFERED,
 			"kosa",
 			null,
 			ConversationStates.QUEST_OFFERED,
@@ -130,19 +102,17 @@ public class ScytheForFryderyk extends AbstractQuest {
 	}
 
 	private void createBringingStep() {
-		final SpeakerNPC fryderyk = npcs.get("Fryderyk");
-
-		fryderyk.add(ConversationStates.IDLE,
+		npc.add(ConversationStates.IDLE,
 			ConversationPhrases.GREETING_MESSAGES,
-			new AndCondition(new GreetingMatchesNameCondition(fryderyk.getName()),
+			new AndCondition(new GreetingMatchesNameCondition(npc.getName()),
 					new QuestInStateCondition(QUEST_SLOT, "start"),
 					new PlayerHasItemWithHimCondition("kosa")),
 			ConversationStates.QUEST_ITEM_BROUGHT,
 			"Hej! Czy ta kosa jest dla mnie?", null);
 
-		fryderyk.add(ConversationStates.IDLE,
+		npc.add(ConversationStates.IDLE,
 			ConversationPhrases.GREETING_MESSAGES,
-			new AndCondition(new GreetingMatchesNameCondition(fryderyk.getName()),
+			new AndCondition(new GreetingMatchesNameCondition(npc.getName()),
 					new QuestInStateCondition(QUEST_SLOT, "start"),
 					new NotCondition(new PlayerHasItemWithHimCondition("kosa"))),
 			ConversationStates.ATTENDING,
@@ -151,46 +121,76 @@ public class ScytheForFryderyk extends AbstractQuest {
 
 		final List<ChatAction> reward = new LinkedList<ChatAction>();
 		reward.add(new DropItemAction("kosa"));
-		reward.add(new IncreaseXPAction(50));
-		reward.add(new IncreaseKarmaAction(10));
+		reward.add(new IncreaseXPAction(2200));
+		reward.add(new IncreaseKarmaAction(25));
+		reward.add(new EquipItemAction("skórzany hełm"));
 		reward.add(new SetQuestAction(QUEST_SLOT, "done"));
 
 		// make sure the player isn't cheating by putting the
 		// helmet away and then saying "yes"
-		fryderyk.add(
-			ConversationStates.QUEST_ITEM_BROUGHT,
+		npc.add(ConversationStates.QUEST_ITEM_BROUGHT,
 			ConversationPhrases.YES_MESSAGES,
 			new PlayerHasItemWithHimCondition("kosa"),
 			ConversationStates.ATTENDING,
 			"Niech Cię pobłogosławię mój dobry przyjacielu! Teraz będę wstanie zebrać moje plony.",
 			new MultipleActions(reward));
 
-		fryderyk.add(
-			ConversationStates.QUEST_ITEM_BROUGHT,
+		npc.add(ConversationStates.QUEST_ITEM_BROUGHT,
 			ConversationPhrases.NO_MESSAGES,
 			null,
 			ConversationStates.ATTENDING,
-			"Ktoś miał dzisiaj dużo szczęścia... *Apsik*.",
+			"Ktoś miał dzisiaj dużo szczęścia... *kichnięcie*.",
 			null);
 	}
 
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
-    		fillQuestInfo(
-				"Kosa dla Fryderyka",
-				"Fryderyk potrzebuje do żniw kosę, dostarcz mu ją.",
-				false);
+    	fillQuestInfo(
+			"Kosa Fryderyka",
+			"Fryderyk potrzebuje do żniw kosę, dostarcz mu ją.",
+			false);
 		createRequestingStep();
 		createBringingStep();
 	}
 
 	@Override
-	public String getName() {
-		return "ScytheForFryderyk";
+	public List<String> getHistory(final Player player) {
+		final List<String> res = new ArrayList<String>();
+		if (player.hasQuest(QUEST_SLOT)) {
+			res.add(Grammar.genderVerb(player.getGender(), "Spotkałem") + " Fryderyka jakiś czas temu.");
+		}
+		if (!player.hasQuest(QUEST_SLOT)) {
+			return res;
+		}
+		res.add("Mam przynieść Fryderykowi kosę.");
+		if ((player.isQuestInState(QUEST_SLOT, "start")
+				&& player.isEquipped("kosa"))
+				|| player.isQuestCompleted(QUEST_SLOT)) {
+			res.add(Grammar.genderVerb(player.getGender(), "Znalazłem") + " kosę.");
+		}
+		if (player.isQuestCompleted(QUEST_SLOT)) {
+			res.add(Grammar.genderVerb(player.getGender(), "Dostarczyłem") + " kosę Fryderykowi.");
+		}
+		return res;
 	}
+
+	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
+	}
+
+	@Override
+	public String getName() {
+		return "Kosa Fryderyka";
+	}
+
 	@Override
 	public String getNPCName() {
-		return "Fryderyk";
+		return npc.getName();
+	}
+
+	@Override
+	public String getRegion() {
+		return Region.ZAKOPANE_CITY;
 	}
 }

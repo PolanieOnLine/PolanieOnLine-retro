@@ -1,4 +1,4 @@
-/* $Id: GrowingPassiveEntityRespawnPoint.java,v 1.14 2011/02/12 13:42:00 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -12,13 +12,14 @@
  ***************************************************************************/
 package games.stendhal.server.entity.mapstuff.spawner;
 
+import org.apache.log4j.Logger;
+
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.item.Item;
+import games.stendhal.server.entity.player.Player;
 import marauroa.common.game.Definition.Type;
 import marauroa.common.game.RPClass;
 import marauroa.common.game.RPObject;
-
-import org.apache.log4j.Logger;
 
 /**
  * This respwan point has to be "used" to get the item. After that, it will
@@ -177,6 +178,11 @@ public abstract class GrowingPassiveEntityRespawnPoint extends
 		super.onFruitPicked(picked);
 		setRipeness(0);
 		notifyWorldAboutChanges();
+	}
+
+	@Override
+	public void onItemPickedUp(Player player) {
+		// do nothing, harvest is already counted in Use-action
 	}
 
 	@Override

@@ -1,4 +1,4 @@
-/* $Id: TriggerExactlyInListCondition.java,v 1.10 2012/09/09 12:33:24 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +12,10 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.condition;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
 import games.stendhal.common.parser.ConvCtxForMatchingSource;
 import games.stendhal.common.parser.ConversationContext;
 import games.stendhal.common.parser.ConversationParser;
@@ -22,13 +26,6 @@ import games.stendhal.server.core.config.annotations.Dev.Category;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Was one of these trigger phrases said exactly ignoring case? (Use with a ""-trigger in npc.add)
@@ -63,6 +60,7 @@ public class TriggerExactlyInListCondition implements ChatCondition {
 		}
 	}
 
+	@Override
 	public boolean fire(final Player player, final Sentence sentence, final Entity entity) {
 
 		// TODO: lowercase "and" at the beginning of a sentence is ignored, even in full match mode: "and the other gold"
@@ -83,11 +81,15 @@ public class TriggerExactlyInListCondition implements ChatCondition {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 5009 * triggers.hashCode();
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,	TriggerExactlyInListCondition.class);
+		if (!(obj instanceof TriggerExactlyInListCondition)) {
+			return false;
+		}
+		TriggerExactlyInListCondition other = (TriggerExactlyInListCondition) obj;
+		return triggers.equals(other.triggers);
 	}
 }

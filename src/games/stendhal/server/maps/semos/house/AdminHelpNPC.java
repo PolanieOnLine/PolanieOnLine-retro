@@ -1,4 +1,3 @@
-/* $Id: AdminHelpNPC.java,v 1.19 2012/02/13 00:19:10 bluelads99 Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +11,8 @@
  ***************************************************************************/
 package games.stendhal.server.maps.semos.house;
 
+import java.util.Arrays;
+import java.util.Map;
 
 import games.stendhal.common.Direction;
 import games.stendhal.server.core.config.ZoneConfigurator;
@@ -26,18 +27,13 @@ import games.stendhal.server.entity.npc.condition.AdminCondition;
 import games.stendhal.server.entity.npc.condition.TriggerIsNPCNameForUnstartedQuestCondition;
 import games.stendhal.server.maps.Region;
 
-import java.util.Arrays;
-import java.util.Map;
-
 /**
  * A young lady (original name: Skye) who is lovely to admins.
  */
 public class AdminHelpNPC implements ZoneConfigurator {
-
-	public void configureZone(StendhalRPZone zone,
-			Map<String, String> attributes) {
-		SpeakerNPC npc = new SpeakerNPC("Skye") {
-
+	@Override
+	public void configureZone(StendhalRPZone zone, Map<String, String> attributes) {
+		final SpeakerNPC npc = new SpeakerNPC("Skye") {
 			@Override
 			public void createDialog() {
 				addGreeting("Cześć! Wyglądasz dziś dobrze. W sumie to wyglądasz bardzo dobrze każdego dnia!");
@@ -47,7 +43,7 @@ public class AdminHelpNPC implements ZoneConfigurator {
 				addReply(Arrays.asList("nice", "miłe"), "Czy wiesz ilu wojowników myśli, że jesteś wspaniały w pomaganiu? Mogę Ci powiedzieć, że dużo ludzi.");
 				addReply(Arrays.asList("things", "rzeczy"), "Więc jesteś jednym z graczy, który sprawdza wszystkie #niebieskie #słowa, nieprawdaż?? Nic dziwnego masz swoje powody.");
 				addReply(Arrays.asList("blue", "niebieskie"), "Ach, nie smuć się :( Włącz może jakąś miłą muzykę ... ");
-				addReply(Arrays.asList("words", "słowa"), "Czerwone są róże, fiołki niebieskie, a PolskaOnLine jest super boskie!");
+				addReply(Arrays.asList("words", "słowa"), "Czerwone są róże, fiołki niebieskie, a PolanieOnLine jest super boskie!");
 				addReply(Arrays.asList("portals", "portale"), "Jeden ze Słońcem prowadzi do Semos. Pokazuję Ci, gdzie jest ten dom. Mam nadzieję, że wszystko zrozumiałeś. Są drzwi do banku, więzienia i Death Matcha w Ados. Oczywiście są portalami w jedną stronę i dzięki temu nikt nie będzie Ci przeszkadzał.");
 				addQuest("Teraz chcesz wystawić moją cierpliwość na próbę?");
 				add(ConversationStates.ATTENDING,
@@ -56,7 +52,7 @@ public class AdminHelpNPC implements ZoneConfigurator {
 						ConversationStates.IDLE,
 						"Miłej zabawy!",
 						new TeleportAction("int_admin_playground", 20, 20, Direction.DOWN));
-			    add(ConversationStates.ATTENDING,
+				add(ConversationStates.ATTENDING,
 						"semos",
 						null,
 						ConversationStates.ATTENDING,
@@ -75,6 +71,36 @@ public class AdminHelpNPC implements ZoneConfigurator {
 						null,
 						new SayNPCNamesForUnstartedQuestsAction(Region.ADOS_CITY));
 			    add(ConversationStates.ATTENDING,
+						"zakopane",
+						null,
+						ConversationStates.ATTENDING,
+						null,
+						new SayNPCNamesForUnstartedQuestsAction(Region.ZAKOPANE_CITY));
+			    add(ConversationStates.ATTENDING,
+						"kraków",
+						null,
+						ConversationStates.ATTENDING,
+						null,
+						new SayNPCNamesForUnstartedQuestsAction(Region.KRAKOW_CITY));
+			    add(ConversationStates.ATTENDING,
+						"warszawa",
+						null,
+						ConversationStates.ATTENDING,
+						null,
+						new SayNPCNamesForUnstartedQuestsAction(Region.WARSZAWA));
+			    add(ConversationStates.ATTENDING,
+						"tatry",
+						null,
+						ConversationStates.ATTENDING,
+						null,
+						new SayNPCNamesForUnstartedQuestsAction(Region.TATRY_MOUNTAIN));
+			    add(ConversationStates.ATTENDING,
+						"gdańsk",
+						null,
+						ConversationStates.ATTENDING,
+						null,
+						new SayNPCNamesForUnstartedQuestsAction(Region.GDANSK_CITY));
+			    add(ConversationStates.ATTENDING,
 						"",
 						new TriggerIsNPCNameForUnstartedQuestCondition(Region.SEMOS_CITY),
 						ConversationStates.ATTENDING,
@@ -92,22 +118,53 @@ public class AdminHelpNPC implements ZoneConfigurator {
 						ConversationStates.ATTENDING,
 						null,
 						new SayUnstartedQuestDescriptionFromNPCNameAction(Region.ADOS_CITY));
-				addGoodbye("Dowidzenia, pamiętaj, aby dbać o siebie. Pij mleko.");
-	}
+			    add(ConversationStates.ATTENDING,
+						"",
+						new TriggerIsNPCNameForUnstartedQuestCondition(Region.ZAKOPANE_CITY),
+						ConversationStates.ATTENDING,
+						null,
+						new SayUnstartedQuestDescriptionFromNPCNameAction(Region.ZAKOPANE_CITY));
+			    add(ConversationStates.ATTENDING,
+						"",
+						new TriggerIsNPCNameForUnstartedQuestCondition(Region.KRAKOW_CITY),
+						ConversationStates.ATTENDING,
+						null,
+						new SayUnstartedQuestDescriptionFromNPCNameAction(Region.KRAKOW_CITY));
+			    add(ConversationStates.ATTENDING,
+						"",
+						new TriggerIsNPCNameForUnstartedQuestCondition(Region.WARSZAWA),
+						ConversationStates.ATTENDING,
+						null,
+						new SayUnstartedQuestDescriptionFromNPCNameAction(Region.WARSZAWA));
+			    add(ConversationStates.ATTENDING,
+						"",
+						new TriggerIsNPCNameForUnstartedQuestCondition(Region.TATRY_MOUNTAIN),
+						ConversationStates.ATTENDING,
+						null,
+						new SayUnstartedQuestDescriptionFromNPCNameAction(Region.TATRY_MOUNTAIN));
+			    add(ConversationStates.ATTENDING,
+						"",
+						new TriggerIsNPCNameForUnstartedQuestCondition(Region.GDANSK_CITY),
+						ConversationStates.ATTENDING,
+						null,
+						new SayUnstartedQuestDescriptionFromNPCNameAction(Region.GDANSK_CITY));
+				addGoodbye("Do widzenia, pamiętaj, aby dbać o siebie. Pij mleko.");
+			}
 
 			@Override
 			protected void createPath() {
 				// do not walk so that admins can
 				// idle here 24/7 without using cpu and bandwith.
 			}
-			
 		};
 		new HealerAdder().addHealer(npc, 0);
-		npc.setPosition(16, 7);
+
 		npc.setDescription("Oto Skye. Ona wie wszystko. Administratorzy powinni ją znać po za tym zawsze ma dla nich uśmiech na twarzy :)");
-		npc.setDirection(Direction.DOWN);
 		npc.setEntityClass("beautifulgirlnpc");
+		npc.setGender("F");
+		npc.setPosition(16, 7);
+		npc.setDirection(Direction.DOWN);
 		zone.add(npc);
 	}
-	
+
 }

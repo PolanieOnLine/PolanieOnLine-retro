@@ -1,4 +1,4 @@
-/* $Id: ObjectChangeListenerAdapter.java,v 1.3 2010/10/04 19:44:31 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -21,17 +21,19 @@ final class ObjectChangeListenerAdapter implements ObjectChangeListener {
 
 	/**
 	 * is called when object is deleted.
-	 * 
+	 *
 	 * In addition to real deletion this happens on every zone change.
 	 */
+	@Override
 	public void deleted() {
 		// do nothing
 	}
 
 	/**
 	 * is called when object got additional attributes (or values got changed ?).
-	 * 
+	 *
 	 */
+	@Override
 	public void modifiedAdded(final RPObject changes) {
 		// do nothing
 	}
@@ -39,6 +41,7 @@ final class ObjectChangeListenerAdapter implements ObjectChangeListener {
 	/**
 	 * is called when attributes got deleted.
 	 */
+	@Override
 	public void modifiedDeleted(final RPObject changes) {
 		// do nothing
 	}

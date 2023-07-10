@@ -1,4 +1,3 @@
-/* $Id: GreeterNPC.java,v 1.17 2010/09/19 02:31:55 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,16 +11,16 @@
  ***************************************************************************/
 package games.stendhal.server.maps.fado.hotel;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Builds the hotel greeter NPC.
@@ -29,27 +28,19 @@ import java.util.Map;
  * @author timothyb89
  */
 public class GreeterNPC implements ZoneConfigurator {
-	//
-	// ZoneConfigurator
-	//
-
 	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
-		buildNPC(zone, attributes);
+		buildNPC(zone);
 	}
 
-	//
-	// IL0_GreeterNPC
-	//
-
-	private void buildNPC(final StendhalRPZone zone, final Map<String, String> attributes) {
+	private void buildNPC(final StendhalRPZone zone) {
 		final SpeakerNPC greeterNPC = new SpeakerNPC("Linda") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -69,14 +60,14 @@ public class GreeterNPC implements ZoneConfigurator {
 				        "Przepraszam, ale hotel wciąż jest remontowany i nie można zarezerwować sobie pokoju. Możesz #pozwiedzać resztę hotelu.");
 				addReply(Arrays.asList("pozwiedzać", "explore"), "Obawiam się, że nie ma zbyt wiele do zwiedzania. Hotel wciąż nie jest wykończony.");
 				//addSeller(new SellerBehaviour(shops.get("food&drinks")));
-				addGoodbye("Dowidzenia.");
+				addGoodbye("Do widzenia.");
 			}
 		};
 
-		greeterNPC.setEntityClass("hotelreceptionistnpc");
-		greeterNPC.setPosition(16, 50);
-		greeterNPC.initHP(1000);
 		greeterNPC.setDescription("Oto Linda. Należy do przyjaznego hotelowego personelu i jest odpowiedzialna za ustalanie cen pokoju.");
+		greeterNPC.setEntityClass("hotelreceptionistnpc");
+		greeterNPC.setGender("F");
+		greeterNPC.setPosition(16, 50);
 		zone.add(greeterNPC);
 	}
 }

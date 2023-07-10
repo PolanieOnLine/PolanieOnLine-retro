@@ -1,4 +1,4 @@
-/* $Id: ItemLocation.java,v 1.4 2010/09/19 01:29:16 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -62,7 +62,7 @@ public class ItemLocation {
 		if (source == null) {
 			return true;
 		}
-		
+
 		if (type == null) {
 			return true;
 		}
@@ -73,7 +73,7 @@ public class ItemLocation {
 	}
 
 	/**
-	 * updates the location in case the event is a location change event. 
+	 * updates the location in case the event is a location change event.
 	 *
 	 * @param event  name of event
 	 * @param param3 param3 from database

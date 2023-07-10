@@ -1,6 +1,5 @@
-/* $Id: MithrilCloak.java,v 1.39 2011/11/13 17:14:15 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2011 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,6 +11,11 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.common.grammar.Grammar;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.events.LoginListener;
@@ -19,11 +23,6 @@ import games.stendhal.server.entity.item.scroll.TwilightMossScroll;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.Region;
 import games.stendhal.server.maps.quests.mithrilcloak.MithrilCloakQuestChain;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.log4j.Logger;
 
 /**
  * QUEST: Mithril Cloak
@@ -57,7 +56,7 @@ import org.apache.log4j.Logger;
  * <li>Needles come from Ritati Dragontracker</li>
  * <li>Ida breaks a random number of needles, meaning you need to get more each time</li>
  * <li>Ida pricks her finger on the last needle and goes to twilight zone</li>
- * <li>Pdiddi sells the moss to get to twilight zone</li> 
+ * <li>Pdiddi sells the moss to get to twilight zone</li>
  * <li>A creature in the twilight zone drops the elixir to heal lda</li>
  * <li>After being ill Ida asks you to take a blue striped cloak to Josephine</li>
  * <li>After taking cloak to Josephine and telling Ida she asks for mithril clasp</li>
@@ -76,36 +75,31 @@ import org.apache.log4j.Logger;
  * <ul>
  * <li>None</li>
  * </ul>
- * 
+ *
  * @author kymara
  */
 public class MithrilCloak extends AbstractQuest {
 	private static final String QUEST_SLOT = "mithril_cloak";
-	
+
 	private static Logger logger = Logger.getLogger(MithrilCloak.class);
 
 	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
-	
-	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
 				"Płaszcz z Mithrilu",
 				"Czy jesteś zainteresowany błyszczącym z wysoką obroną płaszczem? Możesz być osobą, która przyniesie potrzebne na to przedmioty Idzie w Ados.",
 				false);
-		
+
 		// login notifier to teleport away players logging into the twilight zone.
 		SingletonRepository.getLoginNotifier().addListener(new LoginListener() {
+			@Override
 			public void onLoggedIn(final Player player) {
 			   TwilightMossScroll scroll = (TwilightMossScroll) SingletonRepository.getEntityManager().getItem("mroczny mech");
 				scroll.teleportBack(player);
 			}
 
 		});
-		
+
 		MithrilCloakQuestChain mithrilcloak = new MithrilCloakQuestChain();
 		mithrilcloak.addToWorld();
 	}
@@ -118,17 +112,17 @@ public class MithrilCloak extends AbstractQuest {
 			return res;
 		}
 		final String questState = player.getQuest(QUEST_SLOT);
-    	res.add("Poznałem Idę w szawalni w Ados");
+    	res.add(Grammar.genderVerb(player.getGender(), "Poznałem") + " Idę w szawalni w Ados");
         if (questState.equals("rejected")) {
-			res.add("Nie jestem zainteresowany pomaganiem dla Idy.");
+			res.add("Nie jestem " + Grammar.genderVerb(player.getGender(), "zainteresowany") + " pomaganiem dla Idy.");
 			return res;
 		}
-        res.add("Idy maszyna do szycia jest uszkodzona, a ona zwróciła się do mnie abym znalazł brakujące części.");
+        res.add("Idy maszyna do szycia jest uszkodzona, a ona zwróciła się do mnie, abym " + Grammar.genderVerb(player.getGender(), "znalazł") + " brakujące części.");
 		if (questState.startsWith("machine")) {
-			res.add("Muszę zanieść Idzie " + Grammar.a_noun(player.getRequiredItemName(QUEST_SLOT,1)) + ".");
+			res.add("Muszę zanieść Idzie " + player.getRequiredItemName(QUEST_SLOT,1) + ".");
 			return res;
 		}
-		res.add("Przyniosłem części potrzebne do naprawienia maszyny Idy.");
+		res.add(Grammar.genderVerb(player.getGender(), "Przyniosłem") + " części potrzebne do naprawienia maszyny Idy.");
 		if (questState.equals("need_mithril_shield")) {
 			res.add("Muszę zrobić na początek tarczę z mithrilu wtedy mogę iść dalej w moich poszukiwaniach płaszczu z mithrilu.");
 			return res;
@@ -145,7 +139,7 @@ public class MithrilCloak extends AbstractQuest {
 			// optionally could add if time is still remaining or if it's ready to collect (timestamp in index 1 of questslot)
 			return res;
 		}
-		res.add("Zaniosłem Kampusch jedwabne nici, króre odebrałem od Vincento's studenta, Boris Karlova.");
+		res.add(Grammar.genderVerb(player.getGender(), "Zaniosłem") + " Kampusch jedwabne nici, króre odebrałem od Vincento's studenta, Boris Karlova.");
 		if (questState.equals("got_thread")) {
 			return res;
 		}
@@ -162,7 +156,7 @@ public class MithrilCloak extends AbstractQuest {
 		if (questState.equals("taking_letter")) {
 			return res;
 		}
-		res.add("Wziąłem list do Pedinghaus i on go przeczytał. Mam powiedzieć Whiggins, że wszystko jest w porządku, więc mogę dostać moją tkaninę.");
+		res.add(Grammar.genderVerb(player.getGender(), "Wziąłem") + " list do Pedinghaus i on go przeczytał. Mam powiedzieć Whiggins, że wszystko jest w porządku, więc mogę dostać moją tkaninę.");
 		if (questState.equals("took_letter")) {
 			return res;
 		}
@@ -189,7 +183,7 @@ public class MithrilCloak extends AbstractQuest {
 			// optionally could add if time is still remaining or if it's ready to collect (timestamp in index 1 of questslot)
 			return res;
 		}
-		res.add("Zaniosłem magiczne nożyczki do Idy.");
+		res.add(Grammar.genderVerb(player.getGender(), "Zaniosłem") + " magiczne nożyczki do Idy.");
 		if (questState.equals("got_scissors")) {
 			return res;
 		}
@@ -209,7 +203,7 @@ public class MithrilCloak extends AbstractQuest {
 		if (questState.equals("twilight_zone")) {
 			return res;
 		}
-		res.add("Dałem dla Idy eliksir mroku, aby przywrócić jej zdrowie. Teraz dała mi inne zadanie. Muszę iść i znaleźć prążkowany płaszcz lazurowy, który zaniosę do Josephine. W tym czasie Ida może szyć mój płaszcz.");
+		res.add(Grammar.genderVerb(player.getGender(), "Dałem") + " dla Idy eliksir mroku, aby przywrócić jej zdrowie. Teraz dała mi inne zadanie. Muszę iść i znaleźć prążkowany płaszcz lazurowy, który zaniosę do Josephine. W tym czasie Ida może szyć mój płaszcz.");
 		if (questState.equals("taking_striped_cloak")) {
 			return res;
 		}
@@ -242,16 +236,21 @@ public class MithrilCloak extends AbstractQuest {
 	}
 
 	@Override
-	public String getName() {
-		return "MithrilCloak";
+	public String getSlotName() {
+		return QUEST_SLOT;
 	}
-	
+
+	@Override
+	public String getName() {
+		return "Płaszcz z Mithrilu";
+	}
+
 	// it's a long quest so they can always start it before they can necessarily finish all
 	@Override
 	public int getMinLevel() {
 		return 100;
 	}
-	
+
 	// Not sure about this one. it would make an achievement for all quests in ados city, quite hard
 	@Override
 	public String getRegion() {

@@ -1,4 +1,4 @@
-/* $Id: TeleportToBuddyAction.java,v 1.2 2010/09/19 02:18:29 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,24 +12,22 @@
  ***************************************************************************/
 package games.stendhal.client.gui.buddies;
 
-import games.stendhal.client.actions.SlashActionRepository;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import games.stendhal.client.actions.SlashActionRepository;
+
 class TeleportToBuddyAction implements ActionListener {
+	private final String buddyName;
 
-    private final String buddyName;
+	protected TeleportToBuddyAction(final String buddyName) {
+		this.buddyName = buddyName;
+	}
 
-    protected TeleportToBuddyAction(final String buddyName) {
-        this.buddyName = buddyName;
-    }
+	@Override
+	public void actionPerformed(final ActionEvent e) {
+		String remainder = buddyName;
 
-    public void actionPerformed(final ActionEvent e) {
-        String remainder = buddyName;
-        
-        SlashActionRepository.get("teleportto").execute(null, remainder);
-    
-    }
-
+		SlashActionRepository.get("teleportto").execute(null, remainder);
+	}
 }

@@ -1,7 +1,7 @@
 /*
  * @(#) src/games/stendhal/server/config/zone/ConfiguratorXMLReader.java
  *
- * $Id: ConfiguratorXMLReader.java,v 1.6 2009/02/26 15:25:19 astridemma Exp $
+ * $Id$
  */
 
 package games.stendhal.server.core.config.zone;
@@ -27,12 +27,12 @@ public class ConfiguratorXMLReader extends SetupXMLReader {
 
 	/**
 	 * Create a configurator descriptor.
-	 * 
+	 *
 	 * @param element
 	 *            The configurator XML element.
 	 * @param className
 	 *            The handler class name.
-	 * 
+	 *
 	 * @return A configurator.
 	 */
 	protected ConfiguratorDescriptor read(final Element element,
@@ -46,10 +46,10 @@ public class ConfiguratorXMLReader extends SetupXMLReader {
 
 	/**
 	 * Create a setup descriptor from XML data.
-	 * 
+	 *
 	 * @param element
 	 *            The descriptor XML element.
-	 * 
+	 *
 	 * @return A setup descriptor, or <code>null</code> if invalid.
 	 */
 	@Override

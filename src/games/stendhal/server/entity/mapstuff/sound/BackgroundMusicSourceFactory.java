@@ -1,7 +1,7 @@
 /*
  * @(#) src/games/stendhal/server/entity/area/CreatureProtectionAreaFactory.java
  *
- * $Id: BackgroundMusicSourceFactory.java,v 1.2 2010/02/06 01:13:07 nhnb Exp $
+ * $Id$
  */
 
 package games.stendhal.server.entity.mapstuff.sound;
@@ -15,16 +15,17 @@ public class BackgroundMusicSourceFactory extends SoundSourceFactory {
 
 	/**
 	 * Create an BackgroundMusicSource.
-	 * 
+	 *
 	 * @param ctx
 	 *            Configuration context.
-	 * 
+	 *
 	 * @return An BackgroundMusicSource.
-	 * 
+	 *
 	 * @throws IllegalArgumentException
 	 *             If there is a problem with the attributes.
 	 * @see LoopedAmbientSoundSource
 	 */
+	@Override
 	public BackgroundMusicSource create(final ConfigurableFactoryContext ctx) {
 		BackgroundMusicSource source;
 
@@ -32,5 +33,4 @@ public class BackgroundMusicSourceFactory extends SoundSourceFactory {
 
 		return source;
 	}
-
 }

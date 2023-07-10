@@ -1,4 +1,4 @@
-/* $Id: Drink.java,v 1.11 2008/07/12 14:43:47 astridemma Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -23,7 +23,7 @@ public class Drink extends ConsumableItem {
 
 	/**
 	 * copy constructor.
-	 * 
+	 *
 	 * @param item
 	 *            item to copy
 	 */

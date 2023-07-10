@@ -1,4 +1,4 @@
-/* $Id: ClientScript.java,v 1.5 2010/09/19 02:19:59 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -19,7 +19,7 @@ public interface ClientScript {
 
 	/**
 	 * Entry point on script execution.
-	 * 
+	 *
 	 * @param args
 	 *            arguments
 	 */

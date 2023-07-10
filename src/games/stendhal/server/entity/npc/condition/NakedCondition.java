@@ -1,4 +1,4 @@
-/* $Id: NakedCondition.java,v 1.14 2012/09/09 12:33:24 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -16,12 +16,8 @@ import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
 import games.stendhal.server.core.config.annotations.Dev.Category;
 import games.stendhal.server.entity.Entity;
-import games.stendhal.server.entity.Outfit;
 import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.player.Player;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Is the player naked? (e. g. not wearing anything on his/her body)
@@ -29,9 +25,9 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
 @Dev(category=Category.OUTFIT, label="Outfit?")
 public class NakedCondition implements ChatCondition {
 
+	@Override
 	public boolean fire(final Player player, final Sentence sentence, final Entity entity) {
-		final Outfit outfit = player.getOutfit();
-		return outfit.isNaked();
+		return player.isNaked();
 	}
 
 	@Override
@@ -41,12 +37,11 @@ public class NakedCondition implements ChatCondition {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 43759;
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				NakedCondition.class);
+		return (obj instanceof NakedCondition);
 	}
 }

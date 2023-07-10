@@ -1,4 +1,4 @@
-/* $Id: Box.java,v 1.25 2010/12/05 12:41:06 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,29 +12,27 @@
  ***************************************************************************/
 package games.stendhal.server.entity.item;
 
-import games.stendhal.server.core.events.UseListener;
-import games.stendhal.server.entity.Entity;
-import games.stendhal.server.entity.RPEntity;
-import games.stendhal.server.entity.player.Player;
-
 import java.util.Map;
-
-import marauroa.common.game.RPObject;
 
 import org.apache.log4j.Logger;
 
+import games.stendhal.server.entity.Entity;
+import games.stendhal.server.entity.RPEntity;
+import games.stendhal.server.entity.player.Player;
+import marauroa.common.game.RPObject;
+
 /**
  * a box which can be unwrapped.
- * 
+ *
  * @author hendrik
  */
-public class Box extends Item implements UseListener {
+public class Box extends Item {
 
 	private final static Logger logger = Logger.getLogger(Box.class);
 
 	/**
 	 * Creates a new box.
-	 * 
+	 *
 	 * @param name
 	 * @param clazz
 	 * @param subclass
@@ -47,7 +45,7 @@ public class Box extends Item implements UseListener {
 
 	/**
 	 * copy constructor.
-	 * 
+	 *
 	 * @param item
 	 *            item to copy
 	 */
@@ -55,6 +53,7 @@ public class Box extends Item implements UseListener {
 		super(item);
 	}
 
+	@Override
 	public boolean onUsed(final RPEntity user) {
 		if (this.isContained()) {
 			// We modify the base container if the object change.

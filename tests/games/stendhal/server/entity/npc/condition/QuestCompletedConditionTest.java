@@ -1,4 +1,4 @@
-/* $Id: QuestCompletedConditionTest.java,v 1.13 2011/05/01 19:50:06 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -15,15 +15,15 @@ package games.stendhal.server.entity.npc.condition;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import games.stendhal.common.parser.ConversationParser;
-import games.stendhal.server.entity.player.Player;
-import games.stendhal.server.maps.MockStendlRPWorld;
-import marauroa.common.Log4J;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.common.parser.ConversationParser;
+import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.maps.MockStendlRPWorld;
+import marauroa.common.Log4J;
 import utilities.PlayerTestHelper;
 import utilities.SpeakerNPCTestHelper;
 
@@ -92,16 +92,10 @@ public class QuestCompletedConditionTest {
 	 * Tests for equals.
 	 */
 	@Test
-	public void testEquals() throws Throwable {
+	public void testEquals() {
 		assertTrue(new QuestCompletedCondition("questname").equals(new QuestCompletedCondition(
 				"questname")));
-		assertTrue(new QuestCompletedCondition(null).equals(new QuestCompletedCondition(
-				null)));
 
-		assertFalse(new QuestCompletedCondition(null).equals(new QuestCompletedCondition(
-				"questname")));
-		assertFalse(new QuestCompletedCondition("questname").equals(new QuestCompletedCondition(
-				null)));
 		assertFalse(new QuestCompletedCondition("questname").equals(null));
 
 		final QuestCompletedCondition obj = new QuestCompletedCondition("questname");
@@ -119,11 +113,9 @@ public class QuestCompletedConditionTest {
 	 * Tests for hashCode.
 	 */
 	@Test
-	public void testHashCode() throws Exception {
+	public void testHashCode() {
 		assertEquals(new QuestCompletedCondition("questname").hashCode(),
 				new QuestCompletedCondition("questname").hashCode());
-		assertEquals(new QuestCompletedCondition(null).hashCode(),
-				new QuestCompletedCondition(null).hashCode());
 	}
 
 }

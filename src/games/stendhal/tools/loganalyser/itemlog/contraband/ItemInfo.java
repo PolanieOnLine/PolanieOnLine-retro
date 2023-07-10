@@ -1,4 +1,4 @@
-/* $Id: ItemInfo.java,v 1.5 2010/09/19 01:28:55 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -56,6 +56,7 @@ public class ItemInfo implements Cloneable {
 		this.owner = owner;
 	}
 
+	@Override
 	public Object clone() {
 		try {
 			return super.clone();
@@ -70,5 +71,5 @@ public class ItemInfo implements Cloneable {
 				+ owner + ", quantity=" + quantity + "]";
 	}
 
-	
+
 }

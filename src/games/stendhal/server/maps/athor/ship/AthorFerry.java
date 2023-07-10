@@ -1,4 +1,3 @@
-/* $Id: AthorFerry.java,v 1.19 2010/09/19 02:31:35 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,18 +11,18 @@
  ***************************************************************************/
 package games.stendhal.server.maps.athor.ship;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.events.TurnListener;
 import games.stendhal.server.util.TimeUtil;
-
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * This class simulates a ferry going back and forth between the mainland and
  * the island. Note that, even though this class lies in a maps package, this is
  * not a zone configurator.
- * 
+ *
  * NPCs that have to do with the ferry:
  * <li> Eliza - brings players from the mainland docks to the ferry.
  * <li>Jessica - brings players from the island docks to the ferry.
@@ -31,37 +30,25 @@ import java.util.List;
  * captain.
  * <li>Laura - the ship galley maid.
  * <li>Ramon - offers blackjack on the ship.
- * 
+ *
  * @see games.stendhal.server.maps.athor.ship.CaptainNPC
  * @author daniel
- * 
+ *
  */
 public final class AthorFerry implements TurnListener {
+	/** The Singleton instance. */
+	private static AthorFerry instance;
 
 	/** How much it costs to board the ferry. */
 	public static final int PRICE = 25;
 
-	/** The Singleton instance. */
-	private static AthorFerry instance;
-
 	private Status current;
-
-	
-
-	
 
 	/**
 	 * A list of non-player characters that get notice when the ferry arrives or
 	 * departs, so that they can react accordingly, e.g. inform nearby players.
 	 */
 	private final List<IFerryListener> listeners;
-
-
-
-	private AthorFerry() {
-		listeners = new LinkedList<IFerryListener>();
-		current = Status.ANCHORED_AT_MAINLAND;
-	}
 
 	/**
 	 * @return The Singleton instance.
@@ -72,21 +59,28 @@ public final class AthorFerry implements TurnListener {
 
 			// initiate the turn notification cycle
 			SingletonRepository.getTurnNotifier().notifyInSeconds(1, instance);
-
 		}
+
 		return instance;
+	}
+
+	/**
+	 * Hidden singleton constructor.
+	 */
+	private AthorFerry() {
+		listeners = new LinkedList<IFerryListener>();
+		current = Status.ANCHORED_AT_MAINLAND;
 	}
 
 	public Status getState() {
 		return current;
 	}
-	
+
 	/**
 	 * Gets a textual description of the ferry's status.
 	 *
 	 * @return A String representation of time remaining till next state.
 	 */
-
 	private String getRemainingSeconds() {
 		final int secondsUntilNextState = SingletonRepository.getTurnNotifier()
 				.getRemainingSeconds(this);
@@ -97,6 +91,7 @@ public final class AthorFerry implements TurnListener {
 	 * Is called when the ferry has either arrived at or departed from a harbor.
 	 * @param currentTurn the turn when this listener is called
 	 */
+	@Override
 	public void onTurnReached(final int currentTurn) {
 		// cycle to the next state
 
@@ -110,7 +105,7 @@ public final class AthorFerry implements TurnListener {
 	public void addListener(final IFerryListener npc) {
 		listeners.add(npc);
 	}
-	
+
 	/**
 	 * Auto registers the listener to Athorferry.
 	 * deregistration must be implemented if it is used for short living objects
@@ -121,8 +116,6 @@ public final class AthorFerry implements TurnListener {
 		public FerryListener() {
 			SingletonRepository.getAthorFerry().addListener(this);
 		}
-
-		
 	}
 
 	public interface IFerryListener {
@@ -214,5 +207,4 @@ public final class AthorFerry implements TurnListener {
 		 */
 		abstract int duration();
 	}
-
 }

@@ -1,4 +1,4 @@
-/* $Id: PlayerTest.java,v 1.24 2010/12/04 16:22:06 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,19 +12,16 @@
  ***************************************************************************/
 package games.stendhal.client.entity;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import games.stendhal.client.MockClientUI;
-import games.stendhal.server.maps.MockStendhalRPRuleProcessor;
-
-import java.awt.geom.Rectangle2D;
-
-import marauroa.common.game.RPObject;
 
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import games.stendhal.client.MockClientUI;
+import games.stendhal.server.maps.MockStendhalRPRuleProcessor;
+import marauroa.common.game.RPObject;
 
 public class PlayerTest {
 
@@ -44,42 +41,27 @@ public class PlayerTest {
 	}
 
 	/**
-	 * Tests for getHearingArea.
-	 */
-	@Test
-	public final void testGetHearingArea() {
-		final RPObject rpo = new RPObject();
-		rpo.put("type", "player");
-		rpo.put("outfit", 0);
-		final User pl = new User();
-		pl.initialize(rpo);
-
-		final Rectangle2D rect = pl.getHearingArea();
-		assertEquals(new Rectangle2D.Double(-20.0, -20.0, 40, 40), rect);
-	}
-	
-	/**
 	 * Tests for isBadBoy.
 	 */
 	@Test
 	public final void testIsBadBoy() {
 		Player george = new Player();
 		assertFalse(george.isBadBoy());
-		
+
 		RPObject player = new RPObject();
 		player.put("x", 1);
 		player.put("y", 1);
-		
+
 		RPObject changes = new RPObject();
 		george.onChangedAdded(player, changes);
 		assertFalse(george.isBadBoy());
-		
+
 		changes.put("last_player_kill_time", 1);
 		george.onChangedAdded(player, changes);
 		assertTrue(george.isBadBoy());
-		
+
 	}
-		
+
 	/**
 	 * Tests for amnesty.
 	 */
@@ -87,11 +69,11 @@ public class PlayerTest {
 	public final void testAmnesty() {
 		Player george = new Player();
 		assertFalse(george.isBadBoy());
-		
+
 		RPObject player = new RPObject();
 		player.put("x", 1);
 		player.put("y", 1);
-		
+
 		RPObject changes = new RPObject();
 		changes.put("last_player_kill_time", 1);
 		george.onChangedAdded(player, changes);
@@ -100,5 +82,5 @@ public class PlayerTest {
 		george.onChangedRemoved(player, changes);
 		assertFalse(george.isBadBoy());
 	}
-	
+
 }

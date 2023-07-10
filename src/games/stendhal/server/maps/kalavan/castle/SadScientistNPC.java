@@ -1,4 +1,3 @@
-/* $Id: SadScientistNPC.java,v 1.2 2010/09/19 02:30:42 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,36 +11,35 @@
  ***************************************************************************/
 package games.stendhal.server.maps.kalavan.castle;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 /**
- * Builds a sad scientist NPC who gives a quest to a player. 
+ * Builds a sad scientist NPC who gives a quest to a player.
  *
  * @author kymara
  */
 public class SadScientistNPC implements ZoneConfigurator {
-
 	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildNPC(zone);
 	}
 
 	private void buildNPC(final StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Vasi Elos") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -62,6 +60,7 @@ public class SadScientistNPC implements ZoneConfigurator {
 				nodes.add(new Node(23, 113));
 				setPath(new FixedPath(nodes, true));
 			}
+
 			@Override
 		    protected void createDialog() {
 				addGoodbye("Odejdź!");
@@ -69,10 +68,10 @@ public class SadScientistNPC implements ZoneConfigurator {
 			}
 		};
 
-		npc.setDescription("Oto ktoś, który jest trochę dziwny. Może nie powinieneś go niepokoić?");
+		npc.setDescription("Oto Vasi Elos, który jest trochę dziwny. Może nie powinieneś go niepokoić?");
 		npc.setEntityClass("madscientistnpc");
+		npc.setGender("M");
 		npc.setPosition(13, 113);
-		npc.initHP(100);
 		zone.add(npc);
 	}
 }

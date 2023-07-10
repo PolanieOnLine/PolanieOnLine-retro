@@ -1,4 +1,4 @@
-/* $Id: IsNotOtherAccountNameValidator.java,v 1.3 2010/09/19 02:22:40 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -22,18 +22,18 @@ import marauroa.server.game.db.DAORegister;
 
 /**
  * validates the new character name is not an account name, unless player owns that account
- * 
+ *
  * @author kymara
  */
 public class IsNotOtherAccountNameValidator implements AccountParameterValidator {
-	
+
 	private static Logger logger = Logger.getLogger(IsNotOtherAccountNameValidator.class);
-	
+
 	private final String charname;
 	private final String username;
 	/**
 	 * creates an IsNotOtherAccountNameValidator.
-	 * 
+	 *
 	 * @param charname
 	 *            value to validate
      * @param username
@@ -44,6 +44,7 @@ public class IsNotOtherAccountNameValidator implements AccountParameterValidator
 		this.username = username;
 	}
 
+	@Override
 	public Result validate() {
 		if (charname.equals(username)) {
 			return null;
@@ -54,7 +55,7 @@ public class IsNotOtherAccountNameValidator implements AccountParameterValidator
 			 }
 		} catch (SQLException e) {
 			logger.error("Error while trying to validate character name", e);
-			return Result.FAILED_EXCEPTION;		
+			return Result.FAILED_EXCEPTION;
 		}
 		 return null;
 	}

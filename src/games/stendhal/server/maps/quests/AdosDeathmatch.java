@@ -1,6 +1,5 @@
-/* $Id: AdosDeathmatch.java,v 1.59 2012/02/13 00:28:25 bluelads99 Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2011 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -11,6 +10,14 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
+
+import java.awt.Rectangle;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
 
 import games.stendhal.common.Direction;
 import games.stendhal.common.grammar.Grammar;
@@ -43,20 +50,11 @@ import games.stendhal.server.maps.deathmatch.LeaveAction;
 import games.stendhal.server.maps.deathmatch.StartAction;
 import games.stendhal.server.util.Area;
 
-import java.awt.Rectangle;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-
-import org.apache.log4j.Logger;
-
 /**
  * Creates the Ados Deathmatch Game.
  */
 public class AdosDeathmatch extends AbstractQuest {
-
-		/** the logger instance. */
+	/** the logger instance. */
 	private static final Logger logger = Logger.getLogger(AdosDeathmatch.class);
 
 	private StendhalRPZone zone;
@@ -104,7 +102,7 @@ public class AdosDeathmatch extends AbstractQuest {
 
 	/**
 	 * Create the Deathmatch assistant.
-	 * 
+	 *
 	 * @param name name of the assistant
 	 * @param x x coordinate of the assistant
 	 * @param y y coordinate of the assistant
@@ -124,20 +122,20 @@ public class AdosDeathmatch extends AbstractQuest {
 
 				// player is outside the fence. after 'hi' use ConversationStates.INFORMATION_1 only.
 				add(
-						ConversationStates.IDLE,
-						ConversationPhrases.GREETING_MESSAGES,
-						new AndCondition(new GreetingMatchesNameCondition(name),
-								new NotCondition(new PlayerInAreaCondition(arena))),
-						ConversationStates.INFORMATION_1,
-						"Witam na Deathmatchu w Ados! Porozmawiaj z #Thonatus jeżeli chcesz dołączyć",
-						null);
+					ConversationStates.IDLE,
+					ConversationPhrases.GREETING_MESSAGES,
+					new AndCondition(new GreetingMatchesNameCondition(name),
+							new NotCondition(new PlayerInAreaCondition(arena))),
+					ConversationStates.INFORMATION_1,
+					"Witam na Deathmatchu w Ados! Porozmawiaj z #Thonatus jeżeli chcesz dołączyć",
+					null);
 				add(
-						ConversationStates.INFORMATION_1,
-						Arrays.asList("Thonatus", "Thonatusa"),
-						null,
-						ConversationStates.INFORMATION_1,
-						"Thonatus rekrutuje do Deathmatcha. Znajdziesz go na #bagnach na południowy-zachód od Ados.",
-						null);
+					ConversationStates.INFORMATION_1,
+					Arrays.asList("Thonatus", "Thonatusa"),
+					null,
+					ConversationStates.INFORMATION_1,
+					"Thonatus rekrutuje do Deathmatcha. Znajdziesz go na #bagnach na południowy-zachód od Ados.",
+					null);
 
                 add(
 					ConversationStates.INFORMATION_1,
@@ -184,38 +182,38 @@ public class AdosDeathmatch extends AbstractQuest {
 				addGoodbye("Mam nadzieję, że dobrze się bawiłeś na Deathmatchu!");
 
 				add(
-						ConversationStates.ATTENDING,
-						Arrays.asList("everything", "appears", "deathmatch", "wszystko", "pojawi"),
-						ConversationStates.ATTENDING,
-						"W każdej rundzie staniesz twarzą w twarz z silniejszymi przeciwnikami. Broń się, zabij ich lub powiedz mi #poddaję się! Ale ostrzegam że jeśli zrezygnujesz to zapłacisz kaucję",
-						null);
+					ConversationStates.ATTENDING,
+					Arrays.asList("everything", "appears", "deathmatch", "wszystko", "pojawi"),
+					ConversationStates.ATTENDING,
+					"W każdej rundzie staniesz twarzą w twarz z silniejszymi przeciwnikami. Broń się, zabij ich lub powiedz mi #poddaję się! Ale ostrzegam że jeśli zrezygnujesz to zapłacisz kaucję",
+					null);
 				add(
-						ConversationStates.ATTENDING,
-						Arrays.asList("trophy", "hełm", "helmet","zdobyczny hełm"),
-						ConversationStates.ATTENDING,
-						"Jeżeli wygrasz deathmatch to nagrodzimy Cię zdobycznym hełmem. Każde #zwycięstwo będzie go wzmacniać.",
-						null);
+					ConversationStates.ATTENDING,
+					Arrays.asList("trophy", "hełm", "helmet","zdobyczny hełm"),
+					ConversationStates.ATTENDING,
+					"Jeżeli wygrasz deathmatch to nagrodzimy Cię zdobycznym hełmem. Każde #zwycięstwo będzie go wzmacniać.",
+					null);
 
 				// 'start' command will start spawning creatures
 				add(ConversationStates.ATTENDING, Arrays.asList("start", "go",
-						"fight", "walka"), null, ConversationStates.IDLE, null,
-						new StartAction(deathmatchInfo));
+					"fight", "walka"), null, ConversationStates.IDLE, null,
+					new StartAction(deathmatchInfo));
 
 				// 'victory' command will scan, if all creatures are killed and
 				// reward the player
 				add(ConversationStates.ATTENDING, Arrays.asList("victory",
-						"done", "yay", "zwycięstwo", "zrobione"), null, ConversationStates.ATTENDING,
-						null, new DoneAction());
+					"done", "yay", "zwycięstwo", "zrobione"), null, ConversationStates.ATTENDING,
+					null, new DoneAction(deathmatchInfo));
 
 				// 'leave' command will send the victorious player home
-				add(ConversationStates.ATTENDING, Arrays
-						.asList("leave", "home", "wychodzę", "dom", "wyjdź"), null,
-						ConversationStates.ATTENDING, null, new LeaveAction());
+				add(ConversationStates.ATTENDING, Arrays.asList("leave",
+					"home", "wychodzę", "dom", "wyjdź"), null,
+					ConversationStates.ATTENDING, null, new LeaveAction());
 
 				// 'bail' command will teleport the player out of it
 				add(ConversationStates.ANY, Arrays.asList("bail", "flee",
-						"run", "exit", "wycofuję", "poddaję", "rezygnuję", "wycofać"), null, ConversationStates.ATTENDING,
-						null, new BailAction());
+					"run", "exit", "wycofuję", "poddaję", "rezygnuję", "wycofać"), null, ConversationStates.ATTENDING,
+					null, new BailAction());
 			}
 		};
 
@@ -232,19 +230,21 @@ public class AdosDeathmatch extends AbstractQuest {
 
 
 	static class DeathMatchEmptyCondition implements ChatCondition {
+		@Override
 		public boolean fire(final Player player, final Sentence sentence, final Entity npc) {
 			final List<Player> dmplayers = arena.getPlayers();
-			return (dmplayers.size() == 0);
+			return dmplayers.size() == 0;
 		}
 	}
 
 	private void recruiterInformation() {
 		final SpeakerNPC npc2 = npcs.get("Thonatus");
 
-		npc2.add(ConversationStates.ATTENDING, Arrays.asList("heroes", "who", "hero", "status", "kto", "bohater"), 
+		npc2.add(ConversationStates.ATTENDING, Arrays.asList("heroes", "who", "hero", "status", "kto", "bohater"),
 				 new NotCondition(new DeathMatchEmptyCondition()), ConversationStates.ATTENDING,
 				 null,
 				 new ChatAction() {
+					 @Override
 					 public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 						 final List<Player> dmplayers = arena.getPlayers();
 						 final List<String> dmplayernames = new LinkedList<String>();
@@ -257,25 +257,26 @@ public class AdosDeathmatch extends AbstractQuest {
 					 }
 				 });
 
-		npc2.add(ConversationStates.ATTENDING, Arrays.asList("heroes", "who", "hero", "status", "kto", "bohater") , new DeathMatchEmptyCondition(), 
+		npc2.add(ConversationStates.ATTENDING, Arrays.asList("heroes", "who", "hero", "status", "kto", "bohater") , new DeathMatchEmptyCondition(),
 				 ConversationStates.ATTENDING,
 				 "Jesteś takim bohaterem? Mogę Cię zabrać na takie #wyzwanie", null);
 
-		npc2.add(ConversationStates.ATTENDING, Arrays.asList("challenge", "wyzwaznie"), 
-				 new AndCondition(new LevelGreaterThanCondition(19), 
+		npc2.add(ConversationStates.ATTENDING, Arrays.asList("challenge", "wyzwaznie"),
+				 new AndCondition(new LevelGreaterThanCondition(19),
 						  new DeathMatchEmptyCondition(),
-						  new NotCondition(new PlayerHasPetOrSheepCondition())), 
-				 ConversationStates.IDLE, null,				 
+						  new NotCondition(new PlayerHasPetOrSheepCondition())),
+				 ConversationStates.IDLE, null,
 				 new TeleportAction("0_ados_wall_n", 100, 86, Direction.DOWN));
 
 
-		npc2.add(ConversationStates.ATTENDING, Arrays.asList("challenge", "wyzwaznie"), 
-			 new AndCondition(new LevelGreaterThanCondition(19), 
+		npc2.add(ConversationStates.ATTENDING, Arrays.asList("challenge", "wyzwaznie"),
+			 new AndCondition(new LevelGreaterThanCondition(19),
 					  new NotCondition(new DeathMatchEmptyCondition()),
-					  new NotCondition(new PlayerHasPetOrSheepCondition())), 
-				 ConversationStates.QUESTION_1, null,				 
+					  new NotCondition(new PlayerHasPetOrSheepCondition())),
+				 ConversationStates.QUESTION_1, null,
 				 new ChatAction() {
-					 public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
+					 @Override
+					public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 						 final List<Player> dmplayers = arena.getPlayers();
 						 final List<String> dmplayernames = new LinkedList<String>();
 						 for (Player dmplayer : dmplayers) {
@@ -287,63 +288,62 @@ public class AdosDeathmatch extends AbstractQuest {
 					 }
 				 });
 
-		npc2.add(ConversationStates.ATTENDING, Arrays.asList("challenge", "wyzwaznie"), 
-			 new AndCondition(new LevelGreaterThanCondition(19), 
+		npc2.add(ConversationStates.ATTENDING, Arrays.asList("challenge", "wyzwaznie"),
+			 new AndCondition(new LevelGreaterThanCondition(19),
 					  new PlayerHasPetOrSheepCondition()),
 			 ConversationStates.ATTENDING, "Przepraszam, ale to byłoby zbyt straszne dla twojego zwierzaka tam.",
 				 null);
 
 
 		npc2.add(ConversationStates.QUESTION_1, ConversationPhrases.YES_MESSAGES, null,
-				 ConversationStates.IDLE, null,				 
+				 ConversationStates.IDLE, null,
 				 new TeleportAction("0_ados_wall_n", 100, 86, Direction.DOWN));
 
 
 		npc2.add(ConversationStates.QUESTION_1, ConversationPhrases.NO_MESSAGES, null,
-				 ConversationStates.ATTENDING, "Jesteś nieco bojaźliwy, ale nie szkodzi. Jeśli coś jeszcze chcesz, wystarczy powiedzieć.",				 
+				 ConversationStates.ATTENDING, "Jesteś nieco bojaźliwy, ale nie szkodzi. Jeśli coś jeszcze chcesz, wystarczy powiedzieć.",
 				 null);
 
 		npc2.add(ConversationStates.ATTENDING, Arrays.asList("challenge", "wyzwaznie"),
-				 new LevelLessThanCondition(20), 
+				 new LevelLessThanCondition(20),
 				 ConversationStates.ATTENDING, "Przepraszam, ale jesteś zbyt słaby na #Deathmatch, wróć co najmniej na poziomie 20.",
 				 null);
 	}
 
-
-
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
-				"Deathmatch Ados",
+				"Arena Deathmatch",
 				"Thanatos szuka bohaterów do walki na arenie Deathmatcha.",
 				true);
 		recruiterInformation();
 	}
+
 	@Override
 	public String getName() {
-		return "AdosDeathmatch";
+		return "Arena Deathmatch";
 	}
+
 	@Override
 	public int getMinLevel() {
 		return 20;
 	}
-	
+
 	@Override
 	public boolean isVisibleOnQuestStatus() {
 		return false;
 	}
-	
+
 	@Override
 	public List<String> getHistory(final Player player) {
 		return new ArrayList<String>();
 	}
-	
+
 	@Override
 	public String getRegion() {
 		return Region.ADOS_CITY;
 	}
-	
+
 	@Override
 	public String getNPCName() {
 		return "Thonatus";

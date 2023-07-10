@@ -1,4 +1,4 @@
-/* $Id: BeerForHayunnTest.java,v 1.35 2010/12/29 19:24:42 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +12,18 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static utilities.SpeakerNPCTestHelper.getReply;
+
+import java.util.LinkedList;
+import java.util.List;
+
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.entity.item.StackableItem;
@@ -21,22 +33,9 @@ import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.MockStendhalRPRuleProcessor;
 import games.stendhal.server.maps.MockStendlRPWorld;
 import games.stendhal.server.maps.semos.guardhouse.RetiredAdventurerNPC;
-
-import java.util.LinkedList;
-import java.util.List;
-
 import marauroa.common.Log4J;
 import marauroa.common.game.RPObject.ID;
-
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import utilities.PlayerTestHelper;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static utilities.SpeakerNPCTestHelper.getReply;
 
 public class BeerForHayunnTest {
 
@@ -47,7 +46,7 @@ public class BeerForHayunnTest {
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		Log4J.init();
-		
+
 		MockStendhalRPRuleProcessor.get();
 
 		MockStendlRPWorld.reset();
@@ -68,7 +67,7 @@ public class BeerForHayunnTest {
 
 	@Test
 	public void quest() {
-	
+
 		final Player player = PlayerTestHelper.createPlayer("player");
 
 		final Engine en = hayunn.getEngine();
@@ -79,22 +78,22 @@ public class BeerForHayunnTest {
 		assertTrue(player.isQuestCompleted("meet_hayunn"));
 		assertTrue(hayunn.isTalking());
 		assertEquals(
-				"Hi. I bet you've been sent here to learn about adventuring from me. First, lets see what you're made of. Go and kill a rat outside, you should be able to find one easily. Do you want to learn how to attack it, before you go?",
+				"Witaj! Założę się, że przysłano Cię tutaj byś dowiedział się nieco o przygodach jakie Cię tu spotkają. Najpierw zobaczmy z jakiej gliny jesteś ulepiony. Idź i zabij szczura wałęsającego się gdzieś na zewnątrz. Czy chcesz się nauczyć jak atakować?",
 				getReply(hayunn));
 		en.step(player, "quest");
 		assertEquals(
-				"My mouth is dry, but I can't be seen to abandon this teaching room! Could you bring me some #beer from the #tavern?",
+				"Zaschło mi w gardle, ale nie mogę opuścić mojego posterunku! Czy mógłbyś mi przynieść #sok z chmielu z #oberży?",
 				getReply(hayunn));
 		en.step(player, "yes");
 		assertTrue(player.hasQuest("beer_hayunn"));
 		en.step(player, "bye");
 		assertFalse(hayunn.isTalking());
 		assertEquals("start", player.getQuest("beer_hayunn"));
-		final StackableItem beer = new StackableItem("beer", "", "", null);
+		final StackableItem beer = new StackableItem("sok z chmielu", "", "", null);
 		beer.setQuantity(1);
 		beer.setID(new ID(2, "testzone"));
 		player.getSlot("bag").add(beer);
-		assertEquals(1, player.getNumberOfEquipped("beer"));
+		assertEquals(1, player.getNumberOfEquipped("sok z chmielu"));
 		en.step(player, "hi");
 		en.step(player, "yes");
 		assertEquals("done", player.getQuest("beer_hayunn"));
@@ -107,11 +106,11 @@ public class BeerForHayunnTest {
 		assertTrue(player2.isQuestCompleted("meet_hayunn"));
 		assertTrue(hayunn.isTalking());
 		assertEquals(
-			"Hi. I bet you've been sent here to learn about adventuring from me. First, lets see what you're made of. Go and kill a rat outside, you should be able to find one easily. Do you want to learn how to attack it, before you go?",
+				"Witaj! Założę się, że przysłano Cię tutaj byś dowiedział się nieco o przygodach jakie Cię tu spotkają. Najpierw zobaczmy z jakiej gliny jesteś ulepiony. Idź i zabij szczura wałęsającego się gdzieś na zewnątrz. Czy chcesz się nauczyć jak atakować?",
 				getReply(hayunn));
 		en.step(player2, "quest");
 		assertEquals(
-				"My mouth is dry, but I can't be seen to abandon this teaching room! Could you bring me some #beer from the #tavern?",
+				"Zaschło mi w gardle, ale nie mogę opuścić mojego posterunku! Czy mógłbyś mi przynieść #sok z chmielu z #oberży?",
 				getReply(hayunn));
 		en.step(player2, "no");
 		assertTrue(player2.hasQuest("beer_hayunn"));
@@ -128,27 +127,24 @@ public class BeerForHayunnTest {
 		assertTrue(bfh.getHistory(player).isEmpty());
 		player.setQuest("beer_hayunn", "");
 		final List<String> history = new LinkedList<String>();
-		history.add("I have talked to Hayunn.");
-		assertEquals(history, bfh.getHistory(player));
-		
-		player.setQuest("beer_hayunn", "rejected");
-		history.add("I do not want to make Hayunn drunk.");
-		assertEquals(history, bfh.getHistory(player));
-	
-		player.setQuest("beer_hayunn", "start");
-		history.remove("I do not want to make Hayunn drunk.");
-		history.add("I promised to buy him a bear from Margaret in Semos Tavern.");
+		history.add("Rozmawiałem z Hayunn.");
 		assertEquals(history, bfh.getHistory(player));
 
-		player.equipToInventoryOnly(SingletonRepository.getEntityManager().getItem("beer"));
-		history.add("I have a bottle of beer.");
+		player.setQuest("beer_hayunn", "rejected");
+		history.add("Nie chcę kupować soku z chmielu dla Hayunn.");
+		assertEquals(history, bfh.getHistory(player));
+
+		player.setQuest("beer_hayunn", "start");
+		history.remove("Nie chcę kupować soku z chmielu dla Hayunn.");
+		history.add("Obiecałem, że kupię mu sok z chmielu od Margaret w tawernie Semos.");
+		assertEquals(history, bfh.getHistory(player));
+
+		player.equipToInventoryOnly(SingletonRepository.getEntityManager().getItem("sok z chmielu"));
+		history.add("Mam już sok z chmielu.");
 		assertEquals(history, bfh.getHistory(player));
 		player.setQuest("beer_hayunn", "done");
-		history.add("I gave the beer to Hayunn. He paid me 20 gold coins and I got some experience.");
+		history.add("Dałem sok z chmielu Hayunn. Otrzymałem 20 złotych monet i kilka lekcji z jego doświadczenia.");
 		assertEquals(history, bfh.getHistory(player));
 
 	}
-
-
-
 }

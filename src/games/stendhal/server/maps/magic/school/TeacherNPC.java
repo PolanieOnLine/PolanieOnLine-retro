@@ -1,6 +1,5 @@
-/* $Id: TeacherNPC.java,v 1.9 2010/12/29 15:02:06 martinfuchs Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,6 +11,11 @@
  ***************************************************************************/
 package games.stendhal.server.maps.magic.school;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
@@ -21,30 +25,25 @@ import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 /**
- * Builds a Teacher NPC who flies on a broomstick. 
+ * Builds a Teacher NPC who flies on a broomstick.
  *
  * @author kymara
  */
 public class TeacherNPC implements ZoneConfigurator {
-
 	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildNPC(zone);
 	}
 
 	private void buildNPC(final StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Esolte Vietta") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -56,18 +55,19 @@ public class TeacherNPC implements ZoneConfigurator {
 			}
 
 			@Override
-			    protected void createDialog() {
+			protected void createDialog() {
 				add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 						new GreetingMatchesNameCondition(getName()), true,
 						ConversationStates.IDLE, "Siedź cicho i obserwuj mnie!", null);
-	 	     }
-		    
+			}
 		};
 
-		npc.setDescription("Oto wiedźma latająca na miotle. Wygląda na to, że robi pokaz dla grupy uczniów.");
+		npc.setDescription("Oto Esolte Vietta, wiedźma latająca na miotle. Wygląda na to, że robi pokaz dla grupy uczniów.");
 		npc.setEntityClass("witch3npc");
+		npc.setGender("F");
+		npc.setShadowStyle("48x64_floating");
 		npc.setPosition(29, 19);
-		npc.initHP(100);
+		npc.setSounds(Arrays.asList("witch-cackle-1"));
 		zone.add(npc);
 	}
 }

@@ -1,4 +1,4 @@
-/* $Id: MockChildClass.java,v 1.5 2010/09/19 02:38:47 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -21,16 +21,16 @@ import java.io.Serializable;
  */
 public class MockChildClass extends MockParentClass implements Serializable {
 
-	
+
 	// note this serialVersionUID is automatically created by emma
 	// so we create it here anyway to simplify testing with and without
 	// emma
 	private static final long serialVersionUID = 550331563324952898L;
 
 	public boolean childPublicBoolean = true;
-	
+
 	// this class is used by reflection
 	@SuppressWarnings("unused")
 	private float childPrivateFloat = 2.0f;
-	
+
 }

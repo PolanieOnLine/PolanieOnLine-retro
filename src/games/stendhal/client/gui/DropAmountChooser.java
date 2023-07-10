@@ -11,52 +11,53 @@
  ***************************************************************************/
 package games.stendhal.client.gui;
 
-import games.stendhal.client.entity.StackableItem;
-import games.stendhal.client.gui.layout.SBoxLayout;
-
 import java.awt.Component;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import javax.swing.JSpinner;
+import javax.swing.JTextField;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
+import javax.swing.text.DocumentFilter;
 import javax.swing.text.JTextComponent;
+import javax.swing.text.PlainDocument;
 
 import org.apache.log4j.Logger;
+
+import games.stendhal.client.entity.StackableItem;
+import games.stendhal.client.gui.layout.SBoxLayout;
 
 /**
  * A class for showing a selector for dropped item amounts and taking control
  * of the drop handling of those drops.
  */
-public class DropAmountChooser {
-	/** Space between the popup border and actual content components */
+class DropAmountChooser {
+	/** Space between the popup border and actual content components. */
 	private static final int BORDER = 2;
-	
+
 	/** Item to be dropped. */
-	final StackableItem item;
+	private final StackableItem item;
 	/** Target where the user is dropping the item. */
-	final DropTarget target;
-	/** Drop location within the target component */
-	final Point location;
-	/** Created selector popup menu */
-	final JPopupMenu popup;
-	/** Number selector within the popup menu */
-	JSpinner spinner;
-	
+	private final DropTarget target;
+	/** Drop location within the target component. */
+	private final Point location;
+	/** Created selector popup menu. */
+	private final JPopupMenu popup;
+	/** Number selector within the popup menu. */
+	private JSpinner spinner;
+
 	/**
 	 * Create a new DropAmountChooser.
-	 * 
+	 *
 	 * @param item the item whose drop should be handled by the DropAmountChooser
 	 * @param target target where the item should be dropped if the user chooses
 	 * 	an amount greater than 0
@@ -67,7 +68,7 @@ public class DropAmountChooser {
 		this.target = target;
 		location = point;
 		popup = createPopup();
-		
+
 		/*
 		 * Select the text when the the popup is displayed. Unfortunately the
 		 * selection is normally cleared when the text field gets focus, so we
@@ -76,24 +77,22 @@ public class DropAmountChooser {
 		 * selection needs to be pushed to the event queue.
 		 */
 		final JComponent field = getTextField();
-		if (field instanceof JTextComponent) {
-			field.addFocusListener(new FocusAdapter() {
-				@Override
-				public void focusGained(FocusEvent e) {
-					SwingUtilities.invokeLater(new Runnable() {
-						@Override
-						public void run() {
-							((JTextComponent) field).selectAll();
-						}
-					});
-				}
-			});
-		}
+		field.addFocusListener(new FocusAdapter() {
+			@Override
+			public void focusGained(FocusEvent e) {
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						((JTextComponent) field).selectAll();
+					}
+				});
+			}
+		});
 	}
-	
+
 	/**
 	 * Show the chooser popup.
-	 * 
+	 *
 	 * @param parent parent component
 	 * @param location location of the popup in parent coordinates
 	 */
@@ -102,7 +101,7 @@ public class DropAmountChooser {
 		/*
 		 * Needs to be after show(). Also, heavy weight popups need time to
 		 * appear, so the focus request needs to be pushed to the end of the
-		 * event queue. 
+		 * event queue.
 		 */
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
@@ -111,46 +110,54 @@ public class DropAmountChooser {
 			}
 		});
 	}
-	
+
 	/**
 	 * Construct the popup.
-	 * 
+	 *
 	 * @return popup
 	 */
 	private JPopupMenu createPopup() {
 		JPopupMenu menu = new JPopupMenu();
-		
+
 		SpinnerModel model = new SpinnerNumberModel(1, 0, item.getQuantity(), 1);
 		spinner = new JSpinner(model);
-		/* 
-		 * Setup a key listener for the editor field so that the drop is
-		 * performed when the user presses enter.
-		 */
-		getTextField().addKeyListener(new KeyAdapter() {
+		// Special document for editing numbers
+		PlainDocument doc = new PlainDocument() {
+			private DocumentFilter filter;
 			@Override
-			public void keyTyped(KeyEvent e) {
-				if (e.getKeyChar() == KeyEvent.VK_ENTER) {
-					doDrop();
+			public DocumentFilter getDocumentFilter() {
+				if (filter == null) {
+					filter = new NumberDocumentFilter(getTextField(), true);
 				}
+				return filter;
 			}
-		});
+		};
+		getTextField().setDocument(doc);
+
 		JButton button = new JButton("Połóż");
-		button.addActionListener(new ActionListener() {
+
+		ActionListener dropAction = new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				doDrop();
 			}
-		});
-		
+		};
+		/*
+		 * Drop items at either clicking the drop button, or when enter is
+		 * pressed.
+		 */
+		getTextField().addActionListener(dropAction);
+		button.addActionListener(dropAction);
+
 		JComponent content = SBoxLayout.createContainer(SBoxLayout.HORIZONTAL, SBoxLayout.COMMON_PADDING);
 		content.setBorder(BorderFactory.createEmptyBorder(BORDER, BORDER, BORDER, BORDER));
 		content.add(spinner);
 		content.add(button);
 		menu.add(content);
-		
+
 		return menu;
 	}
-	
+
 	/**
 	 * Perform the drop.
 	 */
@@ -166,13 +173,13 @@ public class DropAmountChooser {
 			popup.setVisible(false);
 		}
 	}
-	
+
 	/**
 	 * Get the editable text field component of the spinner.
-	 * 
+	 *
 	 * @return text field
 	 */
-	private JComponent getTextField() {
+	private JTextField getTextField() {
 		// There really seems to be no simpler way to do this
 		JComponent editor = spinner.getEditor();
 		if (editor instanceof JSpinner.DefaultEditor) {
@@ -180,7 +187,7 @@ public class DropAmountChooser {
 		} else {
 			Logger.getLogger(DropAmountChooser.class).error("Unknown editor type", new Throwable());
 			// This will not work, but at least it won't crash the client
-			return editor;
+			return new JTextField();
 		}
 	}
 }

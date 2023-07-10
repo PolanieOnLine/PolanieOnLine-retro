@@ -1,6 +1,5 @@
-/* $Id: Guslarz.java,v 1.2 2012/12/21 00:46:08 edi18028 Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,20 +11,19 @@
  ***************************************************************************/
 package games.stendhal.server.script;
 
+import java.util.List;
+
 import games.stendhal.server.core.rp.StendhalQuestSystem;
 import games.stendhal.server.core.scripting.ScriptImpl;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.quests.MeetGuslarz;
 
-import java.util.List;
-
 /**
  * Starts or stops Guslarz.
- * 
- * @author kymara
+ *
+ * @author edi18028
  */
 public class Guslarz extends ScriptImpl {
-
 	@Override
 	public void execute(final Player admin, final List<String> args) {
 		if (args.size() != 1) {
@@ -42,11 +40,13 @@ public class Guslarz extends ScriptImpl {
 	}
 
 	/**
-	 * starts Gusla.
+	 * Starts Gusla.
+	 *
+	 * @param admin adminstrator running the script
 	 */
 	private void startGusla(Player admin) {
 		if (System.getProperty("stendhal.guslarz") != null) {
-			admin.sendPrivateText("Guślarz jest już aktywowany.");
+			admin.sendPrivateText("Guślarz został aktywowany.");
 			return;
 		}
 		System.setProperty("stendhal.guslarz", "true");
@@ -54,15 +54,16 @@ public class Guslarz extends ScriptImpl {
 	}
 
 	/**
-	 * ends Gusla
+	 * Ends Gusla.
+	 *
+	 * @param admin adminstrator running the script
 	 */
 	private void stopGusla(Player admin) {
 		if (System.getProperty("stendhal.guslarz") == null) {
-			admin.sendPrivateText("Guślarz nie został aktywowany.");
+			admin.sendPrivateText("Guślarz został aktywowany.");
 			return;
 		}
 		System.getProperties().remove("stendhal.guslarz");
 		StendhalQuestSystem.get().unloadQuest(MeetGuslarz.QUEST_NAME);
 	}
-
 }

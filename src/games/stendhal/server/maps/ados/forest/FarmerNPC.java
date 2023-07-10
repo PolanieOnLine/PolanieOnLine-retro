@@ -1,4 +1,3 @@
-/* $Id: FarmerNPC.java,v 1.5 2010/12/29 23:39:13 martinfuchs Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,19 +11,25 @@
  ***************************************************************************/
 package games.stendhal.server.maps.ados.forest;
 
-import games.stendhal.server.core.config.ZoneConfigurator;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.core.pathfinder.FixedPath;
-import games.stendhal.server.core.pathfinder.Node;
-import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.behaviour.adder.SellerAdder;
-import games.stendhal.server.entity.npc.behaviour.impl.SellerBehaviour;
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import games.stendhal.common.grammar.Grammar;
+import games.stendhal.server.core.config.ZoneConfigurator;
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.core.pathfinder.FixedPath;
+import games.stendhal.server.core.pathfinder.Node;
+import games.stendhal.server.entity.npc.ChatCondition;
+import games.stendhal.server.entity.npc.ConversationPhrases;
+import games.stendhal.server.entity.npc.ConversationStates;
+import games.stendhal.server.entity.npc.SpeakerNPC;
+import games.stendhal.server.entity.npc.behaviour.adder.SellerAdder;
+import games.stendhal.server.entity.npc.behaviour.impl.SellerBehaviour;
+import games.stendhal.server.entity.npc.condition.QuestCompletedCondition;
+import games.stendhal.server.entity.npc.condition.QuestNotCompletedCondition;
 
 /**
  * Builds Karl, the farmer NPC.
@@ -34,30 +39,25 @@ import java.util.Map;
  * @author kymara
  */
 public class FarmerNPC implements ZoneConfigurator {
-
 	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildFarmer(zone);
 	}
 
 	private void buildFarmer(final StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Karl") {
-
-			/* 
-			 * Karl walks around near the red barn and along the path some way.
-			 */
-			
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
-				nodes.add(new Node(64, 75));
-				nodes.add(new Node(64, 86));	
-				nodes.add(new Node(68, 86));	
+				nodes.add(new Node(64, 76));
+				nodes.add(new Node(64, 86));
+				nodes.add(new Node(68, 86));
 				nodes.add(new Node(68, 84));
 				nodes.add(new Node(76, 84));
 				nodes.add(new Node(68, 84));
@@ -68,31 +68,63 @@ public class FarmerNPC implements ZoneConfigurator {
 				nodes.add(new Node(64, 86));
 				setPath(new FixedPath(nodes, true));
 			}
-			
+
 			@Override
 			protected void createDialog() {
 				addGreeting("Heja! Miło Cię widzieć w naszym gospodarstwie.");
 				addJob("Och praca tutaj jest ciężka. Nawet nie myślę o tym, że mógłbyś mi pomóc.");
-				addOffer("Nasze mleko jest najlepsze. Zapytaj moją żonę #Philomena o mleko. Ja sprzedaję #'puste worki'");
 				addReply("Philomena","Ona jest w domku na południowy-zachód stąd.");
 				addHelp("Potrzebujesz pomocy? Mogę coś ci opowiedzieć o #sąsiedztwie.");
 				addReply(Arrays.asList("neighborhood.", "sąsiedztwie."),"Na północy znajduje się jaskinia z niedźwiedziami i innymi potworami. Jeżeli pójdziesz na północny-wschód " +
 						"to po pewnym czasie dojdziesz do dużego miasta Ados. Na wschodzie jest duuuuża skała. Balduin " +
 						"wciąż tam mieszka? Chcesz wyruszyć na południowy-wschód? Cóż.. możesz tamtędy dojść do Ados, ale " +
 						"droga jest trochę trudniejsza.");
-				addQuest("Nie mam teraz czasu na takie rzeczy. Pracuję.. pracuję.. pracuję..");
-				addReply(Arrays.asList("empty sack", "puste worki"),"Oh mam tego mnóstwo na sprzedaż. Czy chcesz kupić #'pusty worek'.");
-                final Map<String, Integer> offerings = new HashMap<String, Integer>();
+				addQuest("Nie mam teraz czasu na takie rzeczy. Praca.. praca.. praca..");
+				addReply(Arrays.asList("empty sack", "puste worki"),"Och, mam tego mnóstwo na sprzedaż. Czy chcesz kupić #'pusty worek'?");
+				addGoodbye("Do widzenia, do widzenia. Bądź ostrożny.");
+
+				// shop
+				final Map<String, Integer> offerings = new HashMap<String, Integer>();
                 offerings.put("pusty worek", 10);
-                new SellerAdder().addSeller(this, new SellerBehaviour(offerings));
-				addGoodbye("Dowidzenia, dowidzenia. Bądź ostrożny.");
+                final Map<String, Integer> allOfferings = new HashMap<String, Integer>();
+				allOfferings.putAll(offerings);
+				allOfferings.put("końskie włosie", 20);
+				final SellerBehaviour behaviour = new SellerBehaviour(allOfferings);
+				final Map<String, ChatCondition> conditions = new HashMap<String, ChatCondition>();
+				conditions.put("końskie włosie", new QuestCompletedCondition("bows_ouchit"));
+				behaviour.addConditions(this, conditions);
+				new SellerAdder().addSeller(this, behaviour, false);
+
+				final String offerReply = "Nasze mleko jest najlepsze. Zapytaj moją żonę #Philomena o mleko.";
+				add(
+					ConversationStates.ATTENDING,
+					ConversationPhrases.OFFER_MESSAGES,
+					new QuestNotCompletedCondition("bows_ouchit"),
+					false,
+					ConversationStates.ATTENDING,
+					offerReply + " Sprzedaję "
+						+ Grammar.enumerateCollection(offerings.keySet())
+						+ ". Sprzedam również końskie włosie po tym jak pomożesz"
+						+ " mojemu przyjacielowi.",
+					null);
+
+				add(
+					ConversationStates.ATTENDING,
+					ConversationPhrases.OFFER_MESSAGES,
+					new QuestCompletedCondition("bows_ouchit"),
+					false,
+					ConversationStates.ATTENDING,
+					offerReply + " Ostatnio mam tego nadmiar i teraz sprzedaję "
+						+ Grammar.enumerateCollection(allOfferings.keySet())
+						+ ".",
+					null);
 			}
 		};
 
-		npc.setDescription("Oto Karl miły starszy rolnik.");
+		npc.setDescription("Oto Karl, miły starszy rolnik.");
 		npc.setEntityClass("beardmannpc");
-		npc.setPosition(64, 75);
-		npc.initHP(100);
+		npc.setGender("M");
+		npc.setPosition(64, 76);
 		zone.add(npc);
 	}
 }

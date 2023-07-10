@@ -1,6 +1,5 @@
-/* $Id: DefaultItem.java,v 1.16 2010/12/03 20:09:38 martinfuchs Exp $ */
 /***************************************************************************
- *                      (C) Copyright 2003 - Marauroa                      *
+ *                   (C) Copyright 2003-2023 - Marauroa                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,30 +11,36 @@
  ***************************************************************************/
 package games.stendhal.server.core.rule.defaultruleset;
 
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import games.stendhal.common.constants.Nature;
 import games.stendhal.server.core.rule.defaultruleset.creator.AbstractCreator;
 import games.stendhal.server.core.rule.defaultruleset.creator.AttributesItemCreator;
 import games.stendhal.server.core.rule.defaultruleset.creator.DefaultItemCreator;
 import games.stendhal.server.core.rule.defaultruleset.creator.FullItemCreator;
 import games.stendhal.server.entity.item.Item;
-
-import java.lang.reflect.Constructor;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
+import games.stendhal.server.entity.item.behavior.UseBehavior;
+import games.stendhal.server.entity.status.PoisonAttackerFactory;
+import games.stendhal.server.entity.status.StatusAttacker;
+import games.stendhal.server.entity.status.StatusAttackerFactory;
+import games.stendhal.server.entity.status.StatusType;
 
 /**
  * All default items which can be reduced to stuff that increase the attack
  * point and stuff that increase the defense points.
- * 
+ *
  * @author Matthias Totz, chad3f
  */
 public class DefaultItem {
 
 	/** Implementation creator. */
 	private AbstractCreator<Item> creator;
-	
+
 	/** items class. */
 	private String clazz;
 
@@ -63,10 +68,26 @@ public class DefaultItem {
 	private Class< ? > implementation = null;
 
 	private int value;
-	
+
 	private Nature damageType;
-	
+
 	private Map<Nature, Double> susceptibilities;
+
+	/* List of status effects to be added to StatusResistantIte. */
+	private Map<StatusType, Double> resistances;
+
+	private String[] statusAttacks;
+
+	/* Slots where SlotActivatedItem can be activated when equipped. */
+	private List<String> activeSlotsList;
+
+	private boolean unattainable = false;
+
+	/**
+	 * Use behavior of the item, or <code>null</code> if no special behaviors
+	 * are attached.
+	 */
+	private UseBehavior useBehavior;
 
 	public DefaultItem(final String clazz, final String subclazz, final String name, final int tileid) {
 		this.clazz = clazz;
@@ -106,30 +127,75 @@ public class DefaultItem {
 	public String getDescription() {
 		return description;
 	}
-	
+
 	public void setDamageType(String type) {
 		damageType = Nature.parse(type);
 	}
-	
+
 	/**
 	 * Set the susceptibilities. The key of each map entry should be a
 	 * string corresponding to a damage type. The value is the susceptibility
 	 * value of that damage type. The content of the mapping is copied, so
 	 * it can be safely modified afterwards.
-	 *  
+	 *
 	 * @param sus susceptibility mapping
 	 */
 	public void setSusceptibilities(Map<String, Double> sus) {
 		susceptibilities = new EnumMap<Nature, Double>(Nature.class);
-		
+
 		for (Entry<String, Double> entry : sus.entrySet()) {
 			susceptibilities.put(Nature.parse(entry.getKey()), entry.getValue());
+		}
+	}
+
+	public void setStatusAttacks(final String statusAttacks) {
+		this.statusAttacks = statusAttacks.split(";");
+	}
+
+	/**
+	 * Add slots to list where SlotActivatedItem can be activated when
+	 * equipped.
+	 *
+	 * @param slots
+	 * 		String list of slots separated by semicolon
+	 */
+	public void initializeActiveSlotsList(String slots) {
+		// Make sure the list is initialized
+		if (activeSlotsList == null) {
+			activeSlotsList = new ArrayList<String>();
+		}
+
+		for (String s : slots.split(";")) {
+			activeSlotsList.add(s);
+		}
+	}
+
+	/**
+	 * Set the types of status attacks that this StatusResistantItem can resist.
+	 *
+	 * @param res
+	 * 		The status type and the resistance value
+	 */
+	public void initializeStatusResistancesList(Map<String, Double> res) {
+		resistances = new EnumMap<StatusType, Double>(StatusType.class);
+
+		for (Entry<String, Double> entry : res.entrySet()) {
+			resistances.put(StatusType.parse(entry.getKey()), entry.getValue());
 		}
 	}
 
 	public void setImplementation(final Class< ? > implementation) {
 		this.implementation = implementation;
 		creator = buildCreator(implementation);
+	}
+
+	/**
+	 * Set the use behavior.
+	 *
+	 * @param behavior new behavior
+	 */
+	public void setBehavior(UseBehavior behavior) {
+		this.useBehavior = behavior;
 	}
 
 	public Class< ? > getImplementation() {
@@ -139,17 +205,17 @@ public class DefaultItem {
 	/**
 	 * Build a creator for the class. It uses the following constructor search
 	 * order:<br>
-	 * 
+	 *
 	 * <ul>
 	 * <li><em>Class</em>(<em>name</em>, <em>clazz</em>,
 	 * <em>subclazz</em>, <em>attributes</em>)
 	 * <li><em>Class</em>(<em>attributes</em>)
 	 * <li><em>Class</em>()
 	 * </ul>
-	 * 
+	 *
 	 * @param implementation
 	 *            The implementation class.
-	 * 
+	 *
 	 * @return A creator, or <code>null</code> if none found.
 	 */
 	protected AbstractCreator<Item> buildCreator(final Class< ? > implementation) {
@@ -194,7 +260,7 @@ public class DefaultItem {
 
 	/**
 	 * Returns an item-instance.
-	 * 
+	 *
 	 * @return An item, or <code>null</code> on error.
 	 */
 	public Item getItem() {
@@ -213,7 +279,36 @@ public class DefaultItem {
 			if (damageType != null) {
 				item.setDamageType(damageType);
 			}
+			item.setWeight(weight);
 			item.setSusceptibilities(susceptibilities);
+
+			// status attackers
+			if (statusAttacks != null) {
+				for (final String statk: statusAttacks) {
+					StatusAttacker statusAttacker;
+					if (statk.contains("trucizna") || statk.contains("jad kobry") || statk.contains("ekstrakt litworowy")) {
+						statusAttacker = PoisonAttackerFactory.get(statk);
+					} else {
+						statusAttacker = StatusAttackerFactory.get(statk);
+					}
+					if (statusAttacker != null) {
+						item.addStatusAttacker(statusAttacker);
+					}
+				}
+			}
+
+			/* Set a list of status resistances for StatusResistantItem. */
+			if ((this.resistances != null) && (!this.resistances.isEmpty())) {
+				item.initializeStatusResistancesList(resistances);
+			}
+
+			/* Set a list of active slots for SlotActivatedItem. */
+			if ((this.activeSlotsList != null)
+					&& (!this.activeSlotsList.isEmpty())) {
+				item.initializeActiveSlotsList(this.activeSlotsList);
+			}
+
+			item.setUseBehavior(useBehavior);
 		}
 
 		return item;
@@ -260,6 +355,46 @@ public class DefaultItem {
 
 	public void setItemName(final String val) {
 		name = val;
+	}
+
+	public AbstractCreator<Item> getCreator() {
+		return creator;
+	}
+
+	public List<String> getSlots() {
+		return slots;
+	}
+
+	public Nature getDamageType() {
+		return damageType;
+	}
+
+	public Map<Nature, Double> getSusceptibilities() {
+		return susceptibilities;
+	}
+
+	public Map<StatusType, Double> getResistances() {
+		return resistances;
+	}
+
+	public String[] getStatusAttacks() {
+		return statusAttacks;
+	}
+
+	public List<String> getActiveSlotsList() {
+		return activeSlotsList;
+	}
+
+	public UseBehavior getUseBehavior() {
+		return useBehavior;
+	}
+
+	public boolean isUnattainable() {
+		return unattainable;
+	}
+
+	public void setUnattainable(boolean unattainable) {
+		this.unattainable = unattainable;
 	}
 
 	public String toXML() {

@@ -1,4 +1,4 @@
-/* $Id: PlayerVisitedZonesInRegionCondition.java,v 1.6 2012/09/09 12:33:24 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +12,12 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.condition;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Collection;
+
+import com.google.common.base.Objects;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
 import games.stendhal.server.core.config.annotations.Dev.Category;
@@ -20,11 +26,6 @@ import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.Collection;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 /**
  * Checks if player has visited certain zones in a region
  *
@@ -46,13 +47,13 @@ public class PlayerVisitedZonesInRegionCondition implements ChatCondition {
 	 * Creates a new PlayerVisitedZonesCondition
 	 *
 	 * @param region the name of the region to consider
-	 * @param exterior
-	 * @param aboveGround
-	 * @param accessible
+	 * @param exterior    outside zones? true, false, null
+	 * @param aboveGround above ground level? true, false, null
+	 * @param accessible  is the zone reachable by players? true, false, null
 	 */
 	public PlayerVisitedZonesInRegionCondition(String region, Boolean exterior,
 			Boolean aboveGround, Boolean accessible) {
-		this.region = region;
+		this.region = checkNotNull(region);
 		this.exterior = exterior;
 		this.aboveGround = aboveGround;
 		this.accessible = accessible;
@@ -62,14 +63,15 @@ public class PlayerVisitedZonesInRegionCondition implements ChatCondition {
 	 * Creates a new PlayerVisitedZonesCondition
 	 *
 	 * @param region the name of the region to consider
-	 * @param exterior
-	 * @param aboveGround
+	 * @param exterior    outside zones? true, false, null
+	 * @param aboveGround above ground level? true, false, null
 	 */
 	public PlayerVisitedZonesInRegionCondition(String region, Boolean exterior,
 			Boolean aboveGround) {
 		this(region, exterior, aboveGround, Boolean.TRUE);
 	}
 
+	@Override
 	public boolean fire(Player player, Sentence sentence, Entity npc) {
 		Collection<StendhalRPZone> zones = SingletonRepository.getRPWorld().getAllZonesFromRegion(region, exterior, aboveGround, accessible);
 		for(StendhalRPZone zone : zones) {
@@ -82,13 +84,19 @@ public class PlayerVisitedZonesInRegionCondition implements ChatCondition {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 45763 * region.hashCode();
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				PlayerVisitedZonesInRegionCondition.class);
+		if (!(obj instanceof PlayerVisitedZonesInRegionCondition)) {
+			return false;
+		}
+		PlayerVisitedZonesInRegionCondition other = (PlayerVisitedZonesInRegionCondition) obj;
+		return region.equals(other.region)
+			&& Objects.equal(exterior, other.exterior)
+			&& Objects.equal(aboveGround, other.aboveGround)
+			&& Objects.equal(accessible, other.accessible);
 	}
 
 	@Override

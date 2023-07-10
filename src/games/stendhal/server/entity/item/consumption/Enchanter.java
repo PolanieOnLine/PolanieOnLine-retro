@@ -1,4 +1,4 @@
-/* $Id: Enchanter.java,v 1.1 2011/11/01 22:52:13 theredqueen Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -17,6 +17,7 @@ import games.stendhal.server.entity.player.Player;
 
 class Enchanter implements Feeder {
 
+	@Override
 	public boolean feed(final ConsumableItem item, final Player player) {
 		player.addMana(((ConsumableItem) item.splitOff(1)).getAmount(), true);
 		return true;

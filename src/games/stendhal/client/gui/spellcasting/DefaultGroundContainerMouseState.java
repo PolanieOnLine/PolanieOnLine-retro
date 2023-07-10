@@ -1,4 +1,23 @@
+/***************************************************************************
+ *                   (C) Copyright 2003-2013 - Stendhal                    *
+ ***************************************************************************
+ ***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
 package games.stendhal.client.gui.spellcasting;
+
+import java.awt.Point;
+import java.awt.geom.Point2D;
+
+import javax.swing.JPopupMenu;
+import javax.swing.SwingUtilities;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 
 import games.stendhal.client.StaticGameLayers;
 import games.stendhal.client.entity.ActionType;
@@ -10,14 +29,6 @@ import games.stendhal.client.gui.j2d.entity.EntityView;
 import games.stendhal.client.gui.styled.cursor.StendhalCursor;
 import games.stendhal.client.gui.wt.EntityViewCommandList;
 import games.stendhal.client.gui.wt.core.WtWindowManager;
-
-import java.awt.Point;
-import java.awt.geom.Point2D;
-
-import javax.swing.JPopupMenu;
-import javax.swing.SwingUtilities;
-import javax.swing.event.PopupMenuEvent;
-import javax.swing.event.PopupMenuListener;
 
 public class DefaultGroundContainerMouseState extends GroundContainerMouseState {
 
@@ -34,11 +45,11 @@ public class DefaultGroundContainerMouseState extends GroundContainerMouseState 
 		}
 		// on MS Windows releasing the mouse after a drag&drop action is
 		// counted as mouse click: https://sourceforge.net/support/tracker.php?aid=2976895
-		if ((Math.abs(point.getX() - xOnMousePressed) > 10) 
+		if ((Math.abs(point.getX() - xOnMousePressed) > 10)
 			|| (Math.abs(point.getY() - yOnMousePressed) > 10)) {
 			return false;
 		}
-		
+
 		// for the text pop up....
 		final RemovableSprite text = ground.getScreen().getTextAt(point.x, point.y);
 		if (text != null) {
@@ -51,7 +62,7 @@ public class DefaultGroundContainerMouseState extends GroundContainerMouseState 
 
 		// for the clicked entity....
 		final EntityView<?> view = ground.getScreen().getEntityViewAt(location.getX(), location.getY());
-		boolean doubleClick = Boolean.parseBoolean(WtWindowManager.getInstance().getProperty("ui.doubleclick", "false"));
+		boolean doubleClick = WtWindowManager.getInstance().getPropertyBoolean("ui.doubleclick", false);
 		if ((view != null) && view.isInteractive()) {
 			if (isCtrlDown()) {
 				view.onAction();
@@ -110,9 +121,11 @@ public class DefaultGroundContainerMouseState extends GroundContainerMouseState 
 				 * information to prevent walking when hiding the menu.
 				 */
 				menu.addPopupMenuListener(new PopupMenuListener() {
+					@Override
 					public void popupMenuCanceled(PopupMenuEvent e) {
 						//ignore
 					}
+					@Override
 					public void popupMenuWillBecomeInvisible(PopupMenuEvent arg0) {
 						/*
 						 *  Hidden. inform onMouseClick; unfortunately this gets
@@ -120,11 +133,13 @@ public class DefaultGroundContainerMouseState extends GroundContainerMouseState 
 						 *  pack to the event queue
 						 */
 						SwingUtilities.invokeLater(new Runnable() {
+							@Override
 							public void run() {
-								contextMenuFlag = false;	
+								contextMenuFlag = false;
 							}
 						});
 					}
+					@Override
 					public void popupMenuWillBecomeVisible(PopupMenuEvent arg0) {
 						// ignore
 					}
@@ -176,7 +191,7 @@ public class DefaultGroundContainerMouseState extends GroundContainerMouseState 
 			if ((layers.getCollisionDetection() != null) && layers.getCollisionDetection().collides((int) point2.getX(), (int) point2.getY())) {
 				cursor = StendhalCursor.STOP;
 			} else if (ground.calculateZoneChangeDirection(point2) != null) {
-				cursor = StendhalCursor.WALK_BORDER;					
+				cursor = StendhalCursor.WALK_BORDER;
 			}
 		}
 		return cursor;

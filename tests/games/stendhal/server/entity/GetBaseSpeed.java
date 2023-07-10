@@ -1,4 +1,4 @@
-/* $Id: GetBaseSpeed.java,v 1.14 2010/09/19 02:39:45 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -13,24 +13,24 @@
 package games.stendhal.server.entity;
 
 import static org.junit.Assert.assertEquals;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import games.stendhal.server.entity.creature.Cat;
 import games.stendhal.server.entity.creature.Creature;
 import games.stendhal.server.entity.creature.Sheep;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.maps.MockStendlRPWorld;
-
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import utilities.PlayerTestHelper;
 import utilities.RPClass.CatTestHelper;
 import utilities.RPClass.SheepTestHelper;
 
 public class GetBaseSpeed {
-	
+
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-	
+
 		MockStendlRPWorld.get();
 		PlayerTestHelper.generateCreatureRPClasses();
 		CatTestHelper.generateRPClasses();

@@ -1,4 +1,4 @@
-/* $Id: Sign.java,v 1.53 2010/04/01 20:12:47 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -15,12 +15,6 @@ package games.stendhal.client.entity;
 import marauroa.common.game.RPObject;
 
 public class Sign extends Entity {
-
-	/**
-	 * Text property.
-	 */
-	public static final Property PROP_TEXT = new Property();
-
 	/**
 	 * The sign text.
 	 */
@@ -35,7 +29,7 @@ public class Sign extends Entity {
 
 	/**
 	 * Get the sign text.
-	 * 
+	 *
 	 * @return The sign text.
 	 */
 	public String getText() {
@@ -60,7 +54,7 @@ public class Sign extends Entity {
 
 	/**
 	 * The object added/changed attribute(s).
-	 * 
+	 *
 	 * @param object
 	 *            The base object.
 	 * @param changes
@@ -72,18 +66,16 @@ public class Sign extends Entity {
 
 		if (changes.has("action")) {
 			action = changes.get("action");
-			fireChange(PROP_TEXT);
 		}
 
 		if (changes.has("text")) {
 			text = changes.get("text");
-			fireChange(PROP_TEXT);
 		}
 	}
 
 	/**
 	 * The object removed attribute(s).
-	 * 
+	 *
 	 * @param object
 	 *            The base object.
 	 * @param changes
@@ -95,7 +87,6 @@ public class Sign extends Entity {
 
 		if (changes.has("text")) {
 			text = "";
-			fireChange(PROP_TEXT);
 		}
 	}
 }

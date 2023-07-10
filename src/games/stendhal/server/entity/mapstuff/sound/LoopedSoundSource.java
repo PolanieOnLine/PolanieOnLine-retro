@@ -1,4 +1,3 @@
-/* $Id: LoopedSoundSource.java,v 1.3 2010/09/19 02:24:30 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -14,9 +13,9 @@ package games.stendhal.server.entity.mapstuff.sound;
 
 import games.stendhal.common.constants.SoundLayer;
 import games.stendhal.server.entity.PassiveEntity;
-import marauroa.common.game.RPClass;
 import marauroa.common.game.Definition.DefinitionClass;
 import marauroa.common.game.Definition.Type;
+import marauroa.common.game.RPClass;
 
 /**
  * Plays a sound and music in a loop.
@@ -24,8 +23,7 @@ import marauroa.common.game.Definition.Type;
  * @author hendrik
  */
 public class LoopedSoundSource extends PassiveEntity {
-	private static final String RPCLASS_NAME = "looped_sound_source";
-
+	public static final String RPCLASS_NAME = "looped_sound_source";
 
 	/**
 	 * Create an ambient sound area.
@@ -35,9 +33,13 @@ public class LoopedSoundSource extends PassiveEntity {
 		put("type", RPCLASS_NAME);
 	}
 
-
 	/**
 	 * Create an ambient sound area.
+	 *
+	 * @param sound sound name
+	 * @param radius
+	 * @param volume
+	 * @param layer
 	 */
 	public LoopedSoundSource(String sound, int radius, int volume, SoundLayer layer) {
 		setRPClass(RPCLASS_NAME);
@@ -47,7 +49,6 @@ public class LoopedSoundSource extends PassiveEntity {
 		put("volume", volume);
 		put("layer", layer.ordinal());
 	}
-
 
 	/**
 	 * generates the RPClass
@@ -60,5 +61,4 @@ public class LoopedSoundSource extends PassiveEntity {
 		rpclass.addAttribute("volume", Type.BYTE);
 		rpclass.add(DefinitionClass.ATTRIBUTE, "layer", Type.BYTE);
 	}
-
 }

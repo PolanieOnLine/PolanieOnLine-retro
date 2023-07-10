@@ -1,5 +1,5 @@
 /*
- * $Id: MarkedScroll.java,v 1.26 2011/10/03 12:00:47 nhnb Exp $
+ * $Id$
  */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
@@ -14,15 +14,16 @@
  ***************************************************************************/
 package games.stendhal.server.entity.item.scroll;
 
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.core.events.TeleportNotifier;
-import games.stendhal.server.entity.player.Player;
-
 import java.util.Map;
 import java.util.StringTokenizer;
 
 import org.apache.log4j.Logger;
+
+import games.stendhal.common.grammar.Grammar;
+import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.core.events.TeleportNotifier;
+import games.stendhal.server.entity.player.Player;
 
 /**
  * Represents a marked teleport scroll.
@@ -33,7 +34,7 @@ public class MarkedScroll extends TeleportScroll {
 
 	/**
 	 * Creates a new marked teleport scroll.
-	 * 
+	 *
 	 * @param name
 	 * @param clazz
 	 * @param subclass
@@ -42,22 +43,28 @@ public class MarkedScroll extends TeleportScroll {
 	public MarkedScroll(final String name, final String clazz, final String subclass,
 			final Map<String, String> attributes) {
 		super(name, clazz, subclass, attributes);
+
+		this.applyDestInfo();
+		this.update();
 	}
 
 	/**
 	 * Copy constructor.
-	 * 
+	 *
 	 * @param item
 	 *            item to copy
 	 */
 	public MarkedScroll(final MarkedScroll item) {
 		super(item);
+
+		this.applyDestInfo();
+		this.update();
 	}
 
 	/**
 	 * Is invoked when a teleporting scroll is used. Tries to put the player on
 	 * the scroll's destination, or near it.
-	 * 
+	 *
 	 * @param player
 	 *            The player who used the scroll and who will be teleported
 	 * @return true iff teleport was successful
@@ -71,7 +78,7 @@ public class MarkedScroll extends TeleportScroll {
 
 		/*
 		 * Marked scrolls have a destination which is stored in the infostring,
-		 * existing of a zone name and x and y coordinates
+		 * consisting of a zone name and x and y coordinates
 		 */
 		final String infostring = getInfoString();
 
@@ -84,18 +91,18 @@ public class MarkedScroll extends TeleportScroll {
 				if (temp == null) {
 					// invalid zone (the scroll may have been marked in an
 					// old version and the zone was removed)
-					player.sendPrivateText("Z dziwnych powodów zwój nie przeniósł mnie tam gdzie chciałem.");
+					player.sendPrivateText("Z dziwnych powodów zwój nie przeniósł mnie tam gdzie " + Grammar.genderVerb(player.getGender(), "chciałem") + ".");
 					logger.warn("marked scroll to unknown zone " + infostring
 							+ " teleported " + player.getName()
 							+ " to Semos instead");
 				} else {
 					if (player.getKeyedSlot("!visited", zoneName) == null) {
-						player.sendPrivateText("Słyszałeś wiele opowieści o miejscu, do którego chcesz się przenieść "
-								+ "nie możesz się skoncentrować ponieważ nigdy tam nie byłeś.");
+						player.sendPrivateText(Grammar.genderVerb(player.getGender(), "Słyszałeś") + " wiele opowieści o miejscu, do którego chcesz się przenieść "
+								+ "i nie możesz się skoncentrować ponieważ nigdy tam nie " + Grammar.genderVerb(player.getGender(), "byłeś") + ".");
 						return false;
 					} else {
-							zone = temp;
-							x = Integer.parseInt(st.nextToken());
+					        zone = temp;
+					        x = Integer.parseInt(st.nextToken());
 							y = Integer.parseInt(st.nextToken());
 						if (!zone.isTeleportInAllowed(x, y)) {
 							player.sendPrivateText("Silna antymagiczna aura blokuje działanie zwoju!");
@@ -111,7 +118,7 @@ public class MarkedScroll extends TeleportScroll {
 		TeleportNotifier.get().notify(player, true);
 		return player.teleport(zone, x, y, null, player);
 	}
-	
+
 	@Override
 	public String describe() {
 		String text = super.describe();
@@ -122,5 +129,26 @@ public class MarkedScroll extends TeleportScroll {
 			text += " Pod spodem widnieje napis: " + infostring;
 		}
 		return (text);
+	}
+
+	@Override
+	public void setInfoString(final String infostring) {
+		super.setInfoString(infostring);
+		this.applyDestInfo();
+	}
+
+	public void applyDestInfo() {
+		if (this.has("infostring")) {
+			final String[] infos = this.get("infostring").split(" ");
+			if (infos.length > 2) {
+				String destInfo = infos[0] + "," + infos[1] + "," + infos[2];
+				final String desc = this.getDescription();
+				// apply custom label
+				if (desc.contains("Pisze na nim: ")) {
+					destInfo += " (" + desc.split("\"")[1].trim() + ")";
+				}
+				this.put("dest", destInfo);
+			}
+		}
 	}
 }

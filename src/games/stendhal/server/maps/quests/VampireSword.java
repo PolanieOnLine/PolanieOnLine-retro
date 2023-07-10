@@ -1,6 +1,5 @@
-/* $Id: VampireSword.java,v 1.56 2012/04/24 17:01:18 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,6 +11,12 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
+import games.stendhal.common.grammar.Grammar;
 import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
@@ -21,13 +26,12 @@ import games.stendhal.server.entity.npc.action.EquipItemAction;
 import games.stendhal.server.entity.npc.action.IncreaseKarmaAction;
 import games.stendhal.server.entity.npc.action.IncreaseXPAction;
 import games.stendhal.server.entity.npc.action.MultipleActions;
+import games.stendhal.server.entity.npc.action.SayTimeRemainingAction;
 import games.stendhal.server.entity.npc.action.SetQuestAction;
 import games.stendhal.server.entity.npc.action.SetQuestAndModifyKarmaAction;
 import games.stendhal.server.entity.npc.action.SetQuestToTimeStampAction;
-import games.stendhal.server.entity.npc.action.SayTimeRemainingAction;
-import games.stendhal.server.entity.npc.behaviour.adder.ProducerAdder;
-import games.stendhal.server.entity.npc.behaviour.impl.ProducerBehaviour;
 import games.stendhal.server.entity.npc.condition.AndCondition;
+import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
 import games.stendhal.server.entity.npc.condition.KilledCondition;
 import games.stendhal.server.entity.npc.condition.NotCondition;
 import games.stendhal.server.entity.npc.condition.PlayerHasItemWithHimCondition;
@@ -36,17 +40,9 @@ import games.stendhal.server.entity.npc.condition.QuestCompletedCondition;
 import games.stendhal.server.entity.npc.condition.QuestInStateCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotStartedCondition;
 import games.stendhal.server.entity.npc.condition.QuestStateStartsWithCondition;
-import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
 import games.stendhal.server.entity.npc.condition.TimePassedCondition;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.Region;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * QUEST: The Vampire Sword
@@ -76,7 +72,8 @@ import java.util.TreeMap;
  * REWARD:
  * <ul>
  * <li>Vampire Sword</li>
- * <li>5000 XP</li>
+ * <li>5,000 XP</li>
+ * <li>some karma</li>
  * </ul>
  * <p>
  * REPETITIONS:
@@ -85,63 +82,53 @@ import java.util.TreeMap;
  * </ul>
  */
 public class VampireSword extends AbstractQuest {
+	private static final String QUEST_SLOT = "vs_quest";
+	private final SpeakerNPC npc = npcs.get("Hogart");
 
-	private static final int REQUIRED_IRON = 10;
-
+	private static final int REQUIRED_IRON = 50;
 	private static final int REQUIRED_MINUTES = 10;
 
-	private static final String QUEST_SLOT = "vs_quest";
-
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
-
 	private void prepareQuestOfferingStep() {
-		
-		final SpeakerNPC npc = npcs.get("Hogart");
-		
 		// Player asks about quests, and had previously rejected or never asked: offer it
 		npc.add(ConversationStates.ATTENDING,
-			ConversationPhrases.QUEST_MESSAGES, 
+			ConversationPhrases.QUEST_MESSAGES,
 			new QuestNotStartedCondition(QUEST_SLOT),
-			ConversationStates.QUEST_OFFERED, 
+			ConversationStates.QUEST_OFFERED,
 			"Mogę stworzyć potężny wysysający zdrowie miecz dla Ciebie. Będziesz musiał pójść do Katakumb, które znajdują się pod cmentarzem w Semos i pokonać Lorda Wampira. Jesteś zainteresowany?",
 			null);
-		
+
 		// Player asks about quests, but has finished this quest
 		npc.add(ConversationStates.ATTENDING,
-			ConversationPhrases.QUEST_MESSAGES, 
+			ConversationPhrases.QUEST_MESSAGES,
 			new QuestCompletedCondition(QUEST_SLOT),
-			ConversationStates.ATTENDING, 
+			ConversationStates.ATTENDING,
 			"Dlaczego mnie niepokoisz? Dostałeś miecz, idź i użyj go!",
 			null);
-		
+
 		// Player asks about quests, but has not finished this quest
 		npc.add(ConversationStates.ATTENDING,
-				ConversationPhrases.QUEST_MESSAGES, 
+				ConversationPhrases.QUEST_MESSAGES,
 				new QuestActiveCondition(QUEST_SLOT),
-				ConversationStates.ATTENDING, 
+				ConversationStates.ATTENDING,
 				"Dlaczego mnie niepokoisz skoro jeszcze nie skończyłeś zadania?",
 				null);
 
 		final List<ChatAction> gobletactions = new LinkedList<ChatAction>();
 		gobletactions.add(new EquipItemAction("pusta czara"));
-		gobletactions.add(new IncreaseKarmaAction(5.0));
 		gobletactions.add(new SetQuestAction(QUEST_SLOT, "start"));
 		// Player wants to do the quest
 		npc.add(ConversationStates.QUEST_OFFERED,
 			ConversationPhrases.YES_MESSAGES, null,
 			ConversationStates.ATTENDING, "Później będziesz potrzebował #czarę. Weź ją do #Katakumb w Semos.",
 			new MultipleActions(gobletactions));
-		
+
 		// Player doesn't want to do the quest; remember this, but they can ask again to start it.
 		npc.add(
 			ConversationStates.QUEST_OFFERED,
 			ConversationPhrases.NO_MESSAGES,
 			null,
 			ConversationStates.IDLE,
-			"Zapomnij o tym. Musisz mieć lepszy miecz od tego, który chcę ci wykuć? Dowidzenia.",
+			"Zapomnij o tym. Musisz mieć lepszy miecz od tego, który chcę ci wykuć? Do widzenia.",
 			new SetQuestAndModifyKarmaAction(QUEST_SLOT, "rejected", -5.0));
 
 		npc.addReply(Arrays.asList("catacombs", "katakumb", "katakumbach"), "Katakumby na północ od Semos występowały już w starodawnych #legendach.");
@@ -150,49 +137,25 @@ public class VampireSword extends AbstractQuest {
 	}
 
 	private void prepareGobletFillingStep() {
-
 		final SpeakerNPC npc = npcs.get("Markovich");
 
-		npc.addGoodbye("*kaszlnięcie* ... dowidzenia ... *kaszlnięcie*");
-		npc.addReply(
-			Arrays.asList("blood", "truchło wampira", "truchło nietoperza", "krew"),
+		npc.addGoodbye("*kaszlnięcie* Do widzenia... *kaszlnięcie*");
+		npc.addReply(Arrays.asList("blood", "truchło wampira", "truchło nietoperza", "krew"),
 			"Potrzebuję krwi. Mogę ją wziąć tylko z wnętrzności żywych lub martwych. Wymieszam krew dla Ciebie i napełnię twoją #czarę jeżeli pozwolisz mi się trochę napić. Powiedz #napełnij jak się zdecydujesz. Boję się potężnego #lorda.");
-
 		npc.addReply(Arrays.asList("lord", "vampire", "skull ring", "pierścień z czaszką", "lorda", "wampirem", "wampir"),
 			"Lord Wampir rządzi w tych Katakumbach! Boję się go. Mógłbym Ci tylko pomóc jeżeli zabiłbyś go, przyniósł mi pierścień z czaszką oraz #czarę.");
-
-		npc.addReply(
-			Arrays.asList("empty goblet", "goblet", "pusta czara", "czara"),
+		npc.addReply(Arrays.asList("empty goblet", "goblet", "pusta czara", "czara"),
 			"Tylko potężny talizman jak ten kocioł lub specjalny kielich mogą zawierać krew.");
-
-		// The sick vampire is only a producer. He doesn't care if your quest slot is active, or anything.
-		// So to ensure that the vampire lord must have been killed, we made the skull ring a required item
-		// Which the vampire lord drops if the quest is active as in games.stendhal.server.maps.semos.catacombs.VampireLordCreature
-		// But, it could have been done other ways using quests slot checks and killed conditions
-		final Map<String, Integer> requiredResources = new TreeMap<String, Integer>();	
-		requiredResources.put("truchło wampira", 7);
-		requiredResources.put("truchło nietoperza", 7);
-		requiredResources.put("pierścień z czaszką", 1);
-		requiredResources.put("pusta czara", 1);
-		final ProducerBehaviour behaviour = new ProducerBehaviour(
-				"sicky_fill_goblet", Arrays.asList("fill", "napełnij"), "czara", requiredResources,
-				5 * 60, true);
-		new ProducerAdder().addProducer(npc, behaviour,
-			"Proszę nie próbuj mnie zabijać...Jestem tylko starym chorym #wampirem. Czy masz #krew, którą mógłbym wypić? Jeżeli masz #'pustą czarę' to napełnię ją krwią z mojego kotła.");
-
 	}
 
 	private void prepareForgingStep() {
-
-		final SpeakerNPC npc = npcs.get("Hogart");
-
 		final List<ChatAction> startforging = new LinkedList<ChatAction>();
 		startforging.add(new DropItemAction("czara"));
-		startforging.add(new DropItemAction("żelazo", 10));
+		startforging.add(new DropItemAction("żelazo", 50));
 		startforging.add(new IncreaseKarmaAction(5.0));
 		startforging.add(new SetQuestAction(QUEST_SLOT, "forging;"));
 		startforging.add(new SetQuestToTimeStampAction(QUEST_SLOT, 1));
-		
+
 		// Player returned with goblet and had killed the vampire lord, and has iron, so offer to forge the sword.
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 			new AndCondition(new GreetingMatchesNameCondition(npc.getName()),
@@ -200,78 +163,76 @@ public class VampireSword extends AbstractQuest {
 					new PlayerHasItemWithHimCondition("czara"),
 					new KilledCondition("lord wampir"),
 					new PlayerHasItemWithHimCondition("żelazo", REQUIRED_IRON)),
-			ConversationStates.IDLE, 
-			"Przyniosłeś wszystko czego potrzebuję do wyrobienia Vampire sword. Wróć za "
+			ConversationStates.IDLE,
+			"Przyniosłeś wszystko czego potrzebuję do wyrobienia krwiopijcy. Wróć za "
 			+ REQUIRED_MINUTES
-			+ " minutę" + ", a będzie gotowy", 
+			+ " minutę, a będzie gotowy",
 			new MultipleActions(startforging));
 
 		// Player returned with goblet and had killed the vampire lord, so offer to forge the sword if iron is brought
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
-				new AndCondition(new GreetingMatchesNameCondition(npc.getName()), 
+				new AndCondition(new GreetingMatchesNameCondition(npc.getName()),
 						new QuestInStateCondition(QUEST_SLOT,"start"),
 						new PlayerHasItemWithHimCondition("czara"),
 						new KilledCondition("lord wampir"),
 						new NotCondition(new PlayerHasItemWithHimCondition("żelazo", REQUIRED_IRON))),
-		ConversationStates.QUEST_ITEM_BROUGHT, 
-		"Stoczyłeś ciężkie boje, aby przynieść ten kielich. Użyję jego zawartość do wykucia ( #forge ) miecza zwanego krwiopijcą",
-		null);
-		
+				ConversationStates.QUEST_ITEM_BROUGHT,
+				"Stoczyłeś ciężkie boje, aby przynieść ten kielich. Użyję jego zawartość do wykucia (#'forge') miecza zwanego krwiopijcą",
+				null);
+
 		// Player has only an empty goblet currently, remind to go to Catacombs
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 			new AndCondition(new GreetingMatchesNameCondition(npc.getName()),
 					new QuestInStateCondition(QUEST_SLOT,"start"),
 					new PlayerHasItemWithHimCondition("pusta czara"),
-					new NotCondition(new PlayerHasItemWithHimCondition("czara"))), 
-			ConversationStates.IDLE, 
+					new NotCondition(new PlayerHasItemWithHimCondition("czara"))),
+			ConversationStates.IDLE,
 			"Zgubiłeś drogę? Katakumby są na północ od Semos." +
-			" Nie wracaj tutaj bez napełnionej czary! Dowidzenia! ",
+			" Nie wracaj tutaj bez napełnionej czary! Do widzenia!",
 			null);
-		
+
 		// Player has a goblet (somehow) but did not kill a vampire lord
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
-				new AndCondition(new GreetingMatchesNameCondition(npc.getName()),  
+				new AndCondition(new GreetingMatchesNameCondition(npc.getName()),
 						new QuestInStateCondition(QUEST_SLOT,"start"),
 						new PlayerHasItemWithHimCondition("czara"),
 						new NotCondition(new KilledCondition("lord wampir"))),
-		ConversationStates.IDLE, 
-		"Hm, ta czara jest pusta. Musisz zabić vampira i napełnić ją jego krwią.",
-		null);
-		
+				ConversationStates.IDLE,
+				"Hm, ta czara jest pusta. Musisz zabić vampira i napełnić ją jego krwią.",
+				null);
+
 		// Player lost the empty goblet?
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new GreetingMatchesNameCondition(npc.getName()),
 						new QuestInStateCondition(QUEST_SLOT,"start"),
 						new NotCondition(new PlayerHasItemWithHimCondition("pusta czara")),
-						new NotCondition(new PlayerHasItemWithHimCondition("czara"))), 
-			ConversationStates.QUESTION_1, 
-			"Mam nadzieje, że nie zgubiłeś czary! Potrzebujesz następnej?", 
+						new NotCondition(new PlayerHasItemWithHimCondition("czara"))),
+			ConversationStates.QUESTION_1,
+			"Mam nadzieje, że nie zgubiłeś czary! Potrzebujesz następnej?",
 			null);
 
 		// Player lost the empty goblet, wants another
 		npc.add(ConversationStates.QUESTION_1,
 			ConversationPhrases.YES_MESSAGES, null,
-			ConversationStates.IDLE, "Ty głupcze ..... Następnym razem bądź bardziej ostrożny. Dowidzenia!", 
+			ConversationStates.IDLE, "Ty głupcze... Następnym razem bądź bardziej ostrożny. Do widzenia!",
 			new EquipItemAction("pusta czara"));
-		
+
 		// Player doesn't have the empty goblet but claims they don't need another.
 		npc.add(
 			ConversationStates.QUESTION_1,
 			ConversationPhrases.NO_MESSAGES,
 			null,
 			ConversationStates.IDLE,
-			"Dlaczego tutaj wróciłeś? Idź zgładzić jakiegoś wampira! Dowidzenia!",
+			"Dlaczego tutaj wróciłeś? Idź zgładzić jakiegoś wampira! Do widzenia!",
 			null);
-		
+
 		// Returned too early; still forging
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new GreetingMatchesNameCondition(npc.getName()),
-						new QuestStateStartsWithCondition(QUEST_SLOT, "forging;"),
 						new NotCondition(new TimePassedCondition(QUEST_SLOT, 1, REQUIRED_MINUTES))),
 				ConversationStates.IDLE, null,
-				new SayTimeRemainingAction(QUEST_SLOT, 1, REQUIRED_MINUTES, "Jeszcze nie wykułem miecza. Przyjdź za " +
-						""));
-		
+				new SayTimeRemainingAction(QUEST_SLOT, 1, REQUIRED_MINUTES, "Jeszcze nie wykułem miecza. Przyjdź za "));
+
 		final List<ChatAction> reward = new LinkedList<ChatAction>();
 		reward.add(new IncreaseXPAction(5000));
 		reward.add(new IncreaseKarmaAction(15.0));
@@ -283,12 +244,11 @@ public class VampireSword extends AbstractQuest {
 				new AndCondition(new GreetingMatchesNameCondition(npc.getName()),
 						new QuestStateStartsWithCondition(QUEST_SLOT, "forging;"),
 						new TimePassedCondition(QUEST_SLOT, 1, REQUIRED_MINUTES)),
-			ConversationStates.IDLE, 
-			"Skończyłem wykuwanie Wampirzego Miecza. Zasłużyłeś na niego. Teraz wracam do pracy, dowidzenia!", 
+			ConversationStates.IDLE,
+			"Skończyłem wykuwanie krwiopijcy. Zasłużyłeś na niego. Teraz wracam do pracy, Do widzenia!",
 			new MultipleActions(reward));
 
-		npc.add(
-			ConversationStates.QUEST_ITEM_BROUGHT,
+		npc.add(ConversationStates.QUEST_ITEM_BROUGHT,
 			Arrays.asList("forge", "wykuj"),
 			null,
 			ConversationStates.QUEST_ITEM_BROUGHT,
@@ -297,18 +257,16 @@ public class VampireSword extends AbstractQuest {
 				+ " #żelazo, aby stworzyć miecz. Nie zapomnij też przynieść czary z krwią wampira.",
 			null);
 
-		npc.add(
-			ConversationStates.QUEST_ITEM_BROUGHT,
+		npc.add(ConversationStates.QUEST_ITEM_BROUGHT,
 			"żelazo",
 			null,
 			ConversationStates.IDLE,
-			"Zbierz rudę żelaza, a ja przetopię ją! Dowidzenia!",
+			"Zbierz rudę żelaza, a ja przetopię ją! Do widzenia!",
 			null);
 	}
 
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
 				"Krwiopijca",
 				"Hogart może zrobić miecz wysysający życie.",
@@ -324,32 +282,37 @@ public class VampireSword extends AbstractQuest {
 		if (!player.hasQuest(QUEST_SLOT)) {
 			return res;
 		}
-		res.add("Spotkałem Hogart w kuźni krasnalów.");
+		res.add(Grammar.genderVerb(player.getGender(), "Spotkałem") + " Hogart w kuźni krasnalów.");
 		final String questState = player.getQuest(QUEST_SLOT);
 		if (questState.equals("rejected")) {
 			res.add("Nie potrzebny mi miecz zwany krwiopijca");
 		}
 		if (player.isQuestInState(QUEST_SLOT, "start", "done")) {
-			res.add("Chcę miecz wysysający krew. Potrzebuję wrócić do Hogarta z czarą wypełnioną krwią");
+			res.add("Chcę miecz wysysający krew. Potrzebuję wrócić do Hogarta z czarą wypełnioną krwią.");
 		}
-		if ((questState.equals("start") && player.isEquipped("czara"))
+		if (questState.equals("start") && player.isEquipped("czara")
 				|| questState.equals("done")) {
-			res.add("Wziąłem pełną czarę do Hogarata i teraz potrzebuję uzbierać 10 rud żelaza");
+			res.add(Grammar.genderVerb(player.getGender(), "Wziąłem") + " pełną czarę do Hogarata i teraz potrzebuję uzbierać 50 żelaza.");
 		}
 		if (player.getQuest(QUEST_SLOT).startsWith("forging;")) {
-			res.add("Wziąłem 10 rud żelaza i czarę do Hogarta. Teraz wyrabia mój miecz.");
+			res.add(Grammar.genderVerb(player.getGender(), "Wziąłem") + " 50 żelaza i czarę do Hogarta. Teraz wyrabia mój miecz.");
 		}
 		if (questState.equals("done")) {
-			res.add("Nareszcie dostałem krwiopijcę.");
+			res.add("Nareszcie " + Grammar.genderVerb(player.getGender(), "dostałem") + " krwiopijcę.");
 		}
 		return res;
 	}
 
 	@Override
-	public String getName() {
-		return "VampireSword";
+	public String getSlotName() {
+		return QUEST_SLOT;
 	}
-	
+
+	@Override
+	public String getName() {
+		return "Krwiopijca";
+	}
+
 	@Override
 	public int getMinLevel() {
 		return 50;
@@ -357,9 +320,9 @@ public class VampireSword extends AbstractQuest {
 
 	@Override
 	public String getNPCName() {
-		return "Hogart";
+		return npc.getName();
 	}
-	
+
 	@Override
 	public String getRegion() {
 		return Region.ORRIL_MINES;

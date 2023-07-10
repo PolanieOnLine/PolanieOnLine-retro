@@ -1,6 +1,5 @@
-/* $Id: BuyerNPC.java,v 1.14 2012/08/23 20:05:45 yoriy Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,20 +11,16 @@
  ***************************************************************************/
 package games.stendhal.server.maps.magic.bricabrac;
 
-import games.stendhal.server.core.config.ZoneConfigurator;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.core.pathfinder.FixedPath;
-import games.stendhal.server.core.pathfinder.Node;
-import games.stendhal.server.entity.npc.ShopList;
-import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.behaviour.adder.BuyerAdder;
-import games.stendhal.server.entity.npc.behaviour.impl.BuyerBehaviour;
-
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import games.stendhal.server.core.config.ZoneConfigurator;
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.core.pathfinder.FixedPath;
+import games.stendhal.server.core.pathfinder.Node;
+import games.stendhal.server.entity.npc.SpeakerNPC;
 
 /**
  * Builds an witch NPC She is a trader for bric-a-brac items.
@@ -33,8 +28,6 @@ import java.util.Map;
  * @author kymara
  */
 public class BuyerNPC implements ZoneConfigurator {
-	private final ShopList shops = SingletonRepository.getShopList();
-
 	/**
 	 * Configure a zone.
 	 *
@@ -43,14 +36,13 @@ public class BuyerNPC implements ZoneConfigurator {
 	 * @param attributes
 	 *            Configuration attributes.
 	 */
-	public void configureZone(final StendhalRPZone zone,
-			final Map<String, String> attributes) {
+	@Override
+	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildNPC(zone);
 	}
 
 	private void buildNPC(final StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Vonda") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -101,16 +93,15 @@ public class BuyerNPC implements ZoneConfigurator {
 						Arrays.asList("sewing machine", "maszynie do szycia"),
 						"To jest moja ulubiona rzecz. Została wykonana przez człowieka o imieniu Zinger. Maszyna do szycia wciąż pracuje jak wtedy, gdy została zrobiona.");
 				addQuest("Nie mam żadnych życzeń.");
-				new BuyerAdder().addBuyer(this, new BuyerBehaviour(shops.get("buymagic")), false);
 				addOffer("W dużej książce znajduje się cennik reliktów i magicznych przedmiotów, które chciałabym kupić.");
-				addGoodbye("Dowidzenia.");
+				addGoodbye("Do widzenia.");
 			}
 		};
 
 		npc.setDescription("Oto Vonda, czarownica, która chyba lubi chaos...");
 		npc.setEntityClass("witch2npc");
+		npc.setGender("F");
 		npc.setPosition(4, 12);
-		npc.initHP(100);
 		zone.add(npc);
 	}
 }

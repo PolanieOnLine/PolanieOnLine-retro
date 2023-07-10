@@ -1,4 +1,4 @@
-/* $Id: SetQuestToPlayerAgeAction.java,v 1.6 2012/09/09 12:19:56 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,15 +12,14 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.action;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
 import games.stendhal.server.core.config.annotations.Dev.Category;
 import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.player.Player;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Sets the state of a quest to the current age of the player.
@@ -37,7 +36,7 @@ public class SetQuestToPlayerAgeAction implements ChatAction {
 	 * @param questname name of quest-slot to change
 	 */
 	public SetQuestToPlayerAgeAction(final String questname) {
-		this.questname = questname;
+		this.questname = checkNotNull(questname);
 		this.index = -1;
 	}
 
@@ -49,10 +48,11 @@ public class SetQuestToPlayerAgeAction implements ChatAction {
 	 */
 	@Dev
 	public SetQuestToPlayerAgeAction(final String questname, final int index) {
-		this.questname = questname;
+		this.questname = checkNotNull(questname);
 		this.index = index;
 	}
 
+	@Override
 	public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 		String state = Integer.toString(player.getAge());
 		if (index > -1) {
@@ -67,15 +67,18 @@ public class SetQuestToPlayerAgeAction implements ChatAction {
 		return "SetQuestToPlayerAgeAction<" + questname + "[" + index + "]>";
 	}
 
-
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 5521 * (questname.hashCode() + 5527 * index);
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				SetQuestToPlayerAgeAction.class);
+		if (!(obj instanceof SetQuestToPlayerAgeAction)) {
+			return false;
+		}
+		SetQuestToPlayerAgeAction other = (SetQuestToPlayerAgeAction) obj;
+		return (index == other.index)
+			&& questname.equals(other.questname);
 	}
 }

@@ -1,4 +1,3 @@
-/* $Id: NameCharacterValidator.java,v 1.5 2010/09/19 02:22:40 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -16,7 +15,7 @@ import marauroa.common.game.Result;
 
 /**
  * validates the character used for the character name.
- * 
+ *
  * @author hendrik
  */
 public class NameCharacterValidator implements AccountParameterValidator {
@@ -24,7 +23,7 @@ public class NameCharacterValidator implements AccountParameterValidator {
 
 	/**
 	 * creates a NameCharacterValidator.
-	 * 
+	 *
 	 * @param parameterValue
 	 *            value to validate
 	 */
@@ -32,6 +31,7 @@ public class NameCharacterValidator implements AccountParameterValidator {
 		this.parameterValue = parameterValue;
 	}
 
+	@Override
 	public Result validate() {
 		// letters , numbers and few signs are allowed
 		for (int i = parameterValue.length() - 1; i >= 0; i--) {

@@ -1,4 +1,3 @@
-/* $Id: RetiredAdventurerNPC.java,v 1.14 2010/12/29 15:02:13 martinfuchs Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,10 +11,15 @@
  ***************************************************************************/
 package games.stendhal.server.maps.semos.guardhouse;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
+import games.stendhal.server.entity.CollisionAction;
 import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
@@ -24,17 +28,12 @@ import games.stendhal.server.entity.npc.action.MultipleActions;
 import games.stendhal.server.entity.npc.action.SetQuestAction;
 import games.stendhal.server.entity.npc.action.StartRecordingKillsAction;
 import games.stendhal.server.entity.npc.condition.AndCondition;
+import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
 import games.stendhal.server.entity.npc.condition.NotCondition;
 import games.stendhal.server.entity.npc.condition.QuestActiveCondition;
 import games.stendhal.server.entity.npc.condition.QuestCompletedCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotStartedCondition;
-import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
 import games.stendhal.server.maps.quests.BeerForHayunn;
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 
 /**
  * An old hero (original name: Hayunn Naratha) who players meet when they enter the semos guard house.
@@ -43,23 +42,17 @@ import java.util.Map;
  * @see games.stendhal.server.maps.quests.MeetHayunn
  */
 public class RetiredAdventurerNPC implements ZoneConfigurator {
-	private static final String QUEST_SLOT="meet_hayunn";
-	
-	public void configureZone(StendhalRPZone zone,
-			Map<String, String> attributes) {
+	private static final String QUEST_SLOT = "meet_hayunn";
+
+	@Override
+	public void configureZone(StendhalRPZone zone, Map<String, String> attributes) {
 		buildNPC(zone);
 	}
-	
+
 	private void buildNPC(StendhalRPZone zone) {
-		SpeakerNPC npc = new SpeakerNPC("Hayunn Naratha") {
-			
+		final SpeakerNPC npc = new SpeakerNPC("Hayunn Naratha") {
 			@Override
 			public void createDialog() {
-				// A little trick to make NPC remember if it has met
-			    // player before and react accordingly
-				// NPC_name quest doesn't exist anywhere else neither is
-				// used for any other purpose
-
 				final List<ChatAction> actions = new LinkedList<ChatAction>();
 				actions.add(new SetQuestAction(QUEST_SLOT, 0, "start"));
 				actions.add(new StartRecordingKillsAction(QUEST_SLOT, 1, "szczur", 0, 1));
@@ -80,12 +73,11 @@ public class RetiredAdventurerNPC implements ZoneConfigurator {
 						ConversationStates.ATTENDING,
 						"Witaj ponownie. Jakiej #pomocy mogę Ci teraz udzielić?",
 						null);
-				 
+
 				addHelp("Jak już mówiłem, byłem kiedyś poszukiwaczem przygód, a teraz jestem nauczycielem. Chcesz bym nauczył Cię co sam potrafię?");
 				addJob("Moją pracą jest ochrona ludzi w Semos przed potworami, które mogą uciec z podziemi! Od kiedy młodzi ludzie wyruszyli na południe, aby walczyć ze złymi legionami Blordroughtów, potwory stały się pewniejsze i zaczęły wychodzić na powierzchnię. Semos oczekuje pomocy właśnie od ludzi takich jak ty. Idź do burmistrza i zapytaj o zadanie, z pewnością ma jakieś dla Ciebie.");
 				addGoodbye();
-		// further behaviour is defined in quests.
-	}
+			}// further behaviour is defined in quests.
 
 			@Override
 			protected void createPath() {
@@ -97,15 +89,15 @@ public class RetiredAdventurerNPC implements ZoneConfigurator {
 				nodes.add(new Node(11, 9));
 				setPath(new FixedPath(nodes, true));
 			}
-		
 		};
-		npc.setPosition(4, 9);
-		npc.setEntityClass("oldheronpc");
+
 		npc.setDescription("Oto Hayunn Naratha. Poniżej jego siwych włosów, a brudną zbroją widzisz świecące oczy i twarde mięśnie.");
+		npc.setEntityClass("oldheronpc");
+		npc.setGender("M");
+		npc.setPosition(4, 9);
+		npc.setCollisionAction(CollisionAction.STOP);
 		npc.setBaseHP(100);
 		npc.setHP(85);
 		zone.add(npc);
 	}
-
-
 }

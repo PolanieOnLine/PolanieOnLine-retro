@@ -1,21 +1,19 @@
-/* $Id: CountObjects.java,v 1.9 2008/07/12 14:43:47 astridemma Exp $ */
 package games.stendhal.server.script;
+
+import java.util.Iterator;
+import java.util.List;
 
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPWorld;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.scripting.ScriptImpl;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.Iterator;
-import java.util.List;
-
 import marauroa.common.game.IRPZone;
 import marauroa.common.game.RPObject;
 
 /**
  * Counts the number of creatures on the world.
- * 
+ *
  * @author hendrik
  */
 public class CountObjects extends ScriptImpl {
@@ -32,6 +30,6 @@ public class CountObjects extends ScriptImpl {
 				count++;
 			}
 		}
-		admin.sendPrivateText("Liczba objektów " + count);
+		admin.sendPrivateText("Liczba obiektów " + count);
 	}
 }

@@ -1,6 +1,5 @@
-/* $Id: QuestAchievementFactory.java,v 1.14 2011/08/02 22:19:43 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,6 +11,9 @@
  ***************************************************************************/
 package games.stendhal.server.core.rp.achievement.factory;
 
+import java.util.Collection;
+import java.util.LinkedList;
+
 import games.stendhal.server.core.rp.achievement.Achievement;
 import games.stendhal.server.core.rp.achievement.Category;
 import games.stendhal.server.core.rp.achievement.condition.QuestCountCompletedCondition;
@@ -19,54 +21,123 @@ import games.stendhal.server.core.rp.achievement.condition.QuestsInRegionComplet
 import games.stendhal.server.entity.npc.condition.QuestStateGreaterThanCondition;
 import games.stendhal.server.maps.Region;
 
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
 /**
  * Factory for quest achievements
- *  
+ *
  * @author madmetzger
  */
 public class QuestAchievementFactory extends AbstractAchievementFactory {
-	
-	@Override
-	public Collection<Achievement> createAchievements() {
-		List<Achievement> questAchievements = new LinkedList<Achievement>();
-		
-		//elf princess quest achievement
-		questAchievements.add(createAchievement("quest.special.elf_princess.0025", "Kasanowa Faiumoni", "Ukończył zadanie u księżniczki elfów 25 razy", 
-												Achievement.MEDIUM_BASE_SCORE, true, new QuestStateGreaterThanCondition("elf_princess", 2, 24)));
-
-		//Maze
-		questAchievements.add(createAchievement("quest.special.maze", "Kierunkowskaz", "Ukończył labirynt", 
-				Achievement.EASY_BASE_SCORE, true, new QuestStateGreaterThanCondition("maze", 2, 0)));
-		questAchievements.add(createAchievement("quest.deathmatch", "Bohater Deathmatcha", "Zdobył 100,000 punktów na deathmatchu",
-				Achievement.MEDIUM_BASE_SCORE, true, new QuestStateGreaterThanCondition("deathmatch_score", 0, 100000)));
-
-		// Ados Deathmatch
-		// disabled. Currently the wrong index is being checked (it would be index 6) 
-		// and as per bug report https://sourceforge.net/tracker/?func=detail&aid=3148365&group_id=1111&atid=101111 the count is not saved anyway
-		//questAchievements.add(createAchievement("quest.special.dm.025", "Gladiator", "Walczył na 25 Deathmatchach",
-		//		Achievement.HARD_BASE_SCORE, true, new QuestStateGreaterThanCondition("deathmatch", 1, 24)));
-		
-		// have completed all quests in Semos City?
-		questAchievements.add(createAchievement("quest.special.semos", "Przyjaciel Semos", "Ukończył wszystkie zadania w mieście Semos",
-				Achievement.MEDIUM_BASE_SCORE, true, new QuestsInRegionCompletedCondition(Region.SEMOS_CITY)));
-		
-		// have completed all quests in Ados City?
-		questAchievements.add(createAchievement("quest.special.ados", "Przyjaciel Ados", "Ukończył wszystkie zadania w mieście Ados",
-				Achievement.MEDIUM_BASE_SCORE, true, new QuestsInRegionCompletedCondition(Region.ADOS_CITY)));
-		
-		// complete nearly all the quests in the game?
-		questAchievements.add(createAchievement("quest.count.80", "Pogromca zadań","Ukończyl conajmniej 80 zadań",
-				Achievement.MEDIUM_BASE_SCORE, true, new QuestCountCompletedCondition(80)));
-
-		return questAchievements;
-	}
+	public static final String ID_FLOWERSHOP = "quest.flowershop.0050";
 
 	@Override
 	protected Category getCategory() {
 		return Category.QUEST;
 	}
 
+	@Override
+	public Collection<Achievement> createAchievements() {
+		final LinkedList<Achievement> achievements = new LinkedList<Achievement>();
+
+		// Elf Princess quest achievement
+		achievements.add(createAchievement(
+			"quest.special.elf_princess.0025", "Kasanowa Faiumoni",
+			"Ukończono zadanie u księżniczki elfów 25 razy", 
+			Achievement.MEDIUM_BASE_SCORE, true,
+			new QuestStateGreaterThanCondition("elf_princess", 2, 24)));
+
+		// Kill Monks quest achievement
+		achievements.add(createAchievement(
+			"quest.special.kill_monks.0025", "Heretyk",
+			"Ukończono zadanie 'Zabij Mnichów' 25 razy",
+			Achievement.HARD_BASE_SCORE, true,
+			new QuestStateGreaterThanCondition("kill_monks", 2, 24)));
+
+		// Maze
+		achievements.add(createAchievement(
+			"quest.special.maze", "Kierunkowskaz",
+			"Ukończono labirynt", 
+			Achievement.EASY_BASE_SCORE, true,
+			new QuestStateGreaterThanCondition("maze", 2, 0)));
+
+		// Hunting
+		achievements.add(createAchievement(
+			"quest.special.hunter", "Łowca Nagród",
+			"Ukończono polowania Janisława 10 razy", 
+			Achievement.MEDIUM_BASE_SCORE, true,
+			new QuestStateGreaterThanCondition("hunting", 2, 9)));
+
+		// Balloon for Bobby
+		achievements.add(createAchievement(
+			"quest.bobby.balloons.0005", "Uczestnik",
+			"Przyniesiono 5 balonów Bobbiemu",
+			Achievement.HARD_BASE_SCORE, true,
+			new QuestStateGreaterThanCondition("balloon_bobby", 1, 4)));
+
+		// Meal for Groongo Rahnnt
+		achievements.add(createAchievement(
+			"quest.groongo.meals.0050", "Cierpliwie Czekający na Gderacza",
+			"Zaserwowano 50 posiłków dla Groongo Rahnnt",
+			Achievement.MEDIUM_BASE_SCORE, true,
+			new QuestStateGreaterThanCondition("meal_for_groongo", 7, 49)));
+
+		// Restock the Flower Shop
+		achievements.add(createAchievement(
+			ID_FLOWERSHOP, "Zamiłowanie Kwiatkami",
+			"Uzupełniono zapasy kwiaciarni w Nalwor 50 razy",
+			Achievement.MEDIUM_BASE_SCORE, true,
+			new QuestStateGreaterThanCondition("restock_flowershop", 2, 49)));
+
+		// have completed all quests in Semos City?
+		achievements.add(createAchievement(
+			"quest.special.semos", "Przyjaciel Semos",
+			"Ukończono wszystkie zadania w mieście Semos",
+			Achievement.MEDIUM_BASE_SCORE, true,
+			new QuestsInRegionCompletedCondition(Region.SEMOS_CITY)));
+
+		// have completed all quests in Ados City?
+		achievements.add(createAchievement(
+			"quest.special.ados", "Przyjaciel Ados",
+			"Ukończono wszystkie zadania w mieście Ados",
+			Achievement.MEDIUM_BASE_SCORE, true,
+			new QuestsInRegionCompletedCondition(Region.ADOS_CITY)));
+
+		achievements.add(createAchievement(
+			"quest.special.zakopane", "Przyjaciel Zakopane",
+			"Ukończono wszystkie zadania w mieście Zakopane",
+			Achievement.MEDIUM_BASE_SCORE, true,
+			new QuestsInRegionCompletedCondition(Region.ZAKOPANE_CITY)));
+
+		achievements.add(createAchievement(
+			"quest.special.krakow", "Przyjaciel Krakowa",
+			"Ukończono wszystkie zadania w mieście Kraków",
+			Achievement.MEDIUM_BASE_SCORE, true,
+			new QuestsInRegionCompletedCondition(Region.KRAKOW_CITY)));
+
+		// complete nearly all the quests in the game?
+		achievements.add(createAchievement(
+			"quest.count.050", "Pierwsze Zlecenia",
+			"Ukończono conajmniej 50 zadań",
+			Achievement.EASY_BASE_SCORE, true,
+			new QuestCountCompletedCondition(50)));
+
+		achievements.add(createAchievement(
+			"quest.count.100", "Duuuuuużo Ukończonych Zadań",
+			"Ukończono conajmniej 100 zadań",
+			Achievement.MEDIUM_BASE_SCORE, true,
+			new QuestCountCompletedCondition(100)));
+
+		achievements.add(createAchievement(
+			"quest.count.150", "Jeszcze Więcej Zadań",
+			"Ukończono conajmniej 150 zadań",
+			Achievement.HARD_BASE_SCORE, true, new
+			QuestCountCompletedCondition(150)));
+
+		achievements.add(createAchievement(
+			"quest.count.200", "Pogromca Zadań",
+			"Ukończono conajmniej 200 zadań",
+			Achievement.LEGENDARY_BASE_SCORE, true,
+			new QuestCountCompletedCondition(200)));
+
+		return achievements;
+	}
 }

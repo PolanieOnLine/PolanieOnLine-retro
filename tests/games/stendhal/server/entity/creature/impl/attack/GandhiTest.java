@@ -1,4 +1,4 @@
-/* $Id: GandhiTest.java,v 1.1 2010/12/02 20:44:07 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -13,19 +13,19 @@
 package games.stendhal.server.entity.creature.impl.attack;
 
 import static org.junit.Assert.assertFalse;
-import games.stendhal.server.entity.creature.Creature;
-import games.stendhal.server.entity.creature.impl.attack.Gandhi;
-import games.stendhal.server.maps.MockStendlRPWorld;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import games.stendhal.server.entity.creature.Creature;
+import games.stendhal.server.maps.MockStendlRPWorld;
 
 public class GandhiTest {
 	@BeforeClass
 	public static void beforeClass() {
 		MockStendlRPWorld.get();
 	}
-	
+
 	/**
 	 * Tests for attack.
 	 */
@@ -47,8 +47,8 @@ public class GandhiTest {
 		assertFalse(g.canAttackNow(null));
 	}
 
-	
-	
+
+
 	/**
 	 * Tests for hasValidTarget.
 	 */

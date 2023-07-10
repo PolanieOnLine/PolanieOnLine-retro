@@ -1,6 +1,5 @@
-/* $Id: Santa.java,v 1.2 2010/11/27 00:46:08 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,20 +11,19 @@
  ***************************************************************************/
 package games.stendhal.server.script;
 
+import java.util.List;
+
 import games.stendhal.server.core.rp.StendhalQuestSystem;
 import games.stendhal.server.core.scripting.ScriptImpl;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.quests.MeetSanta;
 
-import java.util.List;
-
 /**
  * Starts or stops Santa.
- * 
+ *
  * @author kymara
  */
 public class Santa extends ScriptImpl {
-
 	@Override
 	public void execute(final Player admin, final List<String> args) {
 		if (args.size() != 1) {
@@ -42,11 +40,13 @@ public class Santa extends ScriptImpl {
 	}
 
 	/**
-	 * starts Christmas.
+	 * Starts Christmas.
+	 *
+	 * @param admin adminstrator running the script
 	 */
 	private void startChristmas(Player admin) {
 		if (System.getProperty("stendhal.santa") != null) {
-			admin.sendPrivateText("Mikołaj jest już aktywowany.");
+			admin.sendPrivateText("Święty Mikołaj został aktywowany.");
 			return;
 		}
 		System.setProperty("stendhal.santa", "true");
@@ -54,15 +54,16 @@ public class Santa extends ScriptImpl {
 	}
 
 	/**
-	 * ends Christmas
+	 * Ends Christmas.
+	 *
+	 * @param admin adminstrator running the script
 	 */
 	private void stopChristmas(Player admin) {
 		if (System.getProperty("stendhal.santa") == null) {
-			admin.sendPrivateText("Santa nie jest aktywny.");
+			admin.sendPrivateText("Święty Mikołaj został dezaktywowany.");
 			return;
 		}
 		System.getProperties().remove("stendhal.santa");
 		StendhalQuestSystem.get().unloadQuest(MeetSanta.QUEST_NAME);
 	}
-
 }

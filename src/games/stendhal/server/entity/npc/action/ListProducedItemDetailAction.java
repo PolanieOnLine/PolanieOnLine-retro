@@ -1,4 +1,4 @@
-/* $Id: ListProducedItemDetailAction.java,v 1.5 2012/09/09 12:19:56 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -21,9 +21,6 @@ import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.npc.behaviour.journal.ProducerRegister;
 import games.stendhal.server.entity.player.Player;
 
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
-
 /**
  * List details about a produced item
  *
@@ -35,8 +32,9 @@ public class ListProducedItemDetailAction implements ChatAction {
 	private final ProducerRegister producerRegister = SingletonRepository.getProducerRegister();
 
 
+	@Override
 	public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
-		String itemName = sentence.getOriginalText();
+		String itemName = sentence.getTriggerExpression().toString();
 		String message = producerRegister.getProducedItemDetails(itemName);
 		raiser.say(message);
 	}
@@ -48,13 +46,12 @@ public class ListProducedItemDetailAction implements ChatAction {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 5297;
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				ListProducedItemDetailAction.class);
+		return (obj instanceof ListProducedItemDetailAction);
 	}
 
 }

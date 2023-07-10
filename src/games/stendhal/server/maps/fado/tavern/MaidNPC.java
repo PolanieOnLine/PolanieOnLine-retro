@@ -1,6 +1,5 @@
-/* $Id: MaidNPC.java,v 1.22 2010/09/19 02:31:03 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,18 +11,16 @@
  ***************************************************************************/
 package games.stendhal.server.maps.fado.tavern;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
+import games.stendhal.server.entity.CollisionAction;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.behaviour.adder.SellerAdder;
-import games.stendhal.server.entity.npc.behaviour.impl.SellerBehaviour;
-
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Builds the tavern maid NPC.
@@ -31,13 +28,7 @@ import java.util.Map;
  * @author timothyb89/kymara
  */
 public class MaidNPC implements ZoneConfigurator {
-
-	// This is 1 minute at 300 ms per turn.
-	private static final int TIME_OUT = 200;
-
-	//
-	// ZoneConfigurator
-	//
+	private static final int TIME_OUT = 60;
 
 	/**
 	 * Configure a zone.
@@ -45,17 +36,13 @@ public class MaidNPC implements ZoneConfigurator {
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
-		buildNPC(zone, attributes);
+		buildNPC(zone);
 	}
 
-	//
-	// MaidNPC
-	//
-
-	private void buildNPC(final StendhalRPZone zone, final Map<String, String> attributes) {
+	private void buildNPC(final StendhalRPZone zone) {
 		final SpeakerNPC tavernMaid = new SpeakerNPC("Old Mother Helena") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -74,28 +61,19 @@ public class MaidNPC implements ZoneConfigurator {
 			@Override
 			protected void createDialog() {
 				//addGreeting();
-				addJob("Jestem kelnerką w tej oberży. Sprzedajemy importowane piwa i dobre jedzenie.");
+				addJob("Jestem kelnerką w tej oberży. Sprzedajemy importowane napoje i dobre jedzenie.");
 				addHelp("Dlaczego nie wziąć przyjaciół i zrobić sobie przerwy. Możesz skorzystać z długiego stołu, na którym można postawić jedzenie.");
 				addQuest("Och nie mam czasu na coś takiego.");
-
-				final Map<String, Integer> offers = new HashMap<String, Integer>();
-				offers.put("sok z chmielu", 10);
-				offers.put("napój z winogron", 15);
-				offers.put("wisienka", 20);
-				offers.put("udko", 50);
-				offers.put("chleb", 50);
-				offers.put("kanapka", 150);
-	 
-				new SellerAdder().addSeller(this, new SellerBehaviour(offers));
-				addGoodbye("Dowidzenia. Wszyscy, ty i klienci sprawiacie, że praca jest ciężka ...");
+				addGoodbye("Do widzenia. Wszyscy, ty i klienci sprawiacie, że praca jest ciężka ...");
 			}
 		};
 
-		tavernMaid.setPlayerChatTimeout(TIME_OUT); 
+		tavernMaid.setDescription("Oto Old Mother Helena. Jest świetną kucharką a jej zupa jest znana w całej krainie Faiumoni i nie tylko.");
 		tavernMaid.setEntityClass("oldmaidnpc");
+		tavernMaid.setGender("F");
+		tavernMaid.setPlayerChatTimeout(TIME_OUT);
 		tavernMaid.setPosition(10, 16);
-		tavernMaid.initHP(100);
-		tavernMaid.setDescription("Oto Old Mother Helena. Jest świetną kucharką a jej zupa jest znana w całej krainie Faumoni i nie tylko.");
+		tavernMaid.setCollisionAction(CollisionAction.STOP);
 		zone.add(tavernMaid);
 	}
 }

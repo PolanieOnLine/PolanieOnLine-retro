@@ -1,6 +1,5 @@
-/* $Id: UseAction.java,v 1.60.2.1 2012/09/13 12:42:51 nhnb Exp $ */
 /***************************************************************************
- *                      (C) Copyright 2003 - Marauroa                      *
+ *                   (C) Copyright 2003-2013 - Marauroa                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -18,30 +17,31 @@ import static games.stendhal.common.constants.Actions.BASESLOT;
 import static games.stendhal.common.constants.Actions.TARGET;
 import static games.stendhal.common.constants.Actions.TARGET_PATH;
 import static games.stendhal.common.constants.Actions.USE;
+
 import games.stendhal.server.core.engine.GameEvent;
 import games.stendhal.server.core.events.UseListener;
 import games.stendhal.server.entity.Entity;
-import games.stendhal.server.entity.item.Corpse;
 import games.stendhal.server.entity.item.Item;
-import games.stendhal.server.entity.mapstuff.chest.Chest;
 import games.stendhal.server.entity.player.Player;
-import games.stendhal.server.entity.slot.EntitySlot;
 import games.stendhal.server.util.EntityHelper;
 import marauroa.common.game.RPAction;
 import marauroa.common.game.RPObject;
-import marauroa.common.game.RPSlot;
 
 /**
  * Uses an item or an other entity that implements Useable
  */
 public class UseAction implements ActionListener {
-
 	public static void register() {
 		CommandCenter.register(USE, new UseAction());
 	}
 
 	@Override
 	public void onAction(final Player player, final RPAction action) {
+		String actionZone = action.get("zone");
+		// Always accept actions without the zone. Old clients send those.
+		if (actionZone != null && !actionZone.equals(player.getZone().getName())) {
+			return;
+		}
 		if (action.has(TARGET_PATH)) {
 			useEntityFromPath(player, action);
 		} else if (isItemInSlot(action)) {
@@ -53,19 +53,20 @@ public class UseAction implements ActionListener {
 			useItemOnGround(player, action);
 		}
 	}
-	
+
 	/**
 	 * Use an entity identified by TARGET_PATH.
-	 * 
+	 *
 	 * @param player
 	 * @param action
 	 */
 	private void useEntityFromPath(Player player, RPAction action) {
 		Entity entity = EntityHelper.getEntityFromPath(player, action.getList(TARGET_PATH));
 		if (entity != null) {
-			if (entity.isContained() && !mayAccessContainedEntity(player, entity)) {
+			if (entity.isContained() && !ItemAccessPermissions.mayAccessContainedEntity(player, entity)) {
 				return;
 			}
+			// TryUse does the owner check that mayAccessContainedEntity() does not
 			tryUse(player, entity);
 		}
 	}
@@ -77,7 +78,7 @@ public class UseAction implements ActionListener {
 
 	/**
 	 * Use a top level entity.
-	 * 
+	 *
 	 * @param player
 	 * @param action
 	 */
@@ -94,76 +95,15 @@ public class UseAction implements ActionListener {
 
 	/**
 	 * Use an entity contained in a slot. Compatibility mode.
-	 * 
+	 *
 	 * @param player
 	 * @param action
 	 */
 	private void useItemInSlot(final Player player, final RPAction action) {
 		final Entity object = EntityHelper.entityFromSlot(player, action);
-		if ((object != null) && mayAccessContainedEntity(player, object)) { 
+		if ((object != null) && ItemAccessPermissions.mayAccessContainedEntity(player, object)) {
 			tryUse(player, object);
 		}
-	}
-
-	/**
-	 * Check if a player may access the location of a contained  item. Note that
-	 * access rights to the item itself is <em>not</em> checked. That is done in
-	 * tryUse().
-	 * 
-	 * @param player
-	 * @param entity
-	 * @return <code>true</code> if the player may access items in the location
-	 * of item
-	 */
-	private boolean mayAccessContainedEntity(Player player, Entity entity) {
-		RPObject parent = entity.getContainer();
-		while ((parent != null) && (parent != entity)) {
-			EntitySlot slot = getContainingSlot(entity);
-			if ((slot == null) || !slot.isReachableForTakingThingsOutOfBy(player)) {
-				return false;
-			}
-			if (parent instanceof Item) {
-				entity = (Item) parent;
-				if (isItemBoundToOtherPlayer(player, entity)) {
-					return false;
-				}
-				parent = entity.getContainer();
-			} else if (parent instanceof Corpse) {
-				Corpse corpse = (Corpse) parent;
-				if (!corpse.mayUse(player)) {
-					player.sendPrivateText("Teraz tylko " + corpse.getCorpseOwner() + " może przeszukać zwłoki.");
-					return false;
-				}
-				// Corpses are top level objects
-				return true;
-			} else if (parent instanceof Player) {
-				// Only allowed to use item of our own player.
-				return player == parent;
-			} else if (parent instanceof Chest) {
-				// No bound chests
-				return true;
-			} else {
-				// Only allow to use objects from players, corpses, chests or
-				// containing items
-				return false;
-			}
-		}
-		
-		return true;
-	}
-	
-	/**
-	 * Get the slot containing an entity.
-	 * 
-	 * @param entity
-	 * @return containing slot
-	 */
-	private EntitySlot getContainingSlot(Entity entity) {
-		RPSlot slot = entity.getContainerSlot();
-		if (slot instanceof EntitySlot) {
-			return (EntitySlot) slot;
-		}
-		return null;
 	}
 
 	private void tryUse(final Player player, final RPObject object) {
@@ -180,7 +120,8 @@ public class UseAction implements ActionListener {
 
 	private boolean canUse(final Player player, final RPObject object) {
 		return !isInJailZone(player, object) 
-			&& !isItemBoundToOtherPlayer(player, object);
+			&& !isItemBoundToOtherPlayer(player, object)
+			&& !isItemMinUse(player, object);
 	}
 
 	private boolean isInJailZone(final Player player, final RPObject object) {
@@ -198,8 +139,8 @@ public class UseAction implements ActionListener {
 
 	/**
 	 * Make sure nobody uses items bound to someone else.
-	 * @param player 
-	 * @param object 
+	 * @param player
+	 * @param object
 	 * @return true if item is bound false otherwise
 	 */
 	protected boolean isItemBoundToOtherPlayer(final Player player, final RPObject object) {
@@ -210,9 +151,31 @@ public class UseAction implements ActionListener {
 						+ item.getName()
 						+ " jest specjalną nagrodą dla " + item.getBoundTo()
 						+ ". Nie zasługujesz na nią.");
+
 				return true;
 			}
 		}
+
+		return false;
+	}
+
+	/**
+	 * Make sure nobody with low level can uses items.
+	 * @param player
+	 * @param object
+	 * @return true if player have min use level up false otherwise
+	 */
+	protected boolean isItemMinUse(final Player player, final RPObject object) {
+		if (object instanceof Item) {
+			final Item item = (Item) object;
+			if (item.has("min_use") && player.getLevel() < item.getMinLevel()) {
+				player.sendPrivateText("Nie jesteś jeszcze wystarczająco doświadczony, aby używać "
+					+ item.getName() + ". Wymagany jest " + item.getMinUse() + " poziom.");
+
+				return true;
+			}
+		}
+
 		return false;
 	}
 

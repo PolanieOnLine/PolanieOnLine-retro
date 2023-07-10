@@ -1,4 +1,4 @@
-/* $Id: CleanStorageSpaceTest.java,v 1.26 2010/09/19 02:41:22 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -16,18 +16,16 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static utilities.SpeakerNPCTestHelper.getReply;
-import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.fsm.Engine;
-import games.stendhal.server.maps.MockStendhalRPRuleProcessor;
-import games.stendhal.server.maps.MockStendlRPWorld;
-import games.stendhal.server.maps.semos.storage.HousewifeNPC;
-import marauroa.common.Log4J;
-import marauroa.server.game.db.DatabaseFactory;
 
-import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.server.entity.npc.SpeakerNPC;
+import games.stendhal.server.entity.npc.fsm.Engine;
+import games.stendhal.server.entity.npc.quest.BuiltQuest;
+import games.stendhal.server.maps.semos.storage.HousewifeNPC;
+import utilities.QuestHelper;
 import utilities.ZonePlayerAndNPCTestImpl;
 
 public class CleanStorageSpaceTest extends ZonePlayerAndNPCTestImpl {
@@ -36,24 +34,23 @@ public class CleanStorageSpaceTest extends ZonePlayerAndNPCTestImpl {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		Log4J.init();
-		new DatabaseFactory().initializeDatabase();
-		MockStendhalRPRuleProcessor.get();
-
-		MockStendlRPWorld.get();
-
-		setupZone(ZONE_NAME, new HousewifeNPC());
-
-		final CleanStorageSpace cf = new CleanStorageSpace();
-		cf.addToWorld();
-	}
-
-	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
+		QuestHelper.setUpBeforeClass();
+		setupZone(ZONE_NAME);
 	}
 
 	public CleanStorageSpaceTest() {
-		super(ZONE_NAME, "Eonna");
+		setNpcNames("Eonna");
+		setZoneForPlayer(ZONE_NAME);
+		addZoneConfigurator(new HousewifeNPC(), ZONE_NAME);
+	}
+
+	@Override
+	@Before
+	public void setUp() throws Exception {
+		super.setUp();
+
+		quest = new BuiltQuest(new CleanStorageSpace().story());
+		quest.addToWorld();
 	}
 
 	/**
@@ -61,24 +58,24 @@ public class CleanStorageSpaceTest extends ZonePlayerAndNPCTestImpl {
 	 */
 	@Test
 	public void testHiAndbye() {
-		assertTrue(!player.hasKilled("rat"));
+		assertTrue(!player.hasKilled("szczur"));
 
 		final SpeakerNPC npc = getNPC("Eonna");
 		final Engine en = npc.getEngine();
 
 		assertTrue(en.step(player, "hi"));
 		assertTrue(npc.isTalking());
-		assertEquals("Hi there, young hero.", getReply(npc));
+		assertEquals("Witaj młody bohaterze.", getReply(npc));
 		assertTrue(en.step(player, "job"));
 		assertTrue(npc.isTalking());
-		assertEquals("I'm just a regular housewife.", getReply(npc));
+		assertEquals("Jestem gospodynią domową.", getReply(npc));
 		assertTrue(en.step(player, "help"));
 		assertTrue(npc.isTalking());
-		assertEquals("Oh I love the bakery products by Leander. His sandwiches are awesome! Did you know, that he is searching for a helping hand?",
+		assertEquals("Uwielbiam pomagać Landerowi. Jego kanapki są wspaniałe! Czy wiesz, że szuka pomocnika?",
 				getReply(npc));
 		assertTrue(en.step(player, "bye"));
 		assertFalse(npc.isTalking());
-		assertEquals("Bye.", getReply(npc));
+		assertEquals("Do widzenia.", getReply(npc));
 	}
 
 	@Test
@@ -89,31 +86,31 @@ public class CleanStorageSpaceTest extends ZonePlayerAndNPCTestImpl {
 
 		assertTrue(en.step(player, "hi"));
 		assertTrue(npc.isTalking());
-		assertEquals("Hi there, young hero.", getReply(npc));
+		assertEquals("Witaj młody bohaterze.", getReply(npc));
 		assertTrue(en.step(player, "task"));
 		assertTrue(npc.isTalking());
 		assertEquals(
-				"My #basement is absolutely crawling with rats. Will you help me?",
+				"Moja #piwnica jest pełna szkodników. Pomożesz mi nieznajomy?",
 				getReply(npc));
 		assertTrue(en.step(player, "basement"));
 		assertTrue(npc.isTalking());
 		assertEquals(
-				"Yes, it's just down the stairs, over there. A whole bunch of nasty-looking rats; I think I saw a snake as well! You should be careful... still want to help me?",
+				"Tak, idź na dół po schodach. Tam jest cała gromada obrzydliwych szczurów. Chyba widziałam tam też węża. Powinieneś uważać... Wciąż chcesz mi pomóc?",
 				getReply(npc));
 		assertTrue(en.step(player, "yes"));
 		assertEquals(
-				"Oh, thank you! I'll wait up here, and if any try to escape I'll hit them with the broom!",
+				"Och, dziękuję! Poczekam tutaj, a jeżeli spróbują uciec to uderzę je moją miotłą!",
 				getReply(npc));
 		assertTrue(en.step(player, "bye"));
 		assertFalse(npc.isTalking());
-		assertEquals("Bye.", getReply(npc));
-		player.setSoloKill("rat");
-		assertTrue(player.hasKilled("rat"));
-		player.setSharedKill("caverat");
-		player.setSharedKill("snake");
+		assertEquals("Do widzenia.", getReply(npc));
+		player.setSoloKill("szczur");
+		assertTrue(player.hasKilled("szczur"));
+		player.setSharedKill("szczur jaskiniowy");
+		player.setSharedKill("wąż");
 		assertTrue(en.step(player, "hi"));
 		assertTrue(npc.isTalking());
-		assertEquals("A hero at last! Thank you!", getReply(npc));
+		assertEquals("Nareszcie! Mój bohater się odnalazł, dziękuję!", getReply(npc));
 
 		assertEquals("done", player.getQuest("clean_storage"));
 	}

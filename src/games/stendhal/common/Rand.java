@@ -1,4 +1,4 @@
-/* $Id: Rand.java,v 1.24 2011/08/28 14:50:49 madmetzger Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -29,16 +29,20 @@ public class Rand {
 
 	/**
 	 * Simulates flipping a coin.
-	 * 
+	 *
 	 * @return Either 1 or 2, equally distributed.
 	 */
 	public static int throwCoin() {
 		return rand.nextInt(2) + 1;
 	}
+	
+	public static int roll1D3() {
+		return rand.nextInt(3) + 1;
+	}
 
 	/**
 	 * Simulates rolling a dice with 6 sides.
-	 * 
+	 *
 	 * @return A random number between 1 and 6, equally distributed.
 	 */
 	public static int roll1D6() {
@@ -46,45 +50,69 @@ public class Rand {
 	}
 
 	/**
+	 * Simulates rolling a dice with 10 sides.
+	 *
+	 * @return A random number between 1 and 10, equally distributed.
+	 */
+	public static int roll1D10() {
+		return rand.nextInt(10) + 1;
+	}
+
+	/**
 	 * Simulates rolling a dice with 20 sides.
-	 * 
+	 *
 	 * @return A random number between 1 and 20, equally distributed.
 	 */
 	public static int roll1D20() {
 		return rand.nextInt(20) + 1;
 	}
 
+	public static int roll1D50() {
+		return rand.nextInt(50) + 1;
+	}
+
 	/**
 	 * Simulates rolling a dice with 100 sides.
-	 * 
+	 *
 	 * @return A random number between 1 and 100, equally distributed.
 	 */
 	public static int roll1D100() {
 		return rand.nextInt(100) + 1;
 	}
-
+	
+	public static int roll1D200() {
+		return rand.nextInt(200) + 1;
+	}
+	
+	public static int roll1D1000() {
+		return rand.nextInt(1000) + 1;
+	}
+	
+	public static int roll1D2000() {
+		return rand.nextInt(2000) + 1;
+	}
 
 	/**
 	 * Generates an equally distributed random number between <i>a</i> and <i>b</i> inclusive
-	 * It doesn't matter if a or b is bigger. 
+	 * It doesn't matter if a or b is bigger.
 	 *
 	 * @param a
-	 *          the first boundary number (upper or lower) 
-	 * @param b 
-	 *          the second boundary number (upper or lower) 
+	 *          the first boundary number (upper or lower)
+	 * @param b
+	 *          the second boundary number (upper or lower)
 	 *
 	 * @return A random number between <i>a</i> and <i>b</i>, equally distributed.
 	 */
 	public static int randUniform(final int a, final int b) {
 		final int max = Math.max(a, b);
 		final int min = Math.min(a, b);
-		
+
 		return rand.nextInt(max - min + 1) + min;
 	}
 
 	/**
 	 * Generates an equally distributed random number.
-	 * 
+	 *
 	 * @param n
 	 *            the upper boundary
 	 * @return A random number between 0 and <i>n</i> - 1, equally distributed.
@@ -92,7 +120,7 @@ public class Rand {
 	public static int rand(final int n) {
 		return rand.nextInt(n);
 	}
-	
+
 	/**
 	 * Generates an equally distributed double precision random number.
 	 *            the upper boundary
@@ -106,7 +134,7 @@ public class Rand {
 	 * Given a list of any type, returns an arbitrary element, using an equal
 	 * distribution. Generics are used so that the returned element will have
 	 * the same type as the list's elements have.
-	 * 
+	 *
 	 * @param <T>
 	 *            Any type.
 	 * @param list
@@ -121,11 +149,11 @@ public class Rand {
 	 * Given a set of any type, returns an arbitrary element, using an equal
 	 * distribution. Generics are used so that the returned element will have
 	 * the same type as the set's elements have.
-	 * 
+	 *
 	 * NOTE: This is not very efficient. If you need to do this on large sets
 	 * several times per second, consider copying the set contents to an array,
 	 * then call rand() on this array.
-	 * 
+	 *
 	 * @param <T>
 	 *            Any type.
 	 * @param set
@@ -149,7 +177,7 @@ public class Rand {
 	 * Given a array of any type, returns an arbitrary element, using an equal
 	 * distribution. Generics are used so that the returned element will have
 	 * the same type as the array's elements have.
-	 * 
+	 *
 	 * @param <T>
 	 *            Any type.
 	 * @param array
@@ -162,7 +190,7 @@ public class Rand {
 
 	/**
 	 * Generates a normally distributed random number and rounds it.
-	 * 
+	 *
 	 * @param mean
 	 *            The mean value
 	 * @param sd
@@ -172,10 +200,10 @@ public class Rand {
 	public static int randGaussian(final int mean, final int sd) {
 		return (int) (rand.nextGaussian() * sd + mean);
 	}
-	
+
 	/**
 	 * Generates an exponentially distributed random number and rounds it.
-	 * 
+	 *
 	 * @param mean
 	 *            The mean value
 	 * @return An integer exponential variate <i>mean</i>
@@ -183,24 +211,24 @@ public class Rand {
 	public static int randExponential(final int mean) {
 		return (int) (-mean * Math.log(rand.nextDouble()));
 	}
-	
+
 	/**
-	 * Calculate the propability for a given mean value in an exponential distribution
-	 * 
+	 * Calculate the probability for a given mean value in an exponential distribution
+	 *
 	 * @param mean the desired mean value of the distribution
-	 * @return the propability to reach the given mean value (1 for mean == 0)
+	 * @return the probability to reach the given mean value (1 for mean == 0)
 	 */
 	public static double propabilityForMeanExp(final long mean) {
 		if(mean == 0) {
 			return 1;
 		}
 		double meandouble = mean;
-		return (double) 1d/meandouble;
+		return 1d/meandouble;
 	}
-	
+
 	/**
-	 * Flip a coin to decide between true and false based on a propability
-	 * @param propability the propability to get true
+	 * Flip a coin to decide between true and false based on a probability
+	 * @param propability the probability to get true
 	 * @return true or false randomly
 	 */
 	public static boolean flipCoin(final double propability) {

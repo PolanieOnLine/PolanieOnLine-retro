@@ -1,4 +1,3 @@
-/* $Id: TradeCenterZoneConfigurator.java,v 1.7 2010/09/19 02:35:25 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,33 +11,30 @@
  ***************************************************************************/
 package games.stendhal.server.maps.semos.tavern.market;
 
-import games.stendhal.server.core.config.ZoneConfigurator;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.entity.Outfit;
-import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.trade.Market;
-
 import java.util.Map;
 
+import games.stendhal.server.core.config.ZoneConfigurator;
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.entity.npc.SpeakerNPC;
+import games.stendhal.server.entity.trade.Market;
 import marauroa.common.game.RPObject;
+
 /**
  * adds a market to a zone
- * 
- * @author madmetzger
  *
+ * @author madmetzger
  */
 public class TradeCenterZoneConfigurator implements ZoneConfigurator {
-
 	private static final String TRADE_ADVISOR_NAME = "Harold";
 	private static final int COORDINATE_Y = 13;
 	private static final int COORDINATE_X = 10;
 
-	public void configureZone(StendhalRPZone zone,
-			Map<String, String> attributes) {
+	@Override
+	public void configureZone(StendhalRPZone zone, Map<String, String> attributes) {
 		Market market = addShopToZone(zone);
 		// start checking for expired offers
 		new OfferExpirer(market);
-		
+
 		buildTradeCenterAdvisor(zone);
 	}
 
@@ -49,7 +45,7 @@ public class TradeCenterZoneConfigurator implements ZoneConfigurator {
 			market.setVisibility(0);
 			zone.add(market, false);
 		}
-		
+
 		return market;
 	}
 
@@ -67,15 +63,17 @@ public class TradeCenterZoneConfigurator implements ZoneConfigurator {
 	}
 
 	private void buildTradeCenterAdvisor(StendhalRPZone zone) {
-		SpeakerNPC speaker = new MarketManagerNPC(TRADE_ADVISOR_NAME);
+		SpeakerNPC speaker = new MarketManagerNPC(TRADE_ADVISOR_NAME, 3);
 		speaker.setPosition(COORDINATE_X,COORDINATE_Y);
+		speaker.setDescription("Oto Harold. Wyglądający na przyjaznego faceta, który czeka na utworzenie oferty od ciebie...");
 		speaker.setEntityClass("tradecenteradvisornpc");
-		speaker.setOutfit(new Outfit(5, 1, 34, 1));
-		speaker.initHP(100);
-		speaker.setDescription("Herold jest przyjaznym facetem, który czeka na utworzenie oferty od ciebie...");
+		speaker.setOutfit(3, 34, 1, null, 0, null, 5, null, 0);
+		speaker.setGender("M");
+		// add icon denoting merchant
+		speaker.put("job_merchant", "");
 		zone.add(speaker);
 	}
-	
+
 	public static Market getShopFromZone(StendhalRPZone zone) {
 		for (RPObject rpObject : zone) {
 			if(rpObject.getRPClass().getName().equals(Market.MARKET_RPCLASS_NAME)) {
@@ -84,5 +82,4 @@ public class TradeCenterZoneConfigurator implements ZoneConfigurator {
 		}
 		return null;
 	}
-
 }

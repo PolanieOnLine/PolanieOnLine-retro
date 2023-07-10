@@ -1,4 +1,4 @@
-/* $Id: NPCList.java,v 1.17 2010/09/19 02:25:23 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -25,35 +25,32 @@ import org.apache.log4j.Logger;
  */
 public class NPCList implements Iterable<SpeakerNPC> {
 	private static Logger logger = Logger.getLogger(NPCList.class);
-
-	/**
-	 * The Singleton instance.
-	 */
+	/** The singleton instance. */
 	private static NPCList instance;
 
 	private final Map<String, SpeakerNPC> contents;
 
 	/**
 	 * Returns the Singleton instance.
-	 * 
+	 *
 	 * @return The instance
 	 */
 	public static NPCList get() {
 		if (instance == null) {
-			new NPCList();
+			instance = new NPCList();
 		}
+
 		return instance;
 	}
 
 	protected NPCList() {
 		instance = this;
 		contents = new HashMap<String, SpeakerNPC>();
-
 	}
 
 	/**
 	 * Returns the NPC with the given name.
-	 * 
+	 *
 	 * @param name
 	 *            The NPC's name
 	 * @return The NPC, or null if there is no NPC with this name
@@ -64,7 +61,7 @@ public class NPCList implements Iterable<SpeakerNPC> {
 
 	/**
 	 * Checks whether an NPC with the given name exists.
-	 * 
+	 *
 	 * @param name
 	 *            The NPC's name
 	 * @return true iff an NPC with the given name exists
@@ -77,7 +74,7 @@ public class NPCList implements Iterable<SpeakerNPC> {
 	 * Adds an NPC to the NPCList. Does nothing if an NPC with the same name
 	 * already exists. This makes sure that each NPC can be uniquely identified
 	 * by his/her name.
-	 * 
+	 *
 	 * @param npc
 	 *            The NPC that should be added
 	 */
@@ -98,7 +95,7 @@ public class NPCList implements Iterable<SpeakerNPC> {
 	/**
 	 * Removes an NPC from the NPCList. Does nothing if no NPC with the given
 	 * name exists.
-	 * 
+	 *
 	 * @param name
 	 *            The name of the NPC that should be removed
 	 * @return SpeakerNPC or null in case it was not in the list
@@ -109,7 +106,7 @@ public class NPCList implements Iterable<SpeakerNPC> {
 
 	/**
 	 * Returns a list of all NPCs.
-	 * 
+	 *
 	 * @return list of npcs
 	 */
 	public Set<String> getNPCs() {
@@ -127,6 +124,7 @@ public class NPCList implements Iterable<SpeakerNPC> {
 	/**
 	 * @return  the interator over the SpeakerNPC objects.
 	 */
+	@Override
 	public Iterator<SpeakerNPC> iterator() {
 		return contents.values().iterator();
 	}

@@ -1,4 +1,3 @@
-/* $Id: ItemsOnTable.java,v 1.3 2010/09/19 02:31:25 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,11 +11,11 @@
  ***************************************************************************/
 package games.stendhal.server.maps.kirdneh.museum;
 
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.entity.mapstuff.spawner.PassiveEntityRespawnPoint;
-
-import java.util.Map;
 
 /**
  * Creates the items on the table in the museum.
@@ -24,12 +23,12 @@ import java.util.Map;
  * @author kymara
  */
 public class ItemsOnTable implements ZoneConfigurator {
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildBasementArea(zone);
 	}
 
 	private void buildBasementArea(final StendhalRPZone zone) {
-
 		final PassiveEntityRespawnPoint plantGrower = new PassiveEntityRespawnPoint("szmaragd", 4000);
 		plantGrower.setPosition(26, 38);
 		plantGrower.setDescription("Miejsce na kamień.");

@@ -1,4 +1,4 @@
-/* $Id: PostTransitionAction.java,v 1.10 2011/05/01 19:50:05 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -18,14 +18,14 @@ import games.stendhal.server.entity.player.Player;
 
 /**
  * This action is executed after a successful transition of the state machine.
- * 
+ *
  * @author hendrik
  */
 public interface PostTransitionAction {
 
 	/**
 	 * does some action after a transition.
-	 * 
+	 *
 	 * @param player
 	 *            player who caused the transition
 	 * @param sentence

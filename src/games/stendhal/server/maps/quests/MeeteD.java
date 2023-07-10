@@ -1,6 +1,5 @@
-/* $Id: MeeteD.java,v 1.50 2011/12/11 01:38:23 eDragons Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,12 +11,14 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
 import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.action.EquipItemAction;
-import games.stendhal.server.entity.npc.action.ExamineChatAction;
 import games.stendhal.server.entity.npc.action.IncreaseKarmaAction;
 import games.stendhal.server.entity.npc.action.IncreaseXPAction;
 import games.stendhal.server.entity.npc.action.MultipleActions;
@@ -30,51 +31,11 @@ import games.stendhal.server.entity.npc.condition.QuestInStateCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotCompletedCondition;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
-/**
- * QUEST: Speak with Hayunn 
- * <p>
- * PARTICIPANTS: <ul><li> Hayunn Naratha</ul>
- *
- * STEPS: <ul>
- * <li> Talk to Hayunn to activate the quest.
- * <li> He asks you to kill a rat, also offering to teach you how
- * <li> Return and learn how to loot, identify items and heal
- * <li> Return and learn how to double click move, and get some URLs
- * </ul>
- *
- * REWARD: <ul><li> 20 XP <li> 5 gold coins <li> studded shield </ul>
- *
- * REPETITIONS: <ul><li> Get the URLs as much as wanted but you only get the reward once.</ul>
- */
 public class MeeteD extends AbstractQuest {
-
 	private static final String QUEST_SLOT = "meet_eD";
 
 	//This is 1 minute at 300 ms per turn
 	private static final int TIME_OUT = 200;
-
-
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
-
-	@Override
-	public List<String> getHistory(final Player player) {
-		final List<String> res = new ArrayList<String>();
-		if (!player.hasQuest(QUEST_SLOT)) {
-			return res;
-		}
-		res.add("FIRST_CHAT");
-		if (isCompleted(player)) {
-			res.add("DONE");
-		}
-		return res;
-	}
 
 	private void prepareeFuR() {
 		final SpeakerNPC npc = npcs.get("eFuR");
@@ -184,7 +145,6 @@ public class MeeteD extends AbstractQuest {
 
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
 				"Spotkanie eFuRa",
 				"eFuR zaprasza do klanu eDragons.",
@@ -193,8 +153,26 @@ public class MeeteD extends AbstractQuest {
 	}
 
 	@Override
+	public List<String> getHistory(final Player player) {
+		final List<String> res = new ArrayList<String>();
+		if (!player.hasQuest(QUEST_SLOT)) {
+			return res;
+		}
+		res.add("FIRST_CHAT");
+		if (isCompleted(player)) {
+			res.add("DONE");
+		}
+		return res;
+	}
+
+	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
+	}
+
+	@Override
 	public String getName() {
-		return "MeeteD";
+		return "Poznanie eFuRa";
 	}
 	@Override
 	public String getNPCName() {

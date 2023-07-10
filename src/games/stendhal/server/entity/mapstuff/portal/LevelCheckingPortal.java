@@ -1,4 +1,4 @@
-/* $Id: LevelCheckingPortal.java,v 1.5 2008/07/12 14:43:59 astridemma Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -16,7 +16,7 @@ import games.stendhal.server.entity.RPEntity;
 
 /**
  * A portal which allows only certain levels of player to use it.
- * 
+ *
  * @author hendrik
  */
 public class LevelCheckingPortal extends AccessCheckingPortal {
@@ -42,7 +42,7 @@ public class LevelCheckingPortal extends AccessCheckingPortal {
 
 	/**
 	 * Creates a level checking portal.
-	 * 
+	 *
 	 * @param minLevel
 	 *            The minimum level allowed to pass.
 	 * @param maxLevel
@@ -54,7 +54,7 @@ public class LevelCheckingPortal extends AccessCheckingPortal {
 
 	/**
 	 * Creates a level checking portal.
-	 * 
+	 *
 	 * @param minLevel
 	 *            The minimum level allowed to pass.
 	 * @param maxLevel
@@ -75,10 +75,10 @@ public class LevelCheckingPortal extends AccessCheckingPortal {
 
 	/**
 	 * Determine if this portal can be used.
-	 * 
+	 *
 	 * @param user
 	 *            The user to be checked.
-	 * 
+	 *
 	 * @return <code>true</code> if the user can use the portal.
 	 */
 	@Override
@@ -96,13 +96,13 @@ public class LevelCheckingPortal extends AccessCheckingPortal {
 	/**
 	 * Called when the user is rejected. This sends a rejection message to the
 	 * user.
-	 * 
+	 *
 	 * @param user
 	 *            The rejected user.
 	 */
 	@Override
 	protected void rejected(final RPEntity user) {
-		if (rejectMessage != null) {
+		if (rejectedMessage != null) {
 			super.rejected(user);
 		} else if (user.getLevel() < minLevel) {
 			sendMessage(user, "Jestem zbyt słaby, aby skorzystać z tego portalu.");

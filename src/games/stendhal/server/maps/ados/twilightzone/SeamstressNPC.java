@@ -1,4 +1,3 @@
-/* $Id: SeamstressNPC.java,v 1.4 2010/09/19 02:27:57 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,55 +11,49 @@
  ***************************************************************************/
 package games.stendhal.server.maps.ados.twilightzone;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
-/*
+/**
  * Twilight zone is a copy of sewing room in dirty colours with a delirious sick lda (like Ida) in it
  */
 public class SeamstressNPC implements ZoneConfigurator {
-
 	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildSeamstress(zone);
 	}
 
 	private void buildSeamstress(final StendhalRPZone zone) {
-		final SpeakerNPC seamstress = new SpeakerNPC("lda") {
+		// get the clone of Ida for twilight zone
+		final SpeakerNPC seamstress = games.stendhal.server.maps.ados.sewingroom.SeamstressNPC.getClone();
 
-			@Override
-			protected void createPath() {
-				final List<Node> nodes = new LinkedList<Node>();
-				nodes.add(new Node(7, 7));
-				nodes.add(new Node(7, 14));
-				nodes.add(new Node(12, 14));
-				nodes.add(new Node(12, 7));
-				setPath(new FixedPath(nodes, true));
-			}
+		final List<Node> nodes = new LinkedList<Node>();
+		nodes.add(new Node(7, 7));
+		nodes.add(new Node(7, 14));
+		nodes.add(new Node(12, 14));
+		nodes.add(new Node(12, 7));
 
-			@Override
-			protected void createDialog() {
-				// all behaviour defined in maps.quests.MithrilCloak
-			}
-		};
+		seamstress.setPath(new FixedPath(nodes, true));
+
 		// see through
 		seamstress.setDescription("Oto Ida. Wygląda na chorą i ma gorączkę");
+		seamstress.setGender("F");
 		seamstress.setVisibility(70);
 		// walk through
 		seamstress.setResistance(0);
-		seamstress.setEntityClass("woman_002_npc");
 		seamstress.setPosition(7, 7);
 		seamstress.initHP(40);
 		zone.add(seamstress);

@@ -1,4 +1,4 @@
-/* $Id: LagAnalyser.java,v 1.2 2010/09/19 01:29:20 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -26,7 +26,7 @@ public class LagAnalyser {
 	 *
 	 * @param inputFileName
 	 * @param outputFileName
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	private void generateHTMLReport(String inputFileName, String outputFileName) throws IOException {
 		LagReader reader = new LagReader(inputFileName);
@@ -48,7 +48,7 @@ public class LagAnalyser {
 	 * main method
 	 *
 	 * @param args inputfile, outputfile
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	public static void main(String[] args) throws IOException {
 		new LagAnalyser().generateHTMLReport(args[0], args[1]);

@@ -1,17 +1,30 @@
+/***************************************************************************
+ *                   (C) Copyright 2003-2022 - Stendhal                    *
+ ***************************************************************************
+ ***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
 package games.stendhal.client.actions;
+
+import static games.stendhal.common.constants.Actions.CASTSPELL;
 
 import games.stendhal.client.ClientSingletonRepository;
 import marauroa.common.game.RPAction;
-import static games.stendhal.common.constants.Actions.CASTSPELL;
+
 /**
  * Simple action to cast a spell at a target (for testing purposes)
  * Usage:
  * 	[spell id] [target name or id]
- * 
+ *
  * @author madmetzger
  */
 public class CastSpellAction implements SlashAction {
-
+	@Override
 	public boolean execute(String[] params, String remainder) {
 		final RPAction action = new RPAction();
 		action.put("type", CASTSPELL);
@@ -20,7 +33,7 @@ public class CastSpellAction implements SlashAction {
 			// normal case, objects should be addressed via id
 			int targetId = Integer.parseInt(params[1]);
 			action.put("target", "#"+targetId);
-			
+
 		} catch (NumberFormatException e) {
 			// for testing purposes as addressing players via name is easier
 			action.put("target", params[1]);
@@ -31,10 +44,12 @@ public class CastSpellAction implements SlashAction {
 		return true;
 	}
 
+	@Override
 	public int getMaximumParameters() {
 		return 2;
 	}
 
+	@Override
 	public int getMinimumParameters() {
 		return 2;
 	}

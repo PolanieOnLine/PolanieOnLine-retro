@@ -1,21 +1,21 @@
 package games.stendhal.server.core.rp;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.ZoneAttributes;
 import games.stendhal.server.core.events.TurnListener;
-import games.stendhal.server.entity.player.Player;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Manager for daylight colored zones.
  */
 public class DaylightUpdater implements TurnListener {
+	/** The singleton instance. */
+	private static DaylightUpdater instance;
 	/** Time between checking if the color should be changed. Seconds. */
 	private static final int CHECK_INTERVAL = 61;
-	/** Singleton instance. */
-	private static final DaylightUpdater instance = new DaylightUpdater();
+
 	/** Color corresponding to the current time. */
 	Integer currentColor;
 
@@ -23,19 +23,25 @@ public class DaylightUpdater implements TurnListener {
 	private final List<ZoneAttributes> zones = new ArrayList<ZoneAttributes>();
 
 	/**
-	 * Create a new Daylight instance. Do not use this.
-	 */
-	private DaylightUpdater() {
-		onTurnReached(0);
-	}
-
-	/**
 	 * Get the Daylight instance.
 	 *
 	 * @return singleton instance
 	 */
 	public static DaylightUpdater get() {
+		if (instance == null) {
+			instance = new DaylightUpdater();
+		}
+
 		return instance;
+	}
+
+	/**
+	 * Hidden singleton constructor.
+	 *
+	 * Create a new Daylight instance. Do not use this.
+	 */
+	private DaylightUpdater() {
+		onTurnReached(0);
 	}
 
 	/**
@@ -50,6 +56,7 @@ public class DaylightUpdater implements TurnListener {
 		setZoneColor(attr, currentColor);
 	}
 
+	@Override
 	public void onTurnReached(int currentTurn) {
 		updateDaytimeColor();
 		SingletonRepository.getTurnNotifier().notifyInSeconds(CHECK_INTERVAL, this);
@@ -58,7 +65,7 @@ public class DaylightUpdater implements TurnListener {
 	/**
 	 * Update the zone color according to the hour.
 	 */
-	private void updateDaytimeColor() {
+	public void updateDaytimeColor() {
 		setZoneColors(DaylightPhase.current().getColor());
 	}
 
@@ -100,13 +107,6 @@ public class DaylightUpdater implements TurnListener {
 			attr.put("blend_method", "bleach");
 		}
 		// Notify resident players about the changed color
-		for (Player player : attr.getZone().getPlayers()) {
-			// Old clients do not understand content transfer that just
-			// update the old map, and end up with no entities on the screen
-			if (player.isClientNewerThan("0.30")) {
-				StendhalRPAction.transferContent(player);
-			}
-		}
+		attr.getZone().notifyOnlinePlayers();
 	}
 }
-

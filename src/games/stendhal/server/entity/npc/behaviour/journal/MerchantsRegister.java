@@ -1,4 +1,4 @@
-/* $Id: MerchantsRegister.java,v 1.1 2012/08/23 20:05:44 yoriy Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,25 +12,33 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.behaviour.journal;
 
-import games.stendhal.server.entity.npc.behaviour.impl.BuyerBehaviour;
-import games.stendhal.server.entity.npc.behaviour.impl.SellerBehaviour;
-
 import java.util.LinkedList;
 import java.util.List;
 
+import games.stendhal.server.entity.npc.SpeakerNPC;
+import games.stendhal.server.entity.npc.behaviour.impl.BuyerBehaviour;
+import games.stendhal.server.entity.npc.behaviour.impl.MerchantBehaviour;
+import games.stendhal.server.entity.npc.behaviour.impl.SellerBehaviour;
 import marauroa.common.Pair;
 
 public class MerchantsRegister {
-
+	/** The singleton instance. */
 	private static MerchantsRegister instance;
 
 	private final List<Pair<String, BuyerBehaviour>> buyers;
 	private final List<Pair<String, SellerBehaviour>> sellers;
 
+	/**
+	 * Singleton access method.
+	 *
+	 * @return
+	 *     The static instance.
+	 */
 	public static MerchantsRegister get() {
 		if (instance == null) {
-			new MerchantsRegister();
+			instance = new MerchantsRegister();
 		}
+
 		return instance;
 	}
 
@@ -44,20 +52,23 @@ public class MerchantsRegister {
 	 * Adds an NPC to the NPCList. Does nothing if an NPC with the same name
 	 * already exists. This makes sure that each NPC can be uniquely identified
 	 * by his/her name.
-	 * 
-	 * @param npcName
+	 *
+	 * @param npc
 	 *            The NPC that should be added
-	 * @param behaviour   
+	 * @param behaviour
 	 *            The MerchantBehaviour of that NPC
 	 */
-	public void add(final String npcName, final BuyerBehaviour behaviour) {
-		Pair<String, BuyerBehaviour> pair = new Pair<String, BuyerBehaviour>(npcName, behaviour);
-		buyers.add(pair);
-	}
+	public void add(final SpeakerNPC npc, final MerchantBehaviour behaviour) {
+		final String npcName = npc.getName();
 
-	public void add(final String npcName, final SellerBehaviour behaviour) {
-		Pair<String, SellerBehaviour> pair = new Pair<String, SellerBehaviour>(npcName, behaviour);
-		sellers.add(pair);
+		if (behaviour instanceof BuyerBehaviour) {
+			Pair<String, BuyerBehaviour> pair = new Pair<String, BuyerBehaviour>(npcName, (BuyerBehaviour) behaviour);
+			buyers.add(pair);
+		}
+		else {
+			Pair<String, SellerBehaviour> pair = new Pair<String, SellerBehaviour>(npcName, (SellerBehaviour) behaviour);
+			sellers.add(pair);
+		}
 	}
 
 	public List<Pair<String, BuyerBehaviour>> getBuyers() {
@@ -68,4 +79,35 @@ public class MerchantsRegister {
 		return sellers;
 	}
 
+	/**
+	 * Retrieves list of NPC names registered as buyers.
+	 *
+	 * @return
+	 *     Buyers names.
+	 */
+	public List<String> getBuyersNames() {
+		final List<String> names = new LinkedList<>();
+
+		for (final Pair<String, BuyerBehaviour> p: buyers) {
+			names.add(p.first());
+		}
+
+		return names;
+	}
+
+	/**
+	 * Retrieves list of NPC names registered as sellers.
+	 *
+	 * @return
+	 *     Sellers names.
+	 */
+	public List<String> getSellersNames() {
+		final List<String> names = new LinkedList<>();
+
+		for (final Pair<String, SellerBehaviour> p: sellers) {
+			names.add(p.first());
+		}
+
+		return names;
+	}
 }

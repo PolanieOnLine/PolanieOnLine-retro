@@ -1,4 +1,4 @@
-/* $Id: NPCTest.java,v 1.19 2011/05/16 17:55:43 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -16,12 +16,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static utilities.SpeakerNPCTestHelper.getReply;
-import games.stendhal.server.entity.npc.fsm.Engine;
-import games.stendhal.server.maps.ados.felinashouse.CatSellerNPC;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.server.entity.npc.fsm.Engine;
+import games.stendhal.server.maps.ados.felinashouse.CatSellerNPC;
 import utilities.QuestHelper;
 import utilities.ZonePlayerAndNPCTestImpl;
 import utilities.RPClass.CatTestHelper;
@@ -39,13 +39,13 @@ public class NPCTest extends ZonePlayerAndNPCTestImpl {
 	public static void setUpBeforeClass() throws Exception {
 		CatTestHelper.generateRPClasses();
 		QuestHelper.setUpBeforeClass();
-
-		setupZone(ZONE_NAME, new CatSellerNPC());
-
+		setupZone(ZONE_NAME);
 	}
 
-	public NPCTest() throws Exception {
-		super(ZONE_NAME, "Felina");
+	public NPCTest() {
+		setNpcNames("Felina");
+		setZoneForPlayer(ZONE_NAME);
+		addZoneConfigurator(new CatSellerNPC(), ZONE_NAME);
 	}
 
 	/**
@@ -57,10 +57,10 @@ public class NPCTest extends ZonePlayerAndNPCTestImpl {
 		final Engine en = npc.getEngine();
 
 		assertTrue(en.step(player, "hi Felina"));
-		assertEquals("Greetings! How may I help you?", getReply(npc));
+		assertEquals("Pozdrawiam! W czym mogę pomóc?", getReply(npc));
 
 		assertTrue(en.step(player, "bye"));
-		assertEquals("Bye.", getReply(npc));
+		assertEquals("Do widzenia.", getReply(npc));
 	}
 
 	/**
@@ -72,14 +72,14 @@ public class NPCTest extends ZonePlayerAndNPCTestImpl {
 		final Engine en = npc.getEngine();
 
 		npc.listenTo(player, "hi");
-		assertEquals("Greetings! How may I help you?", getReply(npc));
+		assertEquals("Pozdrawiam! W czym mogę pomóc?", getReply(npc));
 
 		assertTrue(en.step(player, "job"));
-		assertEquals("I sell cats. Well, really they are just little kittens when I sell them to you but if you #care for them well they grow into cats.", getReply(npc));
+		assertEquals("Sprzedaję koty. Kiedy je sprzedaję są małymi kociętami, ale kiedy się takim kotkiem #zaopiekujesz to wyrasta na dużego kota.", getReply(npc));
 
 		assertNotNull(npc.getAttending());
 		npc.preLogic();
-		assertEquals("Bye.", getReply(npc));
+		assertEquals("Do widzenia.", getReply(npc));
 		assertEquals(null, npc.getAttending());
 	}
 
@@ -101,7 +101,7 @@ public class NPCTest extends ZonePlayerAndNPCTestImpl {
 		assertEquals("awaiting", npc.getIdea());
 	}
 
-	// players use _hi, _hello etc to avoid npcs answering when it's meant to 
+	// players use _hi, _hello etc to avoid npcs answering when it's meant to
 	// other players
 	/**
 	 * Tests for underscore.
@@ -111,9 +111,9 @@ public class NPCTest extends ZonePlayerAndNPCTestImpl {
 		for (String hello : ConversationPhrases.GREETING_MESSAGES) {
 			final SpeakerNPC npc = getNPC("Felina");
 			final Engine en = npc.getEngine();
-			
+
 			assertEquals(ConversationStates.IDLE, en.getCurrentState());
-			
+
 			en.step(player, "_" + hello);
 			assertEquals("npc should not answer to _" + hello, ConversationStates.IDLE, en.getCurrentState());
 		}

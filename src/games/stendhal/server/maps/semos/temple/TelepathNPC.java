@@ -1,6 +1,5 @@
-/* $Id: TelepathNPC.java,v 1.29 2011/05/01 19:50:06 martinfuchs Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -11,6 +10,10 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.maps.semos.temple;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import games.stendhal.common.MathHelper;
 import games.stendhal.common.parser.Sentence;
@@ -26,18 +29,14 @@ import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.npc.action.MultipleActions;
-import games.stendhal.server.entity.npc.action.SayTextWithPlayerNameAction;
+import games.stendhal.server.entity.npc.action.SayTextAction;
 import games.stendhal.server.entity.npc.action.SetQuestAction;
 import games.stendhal.server.entity.npc.condition.AndCondition;
+import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotStartedCondition;
 import games.stendhal.server.entity.npc.condition.QuestStartedCondition;
-import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.util.TimeUtil;
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 public class TelepathNPC implements ZoneConfigurator {
 	/**
@@ -46,13 +45,13 @@ public class TelepathNPC implements ZoneConfigurator {
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
-		buildSemosTempleArea(zone, attributes);
+		buildSemosTempleArea(zone);
 	}
 
-	private void buildSemosTempleArea(final StendhalRPZone zone, final Map<String, String> attributes) {
+	private void buildSemosTempleArea(final StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Io Flotto") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -74,54 +73,56 @@ public class TelepathNPC implements ZoneConfigurator {
 
 			@Override
 			protected void createDialog() {
-
 				// player has met io before and has a pk skull
 				add(ConversationStates.IDLE,
 						ConversationPhrases.GREETING_MESSAGES,
 						new AndCondition(new GreetingMatchesNameCondition(getName()),
 								new QuestStartedCondition("meet_io"),
 								new ChatCondition() {
+									@Override
 									public boolean fire(final Player player, final Sentence sentence, final Entity entity) {
 										return player.isBadBoy() ;
 									}
 								}),
 				        ConversationStates.QUESTION_1,
 				        null,
-				        new SayTextWithPlayerNameAction("Witaj ponownie [name]. Wyczuwam, że zostałeś naznaczony znakiem czaszki. Czy chcesz, abym to usunęła?"));
-				
+				        new SayTextAction("Witaj ponownie [name]. Wyczuwam, że zostałeś naznaczony znakiem czaszki. Czy chcesz, abym to usunęła?"));
+
 				// player has met io before and has not got a pk skull
 				add(ConversationStates.IDLE,
 						ConversationPhrases.GREETING_MESSAGES,
 						new AndCondition(new GreetingMatchesNameCondition(getName()),
 								new QuestStartedCondition("meet_io"),
 								new ChatCondition() {
+									@Override
 									public boolean fire(final Player player, final Sentence sentence, final Entity entity) {
 										return !player.isBadBoy() ;
 									}
 								}),
 				        ConversationStates.ATTENDING,
 				        null,
-				        new SayTextWithPlayerNameAction("Witaj ponownie [name]. W czym mogę #pomóc? Nie to. Tego jeszcze nie wiem..."));
-				
+				        new SayTextAction("Witaj ponownie [name]. W czym mogę #pomóc? Nie to. Tego jeszcze nie wiem..."));
+
 				// first meeting with player
-				add(ConversationStates.IDLE, 
-						ConversationPhrases.GREETING_MESSAGES, 
+				add(ConversationStates.IDLE,
+						ConversationPhrases.GREETING_MESSAGES,
 						new AndCondition(new GreetingMatchesNameCondition(getName()),
 								new QuestNotStartedCondition("meet_io")),
 						ConversationStates.ATTENDING,
-				        null, 
+				        null,
 				        new MultipleActions(
-				        		new SayTextWithPlayerNameAction("Czekałam na Ciebie [name]. Skąd znam twoje imię? To proste jestem Flotto telepatka. Chcesz, abym pokazała Ci sześć podstaw telepatii?"),
+				        		new SayTextAction("Czekałam na Ciebie [name]. Skąd znam twoje imię? To proste jestem Flotto telepatka. Chcesz, abym pokazała Ci sześć podstaw telepatii?"),
 				        		new SetQuestAction("meet_io", "start")));
-	
+
 				add(ConversationStates.QUESTION_1, ConversationPhrases.YES_MESSAGES, null, ConversationStates.ATTENDING,
 				        null, new ChatAction() {
 
+					        @Override
 					        public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						       	if ((player.getLastPVPActionTime() > System.currentTimeMillis()
 											- 2 * MathHelper.MILLISECONDS_IN_ONE_WEEK)) {
 									// player attacked another within the last two weeks
-									long timeRemaining = player.getLastPVPActionTime() - System.currentTimeMillis() 
+									long timeRemaining = player.getLastPVPActionTime() - System.currentTimeMillis()
 										+ 2 * MathHelper.MILLISECONDS_IN_ONE_WEEK;
 									raiser.say("Musisz powstrzymać się od atakowania innych wojowników na dwa pełne tygodnie. Wróć za " + TimeUtil.approxTimeUntil((int) (timeRemaining / 1000L)) + ". Pamiętaj, że będę wiedziała jeżeli pomyślisz o czymś złym!");
 								} else if (player.getKarma() < 5) {
@@ -132,20 +133,23 @@ public class TelepathNPC implements ZoneConfigurator {
 									raiser.say("Żałujesz swoich czynów?");
 									raiser.setCurrentState(ConversationStates.QUESTION_2);
 								}
-							} 
+							}
 					    }
 				);
+
 				// player didn't want pk icon removed, offer other help
 				add(ConversationStates.QUESTION_1, ConversationPhrases.NO_MESSAGES, null, ConversationStates.ATTENDING, "Dobrze! Mogę ci #pomóc w różnych rzeczach jeżeli chcesz.", null);
 				// player satisfied the pk removal requirements and said yes they were sorry
 				add(ConversationStates.QUESTION_2, ConversationPhrases.YES_MESSAGES, null, ConversationStates.ATTENDING,
-				        "Dobrze. Wiedziałam.", new ChatAction() {
-
+						"Dobrze. Wiedziałam.",
+						new ChatAction() {
+					        @Override
 					        public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
-								player.rehabilitate(); 	
-							} });
+								player.rehabilitate();
+							}
+						});
 				// player said no they are not really sorry
-				add(ConversationStates.QUESTION_2, ConversationPhrases.NO_MESSAGES, null, ConversationStates.IDLE, "Myślałam, że nie! Dowidzenia!", null);
+				add(ConversationStates.QUESTION_2, ConversationPhrases.NO_MESSAGES, null, ConversationStates.IDLE, "Myślałam, że nie! Do widzenia!", null);
 				addJob("Potrafię użyć całą moc ludzkiego umysłu. Zrobiłam wielkie postępy w telepatii i telekinezie. Jednakże nadal nie mogę przewidywać przyszłości. Nie jestem pewna czy będziemy w stanie zniszczyć mroczne legiony Blordroughów...");
 				addQuest("Na razie nie potrzebuję pomocy od nikogo i... Hej! Nie próbujesz czasem czytać w moich myślach? Zawsze przed zrobieniem czegoś takiego powinieneś zapytać o pozwolenie!");
 				addGoodbye();
@@ -153,10 +157,11 @@ public class TelepathNPC implements ZoneConfigurator {
 			}
 		};
 
-		npc.setEntityClass("floattingladynpc");
 		npc.setDescription("Oto Io Flotto. Widzi ciebie.");
+		npc.setEntityClass("floattingladynpc");
+		npc.setShadowStyle("48x64_floating");
+		npc.setGender("F");
 		npc.setPosition(8, 19);
-		npc.initHP(100);
 		zone.add(npc);
 	}
 }

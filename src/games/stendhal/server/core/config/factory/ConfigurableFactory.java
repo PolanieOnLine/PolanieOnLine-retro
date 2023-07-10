@@ -1,7 +1,7 @@
 /*
  * @(#) src/games/stendhal/common/ConfigurableFactory.java
  *
- * $Id: ConfigurableFactory.java,v 1.1 2007/12/14 17:20:57 nhnb Exp $
+ * $Id$
  */
 
 package games.stendhal.server.core.config.factory;
@@ -13,13 +13,13 @@ public interface ConfigurableFactory {
 
 	/**
 	 * Create an object.
-	 * 
+	 *
 	 * @param ctx
 	 *            Configuration context.
-	 * 
+	 *
 	 * @return A new object, or <code>null</code> if allowed by the factory
 	 *         type.
-	 * 
+	 *
 	 * @throws IllegalArgumentException
 	 *             If there is a problem with the attributes. The exception
 	 *             message should be a value suitable for meaningful user

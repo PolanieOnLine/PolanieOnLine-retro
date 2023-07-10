@@ -1,7 +1,7 @@
 /*
  * @(#) src/games/stendhal/server/util/TimeUtil.java
  *
- * $Id: TimeUtil.java,v 1.10 2011/04/02 15:44:19 kymara Exp $
+ * $Id$
  */
 package games.stendhal.server.util;
 
@@ -25,10 +25,10 @@ public class TimeUtil {
 
 	/**
 	 * Create a text representing a saying of approximate time until.
-	 * 
+	 *
 	 * @param seconds
 	 *            The number of seconds till/past (in positive values).
-	 * 
+	 *
 	 * @return A text representation.
 	 */
 	public static String approxTimeUntil(final int seconds) {
@@ -40,7 +40,7 @@ public class TimeUtil {
 
 	/**
 	 * Append a text representing a saying of approximate time until.
-	 * 
+	 *
 	 * @param sbuf
 	 *            The buffer to append to.
 	 * @param seconds
@@ -68,7 +68,7 @@ public class TimeUtil {
 
 	/**
 	 * For a given amount and unit size, generate the approximate value.
-	 * 
+	 *
 	 * @param sbuf
 	 *            The buffer to append to.
 	 * @param amount
@@ -77,7 +77,7 @@ public class TimeUtil {
 	 *            The unit size.
 	 * @param name
 	 *            The unit name.
-	 * 
+	 *
 	 * @return <code>true</code> if unit used, <code>false</code> if the
 	 *         amount was too small to apply.
 	 */
@@ -122,10 +122,10 @@ public class TimeUtil {
 
 	/**
 	 * Create a text representing a saying of time until.
-	 * 
+	 *
 	 * @param seconds
 	 *            The number of seconds till/past (in positive values).
-	 * 
+	 *
 	 * @return A text representation.
 	 */
 	public static String timeUntil(final int seconds) {
@@ -134,12 +134,12 @@ public class TimeUtil {
 
 	/**
 	 * Create a text representing a saying of time until.
-	 * 
+	 *
 	 * @param seconds
 	 *            The number of seconds till/past (in positive values).
 	 * @param forceSeconds
 	 *            Show seconds even if over a minute.
-	 * 
+	 *
 	 * @return A text representation.
 	 */
 	public static String timeUntil(final int seconds, final boolean forceSeconds) {
@@ -151,7 +151,7 @@ public class TimeUtil {
 
 	/**
 	 * Append a text representing a saying of time until.
-	 * 
+	 *
 	 * @param sbuf
 	 *            The buffer to append to.
 	 * @param seconds
@@ -163,7 +163,7 @@ public class TimeUtil {
 
 	/**
 	 * Append a text representing a saying of time until.
-	 * 
+	 *
 	 * @param sbuf
 	 *            The buffer to append to.
 	 * @param seconds
@@ -181,7 +181,7 @@ public class TimeUtil {
 
 			sbuf.append(count);
 			sbuf.append(' ');
-			sbuf.append(Grammar.plnoun(count, "week"));
+			sbuf.append(Grammar.plnoun(count, "tydzień"));
 
 			appended = true;
 		}
@@ -198,7 +198,7 @@ public class TimeUtil {
 
 			sbuf.append(count);
 			sbuf.append(' ');
-			sbuf.append(Grammar.plnoun(count, "day"));
+			sbuf.append(Grammar.plnoun(count, "dzień"));
 		}
 		count = seconds / SECONDS_IN_HOUR;
 		if (count != 0) {

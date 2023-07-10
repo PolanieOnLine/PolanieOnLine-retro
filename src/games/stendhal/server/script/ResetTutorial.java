@@ -1,6 +1,5 @@
-/* $Id: ResetTutorial.java,v 1.11 2012/05/30 18:50:04 kiheru Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,23 +11,22 @@
  ***************************************************************************/
 package games.stendhal.server.script;
 
+import java.util.List;
+
 import games.stendhal.common.NotificationType;
+import games.stendhal.server.constants.StandardMessages;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.scripting.ScriptImpl;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.List;
-
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPSlot;
 
 /**
  * Resets the tutorial.
- * 
+ *
  * @author hendrik
  */
 public class ResetTutorial extends ScriptImpl {
-
 	@Override
 	public void execute(final Player admin, final List<String> args) {
 		super.execute(admin, args);
@@ -40,7 +38,12 @@ public class ResetTutorial extends ScriptImpl {
 		}
 
 		// find the player and slot
-		final Player player = SingletonRepository.getRuleProcessor().getPlayer(args.get(0));
+		final String pName = args.get(0);
+		final Player player = SingletonRepository.getRuleProcessor().getPlayer(pName);
+		if (player == null) {
+			StandardMessages.playerNotOnline(admin, pName);
+			return;
+		}
 		final RPSlot slot = player.getSlot("!tutorial");
 
 		// remove old store object

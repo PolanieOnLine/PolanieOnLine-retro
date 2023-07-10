@@ -1,6 +1,5 @@
-/* $Id: MeetBunny.java,v 1.49 2012/04/05 22:41:15 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2011 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -11,6 +10,10 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
@@ -29,10 +32,6 @@ import games.stendhal.server.entity.npc.condition.QuestCompletedCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotCompletedCondition;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
 /**
  * QUEST: Meet the Easter Bunny anywhere around the World.
  * <p>
@@ -47,29 +46,20 @@ import java.util.List;
  * REPETITIONS: None
  */
 public class MeetBunny extends AbstractQuest {
-	// quest slot changed ready for 2012
-	private static final String QUEST_SLOT = "meet_bunny_13";
+	private static final String QUEST_SLOT = "meet_bunny_[year]";// quest slot changed ready for 2015
+	/** The name of the quest */
+	public static final String QUEST_NAME = "Spotkanie Zajączka Wielkanocnego";
 
-	/** the Bunny NPC. */
+	/** The Bunny NPC. */
 	protected SpeakerNPC bunny;
 
-	private StendhalRPZone zone;
-	
 	private ItemDroppingTeleporterBehaviour teleporterBehaviour;
-	
-	/** the name of the quest */
-	public static final String QUEST_NAME = "MeetBunny";
 
-	// The default is 100 (30 seconds) so make ours half this
-	private static final int TIME_OUT = 50;
+	// The default is 30 seconds so make ours half this
+	private static final int TIME_OUT = 15;
 
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
-	
 	private SpeakerNPC createbunny() {
-		bunny = new SpeakerNPC("Easter Bunny") {
+		bunny = new SpeakerNPC("Zajączek Wielkanocny") {
 			@Override
 			protected void createPath() {
 				// npc does not move
@@ -96,40 +86,38 @@ public class MeetBunny extends AbstractQuest {
 					new AndCondition(new GreetingMatchesNameCondition(super.getName()),
 							new QuestNotCompletedCondition(QUEST_SLOT)),
 					ConversationStates.IDLE,
-					"Szczęśliwej Wielkanocy! Mam wielkanocny koszyczek dla Ciebie. Dowidzenia!",
+					"Szczęśliwej Wielkanocy! Mam wielkanocny koszyczek dla Ciebie. Do widzenia!",
 					new MultipleActions(reward));
 			}
 		};
-		
+
 		bunny.setEntityClass("easterbunnynpc");
 		bunny.initHP(100);
 		// times out twice as fast as normal NPCs
-		bunny.setPlayerChatTimeout(TIME_OUT); 
+		bunny.setPlayerChatTimeout(TIME_OUT);
 		bunny.setDescription("Oto przyjacielski króliczek niosący kolorowy Wielkanocny koszyczek.");
 		// start in int_admin_playground
-		zone = SingletonRepository.getRPWorld().getZone("int_admin_playground");
+
+		StendhalRPZone zone = SingletonRepository.getRPWorld().getZone("int_admin_playground");
 		bunny.setPosition(17, 13);
 		zone.add(bunny);
-		// Do not add bunny to NPC list until all is known to be OK
-		npcs.add(bunny);
 
 		return bunny;
 	}
 
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
-				"Spotkanie Króliczka Wielkanocnego",
+				QUEST_NAME,
 				"Wielkanoc wkrótce nadejdzie, a paru bohaterów już widziało króliczka skakjącego to tu to tam. Czy będziesz miał na tyle szczęscia, aby go złapać w określonym czasie? Trzymaj się jest bardzo szybki, a także nosi ze sobą niespodzianki...",
 				false);
-		
+
 		if (System.getProperty("stendhal.easterbunny") != null) {
 		    createbunny();
-		    teleporterBehaviour = new ItemDroppingTeleporterBehaviour(bunny, "*hop* *hop* *hop* Szczęśliwej Wielkanocy!", true, "małe jajo wielkanocne"); 
+		    teleporterBehaviour = new ItemDroppingTeleporterBehaviour(bunny, null, "0", "*hop* *hop* *hop* Szczęśliwej Wielkanocy!", true, "małe jajo wielkanocne");
 		}
 	}
-		
+
 	/**
 	 * removes a quest from the world.
 	 *
@@ -137,12 +125,12 @@ public class MeetBunny extends AbstractQuest {
 	 */
 	@Override
 	public boolean removeFromWorld() {
-		removeNPC("Easter Bunny");
+		removeNPC("Zajączek Wielkanocny");
 		// remove the turn notifiers left from the TeleporterBehaviour
 		SingletonRepository.getTurnNotifier().dontNotify(teleporterBehaviour);
 		return true;
 	}
-	
+
 	/**
 	 * removes an NPC from the world and NPC list
 	 *
@@ -157,23 +145,28 @@ public class MeetBunny extends AbstractQuest {
 	}
 
 	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
+	}
+
+	@Override
 	public String getName() {
 		return QUEST_NAME;
 	}
-	
+
 	@Override
 	public boolean isVisibleOnQuestStatus() {
 		return false;
 	}
-	
+
 	@Override
 	public List<String> getHistory(final Player player) {
 		return new ArrayList<String>();
 	}
-	
+
 	@Override
 	public String getNPCName() {
-		return "Easter Bunny";
+		return "Zajączek Wielkanocny";
 	}
 
 }

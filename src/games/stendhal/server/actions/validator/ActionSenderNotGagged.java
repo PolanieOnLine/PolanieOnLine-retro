@@ -1,4 +1,4 @@
-/* $Id: ActionSenderNotGagged.java,v 1.2 2012/09/13 20:46:30 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -33,11 +33,12 @@ public class ActionSenderNotGagged implements ActionValidator {
 	 * @param data   data about this action
 	 * @return <code>null</code> if the action is valid; an error message otherwise
 	 */
+	@Override
 	public String validate(Player player, RPAction action, ActionData data) {
 		if (GagManager.isGagged(player)) {
 			long timeRemaining = SingletonRepository.getGagManager().getTimeRemaining(player);
 			return "Zostałeś uciszony. Minie to za "
-					+ TimeUtil.approxTimeUntil((int) (timeRemaining / 1000L));
+			+ TimeUtil.approxTimeUntil((int) (timeRemaining / 1000L));
 		}
 		return null;
 	}

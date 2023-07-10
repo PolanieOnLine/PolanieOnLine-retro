@@ -1,4 +1,4 @@
-/* $Id: TransitionTest.java,v 1.20 2012/07/22 16:19:09 yoriy Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -19,6 +19,9 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import games.stendhal.common.parser.ConversationParser;
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.entity.Entity;
@@ -29,10 +32,6 @@ import games.stendhal.server.entity.npc.condition.AlwaysTrueCondition;
 import games.stendhal.server.entity.npc.condition.NotCondition;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.MockStendlRPWorld;
-
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import utilities.PlayerTestHelper;
 import utilities.SpeakerNPCTestHelper;
 
@@ -149,6 +148,7 @@ public class TransitionTest {
 		assertNull(t.getAction());
 		final PostTransitionAction postTransitionAction = new PostTransitionAction() {
 
+			@Override
 			public void fire(final Player player, final Sentence sentence, final EventRaiser entity) {
 				// do nothing
 			}
@@ -167,6 +167,7 @@ public class TransitionTest {
 										null, false, idle_0, null, null);
 		assertNull(t.getCondition());
 		final ChatCondition cond = new ChatCondition() {
+			@Override
 			public boolean fire(final Player player, final Sentence sentence, final Entity npc) {
 				return false;
 			}

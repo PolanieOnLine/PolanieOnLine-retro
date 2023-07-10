@@ -1,4 +1,4 @@
-/* $Id: IQuest.java,v 1.35 2012/05/17 17:14:57 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2011 - Stendhal                    *
  ***************************************************************************
@@ -12,9 +12,9 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
 
-import games.stendhal.server.entity.player.Player;
-
 import java.util.List;
+
+import games.stendhal.server.entity.player.Player;
 
 /**
  * All quests MUST implement this interface or extend the abstract class
@@ -83,6 +83,8 @@ public interface IQuest {
 	 * @return list of history item-names
 	 */
 	List<String> getHistory(Player player);
+
+	List<String> getFormattedHistory(Player player);
 
 	/**
 	 * Gets a list of possible hint-names.

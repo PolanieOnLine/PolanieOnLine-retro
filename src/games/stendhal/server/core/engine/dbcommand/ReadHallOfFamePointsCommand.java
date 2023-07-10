@@ -1,5 +1,5 @@
 /***************************************************************************
- *                    (C) Copyright 2007-2010 - Stendhal                   *
+ *                    (C) Copyright 2007-2020 - Stendhal                   *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -11,10 +11,9 @@
  ***************************************************************************/
 package games.stendhal.server.core.engine.dbcommand;
 
-import games.stendhal.server.core.engine.db.StendhalHallOfFameDAO;
-
 import java.sql.SQLException;
 
+import games.stendhal.server.core.engine.db.StendhalHallOfFameDAO;
 import marauroa.server.db.DBTransaction;
 import marauroa.server.db.command.AbstractDBCommand;
 import marauroa.server.game.db.DAORegister;
@@ -43,7 +42,7 @@ public class ReadHallOfFamePointsCommand extends AbstractDBCommand {
 	@Override
 	public void execute(DBTransaction transaction) throws SQLException {
 		StendhalHallOfFameDAO dao = DAORegister.get().get(StendhalHallOfFameDAO.class);
-		points = dao.getHallOfFamePoints(playername, fametype);
+		points = dao.getHallOfFamePoints(transaction, playername, fametype);
 	}
 
 	/**

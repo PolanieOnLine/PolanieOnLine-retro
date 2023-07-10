@@ -1,17 +1,14 @@
 package games.stendhal.server.entity.npc.condition;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
 import games.stendhal.server.core.config.annotations.Dev.Category;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Checks if a player has produced a given number of items
@@ -33,7 +30,7 @@ public class PlayerProducedNumberOfItemsCondition implements ChatCondition {
 	 */
 	public PlayerProducedNumberOfItemsCondition(int number, String... items) {
 		itemProducedList = new ArrayList<String>();
-		if(items != null) {
+		if (items != null) {
 			for(String item : items) {
 				itemProducedList.add(item);
 			}
@@ -41,6 +38,7 @@ public class PlayerProducedNumberOfItemsCondition implements ChatCondition {
 		quantity = number;
 	}
 
+	@Override
 	public boolean fire(Player player, Sentence sentence, Entity npc) {
 		for(String item : itemProducedList) {
 			if(quantity > player.getQuantityOfProducedItems(item)) {
@@ -52,13 +50,17 @@ public class PlayerProducedNumberOfItemsCondition implements ChatCondition {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 44027 * itemProducedList.hashCode() + quantity;
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				PlayerProducedNumberOfItemsCondition.class);
+		if (!(obj instanceof PlayerProducedNumberOfItemsCondition)) {
+			return false;
+		}
+		PlayerProducedNumberOfItemsCondition other = (PlayerProducedNumberOfItemsCondition) obj;
+		return (quantity == other.quantity)
+			&& itemProducedList.equals(other.itemProducedList);
 	}
 
 	@Override

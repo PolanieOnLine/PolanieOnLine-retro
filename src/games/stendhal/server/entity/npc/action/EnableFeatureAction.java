@@ -1,4 +1,4 @@
-/* $Id: EnableFeatureAction.java,v 1.5 2012/09/09 12:19:56 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,15 +12,16 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.action;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import com.google.common.base.Objects;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
 import games.stendhal.server.core.config.annotations.Dev.Category;
 import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.player.Player;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Enables a client side feature.
@@ -48,11 +49,12 @@ public class EnableFeatureAction implements ChatAction {
 	 */
 	@Dev
 	public EnableFeatureAction(final String feature, final String value) {
-		this.feature = feature;
+		this.feature = checkNotNull(feature);
 		this.value = value;
 	}
 
 
+	@Override
 	public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 		player.setFeature(feature, value);
 	}
@@ -70,13 +72,17 @@ public class EnableFeatureAction implements ChatAction {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 5171 * feature.hashCode();
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				EnableFeatureAction.class);
+		if (!(obj instanceof EnableFeatureAction)) {
+			return false;
+		}
+		EnableFeatureAction other = (EnableFeatureAction) obj;
+		return feature.equals(other.feature)
+			&& Objects.equal(value, other.value);
 	}
 
 }

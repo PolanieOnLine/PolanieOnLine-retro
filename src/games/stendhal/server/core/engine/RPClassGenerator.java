@@ -1,4 +1,4 @@
-/* $Id: RPClassGenerator.java,v 1.42 2012/07/22 15:56:47 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -15,22 +15,31 @@ package games.stendhal.server.core.engine;
 import games.stendhal.common.constants.Events;
 import games.stendhal.server.entity.ActiveEntity;
 import games.stendhal.server.entity.Blood;
+import games.stendhal.server.entity.CombatEntity;
+import games.stendhal.server.entity.DressedEntity;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.RPEntity;
 import games.stendhal.server.entity.creature.BabyDragon;
 import games.stendhal.server.entity.creature.Cat;
 import games.stendhal.server.entity.creature.Creature;
+import games.stendhal.server.entity.creature.Goat;
 import games.stendhal.server.entity.creature.Owczarek;
 import games.stendhal.server.entity.creature.OwczarekPodhalanski;
 import games.stendhal.server.entity.creature.Pet;
+import games.stendhal.server.entity.creature.PurpleDragon;
 import games.stendhal.server.entity.creature.Sheep;
 import games.stendhal.server.entity.item.Corpse;
 import games.stendhal.server.entity.item.Item;
 import games.stendhal.server.entity.item.ItemInformation;
 import games.stendhal.server.entity.mapstuff.ExpirationTracker;
 import games.stendhal.server.entity.mapstuff.Fire;
+import games.stendhal.server.entity.mapstuff.WeatherEntity;
 import games.stendhal.server.entity.mapstuff.area.AreaEntity;
+import games.stendhal.server.entity.mapstuff.area.FlyOverArea;
 import games.stendhal.server.entity.mapstuff.area.WalkBlocker;
+import games.stendhal.server.entity.mapstuff.area.Wall;
+import games.stendhal.server.entity.mapstuff.block.Block;
+import games.stendhal.server.entity.mapstuff.block.BlockTarget;
 import games.stendhal.server.entity.mapstuff.chest.Chest;
 import games.stendhal.server.entity.mapstuff.game.GameBoard;
 import games.stendhal.server.entity.mapstuff.office.ArrestWarrant;
@@ -41,6 +50,7 @@ import games.stendhal.server.entity.mapstuff.portal.HousePortal;
 import games.stendhal.server.entity.mapstuff.portal.Portal;
 import games.stendhal.server.entity.mapstuff.sign.Sign;
 import games.stendhal.server.entity.mapstuff.sound.LoopedSoundSource;
+import games.stendhal.server.entity.mapstuff.spawner.GoatFood;
 import games.stendhal.server.entity.mapstuff.spawner.GrowingPassiveEntityRespawnPoint;
 import games.stendhal.server.entity.mapstuff.spawner.PassiveEntityRespawnPoint;
 import games.stendhal.server.entity.mapstuff.spawner.SheepFood;
@@ -49,38 +59,33 @@ import games.stendhal.server.entity.mapstuff.useable.GoldSource;
 import games.stendhal.server.entity.mapstuff.useable.UseableEntity;
 import games.stendhal.server.entity.mapstuff.useable.WaterSpringSource;
 import games.stendhal.server.entity.mapstuff.useable.WellSource;
-import games.stendhal.server.entity.mapstuff.useable.SourceAmetyst;
-import games.stendhal.server.entity.mapstuff.useable.SourceCarbuncle;
-import games.stendhal.server.entity.mapstuff.useable.SourceEmerald;
-import games.stendhal.server.entity.mapstuff.useable.SourceGold;
-import games.stendhal.server.entity.mapstuff.useable.SourceIron;
-import games.stendhal.server.entity.mapstuff.useable.SourceMithril;
-import games.stendhal.server.entity.mapstuff.useable.SourceObsidian;
-import games.stendhal.server.entity.mapstuff.useable.SourceSalt;
-import games.stendhal.server.entity.mapstuff.useable.SourceSapphire;
-import games.stendhal.server.entity.mapstuff.useable.SourceSilver;
-import games.stendhal.server.entity.mapstuff.useable.SourceSulfur;
 import games.stendhal.server.entity.mapstuff.useable.WoodSource;
 import games.stendhal.server.entity.npc.NPC;
+import games.stendhal.server.entity.npc.TrainingDummy;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.entity.spell.Spell;
 import games.stendhal.server.entity.trade.Earning;
 import games.stendhal.server.entity.trade.Market;
 import games.stendhal.server.entity.trade.Offer;
+import games.stendhal.server.events.AchievementLogEvent;
 import games.stendhal.server.events.AttackEvent;
+import games.stendhal.server.events.BestiaryEvent;
 import games.stendhal.server.events.BuddyLoginEvent;
 import games.stendhal.server.events.BuddyLogoutEvent;
 import games.stendhal.server.events.ExamineEvent;
+import games.stendhal.server.events.GlobalVisualEffectEvent;
 import games.stendhal.server.events.GroupChangeEvent;
 import games.stendhal.server.events.GroupInviteEvent;
 import games.stendhal.server.events.HealedEvent;
 import games.stendhal.server.events.ImageEffectEvent;
+import games.stendhal.server.events.ItemLogEvent;
 import games.stendhal.server.events.PlayerLoggedOnEvent;
 import games.stendhal.server.events.PlayerLoggedOutEvent;
 import games.stendhal.server.events.PrivateTextEvent;
 import games.stendhal.server.events.ProgressStatusEvent;
 import games.stendhal.server.events.ReachedAchievementEvent;
 import games.stendhal.server.events.ShowItemListEvent;
+import games.stendhal.server.events.ShowOutfitListEvent;
 import games.stendhal.server.events.SoundEvent;
 import games.stendhal.server.events.TextEvent;
 import games.stendhal.server.events.TradeStateChangeEvent;
@@ -95,6 +100,7 @@ import marauroa.common.game.RPClass;
  */
 public class RPClassGenerator {
 	private static boolean inited = false;
+	private RPClass action;
 
 	/**
 	 * creates the RPClass definitions, unless this was already done.
@@ -112,6 +118,9 @@ public class RPClassGenerator {
 		// Entity sub-classes
 		if (!RPClass.hasRPClass("active_entity")) {
 			ActiveEntity.generateRPClass();
+		}
+		if (!RPClass.hasRPClass(CombatEntity.RPCLASS_NAME)) {
+			CombatEntity.generateRPClass();
 		}
 		if (!RPClass.hasRPClass("area")) {
 			AreaEntity.generateRPClass();
@@ -134,6 +143,12 @@ public class RPClassGenerator {
 		if (!RPClass.hasRPClass("fire")) {
 			Fire.generateRPClass();
 		}
+		if (!RPClass.hasRPClass("block")) {
+			Block.generateRPClass();
+		}
+		if (!RPClass.hasRPClass("blocktarget")) {
+			BlockTarget.generateRPClass();
+		}
 		if (!RPClass.hasRPClass("fish_source")) {
 			FishSource.generateRPClass();
 		}
@@ -146,46 +161,14 @@ public class RPClassGenerator {
 		if (!RPClass.hasRPClass("gold_source")) {
 			GoldSource.generateRPClass();
 		}
-	
 		if (!RPClass.hasRPClass("water_source")) {
 			WaterSpringSource.generateRPClass();
 		}
-
 		if (!RPClass.hasRPClass("well_source")) {
 			WellSource.generateRPClass();
 		}
-		if (!RPClass.hasRPClass("source_ametyst")) {
-			SourceAmetyst.generateRPClass();
-		}
-		if (!RPClass.hasRPClass("source_carbuncle")) {
-			SourceCarbuncle.generateRPClass();
-		}
-		if (!RPClass.hasRPClass("source_emerald")) {
-			SourceEmerald.generateRPClass();
-		}
-		if (!RPClass.hasRPClass("source_gold")) {
-			SourceGold.generateRPClass();
-		}
-		if (!RPClass.hasRPClass("source_iron")) {
-			SourceIron.generateRPClass();
-		}
-		if (!RPClass.hasRPClass("source_mithril")) {
-			SourceMithril.generateRPClass();
-		}
-		if (!RPClass.hasRPClass("source_obsidian")) {
-			SourceObsidian.generateRPClass();
-		}
-		if (!RPClass.hasRPClass("source_salt")) {
-			SourceSalt.generateRPClass();
-		}
-		if (!RPClass.hasRPClass("source_sapphire")) {
-			SourceSapphire.generateRPClass();
-		}
-		if (!RPClass.hasRPClass("source_silver")) {
-			SourceSilver.generateRPClass();
-		}
-		if (!RPClass.hasRPClass("source_sulfur")) {
-			SourceSulfur.generateRPClass();
+		if (!RPClass.hasRPClass("weather_entity")) {
+			WeatherEntity.generateRPClass();
 		}
 		if (!RPClass.hasRPClass("wood_source")) {
 			WoodSource.generateRPClass();
@@ -208,8 +191,11 @@ public class RPClassGenerator {
 		if (!RPClass.hasRPClass("spell")) {
 			Spell.generateRPClass();
 		}
-		if (!RPClass.hasRPClass("wallblocker")) {
+		if (!RPClass.hasRPClass("walkblocker")) {
 			WalkBlocker.generateRPClass();
+		}
+		if (!RPClass.hasRPClass("flyover")) {
+			FlyOverArea.generateRPClass();
 		}
 		if (!RPClass.hasRPClass("house_portal")) {
 			HousePortal.generateRPClass();
@@ -217,9 +203,17 @@ public class RPClassGenerator {
 		if (!RPClass.hasRPClass("useable_entity")) {
 			UseableEntity.generateRPClass();
 		}
+		if (!RPClass.hasRPClass("wall")) {
+			Wall.generateRPClass();
+		}
 		// ActiveEntity sub-classes
 		if (!RPClass.hasRPClass("rpentity")) {
 			RPEntity.generateRPClass();
+		}
+
+		// DressedEntity sub-classes
+		if (!RPClass.hasRPClass("dressed_entity")) {
+			DressedEntity.generateRPClass();
 		}
 
 		// RPEntity sub-classes
@@ -234,10 +228,16 @@ public class RPClassGenerator {
 		if (!RPClass.hasRPClass("creature")) {
 			Creature.generateRPClass();
 		}
+		if (!RPClass.hasRPClass(TrainingDummy.RPCLASS_NAME)) {
+			TrainingDummy.generateRPClass();
+		}
 
 		// Creature sub-classes
 		if (!RPClass.hasRPClass("sheep")) {
 			Sheep.generateRPClass();
+		}
+		if (!RPClass.hasRPClass("goat")) {
+			Goat.generateRPClass();
 		}
 		if (!RPClass.hasRPClass("pet")) {
 			Pet.generateRPClass();
@@ -248,6 +248,9 @@ public class RPClassGenerator {
 		if (!RPClass.hasRPClass("baby_dragon")) {
 			BabyDragon.generateRPClass();
 		}
+		if (!RPClass.hasRPClass("purple_dragon")) {
+			PurpleDragon.generateRPClass();
+		}
 		if (!RPClass.hasRPClass("owczarek")) {
 			Owczarek.generateRPClass();
 		}
@@ -255,19 +258,21 @@ public class RPClassGenerator {
 			OwczarekPodhalanski.generateRPClass();
 		}
 
-		// PassiveEntityRespawnPoint sub-class
-		if (!RPClass.hasRPClass("ambient_sound_source")) {
+		if (!RPClass.hasRPClass(LoopedSoundSource.RPCLASS_NAME)) {
 			LoopedSoundSource.generateRPClass();
 		}
+
+		// PassiveEntityRespawnPoint sub-class
 		if (!RPClass.hasRPClass("growing_entity_spawner")) {
 			GrowingPassiveEntityRespawnPoint.generateRPClass();
 		}
 		if (!RPClass.hasRPClass("food")) {
 			SheepFood.generateRPClass();
+			GoatFood.generateRPClass();
 		}
 
 		// zone storage
-		if (!RPClass.hasRPClass("arrest_warrant")) {		
+		if (!RPClass.hasRPClass("arrest_warrant")) {
 			ArrestWarrant.generateRPClass();
 		}
 		if (!RPClass.hasRPClass("rented_sign")) {
@@ -333,7 +338,7 @@ public class RPClassGenerator {
 		if (!RPClass.hasRPClass(Events.PLAYER_LOGGED_ON)) {
 			PlayerLoggedOnEvent.generateRPClass();
 		}
-		
+
 		if (!RPClass.hasRPClass(Events.PLAYER_LOGGED_OUT)) {
 			PlayerLoggedOutEvent.generateRPClass();
 		}
@@ -341,12 +346,33 @@ public class RPClassGenerator {
 		if (!RPClass.hasRPClass(Events.REACHED_ACHIEVEMENT)) {
 			ReachedAchievementEvent.generateRPClass();
 		}
-		
+
 		if (!RPClass.hasRPClass(Events.VIEW_CHANGE)) {
 			ViewChangeEvent.generateRPClass();
 		}
 
-		if (!RPClass.hasRPClass("chat")) {
+		if (!RPClass.hasRPClass(Events.GLOBAL_VISUAL)) {
+			GlobalVisualEffectEvent.generateRPClass();
+		}
+
+		if (!RPClass.hasRPClass(Events.BESTIARY)) {
+			BestiaryEvent.generateRPClass();
+		}
+
+		if (!RPClass.hasRPClass(Events.DROPPEDLIST)) {
+			ItemLogEvent.generateRPClass();
+		}
+
+		if (!RPClass.hasRPClass(Events.OUTFIT_LIST)) {
+			ShowOutfitListEvent.generateRPClass();
+		}
+
+		if (!RPClass.hasRPClass(Events.ACHIEVEMENT_LOG)) {
+			AchievementLogEvent.generateRPClass();
+		}
+
+		if (!RPClass.hasRPClass("action")) {
+			createActionRPClass();
 			createChatActionRPClass();
 			createCidActionRPClass();
 			createMoveToActionRPClass();
@@ -365,33 +391,41 @@ public class RPClassGenerator {
 		RPClass.bakeAll();
 	}
 
+	private void createActionRPClass() {
+		action = new RPClass("action");
+		action.add(DefinitionClass.ATTRIBUTE, "zone", Type.STRING);
+	}
+
 	private void createChatActionRPClass() {
-		RPClass chatAction = new RPClass("chat");
-		chatAction.add(DefinitionClass.ATTRIBUTE, "type", Type.STRING);
-		chatAction.add(DefinitionClass.ATTRIBUTE, "text", Type.LONG_STRING);
+		RPClass clazz = new RPClass("chat");
+		clazz.isA(action);
+		clazz.add(DefinitionClass.ATTRIBUTE, "type", Type.STRING);
+		clazz.add(DefinitionClass.ATTRIBUTE, "text", Type.LONG_STRING);
 	}
 
 	private void createCidActionRPClass() {
-		RPClass action = new RPClass("cstatus");
-		action.addAttribute("cid", Type.STRING);
-		action.addAttribute("version", Type.STRING);
-		action.addAttribute("build", Type.STRING);
-		action.addAttribute("dist", Type.STRING);
+		RPClass clazz = new RPClass("cstatus");
+		clazz.isA(action);
+		clazz.addAttribute("cid", Type.STRING);
+		clazz.addAttribute("version", Type.STRING);
+		clazz.addAttribute("build", Type.STRING);
+		clazz.addAttribute("dist", Type.STRING);
 	}
 
 	private void createMoveToActionRPClass() {
-		RPClass action = new RPClass("moveto");
-		action.addAttribute("double_click", Type.FLAG);
-		action.addAttribute("extend", Type.INT);
-		action.addAttribute("x", Type.INT);
-		action.addAttribute("y", Type.INT);
+		RPClass clazz = new RPClass("moveto");
+		clazz.isA(action);
+		clazz.addAttribute("double_click", Type.FLAG);
+		clazz.addAttribute("extend", Type.INT);
+		clazz.addAttribute("x", Type.INT);
+		clazz.addAttribute("y", Type.INT);
 	}
 
 	private void createTellActionRPClass() {
-		RPClass chatAction;
-		chatAction = new RPClass("tell");
-		chatAction.add(DefinitionClass.ATTRIBUTE, "type", Type.STRING);
-		chatAction.add(DefinitionClass.ATTRIBUTE, "text", Type.LONG_STRING);
-		chatAction.add(DefinitionClass.ATTRIBUTE, "target", Type.LONG_STRING);
+		RPClass clazz = new RPClass("tell");
+		clazz.isA(action);
+		clazz.add(DefinitionClass.ATTRIBUTE, "type", Type.STRING);
+		clazz.add(DefinitionClass.ATTRIBUTE, "text", Type.LONG_STRING);
+		clazz.add(DefinitionClass.ATTRIBUTE, "target", Type.LONG_STRING);
 	}
 }

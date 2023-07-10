@@ -1,4 +1,4 @@
-/* $Id: SlotWindow.java,v 1.12 2012/09/05 19:36:30 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,87 +12,129 @@
  ***************************************************************************/
 package games.stendhal.client.gui;
 
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.geom.Rectangle2D;
+
+import javax.swing.SwingUtilities;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.client.StendhalClient;
 import games.stendhal.client.entity.IEntity;
 import games.stendhal.client.entity.Inspector;
 import games.stendhal.client.entity.User;
-
-import java.awt.Graphics;
-import java.awt.geom.Rectangle2D;
-
 import marauroa.common.game.RPObject;
 
 /**
  * A window for showing contents of an entity's slot in a grid of ItemPanels
  */
-public class SlotWindow extends InternalManagedWindow {
-	/**
-	 * serial version uid
-	 */
-	private static final long serialVersionUID = 7599313996868476471L;
+public class SlotWindow extends InternalManagedWindow implements Inspectable {
+	private static Logger logger = Logger.getLogger(SlotWindow.class);
 
 	/**
 	 * when the player is this far away from the container, the panel is closed.
 	 */
 	private static final int MAX_DISTANCE = 4;
-	
-	protected final SlotGrid content;
-	protected IEntity parent;
-	
+
+	private final SlotGrid content;
+	private IEntity parent;
+
 	/**
 	 * Create a new EntityContainer.
-	 * 
+	 *
 	 * @param title window title
 	 * @param width number of slot columns
 	 * @param height number of slot rows
 	 */
-	public SlotWindow(String title, int width, int height) {
+	public SlotWindow(final String title, final int width, final int height) {
 		super(title, title);
-		
+
 		content = new SlotGrid(width, height);
 		setContent(content);
 	}
-	
+
+	protected void setSlotsLayout(final int width, final int height) {
+		content.setSlotsLayout(width, height);
+		setContent(content);
+
+		final String slotName = content.getSlotName();
+		if (parent != null && slotName != null) {
+			content.setSlot(parent, slotName);
+		}
+
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				revalidate();
+				repaint();
+			}
+		});
+
+		// workaround to update component sizes
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					Thread.sleep(500);
+				} catch (InterruptedException e) {
+					logger.error(e, e);
+				}
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						Component window = SwingUtilities.getRoot(getParent());
+						window.doLayout();
+						window.revalidate();
+						window.repaint();
+					}
+				});
+			}
+		}).start();
+	}
+
 	/**
 	 * Set the types the panels can accept.
-	 * 
-	 * @param types
+	 *
+	 * @param types accepted types
 	 */
-	public void setAcceptedTypes(Class ... types) {
+	@SafeVarargs
+	public final void setAcceptedTypes(Class<? extends IEntity> ... types) {
 		content.setAcceptedTypes(types);
 	}
-	
+
 	/**
 	 * Sets the parent entity of the window.
-	 * 
-	 * @param parent
-	 * @param slot
+	 *
+	 * @param parent entity owning the slot presented by the window
+	 * @param slot slot presented
 	 */
 	public void setSlot(final IEntity parent, final String slot) {
 		this.parent = parent;
 		content.setSlot(parent, slot);
 	}
-	
+
 	/**
 	 * Set the inspector used for the contained entities.
-	 * 
-	 * @param inspector
+	 *
+	 * @param inspector used inspector
 	 */
+	@Override
 	public void setInspector(Inspector inspector) {
 		content.setInspector(inspector);
 	}
-	
+
 	@Override
 	public void paint(Graphics g) {
 		super.paint(g);
 		/*
 		 * This needs to be done in paint(), not in paintComponent (as far as
 		 * the check is done at paint time). paintComponent does not necessarily
-		 * get called at all due to InternalWindow using cached drawing. 
+		 * get called at all due to InternalWindow using cached drawing.
 		 */
 		checkDistance();
 	}
-	
+
 	/**
 	 * Check the distance of the player to the base item. When the player is too
 	 * far away, this panel closes itself.
@@ -102,18 +144,18 @@ public class SlotWindow extends InternalManagedWindow {
 			close();
 		}
 	}
-	
+
 	@Override
 	public void close() {
 		content.release();
 		super.close();
 	}
-	
+
 	/**
 	 * Check if the user is close enough the parent entity of the slot. If
 	 * the user is too far away the window should not be opened, and it should
 	 * be closed if it was already open.
-	 * 
+	 *
 	 * @return <code>true</code> if the user is close enough to have the window
 	 * 	open, <code>false</code> otherwise.
 	 */
@@ -126,7 +168,7 @@ public class SlotWindow extends InternalManagedWindow {
 			// after double clicking one
 			// monster and a fast double
 			// click on another monster
-			
+
 			// Check if the parent is user
 			RPObject root = parent.getRPObject().getBaseContainer();
 			// We don't want to close our own stuff
@@ -147,12 +189,12 @@ public class SlotWindow extends InternalManagedWindow {
 
 		return true;
 	}
-	
+
 	/**
 	 * Check if the user is close enough the parent entity of the slot. If
 	 * the user is too far away the window should not be opened, and it should
 	 * be closed if it was already open.
-	 * 
+	 *
 	 * @param x x coordinate of the user
 	 * @param y y coordinate of the user
 	 * @return <code>true</code> if the user is close enough to have the window

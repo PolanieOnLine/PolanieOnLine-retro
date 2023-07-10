@@ -1,4 +1,3 @@
-/* $Id: LittleBoyNPC.java,v 1.9.14.1 2012/09/08 21:03:54 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -24,30 +23,26 @@ import games.stendhal.server.entity.npc.SpeakerNPC;
 
 /**
  * A little boy who lives at a farm.
- * 
+ *
  * @see games.stendhal.server.maps.quests.PlinksToy
  */
 public class LittleBoyNPC implements ZoneConfigurator {
-
 	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(StendhalRPZone zone, Map<String, String> attributes) {
 		buildSemosNorthPlainsArea(zone);
 	}
 
 	private void buildSemosNorthPlainsArea(StendhalRPZone zone) {
-		SpeakerNPC npc = new SpeakerNPC("Plink") {
-
+		final SpeakerNPC npc = new SpeakerNPC("Plink") {
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
-				nodes.add(new Node(36, 108));
-				nodes.add(new Node(37, 108));
-				nodes.add(new Node(37, 105));
 				nodes.add(new Node(42, 105));
 				nodes.add(new Node(42, 110));
 				nodes.add(new Node(48, 110));
@@ -58,28 +53,26 @@ public class LittleBoyNPC implements ZoneConfigurator {
 				nodes.add(new Node(49, 93));
 				nodes.add(new Node(49, 98));
 				nodes.add(new Node(46, 98));
-				nodes.add(new Node(46, 99));
-				nodes.add(new Node(36, 99));
-
+				nodes.add(new Node(46, 100));
+				nodes.add(new Node(38, 100));
 				setPath(new FixedPath(nodes, true));
 			}
-
 
 			@Override
 			public void createDialog() {
 				// NOTE: These texts are only available after finishing the quest.
 				addGreeting();
 				addJob("Bawię się cały dzień.");
-				addHelp("Bądź ostrożny idąc na wschód. Tam są wilki!!");
+				addHelp("Bądź ostrożny idąc na wschód. Tam są wilki!");
 				addOffer("Hej nie oddam tobie mojego misia! Jest mój! *ściska*");
 				addGoodbye();
 			}
-	
 		};
+
+		npc.setDescription("Oto młody chłopiec o imieniu Plink. Płacze i potrzebuje pomocy...");
 		npc.setEntityClass("plinknpc");
-		npc.setDescription("Widzisz młodego chłopca o imieniu Plink. On płacze i potrzebuje pomocy ...");
-		npc.setPosition(36, 108);
-		npc.initHP(100);
+		npc.setGender("M");
+		npc.setPosition(38, 100);
 		zone.add(npc);
 	}
 

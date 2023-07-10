@@ -1,6 +1,5 @@
-/* $Id: ClubOfThorns.java,v 1.28 2012/04/24 17:01:18 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,6 +11,12 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
+import games.stendhal.common.grammar.Grammar;
 import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
@@ -33,33 +38,28 @@ import games.stendhal.server.entity.npc.condition.QuestNotStartedCondition;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.Region;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-
 /**
  * QUEST: Club of Thorns
- * 
+ *
  * PARTICIPANTS:
  * <ul>
- * <li> Orc Saman</li>
+ * <li> Szaman Orków</li>
  * </ul>
- * 
+ *
  * STEPS:
  * <ul>
- * <li> Orc Saman asks you to kill mountain orc chief in prison for revenge</li>
+ * <li> Szaman Orków asks you to kill mountain orc chief in prison for revenge</li>
  * <li> Go kill mountain orc chief in prison using key given by Saman to get in</li>
  * <li> Return and you get Club of Thorns as reward<li>
  * </ul>
- * 
+ *
  * REWARD:
  * <ul>
- * <li> 1000 XP<li>
+ * <li> 10000 XP<li>
  * <li> Club of Thorns</li>
- * <li> Karma: 16<li>
+ * <li> Karma: 20<li>
  * </ul>
- * 
+ *
  * REPETITIONS:
  * <ul>
  * <li> None.</li>
@@ -67,26 +67,20 @@ import java.util.List;
  */
 public class ClubOfThorns extends AbstractQuest {
 	private static final String QUEST_SLOT = "club_thorns";
-	
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
-	
-	private void step_1() {
-		final SpeakerNPC npc = npcs.get("Orc Saman");
+	private final SpeakerNPC npc = npcs.get("Szaman Orków");
 
+	private void step_1() {
 		npc.add(ConversationStates.ATTENDING,
 			ConversationPhrases.QUEST_MESSAGES,
 			new QuestNotStartedCondition(QUEST_SLOT),
 			ConversationStates.QUEST_OFFERED,
-			"Zemścij się! Zabij szefa górskich orków! Zrozumiałeś?",
+			"Zemścij się! Zabij szefa górskich orków i jego towarzyszy! Zrozumiałeś?",
 			null);
 
 		npc.add(ConversationStates.ATTENDING,
 			ConversationPhrases.QUEST_MESSAGES,
 			new QuestActiveCondition(QUEST_SLOT),
-			ConversationStates.ATTENDING, 
+			ConversationStates.ATTENDING,
 			"Zemścij się! #Zabij szefa górskich orków!",
 			null);
 
@@ -94,16 +88,14 @@ public class ClubOfThorns extends AbstractQuest {
 			ConversationPhrases.QUEST_MESSAGES,
 			new QuestCompletedCondition(QUEST_SLOT),
 			ConversationStates.ATTENDING,
-			"Saman zemścij się! Dobrze!",
+			"Szaman zemścił się! Dobrze!",
 			null);
-
 
 		final List<ChatAction> start = new LinkedList<ChatAction>();
 		start.add(new EquipItemAction("klucz do więzienia Kotoch", 1, true));
-		start.add(new IncreaseKarmaAction(6.0));
+		start.add(new IncreaseKarmaAction(10.0));
 		start.add(new SetQuestAction(QUEST_SLOT, 0, "start"));
 		start.add(new StartRecordingKillsAction(QUEST_SLOT, 1, "szef górskich orków", 0, 1));
-
 
 		npc.add(
 			ConversationStates.QUEST_OFFERED,
@@ -125,13 +117,10 @@ public class ClubOfThorns extends AbstractQuest {
 	}
 
 	private void step_3() {
-
-		final SpeakerNPC npc = npcs.get("Orc Saman");
-
 		final List<ChatAction> reward = new LinkedList<ChatAction>();
-		reward.add(new EquipItemAction("młot Thora", 1, true));
-		reward.add(new IncreaseKarmaAction(10.0));
-		reward.add(new IncreaseXPAction(1000));
+		reward.add(new EquipItemAction("maczuga cierniowa", 1, true));
+		reward.add(new IncreaseKarmaAction(20.0));
+		reward.add(new IncreaseXPAction(10000));
 		reward.add(new SetQuestAction(QUEST_SLOT, "done"));
 
 		// the player returns after having started the quest.
@@ -139,7 +128,7 @@ public class ClubOfThorns extends AbstractQuest {
 		npc.add(ConversationStates.ATTENDING, Arrays.asList("kill", "zabij","zabity"),
 			new AndCondition(new QuestInStateCondition(QUEST_SLOT, 0, "start"), new KilledForQuestCondition(QUEST_SLOT, 1)),
 			ConversationStates.ATTENDING,
-			"Zemsta dokonana! Dobrze! Weź ten potężny młot Thora w nagrodę.",
+			"Zemsta dokonana! Dobrze! Weź tą potężną maczugę cierniową w nagrodę.",
 			new MultipleActions(reward));
 
 		npc.add(ConversationStates.ATTENDING, Arrays.asList("kill", "zabij","zabity"),
@@ -151,45 +140,43 @@ public class ClubOfThorns extends AbstractQuest {
 
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
-
 		step_1();
 		step_2();
 		step_3();
 		fillQuestInfo(
-				"Młot Thora",
-				"Zostań najemnikiem Orc Saman i wygraj potężną broń.",
+				"Maczuga Cierniowa",
+				"Zostań najemnikiem Szamana Orków i wygraj potężną broń.",
 				false);
 	}
-	
+
 	@Override
 	public List<String> getHistory(final Player player) {
 		final List<String> res = new ArrayList<String>();
 		if (!player.hasQuest(QUEST_SLOT)) {
 			return res;
 		}
-		res.add("Spotkałem się z Orkiem Samanem w Kotoch.");
+		res.add(Grammar.genderVerb(player.getGender(), "Spotkałem") + " się z orczym szamanem w Kotoch.");
 		final String questState = player.getQuest(QUEST_SLOT);
 		if (questState.equals("rejected")) {
-			res.add("Nie chcę nikogo zabijać dla Orka Samana.");
+			res.add("Nie chcę nikogo zabijać dla Szamana Orków.");
 		}
 		if (questState.startsWith("start") || questState.equals("done")) {
-			res.add("Jako wyzwanie mam zabić szefa górskich orków. Dostałem klucz do więzienia.");
+			res.add("Jako wyzwanie mam zabić szefa górskich orków oraz jego świtę. " + Grammar.genderVerb(player.getGender(), "dostałem") + " klucz do więzienia.");
 		}
-		if ((questState.startsWith("start") && (new KilledForQuestCondition(QUEST_SLOT, 1)).fire(player,null,null)) || questState.equals("done")) {
-			res.add("Zabiłem szefa górskich orków w więzieniu Kotoch.");
+		if (questState.startsWith("start") && (new KilledForQuestCondition(QUEST_SLOT, 1)).fire(player,null,null) || questState.equals("done")) {
+			res.add(Grammar.genderVerb(player.getGender(), "Zabiłem") + " szefa górskich orków w więzieniu Kotoch.");
 		}
 		if (questState.equals("done")) {
-			res.add("Powiedziałem Orkowi Saman o wykonaniu zadania w zamian dostałem potężny młot Thora.");
+			res.add(Grammar.genderVerb(player.getGender(), "Powiedziałem") + " Szamanowi o wykonaniu zadania, a w zamian " + Grammar.genderVerb(player.getGender(), "otrzymałem") + " potężną maczugę cierniową.");
 		}
 		return res;
 	}
 
 	@Override
 	public String getName() {
-		return "ClubOfThorns";
+		return "Maczuga Cierniowa";
 	}
-	
+
 	@Override
 	public int getMinLevel() {
 		return 50;
@@ -197,11 +184,16 @@ public class ClubOfThorns extends AbstractQuest {
 
 	@Override
 	public String getNPCName() {
-		return "Orc Saman";
+		return npc.getName();
 	}
-	
+
 	@Override
 	public String getRegion() {
 		return Region.KOTOCH;
+	}
+
+	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
 	}
 }

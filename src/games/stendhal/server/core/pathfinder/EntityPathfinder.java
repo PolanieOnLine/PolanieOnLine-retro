@@ -1,4 +1,4 @@
-/* $Id: EntityPathfinder.java,v 1.7 2012/07/14 16:36:55 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,14 +12,13 @@
  ***************************************************************************/
 package games.stendhal.server.core.pathfinder;
 
+import java.awt.Point;
+import java.awt.geom.Rectangle2D;
+
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.mapstuff.portal.Portal;
 import games.stendhal.server.entity.player.Player;
-
-import java.awt.Point;
-import java.awt.geom.Rectangle2D;
-
 import marauroa.common.game.RPObject;
 
 /**
@@ -55,13 +54,13 @@ class EntityPathfinder extends games.stendhal.server.core.pathfinder.Pathfinder 
 		this.zone = zone;
 		this.checkEntities = checkEntities;
 	}
-	
+
 	@Override
 	protected void init() {
 		super.init();
 		if (checkEntities) {
 			createEntityCollisionMap();
-		}	
+		}
 	}
 
 	/**
@@ -93,18 +92,18 @@ class EntityPathfinder extends games.stendhal.server.core.pathfinder.Pathfinder 
 	public TreeNode createNode(int x, int y) {
 		return new PathTreeNode(x, y);
 	}
-	
+
 	/**
 	 * Pathfinder node
 	 */
 	private class PathTreeNode extends TreeNode {
 		private final double cost;
-		
+
 		protected PathTreeNode(int x, int y) {
 			super(x, y);
-			
+
 			/*
-			 * Modify movement cost by resistance 
+			 * Modify movement cost by resistance
 			 */
 			if (resistanceMap != null) {
 				int resistance = resistanceMap.getResistance(x, y , entity.getWidth(), entity.getHeight());
@@ -113,7 +112,7 @@ class EntityPathfinder extends games.stendhal.server.core.pathfinder.Pathfinder 
 				cost = 1.0;
 			}
 		}
-		
+
 		@Override
 		protected double getCost() {
 			return cost;
@@ -139,7 +138,7 @@ class EntityPathfinder extends games.stendhal.server.core.pathfinder.Pathfinder 
 			return result;
 		}
 	}
-	
+
 	/**
 	 * Resistance data for entities.
 	 */
@@ -148,13 +147,13 @@ class EntityPathfinder extends games.stendhal.server.core.pathfinder.Pathfinder 
 		private static final int COLLISION = 100;
 		/** Minimum resistance that is considered a collision */
 		private static final int COLLIDE_THRESHOLD = 95;
-		
+
 		private final int width, height;
 		private final int[][] map;
-		
+
 		/**
 		 * Create a new ResistanceMap.
-		 * 
+		 *
 		 * @param width width of the area
 		 * @param height height of the area
 		 */
@@ -163,24 +162,24 @@ class EntityPathfinder extends games.stendhal.server.core.pathfinder.Pathfinder 
 			this.height = height;
 			map = new int[width][height];
 		}
-		
+
 		/**
 		 * Check if an area is impassable for the entity.
-		 * 
+		 *
 		 * @param x the x coordinate of the upper left corner of the rectangle to be checked
 		 * @param y the y coordinate of the upper left corner of the rectangle to be checked
 		 * @param w the width of the rectangle to be checked
 		 * @param h the height of the rectangle to be checked
-		 * @return <code>true</code> if area can not be occupied, 
+		 * @return <code>true</code> if area can not be occupied,
 		 * 	<code>false</code> otherwise
 		 */
 		public boolean collides(final double x, final double y, double w, double h) {
 			return getResistance(x, y, w, h) > COLLIDE_THRESHOLD;
 		}
-		
+
 		/**
 		 * Add resistance of an area to the entity.
-		 * 
+		 *
 		 * @param area affected area
 		 * @param resistance value between 0 and 100
 		 */
@@ -189,37 +188,37 @@ class EntityPathfinder extends games.stendhal.server.core.pathfinder.Pathfinder 
 			final double y = area.getY();
 			double w = area.getWidth();
 			double h = area.getHeight();
-			
+
 			final int startx = (int) Math.max(0, x);
 			final int endx = (int) Math.min(width, x + w);
 			final int starty = (int) Math.max(0, y);
 			final int endy = (int) Math.min(height, y + h);
-			
+
 			// Fill the area
-			for (int k = startx; k < endx; k++) {	
+			for (int k = startx; k < endx; k++) {
 				for (int i = starty; i < endy; i++) {
 					/*
 					 * There can be multiple entities covering an area. (Such
-					 * as blood covering a grower). Can we have multiple 
+					 * as blood covering a grower). Can we have multiple
 					 * non-zero resistances? Cover the case anyway, in case we
 					 * want to give something like corpses some resistance to
-					 * make it harder to wade through a pile of bodies. 
+					 * make it harder to wade through a pile of bodies.
 					 */
 					int old = map[k][i];
 					/*
 					 * Add up like probabilities. Several slightly resistant
 					 * entities can still add up to a completely impassable
-					 * barrier, when the resistance grows over 
+					 * barrier, when the resistance grows over
 					 * COLLIDE_THRESHOLD.
 					 */
 					map[k][i] = 100 - ((100 - old) * (100 - resistance)) / 100;
 				}
 			}
 		}
-		
+
 		/**
 		 * Get resistance for placing the entity to an area.
-		 * 
+		 *
 		 * @param x the x coordinate of the upper left corner of the rectangle to be checked
 		 * @param y the y coordinate of the upper left corner of the rectangle to be checked
 		 * @param w the width of the rectangle to be checked
@@ -239,10 +238,10 @@ class EntityPathfinder extends games.stendhal.server.core.pathfinder.Pathfinder 
 			final int endx = (int) Math.min(width, x + w);
 			final int starty = (int) Math.max(0, y);
 			final int endy = (int) Math.min(height, y + h);
-			
+
 			final int entitySize = (int) (w * h);
 			int resistance = 0;
-			for (int k = startx; k < endx; k++) {	
+			for (int k = startx; k < endx; k++) {
 				for (int i = starty; i < endy; i++) {
 					int r = map[k][i];
 					if (r > COLLIDE_THRESHOLD) {
@@ -253,7 +252,7 @@ class EntityPathfinder extends games.stendhal.server.core.pathfinder.Pathfinder 
 						return COLLISION;
 					} else {
 						/*
-						 * A large creature will find walking over partial 
+						 * A large creature will find walking over partial
 						 * collision easier than small one. It can step over it
 						 * or just push through using force. On the other hand
 						 * a smaller entity can possibly run between the
@@ -263,7 +262,7 @@ class EntityPathfinder extends games.stendhal.server.core.pathfinder.Pathfinder 
 					}
 				}
 			}
-			
+
 			return resistance;
 		}
 	}

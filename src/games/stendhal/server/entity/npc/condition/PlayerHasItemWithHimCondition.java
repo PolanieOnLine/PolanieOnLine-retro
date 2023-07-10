@@ -1,4 +1,4 @@
-/* $Id: PlayerHasItemWithHimCondition.java,v 1.16 2012/09/09 12:33:24 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,15 +12,15 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.condition;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
 import games.stendhal.server.core.config.annotations.Dev.Category;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.npc.ChatCondition;
+import games.stendhal.server.entity.npc.ConditionBuilder;
 import games.stendhal.server.entity.player.Player;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Does the player carry the specified item?
@@ -40,7 +40,7 @@ public class PlayerHasItemWithHimCondition implements ChatCondition {
 	 *            name of item
 	 */
 	public PlayerHasItemWithHimCondition(final String itemName) {
-		this.itemName = itemName;
+		this.itemName = checkNotNull(itemName);
 		this.amount = 1;
 	}
 
@@ -54,10 +54,11 @@ public class PlayerHasItemWithHimCondition implements ChatCondition {
 	 */
 	@Dev
 	public PlayerHasItemWithHimCondition(final String itemName, @Dev(defaultValue="1") final int amount) {
-		this.itemName = itemName;
+		this.itemName = checkNotNull(itemName);
 		this.amount = amount;
 	}
 
+	@Override
 	public boolean fire(final Player player, final Sentence sentence, final Entity entity) {
 		return player.isEquipped(itemName, amount);
 	}
@@ -69,12 +70,24 @@ public class PlayerHasItemWithHimCondition implements ChatCondition {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 43891 * itemName.hashCode() + amount;
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				PlayerHasItemWithHimCondition.class);
+		if (!(obj instanceof PlayerHasItemWithHimCondition)) {
+			return false;
+		}
+		PlayerHasItemWithHimCondition other = (PlayerHasItemWithHimCondition) obj;
+		return (amount == other.amount)
+			&& itemName.equals(other.itemName);
+	}
+
+	public static ConditionBuilder playerCarriesItem(String itemName) {
+		return new ConditionBuilder(new PlayerHasItemWithHimCondition(itemName));
+	}
+
+	public static ConditionBuilder playerCarriesItem(String itemName, int amount) {
+		return new ConditionBuilder(new PlayerHasItemWithHimCondition(itemName, amount));
 	}
 }

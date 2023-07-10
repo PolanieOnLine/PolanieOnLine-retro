@@ -1,4 +1,3 @@
-/* $Id: AdventureIslandRemover.java,v 1.4 2011/05/11 18:10:09 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,19 +11,17 @@
  ***************************************************************************/
 package games.stendhal.server.maps.magic.house1;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.events.TurnListener;
 import games.stendhal.server.entity.item.Corpse;
-
-import java.util.HashSet;
-import java.util.Set;
-
 import marauroa.common.game.RPObject;
 
 /**
  * removes the island
- *
  */
 public class AdventureIslandRemover implements TurnListener {
 	private StendhalRPZone zone;
@@ -32,12 +29,13 @@ public class AdventureIslandRemover implements TurnListener {
 	/**
 	 * creates a new AdventureIslandRemover
 	 *
-	 * @param zone StendhalRPZone 
+	 * @param zone StendhalRPZone
 	 */
 	public AdventureIslandRemover(StendhalRPZone zone) {
 		this.zone = zone;
 	}
 
+	@Override
 	public void onTurnReached(int currentTurn) {
 		if (zone.getPlayers().size()==0) {
 			// Tell all corpses they are to be removed
@@ -53,7 +51,6 @@ public class AdventureIslandRemover implements TurnListener {
 			}
 
 			SingletonRepository.getRPWorld().removeZone(zone);
-		} 
+		}
 	}
-
 }

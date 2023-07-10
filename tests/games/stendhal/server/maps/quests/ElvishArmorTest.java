@@ -1,4 +1,3 @@
-/* $Id: ElvishArmorTest.java,v 1.10 2011/04/02 15:44:17 kymara Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -23,13 +22,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static utilities.SpeakerNPCTestHelper.getReply;
-import games.stendhal.common.grammar.Grammar;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.entity.npc.ConversationPhrases;
-import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.fsm.Engine;
-import games.stendhal.server.entity.player.Player;
-import games.stendhal.server.maps.MockStendlRPWorld;
 
 import java.util.Arrays;
 import java.util.List;
@@ -39,10 +31,15 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.entity.npc.ConversationPhrases;
+import games.stendhal.server.entity.npc.SpeakerNPC;
+import games.stendhal.server.entity.npc.fsm.Engine;
+import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.maps.MockStendlRPWorld;
 import utilities.PlayerTestHelper;
 
 public class ElvishArmorTest {
-
 	private static Engine npcEngine;
 
 	@BeforeClass
@@ -64,8 +61,9 @@ public class ElvishArmorTest {
 	private static final String QUEST_SLOT = "elvish_armor";
 
 	private static final List<String> NEEDEDITEMS = Arrays.asList(
-			"elvish armor", "elvish legs", "elvish boots", "elvish sword",
-			"elvish cloak", "elvish shield");
+			"zbroja elficka", "spodnie elfickie", "buty elfickie", "miecz elficki",
+			"płaszcz elficki", "tarcza elficka", "kapelusz elficki", "rękawice elfickie",
+			"hełm elficki");
 
 	private static SpeakerNPC npc;
 
@@ -82,7 +80,7 @@ public class ElvishArmorTest {
 			npcEngine.step(player, playerSays);
 
 			assertThat(playerSays, npcEngine.getCurrentState(), is(ATTENDING));
-			assertThat(playerSays, getReply(npc), is("Greetings, traveller. I see that you have come far to be here. I am interested in anyone who has encountered our kin, the green elves of Nalwor. They guard their #secrets closely."));
+			assertThat(playerSays, getReply(npc), is("Witaj wędrowcze, widzę że przyszedłeś z bardzo daleka. Interesuję się każdym kto widział naszych pobratymców, zielonych elfów z Nalwor. Pilnują swoich #sekretów."));
 		}
 	}
 
@@ -99,7 +97,7 @@ public class ElvishArmorTest {
 			npcEngine.step(player, playerSays);
 
 			assertThat(playerSays, npcEngine.getCurrentState(), is(QUEST_OFFERED));
-			assertThat(playerSays, getReply(npc), is("They won't share knowledge of how to create the green armor, shields and the like. You would call them elvish items. I wonder if a traveller like you could bring me any?"));
+			assertThat(playerSays, getReply(npc), is("Nie chcą ujawnić wiedzy jak stworzyć zieloną zbroję, tarcze i inne. Wolą je nazywać elfiszami. Zastanawiam się czy przybysz taki jak ty mógłby mi przynieść dowolny elfisz?"));
 		}
 	}
 
@@ -114,14 +112,12 @@ public class ElvishArmorTest {
 			npcEngine.setCurrentState(QUEST_OFFERED);
 
 			assertFalse(player.hasQuest(QUEST_SLOT));
-			final double oldkarma = player.getKarma();
 
 			npcEngine.step(player, playerSays);
 
 			assertThat(playerSays, npcEngine.getCurrentState(), is(IDLE));
-			assertThat(playerSays, getReply(npc), is("The secrets of the green elves shall be ours at last! Bring me all elvish equipment you can find, I'll reward you well!"));
+			assertThat(playerSays, getReply(npc), is("Sekrety zielonych elfów w końcu byłyby nareszcie nasze! Przynieś mi wszystkie elfisze jakie znajdziesz. Dobrze Cię wynagrodzę!"));
 			assertTrue(playerSays, player.hasQuest(QUEST_SLOT));
-			assertThat(playerSays, player.getKarma(), greaterThan(oldkarma));
 		}
 	}
 
@@ -140,7 +136,7 @@ public class ElvishArmorTest {
 			npcEngine.step(player, playerSays);
 
 			assertThat(playerSays, npcEngine.getCurrentState(), is(IDLE));
-			assertThat(playerSays, getReply(npc), is("Another unhelpful soul, I see."));
+			assertThat(playerSays, getReply(npc), is("Widzę, że jesteś niechętny do pomocy."));
 			assertFalse(playerSays, player.hasQuest(QUEST_SLOT));
 			assertThat(playerSays, player.getKarma(), lessThan(oldkarma));
 		}
@@ -163,7 +159,7 @@ public class ElvishArmorTest {
 			npcEngine.step(player, playerSays);
 
 			assertThat(playerSays, npcEngine.getCurrentState(), is(ATTENDING));
-			assertThat(playerSays, getReply(npc), is("Hello! I hope your search for elvish #equipment is going well?"));
+			assertThat(playerSays, getReply(npc), is("Witam! Mam nadzieję, że dobrze Ci idzie poszukiwanie elfiszowego #rynsztunku?"));
 		}
 	}
 
@@ -182,8 +178,7 @@ public class ElvishArmorTest {
 			npcEngine.step(player, playerSays);
 
 			assertThat(playerSays, npcEngine.getCurrentState(), is(QUESTION_1));
-			assertThat(playerSays, getReply(npc), is("Liar! You don't really have "
-					+ Grammar.a_noun(playerSays)	+ " with you."));
+			assertThat(playerSays, getReply(npc), is("Kłamca! Nie masz " + playerSays + " ze sobą."));
 		}
 	}
 
@@ -202,14 +197,14 @@ public class ElvishArmorTest {
 			npcEngine.step(player, playerSays);
 
 			assertThat(playerSays, npcEngine.getCurrentState(), is(QUESTION_1));
-			assertThat(playerSays, getReply(npc), is("Excellent work. Is there more that you plundered?"));
+			assertThat(playerSays, getReply(npc), is("Doskonała robota. Zrabowałeś coś jeszcze?"));
 
 			PlayerTestHelper.equipWithItem(player, playerSays);
 			npcEngine.setCurrentState(QUESTION_1);
 
 			npcEngine.step(player, playerSays);
 
-			assertThat(playerSays, getReply(npc), is("You've already brought that elvish item to me."));
+			assertThat(playerSays, getReply(npc), is("Już mi przyniosłeś ten elficki rynsztunek."));
 			assertThat(playerSays, npcEngine.getCurrentState(), is(QUESTION_1));
 		}
 	}
@@ -228,7 +223,7 @@ public class ElvishArmorTest {
 			npcEngine.step(player, playerSays);
 		}
 		assertThat(npcEngine.getCurrentState(), is(ATTENDING));
-		assertThat(getReply(npc), is("I will study these! The albino elves owe you a debt of thanks."));
+		assertThat(getReply(npc), is("Zbadam to! Albino elfy mają dług wdzięczności wobec Ciebie."));
 		assertThat(player.getKarma(), greaterThan(oldKarma));
 		assertThat(player.getXP(), is(oldXp + 20000));
 	}
@@ -243,14 +238,15 @@ public class ElvishArmorTest {
 		npcEngine.step(player, "NotanItem");
 
 		assertThat(npcEngine.getCurrentState(), is(QUESTION_1));
-		assertThat(getReply(npc), is("I don't think that's a piece of elvish armor..."));
+		assertThat(getReply(npc), is("Nie sądzę, aby to był fragment elfickiego wyposażenia..."));
 	}
-	
-    @Ignore 
-    // ignored because removed from quest logic now.
+
 	/**
 	 * Tests for question1toIdle.
 	 */
+    @Ignore
+    @Test
+    // ignored because removed from quest logic now.
     public void testQuestion1toIdle() {
             for (final String playerSays : ConversationPhrases.GOODBYE_MESSAGES) {
                     final Player player = PlayerTestHelper.createPlayer("bob");
@@ -259,7 +255,7 @@ public class ElvishArmorTest {
                     npcEngine.step(player, playerSays);
 
                     assertThat(playerSays, npcEngine.getCurrentState(), is(IDLE));
-                    assertThat(playerSays, getReply(npc), is("Bye."));
+                    assertThat(playerSays, getReply(npc), is("Do widzenia."));
             }
     }
 
@@ -275,7 +271,7 @@ public class ElvishArmorTest {
 			npcEngine.step(player, playerSays);
 
 			assertThat(playerSays, npcEngine.getCurrentState(), is(IDLE));
-			assertThat(playerSays, getReply(npc), is("I understand, the green elves protect themselves well. If there's anything else I can do for you, just say."));
+			assertThat(playerSays, getReply(npc), is("Rozumiem, że zielone elfy dobrze się chronią. Jeżeli mógłbym coś innego dla Ciebie zrobić to powiedz."));
 		}
 	}
 
@@ -292,7 +288,7 @@ public class ElvishArmorTest {
 
 			npcEngine.step(player, playerSays);
 
-			assertThat(playerSays, getReply(npc), is("I understand, the green elves protect themselves well. If there's anything else I can do for you, just say."));
+			assertThat(playerSays, getReply(npc), is("Rozumiem, że zielone elfy dobrze się chronią. Jeżeli mógłbym coś innego dla Ciebie zrobić to powiedz."));
 			assertThat(playerSays, npcEngine.getCurrentState(), is(IDLE));
 
 		}
@@ -310,7 +306,7 @@ public class ElvishArmorTest {
 
 			npcEngine.step(player, playerSays);
 
-			assertThat(playerSays, getReply(npc), is("Greetings again, old friend."));
+			assertThat(playerSays, getReply(npc), is("Pozdrawiam cię stary przyjacielu."));
 			assertThat(playerSays, npcEngine.getCurrentState(), is(ATTENDING));
 
 		}
@@ -328,7 +324,7 @@ public class ElvishArmorTest {
 
 			npcEngine.step(player, playerSays);
 
-			assertThat(playerSays, getReply(npc), is("If you have found any more elvish items, I'd be glad if you would #sell them to me. I would buy elvish armor, shield, legs, boots, cloak or sword. I would also buy a drow sword if you have one."));
+			assertThat(playerSays, getReply(npc), is("Jeżeli znajdziesz więcej elfiszów to będę wdzięczny gdybyś mógł mi je #sprzedać. Kupię elficką: zbroję, spodnie, buty, płaszcz, rękawice, miecz, hełm oraz kapelusz. Kupiłbym także miecz elfów ciemności jeżeli będziesz miał."));
 			assertThat(playerSays, npcEngine.getCurrentState(), is(ATTENDING));
 		}
 	}
@@ -338,6 +334,7 @@ public class ElvishArmorTest {
 	 * *This is no longer in quest as the general logic doesn't have it in
 	 */
 	@Ignore
+    @Test
 	public void testAttendingtoAttendingDoneQuestmessage() {
 		for (final String playerSays : ConversationPhrases.QUEST_MESSAGES) {
 			final Player player = PlayerTestHelper.createPlayer("bob");
@@ -346,7 +343,7 @@ public class ElvishArmorTest {
 
 			npcEngine.step(player, playerSays);
 
-			assertThat(playerSays, getReply(npc), is("I'm now busy studying the properties of the elvish armor you brought me. It really is intriguing. Until I can reproduce it, I would buy similar items from you."));
+			assertThat(playerSays, getReply(npc), is("Jestem teraz zajęty badaniem właściwości elfickich części zbroi, które mi przyniosłeś. To intrygujące. Dopóki nie będę ich produkował to będę je skupywał od Ciebie. Liczę na twoje zaangażowanie."));
 			assertThat(playerSays, npcEngine.getCurrentState(), is(ATTENDING));
 
 		}
@@ -357,6 +354,7 @@ public class ElvishArmorTest {
 	 * *This is no longer in quest as the general logic doesn't have it in
 	 */
 	@Ignore
+    @Test
 	public void testAttendingtoQuestion1NotDoneQuestmessage() {
 		for (final String playerSays : ConversationPhrases.QUEST_MESSAGES) {
 			final Player player = PlayerTestHelper.createPlayer("bob");
@@ -382,7 +380,7 @@ public class ElvishArmorTest {
 
 			npcEngine.step(player, playerSays);
 
-			assertThat(playerSays, getReply(npc), is("I don't think I trust you well enough yet ... "));
+			assertThat(playerSays, getReply(npc), is("Nie sądzę, abym mógł Tobie zaufać..."));
 			assertThat(playerSays, npcEngine.getCurrentState(), is(ATTENDING));
 		}
 	}

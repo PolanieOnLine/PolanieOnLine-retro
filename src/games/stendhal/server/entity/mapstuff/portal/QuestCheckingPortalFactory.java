@@ -1,13 +1,16 @@
-/*
- * @(#) src/games/stendhal/server/entity/portal/QuestCheckingPortalFactory.java
- *
- * $Id: QuestCheckingPortalFactory.java,v 1.4 2008/07/12 14:43:59 astridemma Exp $
- */
-
+/***************************************************************************
+ *                (C) Copyright 2007-2013 - Faiumoni e. V.                 *
+ ***************************************************************************
+ ***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
 package games.stendhal.server.entity.mapstuff.portal;
 
-//
-//
 
 import games.stendhal.server.core.config.factory.ConfigurableFactoryContext;
 
@@ -16,44 +19,38 @@ import games.stendhal.server.core.config.factory.ConfigurableFactoryContext;
  */
 public class QuestCheckingPortalFactory extends AccessCheckingPortalFactory {
 
-	//
-	// QuestCheckingPortalFactory
-	//
+	private String requiredQuest;
+	private String requiredState;
+	private String rejectMessage;
 
 	/**
 	 * Extract the quest name from a context.
-	 * 
+	 *
 	 * @param ctx
 	 *            The configuration context.
-	 * @return The quest name.
 	 * @throws IllegalArgumentException
 	 *             If the quest attribute is missing.
 	 */
-	protected String getQuest(final ConfigurableFactoryContext ctx) {
-		return ctx.getRequiredString("quest");
+	protected void setQuest(final ConfigurableFactoryContext ctx) {
+		requiredQuest = ctx.getRequiredString("quest");
+		requiredState = ctx.getString("state", null);
+		rejectMessage = ctx.getString("rejected", "Why should i go there?");
 	}
-
-	//
-	// AccessCheckingPortalFactory
-	//
 
 	/**
 	 * Create a quest checking portal.
-	 * 
-	 * @param ctx
-	 *            Configuration context.
-	 * 
+	 *
+	 * @param ctx Configuration context.
 	 * @return A Portal.
-	 * 
 	 * @throws IllegalArgumentException
 	 *             If there is a problem with the attributes. The exception
 	 *             message should be a value suitable for meaningful user
 	 *             interpretation.
-	 * 
-	 * @see LevelCheckingPortal
+	 * @see QuestCheckingPortal
 	 */
 	@Override
 	protected AccessCheckingPortal createPortal(final ConfigurableFactoryContext ctx) {
-		return new QuestCheckingPortal(getQuest(ctx));
+		setQuest(ctx);
+		return new QuestCheckingPortal(requiredQuest, requiredState, rejectMessage);
 	}
 }

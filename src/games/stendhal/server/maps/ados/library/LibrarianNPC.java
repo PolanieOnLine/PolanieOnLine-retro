@@ -1,4 +1,3 @@
-/* $Id: LibrarianNPC.java,v 1.39 2012/03/26 19:42:39 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -11,6 +10,11 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.maps.ados.library;
+
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.ZoneConfigurator;
@@ -26,11 +30,6 @@ import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.util.WikipediaAccess;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 /**
  * Ados Library (Inside / Level 0).
  *
@@ -43,13 +42,13 @@ public class LibrarianNPC implements ZoneConfigurator {
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
-		buildLibrary(zone, attributes);
+		buildLibrary(zone);
 	}
 
-	private void buildLibrary(final StendhalRPZone zone, final Map<String, String> attributes) {
+	private void buildLibrary(final StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Wikipedian") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -63,10 +62,11 @@ public class LibrarianNPC implements ZoneConfigurator {
 			@Override
 			protected void createDialog() {
 				addGreeting();
-				addJob("Jestem bibliotekarzem");
-				addHelp("Zapytaj mnie o wyjaśnienie czegoś, mówiąc #explain i szukane słowo.");
-				add(ConversationStates.ATTENDING, "explain", null, ConversationStates.ATTENDING, null,
+				addJob("Jestem bibliotekarzem.");
+				addHelp("Zapytaj mnie o #wyjaśnienie czegoś.");
+				add(ConversationStates.ATTENDING, Arrays.asList("explain", "wyjaśnienie", "wyjaśnij"), null, ConversationStates.ATTENDING, null,
 				        new ChatAction() {
+					        @Override
 					        public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					        	String text = sentence.getOriginalText();
 						        // extract the title
@@ -95,17 +95,15 @@ public class LibrarianNPC implements ZoneConfigurator {
 			}
 		};
 
+		npc.setDescription("Oto Wikipedian, który jest biblotekarzem w Ados. Jego imię mówi samo za siebie.");
 		npc.setEntityClass("investigatornpc");
+		npc.setGender("M");
 		npc.setPosition(10, 9);
-		npc.initHP(100);
-		npc.setDescription("Wikipedian jest biblotekarzem w Ados. Jego imię mówi samo za siebie.");
 		zone.add(npc);
 	}
 
 	protected class WikipediaWaiter implements TurnListener {
-
 		private final WikipediaAccess access;
-
 		private final SpeakerNPC npc;
 
 		public WikipediaWaiter(final SpeakerNPC npc, final WikipediaAccess access) {
@@ -113,6 +111,7 @@ public class LibrarianNPC implements ZoneConfigurator {
 			this.access = access;
 		}
 
+		@Override
 		public void onTurnReached(final int currentTurn) {
 			if (!access.isFinished()) {
 				SingletonRepository.getTurnNotifier().notifyInTurns(3, new WikipediaWaiter(npc, access));

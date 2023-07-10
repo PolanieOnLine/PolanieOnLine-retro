@@ -1,4 +1,4 @@
-/* $Id: TPPQuestInPhaseCondition.java,v 1.4 2011/05/01 19:50:08 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -20,13 +20,13 @@ import games.stendhal.server.maps.quests.ThePiedPiper;
 import games.stendhal.server.maps.quests.piedpiper.ITPPQuestConstants.TPP_Phase;
 
 public class TPPQuestInPhaseCondition implements ChatCondition {
-	
 	private TPP_Phase phase;
-	
+
 	public TPPQuestInPhaseCondition(TPP_Phase ph) {
 		phase = ph;
 	}
 
+	@Override
 	public boolean fire(Player player, Sentence sentence, Entity npc) {
 		if(ThePiedPiper.getPhase().compareTo(phase)==0) {
 			return true;

@@ -1,5 +1,5 @@
 /***************************************************************************
- *                   (C) Copyright 2003-2011 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -22,10 +22,10 @@ import java.util.Properties;
 
 /**
  * Manages download and installation of updates.
- * 
+ *
  * @author hendrik
  */
-public class UpdateManager {
+class UpdateManager {
 
 	private String jarFolder;
 	private Properties bootProp;
@@ -36,30 +36,46 @@ public class UpdateManager {
 	private String fromVersion;
 	private String toVersion;
 
+	public UpdateManager() {
+		SignatureVerifier.get().registerTrustedCertificatesGlobally();
+	}
+
 	/**
 	 * Connects to the server and loads a Property object which contains
 	 * information about the files available for update.
 	 *
 	 * @param initialDownload true, if an initial download is required
 	 */
-	private void init(final boolean initialDownload) {
-		String updatePropertiesFile = ClientGameConfiguration.get("UPDATE_SERVER_FOLDER")
-				+ "/update.properties";
+	private void downloadUpdateProp(final boolean initialDownload) {
+		// user configuration (for testing)
 		if (bootProp != null) {
-			serverFolder = bootProp.getProperty("server.folder",
-					ClientGameConfiguration.get("UPDATE_SERVER_FOLDER"))
+			serverFolder = bootProp.getProperty("server.folder-1.16", ClientGameConfiguration.get("UPDATE_SERVER_FOLDER"))
 					+ "/";
-			updatePropertiesFile = bootProp.getProperty("server.update-prop",
-					serverFolder + "update.properties");
+			String updatePropertiesFile = bootProp.getProperty("server.update-prop-1.16", serverFolder + "update-1.16.properties");
+			final HttpClient httpClient = new HttpClient(updatePropertiesFile, initialDownload);
+			updateProp = httpClient.fetchProperties();
+			if (updateProp != null && updateProp.containsKey("init.version")) {
+				return;
+			}
 		}
-		final HttpClient httpClient = new HttpClient(updatePropertiesFile,
-				initialDownload);
+
+		// primary location
+		String updatePropertiesFile = ClientGameConfiguration.get("UPDATE_SERVER_FOLDER") + "/update-1.16.properties";
+		HttpClient httpClient = new HttpClient(updatePropertiesFile, initialDownload);
+		updateProp = httpClient.fetchProperties();
+		if (updateProp != null && updateProp.containsKey("init.version")) {
+			return;
+		}
+
+		// fallback location
+		updatePropertiesFile = ClientGameConfiguration.get("UPDATE_SERVER_FOLDER_FALLBACK") + "/update-1.16.properties";
+		httpClient = new HttpClient(updatePropertiesFile, initialDownload);
 		updateProp = httpClient.fetchProperties();
 	}
 
 	/**
 	 * Processes the update.
-	 * 
+	 *
 	 * @param jarFolder folder where the .jar files are stored
 	 * @param bootProp boot properties
 	 * @param initialDownload true, if only the small starter.jar is available
@@ -74,7 +90,7 @@ public class UpdateManager {
 		this.jarFolder = jarFolder;
 		this.bootProp = bootProp;
 		this.classLoader = classLoader;
-		init(initialDownload.booleanValue());
+		downloadUpdateProp(initialDownload.booleanValue());
 		if (updateProp == null) {
 			if (initialDownload.booleanValue()) {
 				UpdateGUIDialogs.messageBox("Potrzebne jest pobranie dodatkowych plików z\r\n"
@@ -177,7 +193,7 @@ public class UpdateManager {
 	/**
 	 * Removes all files from the download list which have already been
 	 * downloaded.
-	 * 
+	 *
 	 * @param files
 	 *            list of files to check and clean
 	 */
@@ -207,7 +223,7 @@ public class UpdateManager {
 
 	/**
 	 * returns the list of all files to download for the first install.
-	 * 
+	 *
 	 * @return list of files
 	 */
 	private List<String> getFilesForFirstDownload() {
@@ -223,7 +239,7 @@ public class UpdateManager {
 
 	/**
 	 * returns the list of all files to download for transitive update.
-	 * 
+	 *
 	 * @param startVersion
 	 *            the version to start the path at
 	 * @return list of files
@@ -250,7 +266,7 @@ public class UpdateManager {
 
 	/**
 	 * Calculates the sum of the file sizes.
-	 * 
+	 *
 	 * @param files
 	 *            list of files
 	 * @return total size of download
@@ -271,7 +287,7 @@ public class UpdateManager {
 
 	/**
 	 * Downloads the files listed for update.
-	 * 
+	 *
 	 * @param files
 	 *            list of files to download
 	 * @param size
@@ -384,7 +400,7 @@ public class UpdateManager {
 
 	/**
 	 * Updates the classpath.
-	 * 
+	 *
 	 * @param files
 	 */
 	private void updateClasspathConfig(final List<String> files) {
@@ -395,9 +411,9 @@ public class UpdateManager {
 			sb.append(file + ",");
 		}
 
-		if (!bootProp.getProperty("load-0.28.4", "").startsWith(sb.toString())) {
-			sb.append(bootProp.getProperty("load-0.28.4", ""));
-			bootProp.put("load-0.28.4", sb.toString());
+		if (!bootProp.getProperty("load-1.16", "").startsWith(sb.toString())) {
+			sb.append(bootProp.getProperty("load-1.16", ""));
+			bootProp.put("load-1.16", sb.toString());
 		}
 	}
 }

@@ -1,4 +1,4 @@
-/* $Id: BareBonesBrowserLaunchCommand.java,v 1.3 2010/09/24 20:52:18 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -22,8 +22,8 @@ import games.stendhal.common.NotificationType;
  *
  * @author madmetzger
  */
-public class BareBonesBrowserLaunchCommand implements SlashAction{
-	
+class BareBonesBrowserLaunchCommand implements SlashAction{
+
 	private final String urlToOpen;
 
 	/**
@@ -31,41 +31,44 @@ public class BareBonesBrowserLaunchCommand implements SlashAction{
 	 *
 	 * @param url url to open
 	 */
-	public BareBonesBrowserLaunchCommand(String url) {
+	BareBonesBrowserLaunchCommand(String url) {
 		urlToOpen = url;
 	}
 
 	/**
 	 * Opens an URL with the browser
-	 * 
+	 *
 	 * @param params ignored
 	 * @param remainder ignored
 	 * @return <code>true</code>
 	 */
+	@Override
 	public boolean execute(final String[] params, final String remainder) {
 		ClientSingletonRepository.getUserInterface().addEventLine(new HeaderLessEventLine(
 				"Próbuję otworzyć adres #" + urlToOpen + " w twojej przeglądarce internetowej.",
 		NotificationType.CLIENT));
-	
+
 		BareBonesBrowserLaunch.openURL(urlToOpen);
-	
+
 		return true;
 	}
 
 	/**
 	 * Get the maximum number of formal parameters.
-	 * 
+	 *
 	 * @return The parameter count.
 	 */
+	@Override
 	public int getMaximumParameters() {
 		return 0;
 	}
 
 	/**
 	 * Get the minimum number of formal parameters.
-	 * 
+	 *
 	 * @return The parameter count.
 	 */
+	@Override
 	public int getMinimumParameters() {
 		return 0;
 	}

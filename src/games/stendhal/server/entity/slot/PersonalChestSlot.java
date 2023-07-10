@@ -1,4 +1,4 @@
-/* $Id: PersonalChestSlot.java,v 1.15 2011/04/02 15:44:20 kymara Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,7 +12,6 @@
  ***************************************************************************/
 package games.stendhal.server.entity.slot;
 
-import games.stendhal.common.grammar.Grammar;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.mapstuff.chest.PersonalChest;
 
@@ -44,13 +43,13 @@ public class PersonalChestSlot extends ChestSlot {
 		}
 
 		// Yes, this comparison of references is by design: Two player objects
-		// are equal if they are for the same character but could be from two 
+		// are equal if they are for the same character but could be from two
 		// different session. Marauroa is supposed to prevent two session
 		// for the same character being active at the same time, but we should
 		// not depend on this as the banks have had lots of bugs in the past.
 		if (chest.getAttending() != entity) {
 			if (chest.getAttending() != null) {
-				setErrorMessage("Nie możesz wziąść przedmiotów ze skrzyi w banku " + Grammar.suffix_s(chest.getAttending().getName()) + ".");
+				setErrorMessage("Nie możesz wziąć przedmiotów ze skrzyni w banku " + chest.getAttending().getName() + ".");
 			}
 			return false;
 		}

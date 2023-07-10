@@ -1,3 +1,4 @@
-set POLSKAONLINE_VERSION=0.44
-set LOCALCLASSPATH=.;data\script;data\conf;polskaonline-server-%POLSKAONLINE_VERSION%.jar;libs/marauroa.jar;libs/commons-lang.jar;libs/mysql-connector.jar;libs/h2.jar;libs/log4j.jar;libs/simple.jar;libs/libtiled.jar;libs/groovy.jar
+set POL_VERSION=1.38
+set LOCALCLASSPATH=.;data\script;data\conf;polanieonline-server-%POL_VERSION%.jar;marauroa.jar;mysql-connector.jar;log4j.jar;commons-lang.jar;h2.jar
 java -Xmx400m -cp "%LOCALCLASSPATH%" games.stendhal.server.StendhalServer -c server.ini -l
+@pause

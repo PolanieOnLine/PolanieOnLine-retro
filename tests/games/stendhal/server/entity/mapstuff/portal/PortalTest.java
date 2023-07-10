@@ -1,4 +1,4 @@
-/* $Id: PortalTest.java,v 1.14 2010/09/19 02:39:59 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -16,14 +16,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.entity.player.Player;
-import games.stendhal.server.maps.MockStendlRPWorld;
-import marauroa.common.Log4J;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.maps.MockStendlRPWorld;
+import marauroa.common.Log4J;
 import utilities.PlayerTestHelper;
 import utilities.RPClass.EntityTestHelper;
 import utilities.RPClass.PortalTestHelper;
@@ -110,9 +110,9 @@ public class PortalTest {
 		port.setPosition(1, 1);
 		final StendhalRPZone testzone = new StendhalRPZone("admin_test");
 		testzone.collisionMap.init(10, 10);
-		
+
 		final Player player = PlayerTestHelper.createPlayer("player");
-		
+
 		final Object ref = new Object();
 		port.setDestination("zonename", ref);
 		final Portal destPort = new Portal();
@@ -121,7 +121,7 @@ public class PortalTest {
 		zone.add(destPort);
 		testzone.add(port);
 		testzone.add(player);
-		
+
 		MockStendlRPWorld.get().addRPZone(testzone);
 		MockStendlRPWorld.get().addRPZone(zone);
 
@@ -206,7 +206,7 @@ public class PortalTest {
 	public final void testOnUsedBackwards() {
 		final Portal port = new Portal();
 		final Player player = PlayerTestHelper.createPlayer("player");
-		port.onUsedBackwards(player);
+		port.onUsedBackwards(player, player.hasPath());
 	}
 
 }

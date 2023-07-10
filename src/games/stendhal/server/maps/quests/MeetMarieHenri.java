@@ -1,5 +1,21 @@
+/***************************************************************************
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
+ ***************************************************************************
+ ***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
 package games.stendhal.server.maps.quests;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import games.stendhal.common.grammar.Grammar;
 import games.stendhal.common.parser.ConversationParser;
 import games.stendhal.common.parser.Expression;
 import games.stendhal.common.parser.JokerExprMatcher;
@@ -11,16 +27,13 @@ import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.npc.SpeakerNPC;
+import games.stendhal.server.entity.npc.action.SetQuestAction;
 import games.stendhal.server.entity.npc.action.SetQuestAndModifyKarmaAction;
 import games.stendhal.server.entity.npc.condition.AndCondition;
 import games.stendhal.server.entity.npc.condition.NotCondition;
 import games.stendhal.server.entity.npc.condition.QuestInStateCondition;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.Region;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * QUEST: Meet Marie-Henri
@@ -54,67 +67,15 @@ import java.util.List;
  * @author RedQueen
  */
 public class MeetMarieHenri extends AbstractQuest {
-
 	public static final String QUEST_SLOT = "meet_marie_henri";
-
-	@Override
-	public void addToWorld() {
-		super.addToWorld();
-		fillQuestInfo("Spotkaj Marie-Henri",
-				"Słynny francuski pisarz sprawdza ogólną wiedzę w bibliotece Ados.",
-				false);
-		createSteps();
-	}
-
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
-
-	@Override
-	public String getName() {
-		return "MeetMarieHenri";
-	}
-
-	@Override
-	public String getRegion() {
-		return Region.ADOS_CITY;
-	}
-	
-	@Override
-	public String getNPCName() {
-		return "Marie-Henri";
-	}
-	
-	@Override
-	public List<String> getHistory(final Player player) {
-		final List<String> res = new ArrayList<String>();
-		if (!player.hasQuest(QUEST_SLOT)) {
-			return res;
-		}
-		res.add("Spotkałem Marie-Henri w księgarni Ados.");
-		final String questState = player.getQuest(QUEST_SLOT);
-		if ("rejected".equals(questState)) {
-			res.add("Poprosił mnie abym poszukał mu pseudonimu, którego użyje podczas pisania powieści. Nie czuje się na siłach aby mu pomóc.");
-		}
-		if ("start".equals(questState) || "done".equals(questState)) {
-			res.add("Postaram się znaleść pseudonim dla niego.");
-		}
-		if ("done".equals(questState)) {
-			res.add("Odpowiedziałem poprawnie na Marie-Henri pytanie, w zamian dostałem nagrodę.");
-		}
-		return res;
-	}
+	private final SpeakerNPC npc = npcs.get("Marie-Henri");
 
 	private void createSteps() {
-		// player is asking for a quest
-		SpeakerNPC npc = npcs.get("Marie-Henri");
-
-
 		// TODO: rewrite this to use standard conditions and actions
 		npc.add(ConversationStates.ATTENDING,
 				ConversationPhrases.QUEST_MESSAGES, null,
 				ConversationStates.QUEST_OFFERED, null, new ChatAction() {
+					@Override
 					public void fire(final Player player,
 							final Sentence sentence, final EventRaiser npc) {
 						final String questState = player.getQuest(QUEST_SLOT);
@@ -122,7 +83,7 @@ public class MeetMarieHenri extends AbstractQuest {
 							npc.say("Wiem, że jesteś bardzo mądry ale w tej chwili nie mam innego zadania dla ciebie.");
 							npc.setCurrentState(ConversationStates.ATTENDING);
 						} else if ("start".equals(questState)) {
-							npc.say("Znalazłeś już dla mnie pseudonim?");
+							npc.say(Grammar.genderVerb(player.getGender(), "Znalazłeś") + " już dla mnie pseudonim?");
 							npc.setCurrentState(ConversationStates.QUESTION_1);
 						} else {
 							npc.say("Testuję w tej chwili wiedzę poszukiwaczy przygód w okolicy. "
@@ -138,7 +99,7 @@ public class MeetMarieHenri extends AbstractQuest {
 				null,
 				ConversationStates.IDLE,
 				"Świetnie! Jeżeli będziesz znał odpowiedź, powiedz mi.",
-				new SetQuestAndModifyKarmaAction(QUEST_SLOT, "start", 5.0));
+				new SetQuestAction(QUEST_SLOT, "start"));
 
 		// player rejects quest
 		npc.add(ConversationStates.QUEST_OFFERED,
@@ -188,6 +149,7 @@ public class MeetMarieHenri extends AbstractQuest {
 		npc.addMatching(ConversationStates.QUESTION_2, Expression.JOKER,
 				new JokerExprMatcher(), null, ConversationStates.ATTENDING,
 				null, new ChatAction() {
+					@Override
 					public void fire(final Player player,
 							final Sentence sentence, final EventRaiser npc) {
 						final Sentence answer = sentence.parseAsMatchingSource();
@@ -222,5 +184,54 @@ public class MeetMarieHenri extends AbstractQuest {
 						}
 					}
 				});
+	}
+
+	@Override
+	public void addToWorld() {
+		fillQuestInfo(
+				"Spotkanie Marie-Henri",
+				"Słynny francuski pisarz sprawdza ogólną wiedzę w bibliotece Ados.",
+				false);
+		createSteps();
+	}
+
+	@Override
+	public List<String> getHistory(final Player player) {
+		final List<String> res = new ArrayList<String>();
+		if (!player.hasQuest(QUEST_SLOT)) {
+			return res;
+		}
+		res.add(Grammar.genderVerb(player.getGender(), "Spotkałem") + " Marie-Henri w księgarni Ados.");
+		final String questState = player.getQuest(QUEST_SLOT);
+		if ("rejected".equals(questState)) {
+			res.add("Poprosił mnie, abym " + Grammar.genderVerb(player.getGender(), "poszukał") + " mu pseudonimu, którego użyje podczas pisania powieści. Nie czuje się na siłach aby mu pomóc.");
+		}
+		if ("start".equals(questState) || "done".equals(questState)) {
+			res.add("Postaram się znaleźć pseudonim dla niego.");
+		}
+		if ("done".equals(questState)) {
+			res.add(Grammar.genderVerb(player.getGender(), "Odpowiedziałem") + " poprawnie na Marie-Henri pytanie, w zamian " + Grammar.genderVerb(player.getGender(), "dostałem") + " nagrodę.");
+		}
+		return res;
+	}
+
+	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
+	}
+
+	@Override
+	public String getName() {
+		return "Spotkanie Marie-Henri";
+	}
+
+	@Override
+	public String getRegion() {
+		return Region.ADOS_CITY;
+	}
+
+	@Override
+	public String getNPCName() {
+		return npc.getName();
 	}
 }

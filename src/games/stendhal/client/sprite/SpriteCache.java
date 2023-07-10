@@ -1,4 +1,4 @@
-/* $Id: SpriteCache.java,v 1.11 2010/10/04 19:44:32 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -13,9 +13,9 @@
 package games.stendhal.client.sprite;
 
 
-import games.stendhal.client.MemoryCache;
-
 import org.apache.log4j.Logger;
+
+import games.stendhal.client.MemoryCache;
 
 /**
  * A cache of keyed sprites.
@@ -34,8 +34,8 @@ public class SpriteCache {
 	/**
 	 * The sprite map.
 	 */
-	protected MemoryCache<Object, Sprite> sprites;
-	
+	private MemoryCache<Object, Sprite> sprites;
+
 
 	/**
 	 * Create a sprite cache.
@@ -51,19 +51,19 @@ public class SpriteCache {
 	/**
 	 * Add a sprite to the cache. This will use a sprite's getReference() value
 	 * as the cache key.
-	 * 
+	 *
 	 * @param sprite
 	 *            The sprite to add.
-	 * 
+	 *
 	 * @see Sprite#getReference()
 	 */
-	public void add(final Sprite sprite) {
+	void add(final Sprite sprite) {
 		add(sprite.getReference(), sprite);
 	}
 
 	/**
 	 * Add a sprite to the cache.
-	 * 
+	 *
 	 * @param key
 	 *            The cache key.
 	 * @param sprite
@@ -78,7 +78,7 @@ public class SpriteCache {
 
 	/**
 	 * Get the shared instance.
-	 * 
+	 *
 	 * @return The shared [singleton] instance.
 	 */
 	public static SpriteCache get() {
@@ -87,10 +87,10 @@ public class SpriteCache {
 
 	/**
 	 * Get a cached sprite.
-	 * 
+	 *
 	 * @param key
 	 *            The cache key.
-	 * 
+	 *
 	 * @return A sprite, or <code>null</code> if not found.
 	 */
 	public Sprite get(final Object key) {

@@ -1,4 +1,4 @@
-/* $Id: ProducerBehaviourAction.java,v 1.4 2012/06/05 10:54:06 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2011 - Stendhal                    *
  ***************************************************************************
@@ -20,15 +20,11 @@ import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.npc.behaviour.impl.ProducerBehaviour;
 import games.stendhal.server.entity.player.Player;
 
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
-
 /**
  * BehaviourAction handles ProducerBehaviour requests.
  */
 @Dev(category=Category.IGNORE)
 public abstract class ProducerBehaviourAction extends AbstractBehaviourAction<ProducerBehaviour> {
-
 	public ProducerBehaviourAction(final ProducerBehaviour behaviour) {
 		this(behaviour, "produce");
 	}
@@ -45,16 +41,5 @@ public abstract class ProducerBehaviourAction extends AbstractBehaviourAction<Pr
 	@Override
 	public String toString() {
 		return "ProducerBehaviourAction";
-	}
-
-	@Override
-	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
-	}
-
-	@Override
-	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				ProducerBehaviourAction.class);
 	}
 }

@@ -1,4 +1,4 @@
-/* $Id: SheepFoodTestHelper.java,v 1.3 2010/09/19 01:28:49 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,8 +12,8 @@
  ***************************************************************************/
 package utilities.RPClass;
 
-import marauroa.common.game.RPClass;
 import games.stendhal.server.entity.mapstuff.spawner.SheepFood;
+import marauroa.common.game.RPClass;
 
 public class SheepFoodTestHelper {
 	public static void generateRPClasses() {

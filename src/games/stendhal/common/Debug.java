@@ -1,4 +1,4 @@
-/* $Id: Debug.java,v 1.117.2.1 2012/12/14 23:21:02 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -14,7 +14,7 @@ package games.stendhal.common;
 
 /**
  * Gathers all Debug constants in one place.
- * 
+ *
  * @author mtotz
  */
 public class Debug {
@@ -26,7 +26,7 @@ public class Debug {
 
 	/** version. */
 	// Note: This line is updated by build.xml using a regexp so be sure to adjust it in case you modify this line.
-	public static final String VERSION = "0.44";
+	public static final String VERSION = "1.38";
 
 	/** pre release suffix */
 	// Note: This line is updated by build.xml using a regexp so be sure to adjust it in case you modify this line.
@@ -36,7 +36,7 @@ public class Debug {
 	 * Log list sizes to find the memory leak. It must be somewhere...
 	 */
 	public static final boolean SHOW_LIST_SIZES = false;
-	
+
 	/**
 	 * it shows entity's view area
 	 */

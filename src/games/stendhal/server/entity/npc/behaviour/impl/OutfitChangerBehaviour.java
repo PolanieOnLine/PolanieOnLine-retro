@@ -1,5 +1,5 @@
 /***************************************************************************
- *                   (C) Copyright 2003-2011 - Marauroa                    *
+ *                   (C) Copyright 2003-2023 - Marauroa                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -9,8 +9,13 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-
 package games.stendhal.server.entity.npc.behaviour.impl;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import games.stendhal.common.Rand;
 import games.stendhal.common.grammar.ItemParserResult;
@@ -20,17 +25,12 @@ import games.stendhal.server.entity.Outfit;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 /**
  * Represents the behaviour of a NPC who is able to sell outfits to a player.
  */
 public class OutfitChangerBehaviour extends MerchantBehaviour {
 	public static final int NEVER_WEARS_OFF = -1;
-	
+
 	/** outfit expiry in minutes */
 	private int endurance;
 
@@ -45,33 +45,42 @@ public class OutfitChangerBehaviour extends MerchantBehaviour {
 
 		// swimsuits for men
 		outfitTypes.put("trunks", Arrays.asList(
-				new Outfit(null, null, 74, null), new Outfit(null, null, 75,
-						null), new Outfit(null, null, 76, null), new Outfit(
-						null, null, 77, null)));
+				new Outfit("dress=980"),
+				new Outfit("dress=981"),
+				new Outfit("dress=982"),
+				new Outfit("dress=983")));
 
 		// swimsuits for women
-		outfitTypes.put("swimsuit", Arrays.asList(new Outfit(null, null, 70,
-				null), new Outfit(null, null, 71, null), new Outfit(null, null,
-				72, null), new Outfit(null, null, 73, null)));
+		outfitTypes.put("swimsuit", Arrays.asList(
+				new Outfit("dress=976"),
+				new Outfit("dress=977"),
+				new Outfit("dress=978"),
+				new Outfit("dress=979")));
 
-		outfitTypes.put("mask", Arrays.asList(new Outfit(0, 27, null, null),
-				new Outfit(0, 28, null, null), new Outfit(0, 29, null, null),
-				new Outfit(0, 30, null, null), new Outfit(0, 31, null, null),
-				new Outfit(0, 32, null, null)));
+		outfitTypes.put("mask", Arrays.asList(
+				// hair & hat are set to "-1" so that they are not drawn over the mask
+				new Outfit("mask=994,hair=-1,hat=-1"),
+				new Outfit("mask=995,hair=-1,hat=-1"),
+				new Outfit("mask=996,hair=-1,hat=-1"),
+				new Outfit("mask=997,hair=-1,hat=-1"),
+				new Outfit("mask=998,hair=-1,hat=-1"),
+				new Outfit("mask=999,hair=-1,hat=-1")));
 
 		// wedding dress for brides
 		// it seems this must be an array as list even though it's only one item
-		outfitTypes.put("gown", Arrays.asList(new Outfit(null, null, 67, null)));
+		outfitTypes.put("gown", Arrays.asList(new Outfit("dress=73,detail=6")));
 
 		// // wedding suit for grooms
 		// it seems this must be an array as list even though it's only one item
-		outfitTypes.put("suit", Arrays.asList(new Outfit(null, null, 66, null)));
+		outfitTypes.put("suit", Arrays.asList(new Outfit("dress=72")));
 	}
+
+	private final List<String> flags = new ArrayList<>();
 
 	/**
 	 * Creates a new OutfitChangerBehaviour for outfits that never wear off
 	 * automatically.
-	 * 
+	 *
 	 * @param priceList
 	 *            list of outfit types and their prices
 	 */
@@ -80,9 +89,47 @@ public class OutfitChangerBehaviour extends MerchantBehaviour {
 	}
 
 	/**
+	 * Creates a new OutfitChangerBehaviour for outfits that never wear off
+	 * automatically.
+	 *
+	 * @param priceList
+	 * 		List of outfit types and their prices.
+	 * @param reset
+	 * 		If <code>true</code>, player's original outfit will be restored before setting
+	 * 		setting the new one.
+	 */
+	@Deprecated
+	public OutfitChangerBehaviour(final Map<String, Integer> priceList, final boolean reset) {
+		this(priceList, NEVER_WEARS_OFF, null, reset);
+	}
+
+	/**
 	 * Creates a new OutfitChangerBehaviour for outfits that wear off
 	 * automatically after some time.
-	 * 
+	 *
+	 * @param priceList
+	 * 		List of outfit types and their prices.
+	 * @param endurance
+	 * 		The time (in turns) the outfit will stay, or NEVER_WEARS_OFF if the outfit
+	 * 		should never disappear automatically.
+	 * @param wearOffMessage
+	 * 		the message that the player should receive after the outfit has worn off,
+	 * 		or null if no message should be sent.
+	 * @param reset
+	 * 		If <code>true</code>, player's original outfit will be restored before setting
+	 * 		setting the new one.
+	 */
+	@Deprecated
+	public OutfitChangerBehaviour(final Map<String, Integer> priceList, final int endurance,
+			final String wearOffMessage, final boolean reset) {
+		this(priceList, endurance, wearOffMessage);
+		setFlag("resetBeforeChange");
+	}
+
+	/**
+	 * Creates a new OutfitChangerBehaviour for outfits that wear off
+	 * automatically after some time.
+	 *
 	 * @param priceList
 	 *            list of outfit types and their prices
 	 * @param endurance
@@ -100,9 +147,43 @@ public class OutfitChangerBehaviour extends MerchantBehaviour {
 	}
 
 	/**
+	 * Sets a flag to be used by this behaviour.
+	 *
+	 * @param flag
+	 *     New flag to be enabled.
+	 */
+	public void setFlag(final String flag) {
+		if (!flags.contains(flag)) {
+			flags.add(flag);
+		}
+	}
+
+	/**
+	 * Unsets a flag used by this behaviour.
+	 *
+	 * @param flag
+	 *     Flag to be disabled.
+	 */
+	public void unsetFlag(final String flag) {
+		if (flags.contains(flag)) {
+			flags.remove(flag);
+		}
+	}
+
+	/**
+	 * Checks if a flag is set.
+	 *
+	 * @return
+	 *     <code>true</code> if 'flag' found in flags list.
+	 */
+	public boolean flagIsSet(final String flag) {
+		return flags.contains(flag);
+	}
+
+	/**
 	 * Transacts the sale that has been agreed on earlier via setChosenItem()
 	 * and setAmount().
-	 * 
+	 *
 	 * @param seller
 	 *            The NPC who sells
 	 * @param player
@@ -114,10 +195,10 @@ public class OutfitChangerBehaviour extends MerchantBehaviour {
 	public boolean transactAgreedDeal(ItemParserResult res, final EventRaiser seller, final Player player) {
 		final String outfitType = res.getChosenItemName();
 
-		if (!player.getOutfit().isCompatibleWithClothes()) {
-			// if the player is wearing a non standard player base  
+		if (!flagIsSet("resetBeforeChange") && !player.getOutfit().isCompatibleWithClothes()) {
+			// if the player is wearing a non standard player base
 			// then swimsuits, masks and many other outfits wouldn't look good mixed with it
-			seller.say("Już posiadasz magiczny strój, który na Tobie nie wygląda zbyt dobrze z innym - czy mógłbyś wymienić na coś co pasuje do Ciebie i zapytać ponownie? Dziękuję!");
+			seller.say("Już posiadasz magiczny strój, który na tobie nie wygląda zbyt dobrze z innym - czy mógłbyś wymienić na coś co pasuje do ciebie i zapytać ponownie? Dziękuję!");
 			return false;
 		}
 
@@ -125,7 +206,18 @@ public class OutfitChangerBehaviour extends MerchantBehaviour {
 
 		if (player.isEquipped("money", charge)) {
 			player.drop("money", charge);
+			String detailColor = null;
+			if (!flagIsSet("removeDetailColor")) {
+				detailColor = player.getOutfitColor("detail");
+			}
 			putOnOutfit(player, outfitType);
+			if (detailColor == null) {
+				player.unsetOutfitColor("detail");
+			} else {
+				player.setOutfitColor("detail", detailColor);
+			}
+			// remember purchases
+			updatePlayerTransactions(player, seller.getName(), res);
 			return true;
 		} else {
 			seller.say("Przepraszam, ale nie masz wystarczająco dużo pieniędzy!");
@@ -164,6 +256,7 @@ public class OutfitChangerBehaviour extends MerchantBehaviour {
 			return name.hashCode();
 		}
 
+		@Override
 		public void onTurnReached(final int currentTurn) {
 			Player player = SingletonRepository.getRuleProcessor().getPlayer(name);
 			if ((player == null) || player.isDisconnected()) {
@@ -171,7 +264,6 @@ public class OutfitChangerBehaviour extends MerchantBehaviour {
 			}
 			player.sendPrivateText("Twój kostium został zdjęty");
 			player.returnToOriginalOutfit();
-			player.remove("outfit_expire_age");
 		}
 	}
 
@@ -179,12 +271,17 @@ public class OutfitChangerBehaviour extends MerchantBehaviour {
 	 * Tries to get back the bought/lent outfit and give the player his original
 	 * outfit back. This will only be successful if the player is wearing an
 	 * outfit he got here, and if the original outfit has been stored.
-	 * 
+	 *
 	 * @param player
 	 *            The player.
 	 * @param outfitType the outfit to wear
 	 */
 	public void putOnOutfit(final Player player, final String outfitType) {
+		if (flagIsSet("resetBeforeChange")) {
+			// cannot use OutfitChangerBehaviour.returnToOriginalOutfit(player) as it checks if the outfit was rented from here
+			player.returnToOriginalOutfit();
+		}
+
 		final List<Outfit> possibleNewOutfits = outfitTypes.get(outfitType);
 		final Outfit newOutfit = Rand.rand(possibleNewOutfits);
 		player.setOutfit(newOutfit.putOver(player.getOutfit()), true);
@@ -194,7 +291,7 @@ public class OutfitChangerBehaviour extends MerchantBehaviour {
 	/**
 	 * Checks whether or not the given player is currently wearing an outfit
 	 * that may have been bought/lent from an NPC with this behaviour.
-	 * 
+	 *
 	 * @param player
 	 *            The player.
 	 * @return true iff the player wears an outfit from here.
@@ -217,7 +314,7 @@ public class OutfitChangerBehaviour extends MerchantBehaviour {
 	 * Tries to get back the bought/lent outfit and give the player his original
 	 * outfit back. This will only be successful if the player is wearing an
 	 * outfit he got here, and if the original outfit has been stored.
-	 * 
+	 *
 	 * @param player
 	 *            The player.
 	 * @return true iff returning was successful.
@@ -246,5 +343,21 @@ public class OutfitChangerBehaviour extends MerchantBehaviour {
 	 */
 	public int getEndurance() {
 		return endurance;
+	}
+
+	/**
+	 * Updates stored information about Player-NPC commerce transactions.
+	 *
+	 * @param player
+	 *     Player to be updated.
+	 * @param merchant
+	 *     Name of merchant involved in transaction.
+	 * @param res
+	 *     Information about the transaction.
+	 */
+	protected void updatePlayerTransactions(final Player player, final String merchant,
+			final ItemParserResult res) {
+		player.incBoughtForItem("outfit." + res.getChosenItemName(), res.getAmount());
+		player.incCommerceTransaction(merchant, getCharge(res, player), false);
 	}
 }

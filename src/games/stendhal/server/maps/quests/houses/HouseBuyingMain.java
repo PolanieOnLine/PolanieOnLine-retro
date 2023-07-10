@@ -1,4 +1,4 @@
-/* $Id: HouseBuyingMain.java,v 1.29 2011/04/02 15:44:17 kymara Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +12,8 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests.houses;
 
+import java.util.LinkedList;
+
 import games.stendhal.common.MathHelper;
 import games.stendhal.common.grammar.Grammar;
 import games.stendhal.server.core.engine.SingletonRepository;
@@ -20,16 +22,13 @@ import games.stendhal.server.entity.mapstuff.portal.HousePortal;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.LinkedList;
-
 /**
  * Controls house buying.
  *
  * @author kymara
  */
 public class HouseBuyingMain {
-	
-	static HouseTax houseTax = null;
+	private HouseTax houseTax = null;
 
 	/** Kalavan house seller Zone name. */
 	private static final String KALAVAN_CITY = "0_kalavan_city";
@@ -42,31 +41,51 @@ public class HouseBuyingMain {
 	/** Zakopane house seller Zone name.*/
 	private static final String ZAKOPANE_SELLER_HOUSE = "int_zakopane_seller_house";
 
-	/** The NPC for Kalavan Houses. */
+	/**
+	 * The NPC for Kalavan Houses.
+	 *
+	 * @param zone target zone
+	 */
 	public void createKalavanNPC(StendhalRPZone zone) {
 		final SpeakerNPC npc = new KalavanHouseseller("Barrett Holmes", "kalavan", houseTax);
 		zone.add(npc);
 	}
 
-	/** The NPC for Ados Houses. */
+	/**
+	 * The NPC for Ados Houses.
+	 *
+	 * @param zone target zone
+	 */
 	public void createAdosNPC(StendhalRPZone zone) {
 		final SpeakerNPC npc = new AdosHouseSeller("Reg Denson", "ados", houseTax);
 		zone.add(npc);
 	}
 
-	/** The NPC for Kirdneh Houses. */
+	/**
+	 * The NPC for Kirdneh Houses.
+	 *
+	 * @param zone target zone
+	 */
 	public void createKirdnehNPC(StendhalRPZone zone) {
 		final SpeakerNPC npc = new KirdnehHouseSeller("Roger Frampton", "kirdneh", houseTax);
 		zone.add(npc);
 	}
 
-	/** The NPC for Athor Apartments. */
+	/**
+	 * The NPC for Athor Apartments.
+	 *
+	 * @param zone target zone
+	 */
 	public void createAthorNPC(StendhalRPZone zone) {
 		final SpeakerNPC npc = new AthorHouseSeller("Cyk", "athor", houseTax);
 		zone.add(npc);
 	}
 
-	/** The NPC for Zakopane House. */
+	/**
+	 * The NPC for Zakopane House.
+	 *
+	 * @param zone target zone
+	 */
 	public void createZakopaneNPC(StendhalRPZone zone) {
 		final SpeakerNPC npc = new ZakopaneHouseSeller("Domiesław", "zakopane", houseTax);
 		zone.add(npc);
@@ -78,15 +97,15 @@ public class HouseBuyingMain {
 			hist.add("Nigdy nie kupiłem domu.");
 			return(hist);
 		}
-		hist.add("Kupiłem " +  HouseUtilities.getHousePortal(MathHelper.parseInt(player.getQuest("house"))).getDoorId() + ".");	
+		hist.add("Kupiłem " +  HouseUtilities.getHousePortal(MathHelper.parseInt(player.getQuest("house"))).getDoorId() + ".");
 		HousePortal playerHousePortal = HouseUtilities.getPlayersHouse(player);
 		if(playerHousePortal!=null) {
 			int unpaidPeriods = houseTax.getUnpaidTaxPeriods(player);
 			if (unpaidPeriods>0) {
-				hist.add("Zalegam z " + Grammar.quantityplnoun(unpaidPeriods, "month", "one") + " podatku.");
+				hist.add("Zalegam z " + Grammar.quantityplnoun(unpaidPeriods, "miesiąc") + " podatku.");
 			} else {
 				hist.add("Jestem na bieżąco z moimi płatnościami podatku za dom.");
-			}	
+			}
 		} else {
 			hist.add("Posiadałem już ten dom");
 		}
@@ -96,7 +115,7 @@ public class HouseBuyingMain {
 	public void addToWorld() {
 		// Start collecting taxes as well
 		houseTax = new HouseTax();
-		
+
 		StendhalRPZone zone = SingletonRepository.getRPWorld().getZone(KALAVAN_CITY);
 		createKalavanNPC(zone);
 
@@ -112,7 +131,7 @@ public class HouseBuyingMain {
 		zone = SingletonRepository.getRPWorld().getZone(ZAKOPANE_SELLER_HOUSE);
 		createZakopaneNPC(zone);
 	}
-	
+
 	public boolean isCompleted(final Player player) {
 		return HouseUtilities.getPlayersHouse(player)!=null;
 	}

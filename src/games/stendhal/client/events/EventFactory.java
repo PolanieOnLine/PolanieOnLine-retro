@@ -1,4 +1,4 @@
-/* $Id: EventFactory.java,v 1.19 2012/07/22 16:30:05 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,20 +12,19 @@
  ***************************************************************************/
 package games.stendhal.client.events;
 
+import org.apache.log4j.Logger;
+
 import games.stendhal.client.entity.Entity;
 import games.stendhal.client.entity.RPEntity;
 import games.stendhal.common.constants.Events;
 import marauroa.common.game.RPEvent;
-
-import org.apache.log4j.Logger;
 
 /**
  * creates RPEvent handler
  *
  * @author hendrik
  */
-public class EventFactory {
-	
+class EventFactory {
 	private static final Logger logger = Logger.getLogger(EventFactory.class);
 
 	/**
@@ -34,7 +33,7 @@ public class EventFactory {
 	 * @param rpevent
 	 * @return event
 	 */
-	public static Event<? extends Entity> create(Entity entity, RPEvent rpevent) {
+	static Event<? extends Entity> create(Entity entity, RPEvent rpevent) {
 		Event<? extends Entity> res = null;
 		if (entity instanceof RPEntity) {
 			res = createEventsForRPEntity((RPEntity)entity, rpevent);
@@ -79,6 +78,12 @@ public class EventFactory {
 			event = new ProgressStatusEvent();
 		} else if (name.equals(Events.REACHED_ACHIEVEMENT)) {
 			event = new ReachedAchievementEvent();
+		} else if (name.equals(Events.BESTIARY)) {
+			event = new BestiaryEvent();
+		} else if (name.equals(Events.DROPPEDLIST)) {
+			event = new ItemLogEvent();
+		} else if (name.equals(Events.ACHIEVEMENT_LOG)) {
+			event = new AchievementLogEvent();
 		}
 
 		if (event != null) {
@@ -102,6 +107,8 @@ public class EventFactory {
 			event = new ExamineEvent();
 		} else if (name.equals("show_item_list")) {
 			event = new ShowItemListEvent();
+		} else if (name.equals(Events.OUTFIT_LIST)) {
+			event = new ShowOutfitListEvent();
 		} else if (name.equals(Events.SOUND)) {
 			event = new SoundEvent();
 		} else if (name.equals("transition_graph")) {
@@ -114,6 +121,10 @@ public class EventFactory {
 			event = new ViewChangeEvent();
 		}  else if (name.equals(Events.IMAGE)) {
 			event = new ImageEffectEvent();
+		} else if (name.equals(Events.PUBLIC_TEXT)) {
+			event = new EntityMessageEvent();
+		}  else if (name.equals(Events.GLOBAL_VISUAL)) {
+			event = new GlobalVisualEffectEvent();
 		}
 
 		if (event != null) {

@@ -21,15 +21,16 @@ import javax.swing.JEditorPane;
 import javax.swing.SwingUtilities;
 
 /**
- * adds support &lt;meta http-equiv="refresh" content="30; url=http://arianne.sf.net/"&gt; 
+ * adds support &lt;meta http-equiv="refresh" content="30; url=https://arianne-project.org/"&gt;
  *
  * @author hendrik
  */
-public class UpdateProgressBarMetaRefreshSupport implements PropertyChangeListener, Runnable {
+class UpdateProgressBarMetaRefreshSupport implements PropertyChangeListener, Runnable {
 	private JEditorPane browser;
 	private String url;
 	private int delay;
 
+	@Override
 	public void propertyChange(PropertyChangeEvent event) {
 		browser = (JEditorPane) event.getSource();
 		String html = browser.getText();
@@ -48,7 +49,7 @@ public class UpdateProgressBarMetaRefreshSupport implements PropertyChangeListen
 	 */
 	private boolean parseHtml(String html) {
 
-		// <meta http-equiv="refresh" content="30; url=http://arianne.sf.net/">
+		// <meta http-equiv="refresh" content="30; url=https://arianne-project.org/">
 		Pattern p = Pattern.compile("<meta http-equiv=\"refresh\" content=\"([^;]*); url=([\"]*)\">");
 		Matcher m = p.matcher(html);
 		if (!m.find()) {
@@ -65,6 +66,7 @@ public class UpdateProgressBarMetaRefreshSupport implements PropertyChangeListen
 		return true;
 	}
 
+	@Override
 	public void run() {
 		// wait the delay
 		try {
@@ -75,6 +77,7 @@ public class UpdateProgressBarMetaRefreshSupport implements PropertyChangeListen
 
 		// load the page
 		SwingUtilities.invokeLater(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					browser.setPage(url);

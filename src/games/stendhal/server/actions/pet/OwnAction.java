@@ -1,6 +1,5 @@
-/* $Id: OwnAction.java,v 1.11 2010/10/04 20:09:20 nhnb Exp $ */
 /***************************************************************************
- *                      (C) Copyright 2003 - Marauroa                      *
+ *                   (C) Copyright 2003-2016 - Marauroa                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -14,6 +13,9 @@ package games.stendhal.server.actions.pet;
 
 import static games.stendhal.common.constants.Actions.OWN;
 import static games.stendhal.common.constants.Actions.TARGET;
+
+import java.util.List;
+
 import games.stendhal.server.actions.ActionListener;
 import games.stendhal.server.actions.CommandCenter;
 import games.stendhal.server.core.engine.GameEvent;
@@ -21,13 +23,11 @@ import games.stendhal.server.core.pathfinder.Node;
 import games.stendhal.server.core.pathfinder.Path;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.creature.DomesticAnimal;
+import games.stendhal.server.entity.creature.Goat;
 import games.stendhal.server.entity.creature.Pet;
 import games.stendhal.server.entity.creature.Sheep;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.util.EntityHelper;
-
-import java.util.List;
-
 import marauroa.common.game.RPAction;
 
 /**
@@ -44,10 +44,11 @@ public class OwnAction implements ActionListener {
 
 	/**
 	 * processes the requested action.
-	 * 
+	 *
 	 * @param player the caller of the action
 	 * @param action the action to be performed
 	 */
+	@Override
 	public void onAction(final Player player, final RPAction action) {
 		if (!action.has(TARGET)) {
 			return;
@@ -69,7 +70,7 @@ public class OwnAction implements ActionListener {
 			}
 
 			// all checks have been okay, so lets own it
-			own(player, animal); 
+			own(player, animal);
 		}
 
 		player.notifyWorldAboutChanges();
@@ -83,9 +84,9 @@ public class OwnAction implements ActionListener {
 	 * @return true if it is a domestic animal
 	 */
 	private boolean checkEntityIsDomesticAnimal(final Player player, final Entity entity) {
-			// Make sure the entity is valid (hacked client?)
-			if (!(entity instanceof DomesticAnimal)) {
-				player.sendPrivateText("Może powinieneś się trzymać domowych zwierząt.");
+		// Make sure the entity is valid (hacked client?)
+		if (!(entity instanceof DomesticAnimal)) {
+			player.sendPrivateText("Może powinieneś się trzymać domowych zwierząt.");
 			return false;
 		}
 		return true;
@@ -101,14 +102,14 @@ public class OwnAction implements ActionListener {
 	private boolean checkNotOwned(final Player player, DomesticAnimal animal) {
 		final Player owner = animal.getOwner();
 		if (owner != null) {
-				player.sendPrivateText("To zwierzątko jest już własnością " + owner.getTitle());
+			player.sendPrivateText("To zwierzątko jest już własnością " + owner.getTitle());
 			return false;
 		}
 		return true;
 	}
 
 	/**
-	 * checks whether this entity is reachable (whether a path exists) 
+	 * checks whether this entity is reachable (whether a path exists)
 	 *
 	 * @param player player to complain to
 	 * @param entity entity to check
@@ -120,7 +121,7 @@ public class OwnAction implements ActionListener {
 
 		if (path.isEmpty() && !entity.nextTo(player)) {
 			// The animal is too far away
-					player.sendPrivateText("" + entity.getTitle() + " jest zbyt daleko.");
+			player.sendPrivateText(entity.getTitle() + " jest zbyt daleko.");
 			return false;
 		}
 		return true;
@@ -133,19 +134,25 @@ public class OwnAction implements ActionListener {
 	 * @param animal animal to be owned
 	 */
 	private void own(final Player player, final DomesticAnimal animal) {
-					if (animal instanceof Sheep) {
-						if (player.getSheep() != null) {
-							player.sendPrivateText("Już masz własną owcę.");
-						} else {
-							player.setSheep((Sheep) animal);
-						}
-					} else if (animal instanceof Pet) {
-						if (player.getPet() != null) {
-							player.sendPrivateText("Już masz własne zwierzątko.");
-						} else {
-							player.setPet((Pet) animal);
-						}
-					}
-					new GameEvent(player.getName(), "own", animal.getRPClass().getName(), animal.getTitle()).raise();
+		if (animal instanceof Sheep) {
+			if (player.getSheep() != null) {
+				player.sendPrivateText("Już masz własną owcę.");
+			} else {
+				player.setSheep((Sheep) animal);
+			}
+		} if (animal instanceof Goat) {
+			if (player.getGoat() != null) {
+				player.sendPrivateText("Już masz własną kozę.");
+			} else {
+				player.setGoat((Goat) animal);
+			}
+		} else if (animal instanceof Pet) {
+			if (player.getPet() != null) {
+				player.sendPrivateText("Już masz własne zwierzątko.");
+			} else {
+				player.setPet((Pet) animal);
+			}
+		}
+		new GameEvent(player.getName(), "own", animal.getRPClass().getName(), animal.getTitle()).raise();
 	}
 }

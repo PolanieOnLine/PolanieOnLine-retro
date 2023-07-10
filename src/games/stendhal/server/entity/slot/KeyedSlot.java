@@ -1,4 +1,4 @@
-/* $Id: KeyedSlot.java,v 1.10 2011/01/12 21:58:24 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -15,16 +15,16 @@ package games.stendhal.server.entity.slot;
 import games.stendhal.server.entity.Entity;
 
 /**
- * 
+ *
  * Abused slots of players which contain one RPObject used as hashmap.
- * 
+ *
  * @author hendrik
  */
 public class KeyedSlot extends EntitySlot {
 
 	/**
 	 * Creates a new keyed slot.
-	 * 
+	 *
 	 * @param name
 	 *            name of slot
 	 */

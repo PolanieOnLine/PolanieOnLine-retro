@@ -1,4 +1,4 @@
-/* $Id: TradingWindow.java,v 1.9 2012/05/28 14:13:49 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,15 +12,6 @@
  ***************************************************************************/
 package games.stendhal.client.gui.trade;
 
-import games.stendhal.client.entity.IEntity;
-import games.stendhal.client.entity.factory.EntityMap;
-import games.stendhal.client.gui.InternalManagedWindow;
-import games.stendhal.client.gui.SlotGrid;
-import games.stendhal.client.gui.layout.SBoxLayout;
-import games.stendhal.client.gui.layout.SLayout;
-import games.stendhal.common.TradeState;
-import games.stendhal.common.grammar.Grammar;
-
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -31,6 +22,14 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
+
+import games.stendhal.client.entity.IEntity;
+import games.stendhal.client.entity.factory.EntityMap;
+import games.stendhal.client.gui.InternalManagedWindow;
+import games.stendhal.client.gui.SlotGrid;
+import games.stendhal.client.gui.layout.SBoxLayout;
+import games.stendhal.client.gui.layout.SLayout;
+import games.stendhal.common.TradeState;
 
 /**
  * The trading window. Panels for each of the trader's trading slots and
@@ -46,29 +45,29 @@ class TradingWindow extends InternalManagedWindow {
 	private final SlotGrid partnerSlots;
 	private final SlotGrid mySlots;
 	private final JLabel partnersOfferLabel;
-	
+
 	private final JButton offerButton;
 	private final JButton acceptButton;
 	private final JButton cancelButton;
-	
+
 	private final JLabel myOfferStatus;
 	private final JLabel partnerOfferStatus;
-	
+
 	/**
 	 * Create a new TradingWindow.
-	 * 
+	 *
 	 * @param controller controller to use for the trade operations
 	 */
 	public TradingWindow(final TradingController controller) {
 		super("trade", "Trading");
 		this.controller = controller;
-		
+
 		final int padding = SBoxLayout.COMMON_PADDING;
 		JComponent content = SBoxLayout.createContainer(SBoxLayout.VERTICAL, padding);
 		content.setBorder(BorderFactory.createEmptyBorder(padding, padding, padding, padding));
 		JComponent slotRow = SBoxLayout.createContainer(SBoxLayout.HORIZONTAL, padding);
 		content.add(slotRow);
-		
+
 		/*
 		 * Create the trading partner's side
 		 */
@@ -78,26 +77,26 @@ class TradingWindow extends InternalManagedWindow {
 		partnerColumn.add(partnersOfferLabel);
 		partnerSlots = new SlotGrid(2, 2);
 		partnerColumn.add(partnerSlots);
-		
+
 		partnerOfferStatus = new JLabel("Zmieniam");
 		partnerOfferStatus.setAlignmentX(CENTER_ALIGNMENT);
 		partnerColumn.add(partnerOfferStatus);
-		
+
 		acceptButton = new JButton("Zaakceptuj");
 		acceptButton.setEnabled(false);
 		acceptButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				controller.acceptTrade();
 			}
 		});
 		acceptButton.setAlignmentX(RIGHT_ALIGNMENT);
 		partnerColumn.add(acceptButton);
-		
+
 		slotRow.add(partnerColumn);
-		
-		slotRow.add(new JSeparator(SwingConstants.VERTICAL),
-				SBoxLayout.constraint(SLayout.EXPAND_Y));
-		
+
+		slotRow.add(new JSeparator(SwingConstants.VERTICAL), SLayout.EXPAND_Y);
+
 		/*
 		 * Create user offer's side
 		 */
@@ -105,35 +104,36 @@ class TradingWindow extends InternalManagedWindow {
 		JLabel myOfferLabel = new JLabel("Moja oferta");
 		myOfferLabel.setAlignmentX(CENTER_ALIGNMENT);
 		myColumn.add(myOfferLabel);
-		
+
 		mySlots = new SlotGrid(2, 2);
 		mySlots.setAcceptedTypes(EntityMap.getClass("item", null, null));
 		myColumn.add(mySlots);
 		slotRow.add(myColumn);
-		
+
 		myOfferStatus = new JLabel("Zmieniam");
 		myOfferStatus.setAlignmentX(CENTER_ALIGNMENT);
 		myColumn.add(myOfferStatus);
-		
+
 		offerButton = new JButton("Zaoferuj");
 		offerButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				controller.lockTrade();
 			}
 		});
 		offerButton.setAlignmentX(RIGHT_ALIGNMENT);
 		myColumn.add(offerButton);
-		
+
 		/*
 		 * Separate the cancel button from the rest of the components to
 		 * highlight its special status.
 		 */
-		content.add(new JSeparator(SwingConstants.HORIZONTAL),
-				SBoxLayout.constraint(SLayout.EXPAND_X));
-		
+		content.add(new JSeparator(SwingConstants.HORIZONTAL), SLayout.EXPAND_X);
+
 		// Cancel button
 		cancelButton = new JButton("Anuluj");
 		cancelButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				// Close the window and cancel the trade
 				close();
@@ -142,47 +142,47 @@ class TradingWindow extends InternalManagedWindow {
 
 		cancelButton.setAlignmentX(RIGHT_ALIGNMENT);
 		content.add(cancelButton);
-		
+
 		setContent(content);
 	}
-	
+
 	@Override
 	public void close() {
 		super.close();
 		controller.cancelTrade();
 	}
-	
+
 	/**
 	 * Set the name of the trading partner.
-	 * 
+	 *
 	 * @param name
 	 */
 	void setPartnerName(String name) {
 		setTitle("Handel z " + name);
-		partnersOfferLabel.setText("Oferta " + Grammar.suffix_s(name));
+		partnersOfferLabel.setText("Oferta " + name);
 	}
-	
+
 	/**
 	 * Set the user's status indicator.
-	 * 
+	 *
 	 * @param state new status
 	 */
 	void setUserStatus(TradeState state) {
 		setTraderStatus(myOfferStatus, state);
 	}
-	
+
 	/**
 	 * Set the trading partner's status indicator.
-	 *  
+	 *
 	 * @param state new status
 	 */
 	void setPartnerStatus(TradeState state) {
 		setTraderStatus(partnerOfferStatus, state);
 	}
-	
+
 	/**
 	 * Set the status message and color of an indicator label.
-	 * 
+	 *
 	 * @param indicator label to be changed
 	 * @param state new state
 	 */
@@ -198,37 +198,37 @@ class TradingWindow extends InternalManagedWindow {
 			break;
 		case LOCKED:
 			indicator.setForeground(Color.WHITE);
-			indicator.setText("Zaoferowałes");
+			indicator.setText("Zaoferowałeś");
 			break;
 		case DEAL_WAITING_FOR_OTHER_DEAL:
 			indicator.setForeground(Color.GREEN);
 			indicator.setText("ZAAKCEPTOWANE");
 			break;
 		default:
-				
+
 		}
 	}
-	
+
 	/**
 	 * Set the user's trading slot.
-	 *  
+	 *
 	 * @param user
 	 * @param slot
 	 */
 	void setUserSlot(IEntity user, String slot) {
 		mySlots.setSlot(user, slot);
 	}
-	
+
 	/**
 	 * Set the partner's trading slot.
-	 * 
+	 *
 	 * @param partner
 	 * @param slot
 	 */
 	void setPartnerSlot(IEntity partner, String slot) {
 		partnerSlots.setSlot(partner, slot);
 	}
-	
+
 	/**
 	 * Disable all activity. Trade has been cancelled.
 	 */
@@ -239,28 +239,28 @@ class TradingWindow extends InternalManagedWindow {
 		setUserStatus(TradeState.NO_ACTIVE_TRADE);
 		setPartnerStatus(TradeState.NO_ACTIVE_TRADE);
 	}
-	
+
 	/**
 	 * Define if the player is allowed to lock an offer.
-	 * 
+	 *
 	 * @param allow
 	 */
 	void allowOffer(boolean allow) {
 		offerButton.setEnabled(allow);
 	}
-	
+
 	/**
 	 * Define if the player is allowed to accept the trade.
-	 * 
+	 *
 	 * @param allow
 	 */
 	void allowAccept(boolean allow) {
 		acceptButton.setEnabled(allow);
 	}
-	
+
 	/**
 	 * Define if the player is allowed to cancel the trade.
-	 * 
+	 *
 	 * @param allow
 	 */
 	void allowCancel(boolean allow) {

@@ -1,6 +1,5 @@
-/* $Id: AdminLevelAction.java,v 1.15 2012/05/30 18:50:04 kiheru Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -15,6 +14,7 @@ package games.stendhal.server.actions.admin;
 import static games.stendhal.common.constants.Actions.ADMINLEVEL;
 import static games.stendhal.common.constants.Actions.NEWLEVEL;
 import static games.stendhal.common.constants.Actions.TARGET;
+
 import games.stendhal.common.NotificationType;
 import games.stendhal.common.constants.Actions;
 import games.stendhal.server.actions.CommandCenter;
@@ -24,17 +24,13 @@ import games.stendhal.server.entity.player.Player;
 import marauroa.common.game.RPAction;
 
 class AdminLevelAction extends AdministrationAction {
-
 	public static void register() {
 		CommandCenter.register(ADMINLEVEL, new AdminLevelAction(), 0);
-
 	}
 
 	@Override
 	public void perform(final Player player, final RPAction action) {
-
 		if (action.has(TARGET)) {
-
 			final String name = action.get(TARGET);
 			final Player target = SingletonRepository.getRuleProcessor().getPlayer(name);
 
@@ -68,7 +64,6 @@ class AdminLevelAction extends AdministrationAction {
 							+ REQUIRED_ADMIN_LEVEL_FOR_SUPER
 							+ " poziomu administratora, aby móc go zmieniać.";
 				} else {
-
 					new GameEvent(player.getName(), ADMINLEVEL, target.getName(), ADMINLEVEL, action.get(NEWLEVEL)).raise();
 					target.setAdminLevel(newlevel);
 					dropPrivileges(target);
@@ -90,8 +85,8 @@ class AdminLevelAction extends AdministrationAction {
 	/**
 	 * Drop persistent administrator attributes if the player is no longer
 	 * allowed to have them.
-	 *  
-	 * @param player the player whose privileges should be re-examined 
+	 *
+	 * @param player the player whose privileges should be re-examined
 	 */
 	private void dropPrivileges(Player player) {
 		if (!AdministrationAction.isPlayerAllowedToExecuteAdminCommand(player, Actions.TELECLICKMODE, false)) {
@@ -108,5 +103,4 @@ class AdminLevelAction extends AdministrationAction {
 	private boolean isAllowedtoSeeGhosts(final Player player) {
 		return AdministrationAction.isPlayerAllowedToExecuteAdminCommand(player, Actions.GHOSTMODE, false);
 	}
-
 }

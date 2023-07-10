@@ -1,4 +1,4 @@
-/* $Id: AsynchronousProgramExecutor.java,v 1.3 2010/09/19 02:36:29 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -14,13 +14,13 @@ package games.stendhal.server.util;
 
 import java.io.IOException;
 
-import marauroa.common.Configuration;
-
 import org.apache.log4j.Logger;
+
+import marauroa.common.Configuration;
 
 /**
  * Executes an external program
- * 
+ *
  * @author hendrik
  */
 public class AsynchronousProgramExecutor extends Thread {
@@ -30,7 +30,7 @@ public class AsynchronousProgramExecutor extends Thread {
 
 	/**
 	 * Creates a new AsynchronousProgramExecutor
-	 * 
+	 *
 	 * @param account
 	 *            account to use
 	 * @param message
@@ -44,6 +44,7 @@ public class AsynchronousProgramExecutor extends Thread {
 	/**
 	 * Executes the program. Use "start()" for asynchronous access.
 	 */
+	@Override
 	public void run() {
 		Configuration configuration;
 		try {
@@ -59,16 +60,15 @@ public class AsynchronousProgramExecutor extends Thread {
 		}
 
 		String cmd = configuration.get("stendhal.program." + account);
-		send(cmd, message);
+		send(cmd);
 	}
 
 	/**
 	 * sends the message to the twitter account
 	 *
 	 * @param cmd command
-	 * @param message message to tweet
 	 */
-	private void send(String cmd, String message) {
+	private void send(String cmd) {
 		try {
 			String[] args = new String[2];
 			args[0] = cmd;

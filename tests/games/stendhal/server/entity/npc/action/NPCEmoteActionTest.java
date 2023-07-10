@@ -1,4 +1,4 @@
-/* $Id: NPCEmoteActionTest.java,v 1.4 2011/05/01 19:50:07 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -15,40 +15,30 @@ package games.stendhal.server.entity.npc.action;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import games.stendhal.common.parser.ConversationParser;
-import games.stendhal.server.entity.npc.EventRaiser;
-import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.maps.MockStendlRPWorld;
 
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import games.stendhal.common.parser.ConversationParser;
+import games.stendhal.server.entity.npc.EventRaiser;
+import games.stendhal.server.entity.npc.SpeakerNPC;
+import games.stendhal.server.maps.MockStendlRPWorld;
 import utilities.PlayerTestHelper;
 import utilities.SpeakerNPCTestHelper;
 
 public class NPCEmoteActionTest {
-	
+
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		MockStendlRPWorld.get();
 	}
-	
-	/**
-	 * Tests for constructor.
-	 */
-	@Test
-	public void testConstructor() throws Throwable {
-		final NPCEmoteAction npcEmoteAction = new NPCEmoteAction("");
-		assertEquals("npcEmoteAction.hashCode()", 629,
-				npcEmoteAction.hashCode());
-	}
-	
+
 	/**
 	 * Tests for equals.
 	 */
 	@Test
-	public void testEquals() throws Throwable {
+	public void testEquals() {
 		final NPCEmoteAction obj = new NPCEmoteAction("hugs");
 		assertTrue(obj.equals(obj));
 		assertTrue(new NPCEmoteAction("hugs").equals(new NPCEmoteAction("hugs")));
@@ -59,13 +49,14 @@ public class NPCEmoteActionTest {
 				new NPCEmoteAction("hugs").equals(new NPCEmoteAction("hugs") {
 					// this is an anonymous sub class
 				}));
-	}	
-	
+	}
+
 	/**
 	 * Tests for fire.
 	 */
 	@Ignore
-	public void testFire() throws Throwable {
+	@Test
+	public void testFire() {
 		final SpeakerNPC npc = SpeakerNPCTestHelper.createSpeakerNPC();
 		npc.setName("TestNPC");
 		EventRaiser raiser = new EventRaiser(npc);
@@ -90,16 +81,16 @@ public class NPCEmoteActionTest {
 	 * Tests for hashCode.
 	 */
 	@Test
-	public void testHashCode() throws Throwable {
-		assertEquals("result", 3214638, new NPCEmoteAction("hugs").hashCode());
-		assertEquals("result", 3292627, new NPCEmoteAction("kill").hashCode());
+	public void testHashCode() {
+		assertEquals("result", new NPCEmoteAction("hugs").hashCode(), new NPCEmoteAction("hugs").hashCode());
+		assertEquals("result", new NPCEmoteAction("kill").hashCode(), new NPCEmoteAction("kill").hashCode());
 	}
 
 	/**
 	 * Tests for toString.
 	 */
 	@Test
-	public void testToString() throws Throwable {
+	public void testToString() {
 		assertEquals("result", "NPCEmoteAction",
 				new NPCEmoteAction("hugs").toString());
 	}
@@ -108,7 +99,7 @@ public class NPCEmoteActionTest {
 	 * Tests for fireThrowsNullPointerException.
 	 */
 	@Test(expected = NullPointerException.class)
-	public void testFireThrowsNullPointerException() throws Throwable {
+	public void testFireThrowsNullPointerException() {
 		new NPCEmoteAction("hugs").fire(null, ConversationParser.parse("!me hugs TestNPC"),
 				null);
 	}

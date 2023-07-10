@@ -1,6 +1,5 @@
-/* $Id: SlashActionRepository.java,v 1.54 2012/07/18 22:33:57 kiheru Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,9 +11,16 @@
  ***************************************************************************/
 package games.stendhal.client.actions;
 
+import static games.stendhal.common.constants.Actions.ALTERKILL;
+import static games.stendhal.common.constants.Actions.INSPECTKILL;
+import static games.stendhal.common.constants.Actions.INSPECTQUEST;
+import static games.stendhal.common.constants.Actions.REMOVEDETAIL;
+
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Set;
+
+import games.stendhal.common.constants.Actions;
 
 /**
  * Manages Slash Action Objects.
@@ -40,22 +46,21 @@ public class SlashActionRepository {
 		actions.put("adminnote", new AdminNoteAction());
 		actions.put("alter", new AlterAction());
 		actions.put("altercreature", new AlterCreatureAction());
+		actions.put(ALTERKILL, new AlterKillAction());
 		actions.put("alterquest", new AlterQuestAction());
 		actions.put("answer", new AnswerAction());
 		actions.put("atlas", new AtlasBrowserLaunchCommand());
 		actions.put("atlaspol", new AtlasPolBrowserLaunchCommand());
 		actions.put("away", new AwayAction());
-		
+
 		actions.put("ban", new BanAction());
-		
+
 		actions.put("clear", new ClearChatLogAction());
 		actions.put("clickmode", new ClickModeAction());
-		actions.put("trybklikania", new ClickModeAction());
 		actions.put("clientinfo", new ClientInfoAction());
 		actions.put("commands", help);
-		actions.put("polecenia", help);
 		actions.put("config", new ConfigAction());
-		
+
 		actions.put("drop", new DropAction());
 
 		actions.put("cast", new CastSpellAction());
@@ -70,32 +75,32 @@ public class SlashActionRepository {
 
 		actions.put("ignore", new IgnoreAction());
 		actions.put("inspect", new InspectAction());
+		actions.put(INSPECTKILL, new InspectKillAction());
+		actions.put(INSPECTQUEST, new InspectQuestAction());
 		actions.put("invisible", new InvisibleAction());
 
 		actions.put("jail", new JailAction());
 
 		actions.put("listproducers", new ListProducersAction());
-		actions.put("zlecenia", new ListProducersAction());
-		
+
 		actions.put("me", new EmoteAction());
 		actions.put("msg", msg);
 		actions.put("mute", new MuteAction());
-		actions.put("wycisz", new MuteAction());
 
 		actions.put("names", who);
-		
+
 		actions.put("p", groupMessage);
 		actions.put("profile", new ProfileAction());
 		actions.put("travellog", new TravelLogAction());
-		actions.put("dziennikpodróży", new TravelLogAction());
+		actions.put(Actions.ACHIEVEMENTLOG, new AchievementLogAction());
 
 		actions.put("quit", new QuitAction());
 
 		actions.put("remove", new RemoveBuddyAction());
 
 		actions.put("sentence", new SentenceAction());
+		actions.put("status", new SentenceAction()); // Alias for /sentence
 		actions.put("settings", new SettingsAction());
-		actions.put("ustawienia", new SettingsAction());
 
 		actions.put("sound", new SoundAction());
 		actions.put("volume", new VolumeAction());
@@ -103,7 +108,7 @@ public class SlashActionRepository {
 
 		actions.put("storemessage", new StoreMessageAction());
 		actions.put("postmessage", new StoreMessageAction());
-		
+
 		actions.put("summonat", new SummonAtAction());
 		actions.put("summon", new SummonAction());
 		actions.put("supportanswer", supporta);
@@ -112,20 +117,34 @@ public class SlashActionRepository {
 
 		actions.put("takescreenshot", new ScreenshotAction());
 		actions.put("teleport", new TeleportAction());
+		actions.put("teleportme", new TeleportMeAction());
 		actions.put("teleportto", new TeleportToAction());
 		actions.put("tellall", new TellAllAction());
 		actions.put("tell", msg);
 
 		actions.put("where", new WhereAction());
 		actions.put("who", who);
-		actions.put("kto", who);
 		actions.putAll(BareBonesBrowserLaunchCommandsFactory.createBrowserCommands());
 //		actions.put("wrap", new WrapAction());
+
+		/* Movement */
+		actions.put("walk", new AutoWalkAction());
+		actions.put("stopwalk", new AutoWalkStopAction());
+		actions.put("movecont", new MoveContinuousAction());
+
+		// PvP challenge actions
+		actions.put("challenge", new CreateChallengeAction());
+		actions.put("accept", new AcceptChallengeAction());
+
+		// allows players to remove the detail layer manually
+		actions.put(REMOVEDETAIL, new RemoveDetailAction());
+
+		actions.put("emojilist", new EmojiListAction());
 	}
 
 	/**
 	 * Gets the Action object for the specified Action name.
-	 * 
+	 *
 	 * @param name
 	 *            name of Action
 	 * @return Action object
@@ -134,10 +153,10 @@ public class SlashActionRepository {
 		String temp = name.toLowerCase(Locale.ENGLISH);
 		return actions.get(temp);
 	}
-	
+
 	/**
 	 * Get all known command names.
-	 * 
+	 *
 	 * @return set of commands
 	 */
 	public static Set<String> getCommandNames() {

@@ -1,4 +1,4 @@
-/* $Id: Entity.java,v 1.229 2012/04/07 07:30:00 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -12,14 +12,13 @@
  ***************************************************************************/
 package games.stendhal.client.entity;
 
-import games.stendhal.client.listener.RPObjectChangeListener;
-
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import games.stendhal.client.listener.RPObjectChangeListener;
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPSlot;
 
@@ -33,18 +32,23 @@ public class Entity implements RPObjectChangeListener, IEntity {
 	/**
 	 * Amount of entity-to-entity resistance (0-100).
 	 */
-	protected int resistance;
+	private int resistance;
+
+	/**
+	 * Completely blocks walking over if set to <code>true</code>.
+	 */
+	private boolean walkBlocker = false;
 
 	/**
 	 * The entity visibility.
 	 */
-	protected int visibility;
+	private int visibility;
 
 	/**
 	 * Change listeners.
 	 */
-	private final List<EntityChangeListener<? extends IEntity>> changeListeners = new CopyOnWriteArrayList<EntityChangeListener<? extends IEntity>>(); 
-	private final List<ContentChangeListener> contentChangeListeners = new CopyOnWriteArrayList<ContentChangeListener>(); 
+	private final List<EntityChangeListener<? extends IEntity>> changeListeners = new CopyOnWriteArrayList<EntityChangeListener<? extends IEntity>>();
+	private final List<ContentChangeListener> contentChangeListeners = new CopyOnWriteArrayList<ContentChangeListener>();
 
 	/** The arianne object associated with this game entity. */
 	protected RPObject rpObject;
@@ -62,7 +66,7 @@ public class Entity implements RPObjectChangeListener, IEntity {
 	/**
 	 * The entity sub-class.
 	 */
-	protected String subclazz;
+	private String subclazz;
 
 	/**
 	 * The entity title.
@@ -76,11 +80,11 @@ public class Entity implements RPObjectChangeListener, IEntity {
 
 	/**
 	 * Quick work-around to prevent fireMovementEvent() from calling in
-	 * onChangedAdded() from other initialize() hack. 
+	 * onChangedAdded() from other initialize() hack.
 	 * TODO: get rid off inAdd variable.
 	 */
 	protected boolean inAdd;
-	
+
 	/**
 	 * The entity width.
 	 */
@@ -91,7 +95,11 @@ public class Entity implements RPObjectChangeListener, IEntity {
 	 */
 	private double height;
 
-
+	/**
+	 * Entity area rectangle. Kept in memory because it is the most allocated
+	 * resource after the Graphics2D objects we can do nothing about.
+	 */
+	private Rectangle2D.Double area;
 
 	public Entity() {
 		clazz = null;
@@ -110,21 +118,24 @@ public class Entity implements RPObjectChangeListener, IEntity {
 	/* (non-Javadoc)
 	 * @see games.stendhal.client.entity.IEntity#addChangeListener(games.stendhal.client.entity.EntityChangeListener)
 	 */
+	@Override
 	public void addChangeListener(final EntityChangeListener<?> listener) {
 		changeListeners.add(listener);
 	}
 
+	@Override
 	public void addContentChangeListener(final ContentChangeListener listener) {
 		contentChangeListeners.add(listener);
 	}
 
+	@Override
 	public void removeContentChangeListener(final ContentChangeListener listener) {
 		contentChangeListeners.remove(listener);
 	}
 
 	/**
 	 * Fire change to all registered listeners.
-	 * 
+	 *
 	 * @param property
 	 *            The changed property.
 	 */
@@ -134,25 +145,36 @@ public class Entity implements RPObjectChangeListener, IEntity {
 			l.entityChanged(this, property);
 		}
 	}
-	
+
 	/*
 	 * (non-Javadoc)
 	 * @see games.stendhal.client.entity.IEntity#isUser()
 	 */
+	@Override
 	public boolean isUser() {
 		return false;
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see games.stendhal.client.entity.IEntity#getArea()
 	 */
+	@Override
 	public Rectangle2D getArea() {
-		return new Rectangle.Double(getX(), getY(), getWidth(), getHeight());
+		if (area == null) {
+			area = new Rectangle.Double(getX(), getY(), getWidth(), getHeight());
+		} else {
+			area.x = getX();
+			area.y = getY();
+			area.width = getWidth();
+			area.height = getHeight();
+		}
+		return area;
 	}
 
 	/* (non-Javadoc)
 	 * @see games.stendhal.client.entity.IEntity#getVisibility()
 	 */
+	@Override
 	public int getVisibility() {
 		return visibility;
 	}
@@ -160,6 +182,7 @@ public class Entity implements RPObjectChangeListener, IEntity {
 	/* (non-Javadoc)
 	 * @see games.stendhal.client.entity.IEntity#getHeight()
 	 */
+	@Override
 	public double getHeight() {
 		return height;
 	}
@@ -167,6 +190,7 @@ public class Entity implements RPObjectChangeListener, IEntity {
 	/* (non-Javadoc)
 	 * @see games.stendhal.client.entity.IEntity#getID()
 	 */
+	@Override
 	public final RPObject.ID getID() {
 		if (rpObject == null) {
 			return null;
@@ -186,10 +210,11 @@ public class Entity implements RPObjectChangeListener, IEntity {
 		}
 	}
 
-	
+
 	/* (non-Javadoc)
 	 * @see games.stendhal.client.entity.IEntity#getEntityClass()
 	 */
+	@Override
 	public String getEntityClass() {
 		return clazz;
 	}
@@ -197,6 +222,7 @@ public class Entity implements RPObjectChangeListener, IEntity {
 	/* (non-Javadoc)
 	 * @see games.stendhal.client.entity.IEntity#getName()
 	 */
+	@Override
 	public String getName() {
 		return name;
 	}
@@ -204,6 +230,7 @@ public class Entity implements RPObjectChangeListener, IEntity {
 	/* (non-Javadoc)
 	 * @see games.stendhal.client.entity.IEntity#getEntitySubclass()
 	 */
+	@Override
 	public String getEntitySubclass() {
 		return subclazz;
 	}
@@ -211,6 +238,7 @@ public class Entity implements RPObjectChangeListener, IEntity {
 	/* (non-Javadoc)
 	 * @see games.stendhal.client.entity.IEntity#getTitle()
 	 */
+	@Override
 	public String getTitle() {
 		if (title != null) {
 			return title;
@@ -226,6 +254,7 @@ public class Entity implements RPObjectChangeListener, IEntity {
 	/* (non-Javadoc)
 	 * @see games.stendhal.client.entity.IEntity#getType()
 	 */
+	@Override
 	public String getType() {
 		return type;
 	}
@@ -233,6 +262,7 @@ public class Entity implements RPObjectChangeListener, IEntity {
 	/* (non-Javadoc)
 	 * @see games.stendhal.client.entity.IEntity#getX()
 	 */
+	@Override
 	public double getX() {
 		return x;
 	}
@@ -240,6 +270,7 @@ public class Entity implements RPObjectChangeListener, IEntity {
 	/* (non-Javadoc)
 	 * @see games.stendhal.client.entity.IEntity#getY()
 	 */
+	@Override
 	public double getY() {
 		return y;
 	}
@@ -247,6 +278,7 @@ public class Entity implements RPObjectChangeListener, IEntity {
 	/* (non-Javadoc)
 	 * @see games.stendhal.client.entity.IEntity#getRPObject()
 	 */
+	@Override
 	public RPObject getRPObject() {
 		return rpObject;
 	}
@@ -254,14 +286,16 @@ public class Entity implements RPObjectChangeListener, IEntity {
 	/* (non-Javadoc)
 	 * @see games.stendhal.client.entity.IEntity#getWidth()
 	 */
+	@Override
 	public double getWidth() {
 		return width;
 	}
 
-	
+
 	/* (non-Javadoc)
 	 * @see games.stendhal.client.entity.IEntity#isOnGround()
 	 */
+	@Override
 	public boolean isOnGround() {
 		return !rpObject.isContained();
 	}
@@ -270,7 +304,7 @@ public class Entity implements RPObjectChangeListener, IEntity {
 	 * Process attribute changes that may affect positioning. This is needed
 	 * because different entities may want to process coordinate changes more
 	 * gracefully.
-	 * 
+	 *
 	 * @param base
 	 *            The previous values.
 	 * @param diff
@@ -304,7 +338,7 @@ public class Entity implements RPObjectChangeListener, IEntity {
 
 	/**
 	 * When the entity's position changed.
-	 * 
+	 *
 	 * @param x
 	 *            The new X coordinate.
 	 * @param y
@@ -317,6 +351,7 @@ public class Entity implements RPObjectChangeListener, IEntity {
 	/* (non-Javadoc)
 	 * @see games.stendhal.client.entity.IEntity#getResistance()
 	 */
+	@Override
 	public int getResistance() {
 		return resistance;
 	}
@@ -324,6 +359,7 @@ public class Entity implements RPObjectChangeListener, IEntity {
 	/* (non-Javadoc)
 	 * @see games.stendhal.client.entity.IEntity#getResistance(games.stendhal.client.entity.IEntity)
 	 */
+	@Override
 	public int getResistance(final IEntity entity) {
 		return ((getResistance() * entity.getResistance()) / 100);
 	}
@@ -331,6 +367,7 @@ public class Entity implements RPObjectChangeListener, IEntity {
 	/* (non-Javadoc)
 	 * @see games.stendhal.client.entity.IEntity#getSlot(java.lang.String)
 	 */
+	@Override
 	public RPSlot getSlot(final String name) {
 		if (rpObject.hasSlot(name)) {
 			return rpObject.getSlot(name);
@@ -342,6 +379,7 @@ public class Entity implements RPObjectChangeListener, IEntity {
 	/* (non-Javadoc)
 	 * @see games.stendhal.client.entity.IEntity#initialize(marauroa.common.game.RPObject)
 	 */
+	@Override
 	public void initialize(final RPObject object) {
 		rpObject = object;
 
@@ -405,6 +443,10 @@ public class Entity implements RPObjectChangeListener, IEntity {
 			resistance = 0;
 		}
 
+		if (object.has("walk_blocker")) {
+			walkBlocker = true;
+		}
+
 		/*
 		 * Visibility
 		 */
@@ -446,13 +488,19 @@ public class Entity implements RPObjectChangeListener, IEntity {
 	/* (non-Javadoc)
 	 * @see games.stendhal.client.entity.IEntity#isObstacle(games.stendhal.client.entity.IEntity)
 	 */
+	@Override
 	public boolean isObstacle(final IEntity entity) {
+		if (walkBlocker) {
+			return true;
+		}
+
 		return ((entity != this) && (getResistance(entity) > 95));
 	}
 
 	/* (non-Javadoc)
 	 * @see games.stendhal.client.entity.IEntity#release()
 	 */
+	@Override
 	public void release() {
 		// ignored
 	}
@@ -460,6 +508,7 @@ public class Entity implements RPObjectChangeListener, IEntity {
 	/* (non-Javadoc)
 	 * @see games.stendhal.client.entity.IEntity#removeChangeListener(games.stendhal.client.entity.EntityChangeListener)
 	 */
+	@Override
 	public void removeChangeListener(final EntityChangeListener<?> listener) {
 		changeListeners.remove(listener);
 	}
@@ -467,6 +516,7 @@ public class Entity implements RPObjectChangeListener, IEntity {
 	/* (non-Javadoc)
 	 * @see games.stendhal.client.entity.IEntity#update(int)
 	 */
+	@Override
 	public void update(final int delta) {
 	}
 
@@ -476,22 +526,24 @@ public class Entity implements RPObjectChangeListener, IEntity {
 
 	/**
 	 * An object was added.
-	 * 
+	 *
 	 * @param object
 	 *            The object.
 	 */
+	@Override
 	public final void onAdded(final RPObject object) {
 		// DEPRECATED - Moving to different listener. Use initialize().
 	}
 
 	/**
 	 * The object added/changed attribute(s).
-	 * 
+	 *
 	 * @param object
 	 *            The base object.
 	 * @param changes
 	 *            The changes.
 	 */
+	@Override
 	public void onChangedAdded(final RPObject object, final RPObject changes) {
 		if (inAdd) {
 			return;
@@ -572,7 +624,7 @@ public class Entity implements RPObjectChangeListener, IEntity {
 			visibility = changes.getInt("visibility");
 			fireChange(PROP_VISIBILITY);
 		}
-		
+
 		/*
 		 * Content changes
 		 */
@@ -590,12 +642,13 @@ public class Entity implements RPObjectChangeListener, IEntity {
 
 	/**
 	 * The object removed attribute(s).
-	 * 
+	 *
 	 * @param object
 	 *            The base object.
 	 * @param changes
 	 *            The changes.
 	 */
+	@Override
 	public void onChangedRemoved(final RPObject object, final RPObject changes) {
 		/*
 		 * Class
@@ -663,7 +716,7 @@ public class Entity implements RPObjectChangeListener, IEntity {
 			visibility = 100;
 			fireChange(PROP_VISIBILITY);
 		}
-		
+
 		/*
 		 * Content changes
 		 */
@@ -676,18 +729,19 @@ public class Entity implements RPObjectChangeListener, IEntity {
 
 	/**
 	 * An object was removed.
-	 * 
+	 *
 	 * @param object
 	 *            The object.
-	 * @deprecated Moving to different listener. Use release().
+	 * @deprecated Moving to different listener. Use {@link #release()}.
 	 */
+	@Override
 	@Deprecated
 	public final void onRemoved(final RPObject object) {
 	}
 
 	/**
 	 * A slot object was added.
-	 * 
+	 *
 	 * @param object
 	 *            The container object.
 	 * @param slotName
@@ -695,13 +749,14 @@ public class Entity implements RPObjectChangeListener, IEntity {
 	 * @param sobject
 	 *            The slot object.
 	 */
+	@Override
 	public void onSlotAdded(final RPObject object, final String slotName,
 			final RPObject sobject) {
 	}
 
 	/**
 	 * A slot object added/changed attribute(s).
-	 * 
+	 *
 	 * @param object
 	 *            The base container object.
 	 * @param slotName
@@ -711,6 +766,7 @@ public class Entity implements RPObjectChangeListener, IEntity {
 	 * @param schanges
 	 *            The slot object changes.
 	 */
+	@Override
 	public void onSlotChangedAdded(final RPObject object,
 			final String slotName, final RPObject sobject,
 			final RPObject schanges) {
@@ -718,7 +774,7 @@ public class Entity implements RPObjectChangeListener, IEntity {
 
 	/**
 	 * A slot object removed attribute(s).
-	 * 
+	 *
 	 * @param object
 	 *            The base container object.
 	 * @param slotName
@@ -728,6 +784,7 @@ public class Entity implements RPObjectChangeListener, IEntity {
 	 * @param schanges
 	 *            The slot object changes.
 	 */
+	@Override
 	public void onSlotChangedRemoved(final RPObject object,
 			final String slotName, final RPObject sobject,
 			final RPObject schanges) {
@@ -735,7 +792,7 @@ public class Entity implements RPObjectChangeListener, IEntity {
 
 	/**
 	 * A slot object was removed.
-	 * 
+	 *
 	 * @param object
 	 *            The container object.
 	 * @param slotName
@@ -743,6 +800,7 @@ public class Entity implements RPObjectChangeListener, IEntity {
 	 * @param sobject
 	 *            The slot object.
 	 */
+	@Override
 	public void onSlotRemoved(final RPObject object, final String slotName,
 			final RPObject sobject) {
 	}
@@ -773,12 +831,13 @@ public class Entity implements RPObjectChangeListener, IEntity {
 		return sbuf.toString();
 	}
 
-	
+
 	/**
 	 * gets the name of the cursor to use for this entity
 	 *
 	 * @return name of cursor
 	 */
+	@Override
 	public String getCursor() {
 		if (!rpObject.has("cursor")) {
 			return null;
@@ -788,10 +847,11 @@ public class Entity implements RPObjectChangeListener, IEntity {
 
 	/**
 	 * Get identifier path for the entity.
-	 * 
+	 *
 	 * @return List of object identifiers and slot names that make up the
 	 * 	complete path to the entity
 	 */
+	@Override
 	public List<String> getPath() {
 		LinkedList<String> path = new LinkedList<String>();
 		RPObject object = getRPObject();

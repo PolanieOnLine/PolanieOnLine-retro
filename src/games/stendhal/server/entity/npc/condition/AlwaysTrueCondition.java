@@ -1,4 +1,4 @@
-/* $Id: AlwaysTrueCondition.java,v 1.13 2012/09/09 12:33:23 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -19,9 +19,6 @@ import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.player.Player;
 
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
-
 /**
  * This condition returns always true. Use it in a quest file to override
  * behaviour defined in the map file
@@ -29,6 +26,7 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
 @Dev(category=Category.LOGIC, label="True!")
 public class AlwaysTrueCondition implements ChatCondition {
 
+	@Override
 	public boolean fire(final Player player, final Sentence sentence, final Entity entity) {
 		return true;
 	}
@@ -40,12 +38,11 @@ public class AlwaysTrueCondition implements ChatCondition {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 43609;
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				AlwaysTrueCondition.class);
+		return (obj instanceof AlwaysTrueCondition);
 	}
 }

@@ -1,6 +1,5 @@
-/* $Id: RPEntity.java,v 1.300 2012/08/01 18:54:36 kiheru Exp $ */
 /***************************************************************************
- *                      (C) Copyright 2003 - Marauroa                      *
+ *                   (C) Copyright 2003-2023 - Marauroa                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,35 +11,55 @@
  ***************************************************************************/
 package games.stendhal.client.entity;
 
+import java.util.Collection;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.client.ClientSingletonRepository;
 import games.stendhal.client.GameLoop;
 import games.stendhal.client.GameObjects;
 import games.stendhal.client.stendhal;
+import games.stendhal.client.gui.chatlog.EmojiEventLine;
 import games.stendhal.client.gui.chatlog.HeaderLessEventLine;
 import games.stendhal.client.gui.chatlog.StandardEventLine;
 import games.stendhal.client.gui.chatlog.StandardHeaderedEventLine;
+import games.stendhal.client.gui.settings.SettingsProperties;
+import games.stendhal.client.gui.wt.core.WtWindowManager;
+import games.stendhal.client.sprite.EmojiStore;
+import games.stendhal.client.sprite.Sprite;
 import games.stendhal.common.ItemTools;
 import games.stendhal.common.NotificationType;
 import games.stendhal.common.constants.Nature;
+import games.stendhal.common.constants.SoundLayer;
 import games.stendhal.common.grammar.Grammar;
-
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
-
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPObject.ID;
-
-import org.apache.log4j.Logger;
 
 /**
  * This class is a link between client graphical objects and server attributes
  * objects.<br>
  * You need to extend this object in order to add new elements to the game.
  */
-public abstract class RPEntity extends ActiveEntity {
+public abstract class RPEntity extends AudibleEntity {
+	private static final Logger LOGGER = Logger.getLogger(RPEntity.class);
+
+	/**
+	 * Square of the distance where to observe various events, such as speech.
+	 */
+	private static final int HEARING_DISTANCE_SQ = 15 * 15;
+	/** Turn length in milliseconds. */
+	private static final int TURN_LENGTH = 300;
+	/** Maximum length of text in entity speech bubbles. */
+	private static final int BUBBLE_TEXT_LENGTH = 124;
 	/**
 	 * Admin Level property.
 	 */
@@ -70,13 +89,63 @@ public abstract class RPEntity extends ActiveEntity {
 	 */
 	public static final Property PROP_HP_RATIO = new Property();
 	/**
-	 * Eating property.
+	 * Property for showing and hiding the HP bar.
 	 */
-	public static final Property PROP_EATING = new Property();
+	public static final Property PROP_HP_DISPLAY = new Property();
+
+	// Job properties
 	/**
-	 * Poisoned property.
+	 * Healer
 	 */
-	public static final Property PROP_POISONED = new Property();
+	public static final Property PROP_HEALER = new Property();
+	/**
+	 * Merchant
+	 */
+	public static final Property PROP_MERCHANT = new Property();
+	/** Producer */
+	public static final Property PROP_PRODUCER = new Property();
+
+    // Status properties
+    /**
+     * Confused property
+     */
+    public static final Property PROP_CONFUSED = new Property();
+    /**
+     * Eating property
+     */
+    public static final Property PROP_EATING = new Property();
+    /**
+     * Poisoned property
+     */
+    public static final Property PROP_POISONED = new Property();
+    /**
+     * Bleeding property
+     */
+    public static final Property PROP_BLEEDING = new Property();
+    /**
+     * Shock property
+     */
+    public static final Property PROP_SHOCK = new Property();
+    /**
+     * Zombie property
+     */
+    public static final Property PROP_ZOMBIE = new Property();
+    /**
+     * Heavy property
+     */
+    public static final Property PROP_HEAVY = new Property();
+
+    private static final Map<StatusID, Property> statusProp;
+    static {
+        statusProp = new EnumMap<StatusID, Property>(StatusID.class);
+        statusProp.put(StatusID.CONFUSE, PROP_CONFUSED);
+        statusProp.put(StatusID.POISON, PROP_POISONED);
+        statusProp.put(StatusID.INJURED, PROP_BLEEDING);
+        statusProp.put(StatusID.SHOCK, PROP_SHOCK);
+        statusProp.put(StatusID.ZOMBIE, PROP_ZOMBIE);
+        statusProp.put(StatusID.HEAVY, PROP_HEAVY);
+    }
+
 	/**
 	 * Attacking property. (for attack events)
 	 */
@@ -87,46 +156,45 @@ public abstract class RPEntity extends ActiveEntity {
 	 */
 	public static final int OUTFIT_UNSET = -1;
 
-	private static final Logger LOGGER = Logger.getLogger(RPEntity.class);
-
 
 	/**
 	 * Entity we are attacking. (need to reconsile this with 'attacking')
 	 */
-	protected RPEntity attackTarget;
+	RPEntity attackTarget;
 
 	/**
 	 * The entities attacking this entity.
 	 */
-	protected final Collection<Entity> attackers = new ConcurrentLinkedQueue<Entity>();
-	
+	private final Collection<Entity> attackers = new ConcurrentLinkedQueue<Entity>();
+
 	/**
 	 * The nature of the current attack done by this entity, or
 	 * <code>null</code> if there's no ongoing attack.
 	 */
 	private Nature attackNature;
 	/**
+	 * The weapon used in the current attack, or <code>null</code> if no weapon
+	 * is specified.
+	 */
+	private String weapon;
+	/**
 	 * <code>true</code> if the previously done attack event was ranged,
-	 * 	otherwise <code>false</code>. 
+	 * 	otherwise <code>false</code>.
 	 */
 	private boolean isDoingRangedAttack;
 	/**
 	 * Flag for checking attack targets that were added in the zone later than
 	 * this entity.
 	 */
-	private boolean targetUpdated = false;
-
-	public enum Resolution {
-		HIT,
-		BLOCKED,
-		MISSED;
-	}
-	
-
+	private boolean targetUpdated;
 
 	private int atk;
 
 	private int def;
+
+	private int ratk;
+
+	private int mining;
 
 	private int xp;
 
@@ -137,21 +205,27 @@ public abstract class RPEntity extends ActiveEntity {
 	/**
 	 * The outfit code.
 	 */
-	private int outfit;
-
+	private String outfit_ext;
+	private int outfit_old;
+	
 	private String gender;
 
-	private int base_hp;
+	private int baseHP;
 
-	private float hp_base_hp;
+	private float hpRatio;
 
 	private int level;
 
 	private boolean eating;
 
-	private boolean poisoned;
+	/** Currently active statuses. */
+	private final Set<StatusID> statuses = EnumSet.noneOf(StatusID.class);
 
 	private boolean choking;
+
+	private boolean showTitle = true;
+
+	private boolean showHP = true;
 
 	/**
 	 * Time stamp of previous attack event. Volatile to prevent reordering
@@ -165,13 +239,13 @@ public abstract class RPEntity extends ActiveEntity {
 
 	private int mana;
 
-	private int base_mana;
+	private int baseMana;
 
 	private boolean ghostmode;
 
+	private boolean ignoreCollision;
+
 	private String titleType;
-
-
 
 	/**
 	 * The result of previous attack against this entity. Volatile to prevent
@@ -181,14 +255,36 @@ public abstract class RPEntity extends ActiveEntity {
 
 	private int atkXP;
 
-	private int defXp;
+	private int defXP;
+
+	private int ratkXP;
+
+	private int miningXP;
 
 	private int atkItem = -1;
 
 	private int defItem = -1;
 
-	/** A flag that gets set once the entity has been released */
+	private int ratkItem = -1;
+	
+	private double capacity;
+	private double baseCapacity;
+
+	/** A flag that gets set once the entity has been released. */
 	private boolean released;
+
+	/** entity casts shadow by default */
+	private boolean castShadow = true;
+	private String shadowStyle;
+	
+	private boolean isImmortal = false;
+
+	/** Possible attack results. */
+	public enum Resolution {
+		HIT,
+		BLOCKED,
+		MISSED;
+	}
 
 	/** Creates a new game entity. */
 	RPEntity() {
@@ -202,7 +298,7 @@ public abstract class RPEntity extends ActiveEntity {
 
 	/**
 	 * Create/add a text indicator message.
-	 * 
+	 *
 	 * @param text
 	 *            The text message.
 	 * @param type
@@ -216,7 +312,7 @@ public abstract class RPEntity extends ActiveEntity {
 
 	/**
 	 * Get the admin level.
-	 * 
+	 *
 	 * @return The admin level.
 	 */
 	public int getAdminLevel() {
@@ -248,14 +344,21 @@ public abstract class RPEntity extends ActiveEntity {
 	 * @return Returns the base_hp.
 	 */
 	public int getBaseHP() {
-		return base_hp;
+		return baseHP;
 	}
 
 	/**
 	 * @return Returns the base mana value
 	 */
 	public int getBaseMana() {
-		return base_mana;
+		return baseMana;
+	}
+
+	/**
+	 * @return Returns the base capacity value
+	 */
+	public double getBaseCapacity() {
+		return baseCapacity;
 	}
 
 	/**
@@ -276,25 +379,56 @@ public abstract class RPEntity extends ActiveEntity {
 	 * @return the defence xp
 	 */
 	public int getDefXP() {
-		return defXp;
+		return defXP;
 	}
 
-	public int getHP() {
-		return hp;
+	/**
+	 * @return Returns the ratk.
+	 */
+	public int getRatk() {
+		return ratk;
+	}
+
+	/**
+	 * @return Returns the ratk of items
+	 */
+	public int getRatkItem() {
+		return ratkItem;
+	}
+
+	/**
+	 * @return the ranged xp
+	 */
+	public int getRatkXP() {
+		return ratkXP;
+	}
+
+	/**
+	 * @return Returns the mining.
+	 */
+	public int getMining() {
+		return mining;
+	}
+
+	/**
+	 * @return the mining xp
+	 */
+	public int getMiningXP() {
+		return miningXP;
 	}
 
 	/**
 	 * Get the ratio of HP to base HP.
-	 * 
+	 *
 	 * @return The HP ratio (0.0 - 1.0).
 	 */
 	public float getHpRatio() {
-		return hp_base_hp;
+		return hpRatio;
 	}
 
 	/**
 	 * Get the list of text indicator elements.
-	 * 
+	 *
 	 * @return An iterator of text indicators.
 	 */
 	public Iterator<TextIndicator> getTextIndicators() {
@@ -305,7 +439,12 @@ public abstract class RPEntity extends ActiveEntity {
 		return gender;
 	}
 
-	public int getLevel() {
+	/**
+	 * Get the entity level.
+	 *
+	 * @return level
+	 */
+	int getLevel() {
 		return level;
 	}
 
@@ -317,28 +456,43 @@ public abstract class RPEntity extends ActiveEntity {
 	}
 
 	/**
-	 * Get the outfit code.
-	 * 
-	 * @return The outfit code.
+	 * @return Returns player capacity.
 	 */
-	public int getOutfit() {
-		return outfit;
+	public double getCapacity() {
+		return capacity;
 	}
 
 	/**
-	 * Get a color that should be for coloring an outfit part.
-	 * 
-	 * @param part the outfit part
-	 * @return color as a string, or <code>null</code> if the outfit part should
-	 * 	not use coloring
+	 * Get the outfit code.
+	 *
+	 * @return The outfit code.
 	 */
-	public String getOutfitColor(String part) {
-		return rpObject.get("outfit_colors", part);
+	public String getExtOutfit() {
+		return outfit_ext;
+	}
+
+	/**
+	 * Get the old outfit code.
+	 *
+	 * @return The outfit code.
+	 */
+	public int getOldOutfitCode() {
+		return outfit_old;
+	}
+
+	/**
+	 * Get the outfit code.
+	 *
+	 * @return The outfit code.
+	 */
+	@Deprecated
+	public int getOutfit() {
+		return getOldOutfitCode();
 	}
 
 	/**
 	 * The result of previous attack against this entity.
-	 * 
+	 *
 	 * @return attack result
 	 */
 	public Resolution getResolution() {
@@ -347,7 +501,7 @@ public abstract class RPEntity extends ActiveEntity {
 
 	/**
 	 * Get the attack target of an entity.
-	 * 
+	 *
 	 * @return the target, or <code>null</code> if there is none
 	 */
 	public RPEntity getAttackTarget() {
@@ -356,13 +510,13 @@ public abstract class RPEntity extends ActiveEntity {
 
 	/**
 	 * Update the target.
-	 * 
+	 *
 	 * @param targetString The target id as a string
 	 * @param zoneId zone of the entity
 	 */
 	private void setTarget(String targetString, String zoneId) {
 		final int target = Integer.parseInt(targetString);
-		
+
 		final RPObject.ID targetEntityID = new RPObject.ID(target, zoneId);
 		final RPEntity targetEntity = (RPEntity) GameObjects.getInstance().get(
 				targetEntityID);
@@ -382,10 +536,10 @@ public abstract class RPEntity extends ActiveEntity {
 			}
 		}
 	}
-	
+
 	/**
 	 * Update the target.
-	 * 
+	 *
 	 * @param targetString The target id as a string
 	 */
 	private void setTarget(String targetString) {
@@ -395,10 +549,10 @@ public abstract class RPEntity extends ActiveEntity {
 
 	/**
 	 * Get the nicely formatted entity title.
-	 * 
+	 *
 	 * This searches the follow attribute order: title, name (w/o underscore),
 	 * class (w/o underscore), type (w/o underscore).
-	 * 
+	 *
 	 * @return The title, or <code>null</code> if unknown.
 	 */
 	@Override
@@ -419,8 +573,9 @@ public abstract class RPEntity extends ActiveEntity {
 
 	/**
 	 * Get title type.
-	 * 
-	 * @return The title type.
+	 *
+	 * @return The title type, or <code>null</code> if the entity has no special
+	 * 	title type
 	 */
 	public String getTitleType() {
 		return titleType;
@@ -444,7 +599,7 @@ public abstract class RPEntity extends ActiveEntity {
 	 * Get the ID of the current attack target. Try to resolve targets that
 	 * have been added to the zone after this. This is meant to be called from
 	 * the EDT.
-	 * 
+	 *
 	 * @return attack target, or <code>null</code> if the entity is not
 	 * 	attacking
 	 */
@@ -453,11 +608,12 @@ public abstract class RPEntity extends ActiveEntity {
 			/*
 			 * Check for disagreement, and update if needs be.
 			 * Can happen when the target is added to the zone after the attacker.
-			 * 
+			 *
 			 * Fire and forget. The update likely won't be ready for this screen
 			 * redraw, but it'll be ready for some redraw later.
 			 */
 			GameLoop.get().runOnce(new Runnable() {
+				@Override
 				public void run() {
 					if ((attacking == null) && !released) {
 						String id = rpObject.get("target");
@@ -475,7 +631,7 @@ public abstract class RPEntity extends ActiveEntity {
 	/**
 	 * Check if the entity is attacking a specified entity. This is meant to be
 	 * called from the EDT when drawing entities.
-	 * 
+	 *
 	 * @param defender the potential target
 	 * @return <code>true</code> if defender is attacked by this entity,
 	 * 	otherwise <code>false</code>
@@ -484,22 +640,35 @@ public abstract class RPEntity extends ActiveEntity {
 		if (defender == null) {
 			return false;
 		}
-		
+
 		final ID defenderID = defender.getID();
 		return defenderID.equals(getTargetID());
 	}
 
+	/**
+	 * Check if the entity is a target of an attack.
+	 *
+	 * @return <code>true</code> if the entity is being attacked, otherwise
+	 * 	<code>false</code>
+	 */
 	public boolean isBeingAttacked() {
 		return !attackers.isEmpty();
 	}
 
+	/**
+	 * Check if a specific entity is attacking this RPEntity.
+	 *
+	 * @param attacker potential attacker
+	 * @return <code>true</code> if attacker is attacking this RPEntity,
+	 * 	otherwise <code>false</code>
+	 */
 	public boolean isAttackedBy(final IEntity attacker) {
 		return attackers.contains(attacker);
 	}
 
 	/**
 	 * Get the damage type of the current strike.
-	 * 
+	 *
 	 * @return type of damage, or <code>null</code> if the entity is not striking
 	 */
 	public Nature getShownDamageType() {
@@ -507,8 +676,17 @@ public abstract class RPEntity extends ActiveEntity {
 	}
 
 	/**
+	 * Get the weapon used in the current attack.
+	 *
+	 * @return weapon, or <code>null</code> if not specified
+	 */
+	public String getShownWeapon() {
+		return weapon;
+	}
+
+	/**
 	 * Check if the currently performed attack is ranged.
-	 * 
+	 *
 	 * @return <code>true</code> if the attack is ranged, <code>false</code>
 	 * 	otherwise
 	 */
@@ -519,135 +697,162 @@ public abstract class RPEntity extends ActiveEntity {
 	/**
 	 * Check if the entity is defending against an attack right now. The entity
 	 * is defending if the last attack happened within 1.2s.
-	 * 
+	 *
 	 * @return <code>true</code> if the entity is defending against an attack,
-	 * 	<code>false</code> otherwise 
+	 * 	<code>false</code> otherwise
 	 */
 	public boolean isDefending() {
 		return (isBeingAttacked() && (System.currentTimeMillis()
-				- combatIconTime < 4 * 300));
+				- combatIconTime < 4 * TURN_LENGTH));
 	}
 
+	/**
+	 * Check if the entity is eating.
+	 *
+	 * @return <code>true</code> if the entity is eating, otherwise
+	 * 	<code>false</code>
+	 */
 	public boolean isEating() {
 		return eating;
 	}
 
 	/**
 	 * Determine if in full ghostmode.
-	 * 
+	 *
 	 * @return <code>true</code> is in full ghostmode.
 	 */
 	public boolean isGhostMode() {
 		return ghostmode;
 	}
 
-	public boolean isPoisoned() {
-		return poisoned;
+	/**
+	 * Check if the entity can pass through static collisions.
+	 *
+	 * @return <code>true</code> if the entity can pass through walls, otherwise
+	 * 	<code>false</code>
+	 */
+	public boolean ignoresCollision() {
+		return ignoreCollision;
 	}
 
+	/**
+	 * Check if the entity is confused or poisoned.
+	 *
+	 * @return <code>true</code> if the entity is confused or poisoned,
+	 * 	otherwise <code>false</code>
+	 */
+	public boolean isConfused() {
+		return hasStatus(StatusID.POISON) || hasStatus(StatusID.CONFUSE);
+	}
+
+	/**
+	 * Check if the entity has a certain status.
+	 *
+	 * @param status status id
+	 * @return <code>true</code> if the entity has the status, otherwise
+	 * 	<code>false</code>.
+	 */
+	public boolean hasStatus(final StatusID status) {
+	    return statuses.contains(status);
+	}
+
+	/**
+	 * Check if the entity is choking.
+	 *
+	 * @return <code>true</code> if the entity is choking, otherwise
+	 * 	<code>false</code>
+	 */
 	public boolean isChoking() {
 		return choking;
 	}
 
 	// TODO: this is just an ugly workaround to avoid cyclic dependencies with
 	// Creature
-	protected void nonCreatureClientAddEventLine(final String text) {
+	void nonCreatureClientAddEventLine(final String text) {
 		ClientSingletonRepository.getUserInterface().addEventLine(new StandardHeaderedEventLine(getTitle(), text));
 	}
 
-	// When this entity attacks target.
-	public void onAttack(final IEntity target) {
+	void nonCreatureClientAddEmojiEventLine(final String emojiPath) {
+		ClientSingletonRepository.getUserInterface().addEventLine(new EmojiEventLine(getTitle(), emojiPath));
+	}
+
+	/**
+	 * Called when this entity attacks target.
+	 *
+	 * @param target attack target
+	 */
+	private void onAttack(final IEntity target) {
 		attacking = target.getID();
 	}
 
 	/**
-	 * When this entity's attack is blocked by the adversary.
-	 * 
+	 * When this entity performs an attack.
+	 *
 	 * @param type attack nature
-	 * @param ranged
+	 * @param ranged <code>true</code> if it's a ranged attack, otherwise
+	 * 	<code>false</code>
+	 * @param weapon Weapon used in the attack, or <code>null</code> if not
+	 * 	specified
 	 */
-	public void onAttackBlocked(final Nature type, boolean ranged) {
+	public void onAttackPerformed(final Nature type, boolean ranged, String weapon) {
 		attackNature = type;
 		isDoingRangedAttack = ranged;
+		this.weapon = weapon;
 		fireChange(PROP_ATTACK);
 	}
 
 	/**
-	 * When this entity causes damaged to adversary, with damage amount
-	 * 
-	 * @param type
-	 * @param ranged
+	 * When attacker attacks this entity.
+	 *
+	 * @param attacker attacking entity
 	 */
-	public void onAttackDamage(final Nature type, boolean ranged) {
-		attackNature = type;
-		isDoingRangedAttack = ranged;
-		fireChange(PROP_ATTACK);
-	}
-
-	/**
-	 * When this entity's attack is missing the adversary
-	 * 
-	 * @param type
-	 * @param ranged
-	 */
-	public void onAttackMissed(final Nature type, boolean ranged) {
-		attackNature = type;
-		isDoingRangedAttack = ranged;
-		fireChange(PROP_ATTACK);
-	}
-
-	// When attacker attacks this entity.
-	public void onAttacked(final Entity attacker) {
+	private void onAttacked(final Entity attacker) {
 		attackers.remove(attacker);
 		attackers.add(attacker);
 	}
 
-	// When this entity blocks the attack by attacker
-	public void onBlocked(final IEntity attacker) {
+	/**
+	 * Called when this entity blocks the attack by attacker.
+	 */
+	public void onBlocked() {
 		// Resolution must be set before isDefending may return true.
 		resolution = Resolution.BLOCKED;
 		combatIconTime = System.currentTimeMillis();
+	    playRandomSoundFromCategory(SoundLayer.FIGHTING_NOISE.groupName, "block");
 	}
 
-
-	
-	// When this entity is damaged by attacker with damage amount
+	/**
+	 * Called when this entity is damaged by attacker with damage amount.
+	 *
+	 * @param attacker attacking entity
+	 * @param damage amount of damage
+	 */
 	public void onDamaged(final Entity attacker, final int damage) {
 		// Resolution must be set before isDefending may return true.
 		resolution = Resolution.HIT;
 		combatIconTime = System.currentTimeMillis();
-		/*try {
-			SoundSystemFacade.get().play(attackSounds[Rand.rand(attackSounds.length)], x, y, SoundLayer.CREATURE_NOISE, 100);
-		} catch (final NullPointerException e) {
-			// ignore errors
-		}*/
 
 		boolean showAttackInfoForPlayer = (this.isUser() || attacker.isUser());
 		showAttackInfoForPlayer = showAttackInfoForPlayer
 				& (!stendhal.FILTER_ATTACK_MESSAGES);
 
 		if (stendhal.SHOW_EVERYONE_ATTACK_INFO || showAttackInfoForPlayer) {
-			if (getGender().equals("F")) {
-				ClientSingletonRepository.getUserInterface().addEventLine(new HeaderLessEventLine(
-						getTitle() + " otrzymała "
-								+ Grammar.quantityplnoun(damage, "punkt")
-								+ " obrażeń od " + attacker.getTitle(),
-						NotificationType.DAMAGE));
-			} else {
-				ClientSingletonRepository.getUserInterface().addEventLine(new HeaderLessEventLine(
-						getTitle() + " otrzymał "
-								+ Grammar.quantityplnoun(damage, "punkt")
-								+ " obrażeń od " + attacker.getTitle(),
-						NotificationType.DAMAGE));
-			}
+			ClientSingletonRepository.getUserInterface().addEventLine(new HeaderLessEventLine(
+				getTitle() + " " + Grammar.genderVerb(getGender(), "otrzymał") + " "
+						+ Grammar.quantityplnoun(damage, "punkt")
+						+ " obrażeń od " + attacker.getTitle(),
+				NotificationType.NEGATIVE));
 		}
+
+		// play a sound to indicate successful hit
+		playRandomSoundFromCategory(SoundLayer.FIGHTING_NOISE.groupName, "attack");
 	}
 
 	/**
 	 * Process eating and choking status changes. Avoids firing the PROP_EATING
 	 * property more often than needed and ensures both of the properties are
 	 * in the new state before firing.
-	 * 
+	 *
 	 * @param newStatus the status where to change eating or choking, if changes
 	 * 	are needed
 	 * @param setEat if <code>true</code> then eating status should be set
@@ -668,63 +873,81 @@ public abstract class RPEntity extends ActiveEntity {
 		}
 	}
 
-	// When entity gets healed
+	/**
+	 * Called when the entity gets healed.
+	 *
+	 * @param amount amount healed
+	 */
 	public void onHealed(final int amount) {
 		// do nothing for normal rpentities
 	}
 
-	// When entity adjusts HP
-	public void onHPChange(final int amount) {
-		if (User.squaredDistanceTo(x, y) < 15 * 15) {
+	/**
+	 * Called When entity adjusts HP.
+	 *
+	 * @param amount change amount
+	 */
+	private void onHPChange(final int amount, boolean crit) {
+		if (isInHearingRange()) {
 			if (amount > 0) {
 				addTextIndicator("+" + amount, NotificationType.POSITIVE);
 			} else {
-				addTextIndicator(String.valueOf(amount),
-						NotificationType.NEGATIVE);
-			}
-		}
-	}
-
-	// When this entity skip attacker's attack.
-	public void onMissed(final IEntity attacker) {
-		// Resolution must be set before isDefending may return true.
-		resolution = Resolution.MISSED;
-		combatIconTime = System.currentTimeMillis();
-	}
-
-	// When entity is poisoned
-	public final void onPoisoned(final int amount) {
-		setPoisoned(true);
-		if ((User.squaredDistanceTo(x, y) < 15 * 15)) {
-			if (getGender().equals("F")) {
-				ClientSingletonRepository.getUserInterface().addEventLine(
-						new HeaderLessEventLine(
-						getTitle() + " została zatruta. Traci "
-								+ Grammar.quantityplnoun(amount, "punkt")
-								+ " życia.", NotificationType.POISON));
-			} else {
-				ClientSingletonRepository.getUserInterface().addEventLine(
-						new HeaderLessEventLine(
-						getTitle() + " został zatruty. Traci "
-								+ Grammar.quantityplnoun(amount, "punkt")
-								+ " życia.", NotificationType.POISON));
+				if (crit) {
+					addTextIndicator("*" + String.valueOf(amount) + "*", NotificationType.INFORMATION);
+				} else {
+					addTextIndicator(String.valueOf(amount), NotificationType.NEGATIVE);
+				}
 			}
 		}
 	}
 
 	/**
-	 * Set the poisoning status.
-	 * 
-	 * @param poisoned
+	 * Called when an attacker misses this entity.
 	 */
-	private void setPoisoned(boolean poisoned) {
-		if (this.poisoned != poisoned) {
-			this.poisoned = poisoned;
-			fireChange(PROP_POISONED);
+	public void onMissed() {
+		// Resolution must be set before isDefending may return true.
+		resolution = Resolution.MISSED;
+		combatIconTime = System.currentTimeMillis();
+	}
+
+	/**
+	 * Called when entity is poisoned.
+	 *
+	 * @param amount lost HP
+	 */
+	private void onPoisoned(final int amount) {
+		if ((amount > 0) && (isInHearingRange())) {
+			ClientSingletonRepository.getUserInterface().addEventLine(
+				new HeaderLessEventLine(
+					getTitle() + " " + Grammar.genderVerb(getGender(), "został") + " " + Grammar.genderVerb(getGender(), "zatruty") + ". Traci "
+						+ Grammar.quantityplnoun(amount, "punkt")
+						+ " życia.", NotificationType.POISON));
 		}
 	}
 
-	// Called when entity listen to text from talker
+    /**
+     * Set the status.
+     *
+     * @param status
+     *         New status
+     * @param show
+     *         Show status overlay
+     */
+    private void setStatus(final StatusID status, final boolean show) {
+        if (show) {
+            statuses.add(status);
+        } else {
+            statuses.remove(status);
+        }
+        fireChange(statusProp.get(status));
+    }
+
+	/**
+	 * Called when entity listen to text from talker.
+	 *
+	 * @param texttype type of talk (normal private talk, administrator message)
+	 * @param text message contents
+	 */
 	public void onPrivateListen(final String texttype, final String text) {
 		NotificationType type;
 		try {
@@ -734,82 +957,140 @@ public abstract class RPEntity extends ActiveEntity {
 			type = NotificationType.PRIVMSG;
 		}
 
-
 		ClientSingletonRepository.getUserInterface().addEventLine(new HeaderLessEventLine(text, type));
 
 		// Scene settings messages should not disturb playing, just create some atmosphere
 		if (type != NotificationType.SCENE_SETTING) {
-			ClientSingletonRepository.getUserInterface().addGameScreenText(
+			ClientSingletonRepository.getScreenController().addText(
 					getX() + (getWidth() / 2.0), getY(),
 					text.replace("|", ""), type, false);
 		}
 	}
 
-	// When this entity stops attacking
-	public void onStopAttack() {
+	/**
+	 * Called when this entity stops attacking.
+	 */
+	private void onStopAttack() {
 		attacking = null;
 	}
 
-	// When attacker stop attacking us
-	public void onStopAttacked(final IEntity attacker) {
+	/**
+	 * Called when attacker stop attacking us.
+	 *
+	 * @param attacker the attacked that stopped attacking
+	 */
+	private void onStopAttacked(final IEntity attacker) {
 		attackers.remove(attacker);
 	}
 
+	/**
+	 * Called when the entity reaches an achievement.
+	 *
+	 * @param achievementTitle title of the achievement
+	 * @param achievementDescription description of the achievement
+	 * @param achievementCategory achievement category
+	 */
 	public void onReachAchievement(String achievementTitle, String achievementDescription, String achievementCategory) {
 		ClientSingletonRepository.getUserInterface().addAchievementBox(achievementTitle, achievementDescription, achievementCategory);
 	}
 
-	// Called when entity says text
+	/**
+	 * Can the player hear this chat message?
+	 *
+	 * @param rangeSquared
+	 *     Distance squared within which the entity can be heard (-1
+	 *     represents entire map).
+	 */
+	public boolean isInHearingRange(final int rangeSquared) {
+		return User.isAdmin() || User.squaredDistanceTo(x, y) < rangeSquared;
+	}
+
+	/**
+	 * Can the player hear this chat message?
+	 */
+	public boolean isInHearingRange() {
+		return isInHearingRange(HEARING_DISTANCE_SQ);
+	}
+
+	/**
+	 * Called when entity says something.
+	 *
+	 * @param text message contents
+	 */
 	public void onTalk(final String text) {
-		if (User.isAdmin() || (User.squaredDistanceTo(x, y) < 15 * 15)) {
-			String line = text.replace("|", "");
+		onTalk(text, HEARING_DISTANCE_SQ);
+	}
+
+	/**
+	 * Called when entity says something.
+	 *
+	 * @param text
+	 *     Message contents.
+	 * @param rangeSquared
+	 *     Distance at which message can be heard (-1 represents
+	 *     entire map).
+	 */
+	public void onTalk(String text, final int rangeSquared) {
+		if (User.isAdmin() || (rangeSquared < 0) || (isInHearingRange(rangeSquared))) {
+			final String ttext = trimText(text);
+			final EmojiStore emojiStore = ClientSingletonRepository.getEmojiStore();
+			final Sprite emoji = emojiStore.create(ttext);
 
 			//an emote action is changed server side to an chat action with a leading !me
 			//this supports also invoking an emote with !me instead of /me
 			if (text.startsWith("!me")) {
-				line = line.replace("!me", getTitle());
-				ClientSingletonRepository.getUserInterface().addEventLine(new HeaderLessEventLine(line, NotificationType.EMOTE));
-				
+				text = text.replace("!me", getTitle());
+				ClientSingletonRepository.getUserInterface().addEventLine(new HeaderLessEventLine(text, NotificationType.EMOTE));
+
 				return;
 			} else {
-				//add the original version
-				nonCreatureClientAddEventLine(text);
+				if (emoji != null) {
+					final String emojiPath = emojiStore.absPath(ttext);
+					nonCreatureClientAddEmojiEventLine(emojiPath);
+				} else {
+					//add the original version
+					nonCreatureClientAddEventLine(text);
+				}
 			}
 
-			// Allow for more characters and cut the text if possible at the
-			// nearest space etc.
-			if (line.length() > 84) {
-				line = line.substring(0, 84);
-				int l = line.lastIndexOf(" ");
-				int ln = line.lastIndexOf("-");
-
-				if (ln > l) {
-					l = ln;
-				}
-
-				ln = line.lastIndexOf(".");
-
-				if (ln > l) {
-					l = ln;
-				}
-
-				ln = line.lastIndexOf(",");
-
-				if (ln > l) {
-					l = ln;
-				}
-
-				if (l > 0) {
-					line = line.substring(0, l);
-				}
-
-				line = line + " ...";
+			if (emoji != null) {
+				ClientSingletonRepository.getScreenController().addEmoji(
+					this, emoji);
+			} else if (!WtWindowManager.getInstance().getPropertyBoolean(SettingsProperties.BUBBLES_PROPERTY, false)) {
+				// add stationary speech bubble
+				ClientSingletonRepository.getScreenController().addText(
+						getX() + getWidth(), getY(), ttext,
+						NotificationType.NORMALBLACK, true);
+			} else {
+				// add speech bubble that follows entity
+				ClientSingletonRepository.getScreenController().addText(
+					this, ttext, NotificationType.NORMALBLACK, true);
 			}
-
-			ClientSingletonRepository.getUserInterface().addGameScreenText(
-					getX() + getWidth(), getY(), line,
-					NotificationType.NORMALBLACK, true);
 		}
+	}
+
+	/**
+	 * Trim text for a speech bubble.
+	 *
+	 * @param text text to be trimmed
+	 * @return text suitably trimmed for a speech bubble
+	 */
+	private String trimText(String text) {
+		if (text.length() > BUBBLE_TEXT_LENGTH) {
+			text = text.substring(0, BUBBLE_TEXT_LENGTH);
+			// Cut the text if possible at the nearest space etc.
+			int n = text.lastIndexOf(' ');
+			n = Math.max(n, text.lastIndexOf('-'));
+			n = Math.max(n, text.lastIndexOf('.'));
+			n = Math.max(n, text.lastIndexOf(','));
+
+			if (n > 0) {
+				text = text.substring(0, n);
+			}
+
+			text += " ...";
+		}
+		return text;
 	}
 
 	//
@@ -818,7 +1099,7 @@ public abstract class RPEntity extends ActiveEntity {
 
 	/**
 	 * Get the resistance this has on other entities (0-100).
-	 * 
+	 *
 	 * @return The resistance, or 0 if in ghostmode.
 	 */
 	@Override
@@ -832,10 +1113,10 @@ public abstract class RPEntity extends ActiveEntity {
 
 	/**
 	 * Initialize this entity for an object.
-	 * 
+	 *
 	 * @param object
 	 *            The object.
-	 * 
+	 *
 	 * @see #release()
 	 */
 	@Override
@@ -846,9 +1127,9 @@ public abstract class RPEntity extends ActiveEntity {
 		 * Base HP
 		 */
 		if (object.has("base_hp")) {
-			base_hp = object.getInt("base_hp");
+			baseHP = object.getInt("base_hp");
 		} else {
-			base_hp = 0;
+			baseHP = 0;
 		}
 
 		/*
@@ -863,12 +1144,12 @@ public abstract class RPEntity extends ActiveEntity {
 		/*
 		 * HP ratio
 		 */
-		if (hp >= base_hp) {
-			hp_base_hp = 1.0f;
+		if (hp >= baseHP) {
+			hpRatio = 1.0f;
 		} else if (hp <= 0) {
-			hp_base_hp = 0.0f;
+			hpRatio = 0.0f;
 		} else {
-			hp_base_hp = hp / (float) base_hp;
+			hpRatio = hp / (float) baseHP;
 		}
 
 		/*
@@ -881,10 +1162,22 @@ public abstract class RPEntity extends ActiveEntity {
 		/*
 		 * Outfit
 		 */
-		if (object.has("outfit")) {
-			outfit = object.getInt("outfit");
+		if (object.has("outfit_ext")) {
+			outfit_ext = object.get("outfit_ext");
 		} else {
-			outfit = OUTFIT_UNSET;
+			outfit_ext = null;
+		}
+
+		if (object.has("outfit")) {
+			outfit_old = object.getInt("outfit");
+		} else {
+			outfit_old = OUTFIT_UNSET;
+		}
+
+		if (object.has("gender")) {
+			gender = object.get("gender");
+		} else {
+			gender = null;
 		}
 
 		/*
@@ -892,21 +1185,22 @@ public abstract class RPEntity extends ActiveEntity {
 		 */
 		setEatAndChoke(true, object.has("eating"), object.has("choking"));
 
-		/*
-		 * Poisoned
-		 */
-		if (object.has("poisoned")) {
-			// Don't call onPoisoned to avoid adding event lines; just set
-			// poisoned so that views get correctly drawn.
-			setPoisoned(true);
+        /* Statuses */
+		for (StatusID id : StatusID.values()) {
+			if (object.has(id.getAttribute())) {
+				setStatus(id, true);
+			}
 		}
 
 		/*
 		 * Ghost mode feature.
 		 */
-		if (object.has("ghostmode")) {
-			ghostmode = true;
-		}
+		ghostmode = object.has("ghostmode");
+
+		/*
+		 * Ignoring collision.
+		 */
+		ignoreCollision = object.has("ignore_collision");
 
 		/*
 		 * Healed
@@ -932,17 +1226,45 @@ public abstract class RPEntity extends ActiveEntity {
 		/*
 		 * Title type
 		 */
-		if (object.has("title_type")) {
-			titleType = object.get("title_type");
-		} else {
-			titleType = null;
+		titleType = object.get("title_type");
+
+		showTitle = !object.has("unnamed");
+		showHP = !object.has("no_hpbar");
+
+		if (object.has("immortal")) {
+			isImmortal = true;
 		}
+
+		/*
+		 * Determine if entity should not cast a shadow
+		 */
+		if (object.has("no_shadow")) {
+			castShadow = false;
+		}
+		shadowStyle = object.get("shadow_style");
+
+		initializeSounds();
+	}
+
+	/**
+	 * Initialize the fighting sounds.
+	 */
+	private void initializeSounds() {
+		addSounds(SoundLayer.FIGHTING_NOISE.groupName, "attack",
+				"attack-melee-01",	"attack-melee-02",	"attack-melee-03",
+				"attack-melee-04",	"attack-melee-05",	"attack-melee-06",
+				"attack-range-01",	"attack-swing-01",	"attack-slap-01",
+				"pol-attack-slash",	"pol-attack-crash",	"pol-attack-sword",
+				"pol-attack-swing",	"pol-attack-kling");
+
+		addSounds(SoundLayer.FIGHTING_NOISE.groupName, "block",
+				"clang-metallic-1",	"clang-dull-1");
 	}
 
 	/**
 	 * Release this entity. This should clean anything that isn't automatically
 	 * released (such as unregister callbacks, cancel external operations, etc).
-	 * 
+	 *
 	 * @see #initialize(RPObject)
 	 */
 	@Override
@@ -960,7 +1282,7 @@ public abstract class RPEntity extends ActiveEntity {
 
 	/**
 	 * Update cycle.
-	 * 
+	 *
 	 * @param delta
 	 *            The time (in ms) since last call.
 	 */
@@ -993,7 +1315,7 @@ public abstract class RPEntity extends ActiveEntity {
 
 	/**
 	 * The object added/changed attribute(s).
-	 * 
+	 *
 	 * @param object
 	 *            The base object.
 	 * @param changes
@@ -1014,8 +1336,15 @@ public abstract class RPEntity extends ActiveEntity {
 			/*
 			 * Outfit
 			 */
-			if (changes.has("outfit")) {
-				outfit = changes.getInt("outfit");
+			if (changes.has("outfit_ext") || changes.has("outfit")) {
+				if (changes.has("outfit_ext")) {
+					outfit_ext = changes.get("outfit_ext");
+					fireChange(PROP_OUTFIT);
+				}
+				if (changes.has("outfit")) {
+					outfit_old = changes.getInt("outfit");
+				}
+
 				fireChange(PROP_OUTFIT);
 			}
 
@@ -1024,12 +1353,16 @@ public abstract class RPEntity extends ActiveEntity {
 			 */
 			setEatAndChoke(true, changes.has("eating"), changes.has("choking"));
 
-			/*
-			 * Poisoned
-			 */
-			if (changes.has("poisoned")) {
-				// To remove the - sign on poison.
-				onPoisoned(Math.abs(changes.getInt("poisoned")));
+			/* Statuses */
+			for (StatusID id : StatusID.values()) {
+				String status = id.getAttribute();
+				if (changes.has(status)) {
+					setStatus(id, true);
+					if (status.equals(StatusID.POISON.getAttribute())) {
+						// To remove the - sign on poison.
+						onPoisoned(Math.abs(changes.getInt(status)));
+					}
+				}
 			}
 
 			/*
@@ -1045,11 +1378,11 @@ public abstract class RPEntity extends ActiveEntity {
 			 * Base HP
 			 */
 			if (changes.has("base_hp")) {
-				base_hp = changes.getInt("base_hp");
+				baseHP = changes.getInt("base_hp");
 				hpRatioChange = true;
 			}
 			if (changes.has("modified_base_hp")) {
-				base_hp = changes.getInt("modified_base_hp");
+				baseHP = changes.getInt("modified_base_hp");
 				hpRatioChange = true;
 			}
 
@@ -1060,10 +1393,12 @@ public abstract class RPEntity extends ActiveEntity {
 				final int newHP = changes.getInt("hp");
 				final int change = newHP - hp;
 
+				final boolean isCritical = changes.has("crit");
+
 				hp = newHP;
 
 				if (object.has("hp") && (change != 0)) {
-					onHPChange(change);
+					onHPChange(change, isCritical);
 				}
 
 				hpRatioChange = true;
@@ -1072,10 +1407,12 @@ public abstract class RPEntity extends ActiveEntity {
 				final int newHP = changes.getInt("modified_hp");
 				final int change = newHP - hp;
 
+				final boolean isCritical = changes.has("crit");
+
 				hp = newHP;
 
 				if (object.has("hp") && (change != 0)) {
-					onHPChange(change);
+					onHPChange(change, isCritical);
 				}
 
 				hpRatioChange = true;
@@ -1085,17 +1422,22 @@ public abstract class RPEntity extends ActiveEntity {
 			 * HP ratio
 			 */
 			if (hpRatioChange) {
-				if (hp >= base_hp) {
-					hp_base_hp = 1.0f;
+				if (hp >= baseHP) {
+					hpRatio = 1.0f;
 				} else if (hp <= 0) {
-					hp_base_hp = 0.0f;
+					hpRatio = 0.0f;
 				} else {
-					hp_base_hp = hp / (float) base_hp;
+					hpRatio = hp / (float) baseHP;
 				}
 				if (hp == 0) {
-					onDeath(attackers);
+					onDeath();
 				}
 				fireChange(PROP_HP_RATIO);
+			}
+
+			if (changes.has("no_hpbar")) {
+				showHP = false;
+				fireChange(PROP_HP_DISPLAY);
 			}
 
 			/*
@@ -1130,6 +1472,10 @@ public abstract class RPEntity extends ActiveEntity {
 					|| changes.has("title")) {
 				fireChange(PROP_TITLE);
 			}
+			if (changes.has("unnamed")) {
+				showTitle = false;
+				fireChange(PROP_TITLE);
+			}
 		}
 
 		if (changes.has("gender")) {
@@ -1153,6 +1499,20 @@ public abstract class RPEntity extends ActiveEntity {
 			def = changes.getInt("modified_def");
 		}
 
+		if (changes.has("ratk")) {
+			ratk = changes.getInt("ratk");
+		}
+		if (changes.has("modified_ratk")) {
+			ratk = changes.getInt("modified_ratk");
+		}
+
+		if (changes.has("mining")) {
+			mining = changes.getInt("mining");
+		}
+		if (changes.has("modified_mining")) {
+			mining = changes.getInt("modified_mining");
+		} 
+
 		if (changes.has("level")) {
 			level = changes.getInt("level");
 		}
@@ -1165,7 +1525,15 @@ public abstract class RPEntity extends ActiveEntity {
 		}
 
 		if (changes.has("def_xp")) {
-			defXp = changes.getInt("def_xp");
+			defXP = changes.getInt("def_xp");
+		}
+
+		if (changes.has("ratk_xp")) {
+			ratkXP = changes.getInt("ratk_xp");
+		}
+
+		if (changes.has("mining_xp")) {
+			miningXP = changes.getInt("mining_xp");
 		}
 
 		if (changes.has("atk_item")) {
@@ -1176,6 +1544,10 @@ public abstract class RPEntity extends ActiveEntity {
 			defItem = changes.getInt("def_item");
 		}
 
+		if (changes.has("ratk_item")) {
+			ratkItem = changes.getInt("ratk_item");
+		}
+
 		if (changes.has("mana")) {
 			mana = changes.getInt("mana");
 		}
@@ -1184,10 +1556,24 @@ public abstract class RPEntity extends ActiveEntity {
 		}
 
 		if (changes.has("base_mana")) {
-			base_mana = changes.getInt("base_mana");
+			baseMana = changes.getInt("base_mana");
 		}
 		if (changes.has("modified_base_mana")) {
-			base_mana = changes.getInt("modified_base_mana");
+			baseMana = changes.getInt("modified_base_mana");
+		}
+
+		if (changes.has("capacity")) {
+			capacity = changes.getDouble("capacity");
+		}
+		if (changes.has("modified_capacity")) {
+			capacity = changes.getDouble("modified_capacity");
+		}
+
+		if (changes.has("base_capacity")) {
+			baseCapacity = changes.getDouble("base_capacity");
+		}
+		if (changes.has("modified_base_capacity")) {
+			baseCapacity = changes.getDouble("modified_base_capacity");
 		}
 
 		if (changes.has("ghostmode")) {
@@ -1196,89 +1582,145 @@ public abstract class RPEntity extends ActiveEntity {
 		}
 
 		if (changes.has("xp")) {
-			int newXp = changes.getInt("xp"); 
-			
-			if (object.has("xp")) {
-				if (User.squaredDistanceTo(x, y) < 15 * 15) {
-					final int amount = newXp - xp;
-					if (amount > 0) {
+			int newXp = changes.getInt("xp");
+
+			if (object.has("xp") && (isInHearingRange())) {
+				final int amount = newXp - xp;
+				if (amount > 0) {
+					if (amount == 1 || amount >= 2 && amount <= 4
+						|| amount >= 22 && amount <= 24 || amount >= 102 && amount <= 104 || amount >= 122 && amount <= 124 || amount >= 132 && amount <= 134
+						|| amount >= 32 && amount <= 34 || amount >= 202 && amount <= 204 || amount >= 222 && amount <= 224 || amount >= 232 && amount <= 234
+						|| amount >= 42 && amount <= 44 || amount >= 302 && amount <= 304 || amount >= 322 && amount <= 324 || amount >= 332 && amount <= 334
+						|| amount >= 52 && amount <= 54 || amount >= 402 && amount <= 404 || amount >= 422 && amount <= 424 || amount >= 432 && amount <= 434
+						|| amount >= 62 && amount <= 64 || amount >= 502 && amount <= 504 || amount >= 522 && amount <= 524 || amount >= 532 && amount <= 534
+						|| amount >= 72 && amount <= 74 || amount >= 602 && amount <= 604 || amount >= 622 && amount <= 624 || amount >= 632 && amount <= 634
+						|| amount >= 82 && amount <= 84 || amount >= 702 && amount <= 704 || amount >= 722 && amount <= 724 || amount >= 732 && amount <= 734
+						|| amount >= 92 && amount <= 94 || amount >= 802 && amount <= 804 || amount >= 822 && amount <= 824 || amount >= 832 && amount <= 834
+						|| amount >= 902 && amount <= 904 || amount >= 922 && amount <= 924 || amount >= 932 && amount <= 934
+						|| amount >= 142 && amount <= 144 || amount >= 242 && amount <= 244 || amount >= 342 && amount <= 344 || amount >= 442 && amount <= 444
+						|| amount >= 152 && amount <= 154 || amount >= 252 && amount <= 254 || amount >= 352 && amount <= 354 || amount >= 452 && amount <= 454
+						|| amount >= 162 && amount <= 164 || amount >= 262 && amount <= 264 || amount >= 362 && amount <= 364 || amount >= 462 && amount <= 464
+						|| amount >= 172 && amount <= 174 || amount >= 272 && amount <= 274 || amount >= 372 && amount <= 374 || amount >= 472 && amount <= 474
+						|| amount >= 182 && amount <= 184 || amount >= 282 && amount <= 284 || amount >= 382 && amount <= 384 || amount >= 482 && amount <= 484
+						|| amount >= 192 && amount <= 194 || amount >= 292 && amount <= 294 || amount >= 392 && amount <= 394 || amount >= 492 && amount <= 494
+						|| amount >= 542 && amount <= 544 || amount >= 642 && amount <= 644 || amount >= 742 && amount <= 744 || amount >= 842 && amount <= 844
+						|| amount >= 552 && amount <= 554 || amount >= 652 && amount <= 654 || amount >= 752 && amount <= 754 || amount >= 852 && amount <= 854
+						|| amount >= 562 && amount <= 564 || amount >= 662 && amount <= 664 || amount >= 762 && amount <= 764 || amount >= 862 && amount <= 864
+						|| amount >= 572 && amount <= 574 || amount >= 672 && amount <= 674 || amount >= 772 && amount <= 774 || amount >= 872 && amount <= 874
+						|| amount >= 582 && amount <= 584 || amount >= 682 && amount <= 684 || amount >= 782 && amount <= 784 || amount >= 882 && amount <= 884
+						|| amount >= 592 && amount <= 594 || amount >= 692 && amount <= 694 || amount >= 792 && amount <= 794 || amount >= 892 && amount <= 894
+						|| amount >= 942 && amount <= 944 || amount >= 952 && amount <= 954 || amount >= 962 && amount <= 964 || amount >= 972 && amount <= 974
+						|| amount >= 982 && amount <= 984 || amount >= 992 && amount <= 994) {
 						addTextIndicator("+" + amount,
 								NotificationType.SIGNIFICANT_POSITIVE);
-						if (getGender().equals("F")) {
-							ClientSingletonRepository.getUserInterface().addEventLine(new HeaderLessEventLine(
-									getTitle()
-									+ " dostała "
-									+ Grammar.quantityplnoun(amount,
-									"punkt") + " doświadczenia.",
-									NotificationType.SIGNIFICANT_POSITIVE));
-						} else {
-							ClientSingletonRepository.getUserInterface().addEventLine(new HeaderLessEventLine(
-									getTitle()
-									+ " dostał "
-									+ Grammar.quantityplnoun(amount,
-									"punkt") + " doświadczenia.",
-									NotificationType.SIGNIFICANT_POSITIVE));
-						}
-					} else if (amount < 0) {
-						addTextIndicator("" + amount,
-								NotificationType.SIGNIFICANT_NEGATIVE);
+
 						ClientSingletonRepository.getUserInterface().addEventLine(new HeaderLessEventLine(
 								getTitle()
-								+ " traci "
-								+ Grammar.quantityplnoun(-amount,
+								+ " " + Grammar.genderVerb(getGender(), "dostał") + " "
+								+ Grammar.quantityplnoun(amount,
 								"punkt") + " doświadczenia.",
-								NotificationType.SIGNIFICANT_NEGATIVE));
+								NotificationType.SIGNIFICANT_POSITIVE));
+					} else {
+						addTextIndicator("+" + amount,
+								NotificationType.SIGNIFICANT_POSITIVE);
+
+						ClientSingletonRepository.getUserInterface().addEventLine(new HeaderLessEventLine(
+								getTitle()
+								+ " " + Grammar.genderVerb(getGender(), "dostał") + " " + amount + " punktów doświadczenia.",
+								NotificationType.SIGNIFICANT_POSITIVE));
 					}
+				} else if (amount < 0) {
+					addTextIndicator("" + amount,
+							NotificationType.SIGNIFICANT_NEGATIVE);
+					ClientSingletonRepository.getUserInterface().addEventLine(new HeaderLessEventLine(
+							getTitle()
+							+ " traci "
+							+ Grammar.quantityplnoun(-amount,
+							"punkt") + " doświadczenia.",
+							NotificationType.SIGNIFICANT_NEGATIVE));
 				}
 			}
 
 			xp = newXp;
 		}
 
-		if (changes.has("level") && object.has("level")) {
-			if (User.squaredDistanceTo(x, y) < 15 * 15) {
-				if (getGender().equals("F")) {
-					final String text = getTitle() + " osiągnęła poziom " + getLevel();
+		final Map<String, Integer> statTypes = new LinkedHashMap<>();
+		statTypes.put("level", getLevel());
+		statTypes.put("def", getDef());
+		statTypes.put("atk", getAtk());
+		statTypes.put("ratk", getRatk());
+		statTypes.put("mining", getMining());
 
-					ClientSingletonRepository.getUserInterface().addEventLine(new HeaderLessEventLine(text,
-							NotificationType.SIGNIFICANT_POSITIVE));
-
-					ClientSingletonRepository.getUserInterface().addGameScreenText(
-							getX() + (getWidth() / 2.0), getY(),
-							text, NotificationType.SIGNIFICANT_POSITIVE, false);
-				} else {
-					final String text = getTitle() + " osiągnął poziom " + getLevel();
-
-					ClientSingletonRepository.getUserInterface().addEventLine(new HeaderLessEventLine(text,
-							NotificationType.SIGNIFICANT_POSITIVE));
-
-					ClientSingletonRepository.getUserInterface().addGameScreenText(
-							getX() + (getWidth() / 2.0), getY(),
-							text, NotificationType.SIGNIFICANT_POSITIVE, false);
-				}
+		for (final String stat: statTypes.keySet()) {
+			if (changes.has(stat) && object.has(stat)) {
+				onLevelChanged(stat, statTypes.get(stat), object.getInt(stat));
 			}
 		}
 	}
 
-	private void onDeath(final Collection<Entity> attackers) {
-		if (!attackers.isEmpty()) {
-			Collection<String> attackerNames = new LinkedList<String>();
-			for(Entity attacker : attackers) {
-					attackerNames.add(attacker.getTitle());
+	protected void onLevelChanged(String stat, final int newlevel, final int oldlevel) {
+		if (newlevel == oldlevel) {
+			return;
+		}
+
+		if (isInHearingRange()) {
+			String msg = this.getTitle();
+			NotificationType msgtype = NotificationType.SIGNIFICANT_POSITIVE;
+			if (newlevel > oldlevel) {
+				msg += " " + Grammar.genderVerb(getGender(), "osiągnął") + " ";
+			} else if (newlevel < oldlevel) {
+				msg += " " + Grammar.genderVerb(getGender(), "spadł") + " do ";
+				msgtype = NotificationType.SIGNIFICANT_NEGATIVE;
 			}
-			if (getGender().equals("F")) {
-				ClientSingletonRepository.getUserInterface().addEventLine(new StandardEventLine(
-						getTitle() + " została zabita przez " + Grammar.enumerateCollection(attackerNames)));
+
+			stat = stat.replace("def", "obrony");
+			stat = stat.replace("ratk", "strzelnictwa");
+			stat = stat.replace("atk", "ataku");
+			stat = stat.replace("mining", "górnictwa");
+
+			String level = " poziom";
+			if (newlevel < oldlevel) {
+				level += "u";
+			}
+
+			if (stat.equals("level")) {
+				msg += newlevel + level;
 			} else {
-				ClientSingletonRepository.getUserInterface().addEventLine(new StandardEventLine(
-						getTitle() + " został zabity przez " + Grammar.enumerateCollection(attackerNames)));
+				msg += newlevel + level + " " + stat;
 			}
+
+			ClientSingletonRepository.getUserInterface().addEventLine(
+					new HeaderLessEventLine(msg, msgtype));
+			ClientSingletonRepository.getScreenController().addText(
+					getX() + (getWidth() / 2.0), getY(), msg, msgtype, false);
 		}
 	}
 
 	/**
+	 * Called when the entity dies.
+	 */
+	private void onDeath() {
+		if (!attackers.isEmpty()) {
+			Collection<String> attackerNames = new LinkedList<String>();
+			for (Entity attacker : attackers) {
+				attackerNames.add(attacker.getTitle());
+			}
+
+			String attackers = Grammar.enumerateCollection(attackerNames);
+			final String deathText = getTitle() + " " + Grammar.genderNouns(getTitle(), "został") + " " + Grammar.genderNouns(getTitle(), "zabity") + " przez " + attackers;
+
+			if (getGender() == null) {
+				return;
+			}
+
+			ClientSingletonRepository.getUserInterface().addEventLine(new StandardEventLine(deathText));
+		}
+	    playSoundFromCategory(SoundLayer.FIGHTING_NOISE.groupName, "death");
+	}
+
+	/**
 	 * The object removed attribute(s).
-	 * 
+	 *
 	 * @param object
 	 *            The base object.
 	 * @param changes
@@ -1291,16 +1733,25 @@ public abstract class RPEntity extends ActiveEntity {
 		/*
 		 * Outfit
 		 */
-		if (changes.has("outfit")) {
-			outfit = OUTFIT_UNSET;
+		if (changes.has("outfit_ext") || changes.has("outfit")) {
+			if (changes.has("outfit_ext")) {
+				outfit_ext = null;
+			}
+			if (changes.has("outfit")) {
+				outfit_old = OUTFIT_UNSET;
+			}
+
 			fireChange(PROP_OUTFIT);
 		}
 
 		/*
-		 * No longer poisoned?
+		 * No longer has status. The iterator of EnumSet is safe despite the
+		 * modification in the loop.
 		 */
-		if (changes.has("poisoned")) {
-			setPoisoned(false);
+		for (StatusID status : statuses) {
+			if (changes.has(status.getAttribute())) {
+				setStatus(status, false);
+			}
 		}
 
 		/*
@@ -1324,85 +1775,67 @@ public abstract class RPEntity extends ActiveEntity {
 				attackTarget = null;
 			}
 		}
+
+		/*
+		 * Title
+		 */
+		if (changes.has("unnamed")) {
+			showTitle = true;
+			fireChange(PROP_TITLE);
+		}
+
+		if (changes.has("no_hpbar")) {
+			showHP = true;
+			fireChange(PROP_HP_DISPLAY);
+		}
 	}
 
-	//
-	//
+	/**
+	 * Check if the entity view should show the title.
+	 *
+	 * @return <code>true</code>, if the title should be displayed,
+	 * 	<code>false</code> if it should be hidden
+	 */
+	public boolean showTitle() {
+		return showTitle;
+	}
 
-	public static class TextIndicator {
-		/**
-		 * The age of the message (in ms).
-		 */
-		protected int age;
+	/**
+	 * Check if the entity view should show the HP indicator.
+	 *
+	 * @return <code>true</code>, if the HP bar should be displayed,
+	 * 	<code>false</code> if it should be hidden
+	 */
+	public boolean showHPBar() {
+		return showHP;
+	}
 
-		/**
-		 * The message text.
-		 */
-		protected String text;
+	public boolean isImmortal() {
+		return isImmortal;
+	}
 
-		/**
-		 * The indicator type.
-		 */
-		protected NotificationType type;
+	/**
+	 * Check if a shadow should be drawn under the entity.
+	 *
+	 * @return
+	 * 		<code>true</code> if a shadow should be drawn,
+	 * 		<code>false</code> if not.
+	 */
+	public boolean castsShadow() {
+		return castShadow;
+	}
 
-		/**
-		 * Create a floating message.
-		 * 
-		 * @param text
-		 *            The text to drawn.
-		 * @param type
-		 *            The indicator type.
-		 */
-		public TextIndicator(final String text, final NotificationType type) {
-			this.text = text;
-			this.type = type;
-
-			age = 0;
+	/**
+	 * Retrieves the name that should be used to override shadow.
+	 *
+	 * @return
+	 * 		String path to shadow file to use or <code>null</code>.
+	 */
+	public String getShadowStyle() {
+		if (shadowStyle == null) {
+			return null;
 		}
 
-		//
-		// TextIndicator
-		//
-
-		/**
-		 * Add to the age of this message.
-		 * 
-		 * @param time
-		 *            The amout to add.
-		 * 
-		 * @return The new age (in milliseconds).
-		 */
-		public int addAge(final int time) {
-			age += time;
-
-			return age;
-		}
-
-		/**
-		 * Get the age of this message.
-		 * 
-		 * @return The age (in milliseconds).
-		 */
-		public int getAge() {
-			return age;
-		}
-
-		/**
-		 * Get the text message.
-		 * 
-		 * @return The text message.
-		 */
-		public String getText() {
-			return text;
-		}
-
-		/**
-		 * Get the indicator type.
-		 * 
-		 * @return The indicator type.
-		 */
-		public NotificationType getType() {
-			return type;
-		}
+		return "data/sprites/shadow/" + shadowStyle + ".png";
 	}
 }

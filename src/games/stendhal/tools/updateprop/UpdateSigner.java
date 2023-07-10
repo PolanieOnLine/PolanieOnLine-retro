@@ -43,6 +43,7 @@ public class UpdateSigner extends Task {
 
 	/**
 	 * creates a UpdateSigner
+	 * @throws Exception
 	 */
 	public UpdateSigner() throws Exception {
 		Properties antProp = new Properties();
@@ -75,7 +76,7 @@ public class UpdateSigner extends Task {
 		signer = Signature.getInstance("SHA1withRSA");
 		signer.initSign(key);
 	}
-	
+
 
 	public String sign(String fullFilename) throws IOException, SignatureException {
 		InputStream is = new BufferedInputStream(new FileInputStream(fullFilename));
@@ -92,7 +93,7 @@ public class UpdateSigner extends Task {
 
 	/**
 	 * Adds a set of files to copy.
-	 * 
+	 *
 	 * @param set
 	 *            a set of files to copy
 	 */

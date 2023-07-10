@@ -1,4 +1,4 @@
-/* $Id: TextHasParameterCondition.java,v 1.11 2012/09/09 12:33:24 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -25,6 +25,7 @@ import games.stendhal.server.entity.player.Player;
 @Dev(category=Category.CHAT, label="\"\"?")
 public class TextHasParameterCondition implements ChatCondition {
 
+	@Override
 	public boolean fire(final Player player, final Sentence sentence, final Entity entity) {
 		final String text = sentence.getOriginalText();
 		return text.indexOf(' ') > -1;

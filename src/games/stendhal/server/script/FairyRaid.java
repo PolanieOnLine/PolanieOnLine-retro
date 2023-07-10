@@ -1,6 +1,5 @@
-/* $Id: FairyRaid.java,v 1.2 2010/09/19 02:36:26 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -17,7 +16,7 @@ import java.util.Map;
 
 /**
  * @author kymara
- * 
+ *
  * Not safe for players below level 20
  */
 public class FairyRaid extends CreateRaid {
@@ -32,7 +31,7 @@ public class FairyRaid extends CreateRaid {
 		attackArmy.put("karzełek jadeitowy", 7);
 		return attackArmy;
 	}
-	
+
 	@Override
 	protected String getInfo() {
 		return "Nie jest bezpieczny dla wojowników poniżej 20 poziomu";

@@ -1,4 +1,3 @@
-/* $Id: ThirdFloorCreatures.java,v 1.6 2012/02/26 16:51:50 kiheru Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +11,9 @@
  ***************************************************************************/
 package games.stendhal.server.maps.semos.wizardstower;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import games.stendhal.common.Direction;
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.SingletonRepository;
@@ -19,23 +21,19 @@ import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.rule.EntityManager;
 import games.stendhal.server.entity.creature.Creature;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class ThirdFloorCreatures implements ZoneConfigurator {
-
 	/**
 	 * Configure a zone.
-	 * 
+	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
-
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
-		buildThirdFloor(zone, attributes);
+		buildThirdFloor(zone);
 	}
 
-	private void buildThirdFloor(final StendhalRPZone zone, final Map<String, String> attributes) {
+	private void buildThirdFloor(final StendhalRPZone zone) {
 		final EntityManager manager = SingletonRepository.getEntityManager();
 
 		final Creature creature = manager.getCreature("upadły wojownik");
@@ -48,7 +46,7 @@ public class ThirdFloorCreatures implements ZoneConfigurator {
 		creature.setAIProfiles(new HashMap<String, String>());
 		creature1.setAIProfiles(new HashMap<String, String>());
 		creature2.setAIProfiles(new HashMap<String, String>());
-		creature3.setAIProfiles(new HashMap<String, String>());	
+		creature3.setAIProfiles(new HashMap<String, String>());
 
 		creature.clearDropItemList();
 		creature1.clearDropItemList();
@@ -59,7 +57,7 @@ public class ThirdFloorCreatures implements ZoneConfigurator {
 		creature1.setXP(0);
 		creature2.setXP(0);
 		creature3.setXP(0);
-		
+
 		creature.setPosition(15,2);
 		creature1.setPosition(1,15);
 		creature2.setPosition(15,28);

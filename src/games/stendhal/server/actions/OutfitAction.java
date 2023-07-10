@@ -1,4 +1,4 @@
-/* $Id: OutfitAction.java,v 1.28 2011/09/07 19:53:26 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -14,6 +14,9 @@ package games.stendhal.server.actions;
 
 import static games.stendhal.common.constants.Actions.OUTFIT;
 import static games.stendhal.common.constants.Actions.VALUE;
+
+import games.stendhal.common.MathHelper;
+import games.stendhal.common.constants.SkinColor;
 import games.stendhal.server.core.engine.GameEvent;
 import games.stendhal.server.entity.Outfit;
 import games.stendhal.server.entity.player.Player;
@@ -27,37 +30,65 @@ public class OutfitAction implements ActionListener {
 
 	public static void register() {
 		CommandCenter.register(OUTFIT, new OutfitAction());
+		// backward compatibility
+		CommandCenter.register("outfit", new OutfitAction());
 	}
 
 	/**
-	 * Changes Player's outfit to the value provided in action. 
+	 * Changes Player's outfit to the value provided in action.
 	 * @param player whose outfit is to be changed. Must not be <code>null</code>.
 	 * @param action the action containing the outfit info in the attribute 'value'. Must not be <code>null</code>.
 	 */
+	@Override
 	public void onAction(final Player player, final RPAction action) {
 		if (action.has(VALUE)) {
-			final Outfit outfit = new Outfit(action.getInt(VALUE));
+			final Outfit outfit = new Outfit(action.get(VALUE));
+
 			if (outfit.isChoosableByPlayers()) {
-				new GameEvent(player.getName(), OUTFIT, action.get(VALUE)).raise();
-				player.setOutfit(outfit, false);
-				// players may change hair and dress colors
+				new GameEvent(player.getName(), OUTFIT,
+						action.get(VALUE)).raise();
+				// hack
+				player.setOutfitWithDetail(outfit, false);
+				//player.setOutfit(outfit, false);
+
+				// Players may change hair color
 				String color = action.get("hair");
 				if (color != null) {
 					player.put(COLOR_MAP, "hair", color);
 				} else {
 					player.remove(COLOR_MAP, "hair");
 				}
+
+				// Players may change eyes color
+				color = action.get("eyes");
+				if (color != null) {
+					player.put(COLOR_MAP, "eyes", color);
+				} else {
+					player.remove(COLOR_MAP, "eyes");
+				}
+
+				// Players may change dress color
 				color = action.get("dress");
 				if (color != null) {
 					player.put(COLOR_MAP, "dress", color);
 				} else {
 					player.remove(COLOR_MAP, "dress");
 				}
-			}
-			if ((player.getOutfit().getBase() > 5 && player.getOutfit().getBase() < 12) || player.getOutfit().getBase() == 13) {
-				player.setGender("F");
-			} else {
-				player.setGender("M");
+
+				// Players may change skin color
+				color = action.get("skin");
+				// Only allow certain skin colors.
+				if (color != null && SkinColor.isValidColor(MathHelper.parseInt(color))) {
+					player.put(COLOR_MAP, "skin", color);
+				} else {
+					player.remove(COLOR_MAP, "skin");
+				}
+
+				if (player.getOutfit().isFemale()) {
+					player.setGender("F");
+				} else {
+					player.setGender("M");
+				}
 			}
 		}
 	}

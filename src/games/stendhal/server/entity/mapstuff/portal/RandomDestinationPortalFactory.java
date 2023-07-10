@@ -1,4 +1,4 @@
-/* $Id: RandomDestinationPortalFactory.java,v 1.2 2010/09/19 02:24:39 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -21,10 +21,10 @@ import games.stendhal.server.core.config.factory.ConfigurableFactoryContext;
 public class RandomDestinationPortalFactory extends QuestCompletedPortalFactory {
 	/**
 	 * Create a portal with random destination.
-	 * 
+	 *
 	 * @param ctx The configuration context.
 	 * @return The portal.
-	 * 
+	 *
 	 * @throws IllegalArgumentException
 	 *             If the class attribute is missing.
 	 */

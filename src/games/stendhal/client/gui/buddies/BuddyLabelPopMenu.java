@@ -1,4 +1,4 @@
-/* $Id: BuddyLabelPopMenu.java,v 1.12 2011/09/05 20:07:01 madmetzger Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -13,10 +13,10 @@
 package games.stendhal.client.gui.buddies;
 
 
-import games.stendhal.client.entity.User;
-
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
+
+import games.stendhal.client.entity.User;
 
 class BuddyLabelPopMenu extends JPopupMenu {
 	/**
@@ -31,13 +31,13 @@ class BuddyLabelPopMenu extends JPopupMenu {
 		} else {
 			createOfflineMenu(buddyName);
 		}
-		
+
 		JMenuItem removeBuddyMenuItem = new JMenuItem("Usuń");
 		this.add(removeBuddyMenuItem);
 		removeBuddyMenuItem.addActionListener(new RemovebuddyAction(buddyName));
 	}
 
-	// this one will fill into the chatline : /tell postman tell buddyName 
+	// this one will fill into the chatline : /tell postman tell buddyName
 	// and then you type the message
 	private void createOfflineMenu(final String buddyName) {
 		JMenuItem leaveMessageBuddyMenuItem = new JMenuItem("Zostaw wiadomość");
@@ -46,22 +46,22 @@ class BuddyLabelPopMenu extends JPopupMenu {
 	}
 
 	private void createOnlineMenu(final String buddyName) {
-		
-		// this one will fill into the chatline : /tell buddyName 
+
+		// this one will fill into the chatline : /tell buddyName
 		// and then you type the message
 		JMenuItem talkBuddyMenuItem = new JMenuItem("Porozmawiaj");
 		this.add(talkBuddyMenuItem);
 		talkBuddyMenuItem.addActionListener(new TalkBuddyAction(buddyName));
-		
-		
+
+
 		JMenuItem whereBuddyMenuItem = new JMenuItem("Gdzie jest");
 		this.add(whereBuddyMenuItem);
 		whereBuddyMenuItem.addActionListener(new WhereBuddyAction(buddyName));
-		
+
 		JMenuItem inviteBuddyMenuItem = new JMenuItem("Zaproś");
 		this.add(inviteBuddyMenuItem);
 		inviteBuddyMenuItem.addActionListener(new InviteBuddyAction(buddyName));
-		
+
 		if (User.isAdmin()) {
 			JMenuItem teleportToBuddyMenuItem = new JMenuItem("(*)Teleportuj do");
 			this.add(teleportToBuddyMenuItem);

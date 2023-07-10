@@ -1,39 +1,31 @@
-/* $Id: Player.java,v 1.150 2012/11/24 21:00:46 kiheru Exp $ */
 /***************************************************************************
- *		      (C) Copyright 2003 - Marauroa		      *
+ *                     Copyright © 2020 - Arianne                          *
  ***************************************************************************
  ***************************************************************************
- *									 *
+ *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.				   *
- *									 *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
  ***************************************************************************/
 package games.stendhal.client.entity;
 
 import games.stendhal.common.NotificationType;
-import games.stendhal.common.constants.SoundLayer;
+import games.stendhal.common.grammar.Grammar;
 import marauroa.common.game.RPObject;
 
 /** A Player entity. */
-public class Player extends AudibleEntity {
-
-	/**
-	 * Away property.
-	 */
+public class Player extends RPEntity {
+	// Away property.
 	public static final Property PROP_AWAY = new Property();
-	/**
-	 * Grumpy property.
-	 */
+	// Grumpy property.
 	public static final Property PROP_GRUMPY = new Property();
-	/**
-	 * Player killer property.
-	 */
+	// Player killer property.
 	public static final Property PROP_PLAYER_KILLER = new Property();
-	
+
 	private static final String LAST_PLAYER_KILL_TIME = "last_player_kill_time";
-	
+
 	/**
 	 * The away message of this player.
 	 */
@@ -52,26 +44,22 @@ public class Player extends AudibleEntity {
 		grumpy = null;
 	}
 
-	//
-	// Player
-	//
+	public boolean isBadBoy() {
+		return badboy;
+	}
 
 	/**
 	 * Determine if the player is away.
-	 * 
+	 *
 	 * @return <code>true</code> if the player is away.
 	 */
 	public boolean isAway() {
 		return (getAway() != null);
 	}
 
-	public boolean isBadBoy() {
-		return badboy;
-	}
-
 	/**
 	 * Get the away message.
-	 * 
+	 *
 	 * @return The away text, or <code>null</code> if not away.
 	 */
 	public String getAway() {
@@ -80,7 +68,7 @@ public class Player extends AudibleEntity {
 
 	/**
 	 * An away message was set/cleared.
-	 * 
+	 *
 	 * @param message
 	 *            The away message, or <code>null</code> if no-longer away.
 	 */
@@ -90,44 +78,38 @@ public class Player extends AudibleEntity {
 			away = message;
 			fireChange(PROP_AWAY);
 			if (message != null) {
-				addTextIndicator("Zajęty", NotificationType.INFORMATION);
+				addTextIndicator(Grammar.genderVerb(getGender(), "Zajęty"), NotificationType.INFORMATION);
 			} else {
-				addTextIndicator("Powrócił", NotificationType.INFORMATION);
+				addTextIndicator(Grammar.genderVerb(getGender(), "Powrócił"), NotificationType.INFORMATION);
 			}
 		}
 	}
 
 	/**
 	 * Determine if the player is grumpy.
-	 * 
+	 *
 	 * @return <code>true</code> if the player is grumpy.
 	 */
 	public boolean isGrumpy() {
 		return (grumpy != null);
 	}
 
-	/**
-	 * An away message was set/cleared.
-	 * 
-	 * @param message
-	 *            The away message, or <code>null</code> if no-longer away.
-	 */
 	private void onGrumpy(final String message) {
 		// Filter out events about changing to same message
 		if (messageChanged(grumpy, message)) {
 			grumpy = message;
 			fireChange(PROP_GRUMPY);
 			if (message != null) {
-				addTextIndicator("Niedostępny", NotificationType.INFORMATION);
+				addTextIndicator(Grammar.genderVerb(getGender(), "Niedostępny"), NotificationType.INFORMATION);
 			} else {
-				addTextIndicator("Dostępny", NotificationType.INFORMATION);
+				addTextIndicator(Grammar.genderVerb(getGender(), "Dostępny"), NotificationType.INFORMATION);
 			}
 		}
 	}
 
 	/**
 	 * Check if a message string has changed.
-	 * 
+	 *
 	 * @param oldMessage
 	 * @param newMessage
 	 * @return <code>true</code> if the message has changed
@@ -144,29 +126,13 @@ public class Player extends AudibleEntity {
 		}
 	}
 
-	@Override
-	public void initialize(RPObject object) {
-		super.initialize(object);
-
-		addSounds(SoundLayer.FIGHTING_NOISE.groupName, "attack",
-			"punch-1"   , "punch-2", "punch-3",
-			"punch-4"   , "punch-5", "punch-6",
-			"swingaxe-1", "slap-1" , "arrow-1");
-	}
-
-	@Override
-	public void onDamaged(Entity attacker, int damage) {
-		super.onDamaged(attacker, damage);
-		playRandomSoundFromCategory(SoundLayer.FIGHTING_NOISE.groupName, "attack");
-	}
-
 	//
 	// RPObjectChangeListener
 	//
 
 	/**
 	 * The object added/changed attribute(s).
-	 * 
+	 *
 	 * @param object
 	 *            The base object.
 	 * @param changes
@@ -179,11 +145,11 @@ public class Player extends AudibleEntity {
 		if (changes.has("away")) {
 			onAway(changes.get("away"));
 		}
-		
+
 		if (changes.has("grumpy")) {
 			onGrumpy(changes.get("grumpy"));
 		}
-		
+
 		if (changes.has(LAST_PLAYER_KILL_TIME)) {
 			badboy = true;
 			fireChange(PROP_PLAYER_KILLER);
@@ -192,7 +158,7 @@ public class Player extends AudibleEntity {
 
 	/**
 	 * The object removed attribute(s).
-	 * 
+	 *
 	 * @param object
 	 *            The base object.
 	 * @param changes

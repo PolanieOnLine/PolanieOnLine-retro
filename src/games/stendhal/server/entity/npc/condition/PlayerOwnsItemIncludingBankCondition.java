@@ -1,4 +1,4 @@
-/* $Id: PlayerOwnsItemIncludingBankCondition.java,v 1.5 2012/09/09 12:33:24 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +12,10 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.condition;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Iterator;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
 import games.stendhal.server.core.config.annotations.Dev.Category;
@@ -19,14 +23,8 @@ import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.item.Item;
 import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.Iterator;
-
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPSlot;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Does the player owns a item (including the bank)?
@@ -44,7 +42,7 @@ public class PlayerOwnsItemIncludingBankCondition implements ChatCondition {
 	 *            name of item
 	 */
 	public PlayerOwnsItemIncludingBankCondition(final String itemName) {
-		this.itemName = itemName;
+		this.itemName = checkNotNull(itemName);
 		this.amount = 1;
 	}
 
@@ -58,10 +56,11 @@ public class PlayerOwnsItemIncludingBankCondition implements ChatCondition {
 	 */
 	@Dev
 	public PlayerOwnsItemIncludingBankCondition(final String itemName, @Dev(defaultValue="1") final int amount) {
-		this.itemName = itemName;
+		this.itemName = checkNotNull(itemName);
 		this.amount = amount;
 	}
 
+	@Override
 	public boolean fire(final Player player, final Sentence sentence, final Entity entity) {
 		return playerOwnsItemsInAnySlot(player, itemName, amount);
 	}
@@ -101,12 +100,16 @@ public class PlayerOwnsItemIncludingBankCondition implements ChatCondition {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 44021 * itemName.hashCode() + amount;
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				PlayerOwnsItemIncludingBankCondition.class);
+		if (!(obj instanceof PlayerOwnsItemIncludingBankCondition)) {
+			return false;
+		}
+		PlayerOwnsItemIncludingBankCondition other = (PlayerOwnsItemIncludingBankCondition) obj;
+		return (amount == other.amount)
+			&& itemName.equals(other.itemName);
 	}
 }

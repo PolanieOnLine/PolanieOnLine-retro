@@ -1,6 +1,5 @@
-/* $Id: BowsForOuchitTest.java,v 1.4 2011/07/24 14:23:02 bluelads99 Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -18,6 +17,11 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static utilities.SpeakerNPCTestHelper.getReply;
+
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.entity.npc.SpeakerNPC;
@@ -25,16 +29,10 @@ import games.stendhal.server.entity.npc.fsm.Engine;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.ados.forest.FarmerNPC;
 import games.stendhal.server.maps.semos.tavern.BowAndArrowSellerNPC;
-
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import utilities.PlayerTestHelper;
 import utilities.QuestHelper;
 
 public class BowsForOuchitTest {
-	
 	// better: use the one from quest and make it visible
 	private static final String QUEST_SLOT = "bows_ouchit";
 
@@ -49,14 +47,15 @@ public class BowsForOuchitTest {
 
 	@Before
 	public void setUp() {
-
 		final StendhalRPZone zone = new StendhalRPZone("admin_test");
-		
+
 		// this is Ouchit
-		new BowAndArrowSellerNPC().configureZone(zone, null);	
+		new BowAndArrowSellerNPC().configureZone(zone, null);
 		// this is Karl
-		new FarmerNPC().configureZone(zone, null);	
-		
+		new FarmerNPC().configureZone(zone, null);
+		// configure shops
+		SingletonRepository.getShopsList().configureNPC("Ouchit", "sellrangedstuff", true);
+
 		AbstractQuest quest = new BowsForOuchit();
 		quest.addToWorld();
 
@@ -71,65 +70,65 @@ public class BowsForOuchitTest {
 		// -----------------------------------------------
 
 		en.step(player, "hi");
-		assertEquals("Greetings! How may I help you?", getReply(npc));
+		assertEquals("Pozdrawiam! W czym mogę pomóc?", getReply(npc));
 		en.step(player, "task");
-		assertEquals("Are you here to help me a bit?", getReply(npc));
+		assertEquals("Czy jesteś tu, aby mi pomóc?", getReply(npc));
 		en.step(player, "yes");
-		assertEquals("Good! I sell bows and arrows. It would be great if you could bring me 10 pieces of #wood. Can you bring me the wood?", getReply(npc));
-		en.step(player, "wood");
-		assertEquals("Wood is a great item with many purposes. Of course you will find some pieces in a forest. Will you bring me 10 pieces?", getReply(npc));
+		assertEquals("Dobrze! Sprzedaję łuki i strzały. Byłoby super gdybyś mógł przynieść 10 sztuk #polan. Możesz mi przynieść drewno?", getReply(npc));
+		en.step(player, "polano");
+		assertEquals("Drzewo jest potrzebne do różnych rzeczy, znajdziesz go... Najlepiej spytaj Drwala koło Zakopanego. Przyniesiesz mi 10 sztuk?", getReply(npc));
 		en.step(player, "yes");
-		assertEquals("Nice :-) Come back when you have them and say #wood.", getReply(npc));
-		en.step(player, "wood");
-		assertEquals("Wood is a great item with many purposes. Of course you will find some pieces in a forest. Please remember to come back when you have ten pieces for me, and say #wood.", getReply(npc));
-		en.step(player, "wood");
-		assertEquals("Wood is a great item with many purposes. Of course you will find some pieces in a forest. Please remember to come back when you have ten pieces for me, and say #wood.", getReply(npc));
+		assertEquals("Wspaniale! Jak wrócisz z nim powiedz #polano.", getReply(npc));
+		en.step(player, "polano");
+		assertEquals("Drzewo jest surowcem potrzebnym do wielu rzeczy. Jestem pewien, że znajdziesz w lesie. Lepiej porozmawiaj z drwalem koło Zakopanego. I nie zapomnij powiedzieć #'polano', gdy wrócisz z nim.", getReply(npc));
+		en.step(player, "polano");
+		assertEquals("Drzewo jest surowcem potrzebnym do wielu rzeczy. Jestem pewien, że znajdziesz w lesie. Lepiej porozmawiaj z drwalem koło Zakopanego. I nie zapomnij powiedzieć #'polano', gdy wrócisz z nim.", getReply(npc));
 		en.step(player, "bye");
-		assertEquals("Bye.", getReply(npc));
-		
-		// check quest slot 
+		assertEquals("Do widzenia.", getReply(npc));
+
+		// check quest slot
 		assertEquals(player.getQuest(QUEST_SLOT),"wood");
-		
+
 		// test without wood
 		en.step(player, "hi");
-		assertEquals("Greetings! How may I help you?", getReply(npc));
+		assertEquals("Pozdrawiam! W czym mogę pomóc?", getReply(npc));
 		en.step(player, "task");
-		assertEquals("I'm waiting for you to bring me 10 pieces of #wood.", getReply(npc));
-		en.step(player, "wood");
-		assertEquals("Wood is a great item with many purposes. Of course you will find some pieces in a forest. Please remember to come back when you have ten pieces for me, and say #wood.", getReply(npc));
+		assertEquals("Czekam na ciebie, aż mi przyniesiesz 10 sztuk #drewna.", getReply(npc));
+		en.step(player, "polano");
+		assertEquals("Drzewo jest surowcem potrzebnym do wielu rzeczy. Jestem pewien, że znajdziesz w lesie. Lepiej porozmawiaj z drwalem koło Zakopanego. I nie zapomnij powiedzieć #'polano', gdy wrócisz z nim.", getReply(npc));
 		en.step(player, "bye");
-		assertEquals("Bye.", getReply(npc));
-		
+		assertEquals("Do widzenia.", getReply(npc));
+
 		// test with wood
-		PlayerTestHelper.equipWithStackableItem(player, "wood", 10);
-		
+		PlayerTestHelper.equipWithStackableItem(player, "polano", 10);
+
 		en.step(player, "hi");
-		assertEquals("Greetings! How may I help you?", getReply(npc));
-		en.step(player, "wood");
-		assertEquals("Great, now I can make new arrows. But for the bows I need bowstrings. Please go to #Karl. I know he has horses and if you tell him my name he will give you #'horse hairs' from a horsetail.", getReply(npc));
-		
-		// check quest slot 
+		assertEquals("Pozdrawiam! W czym mogę pomóc?", getReply(npc));
+		en.step(player, "polano");
+		assertEquals("Bardzo dobrze, teraz mogę zrobić nowe strzały. Ale do łuku, który robię potrzebuję cięciwę. Proszę idź do #Karl. Wiem, że posiada konie powiedz moje imię, a da ci końskiego włosa. Z niego zrobię cięciwę.", getReply(npc));
+
+		// check quest slot
 		assertEquals(player.getQuest(QUEST_SLOT),"hair");
-		
+
 		en.step(player, "horse hairs");
-		assertEquals("Horse hairs can be used as a bowstring. Please fetch me some from #Karl.", getReply(npc));
+		assertEquals("Końskie włosie stosowane może być do cięciwy, a dostaniesz go od #Karl.", getReply(npc));
 		en.step(player, "Karl");
-		assertEquals("Karl is a farmer, east of Semos. He has many pets on his farm.", getReply(npc));
+		assertEquals("Karl jest rolnikiem mieszkającym na wschód od Semos. Posiada sporo zwierząt na swojej farmie.", getReply(npc));
 		en.step(player, "bye");
-		assertEquals("Bye.", getReply(npc));
-		
-		// test without hairs or going to Karl		
+		assertEquals("Do widzenia.", getReply(npc));
+
+		// test without hairs or going to Karl
 		en.step(player, "hi");
-		assertEquals("Greetings! How may I help you?", getReply(npc));
+		assertEquals("Pozdrawiam! W czym mogę pomóc?", getReply(npc));
 		en.step(player, "task");
-		assertEquals("I'm waiting for you to bring me some #'horse hairs'.", getReply(npc));
-		
-		// notice a typo here done by the actual player 
+		assertEquals("Czekam tu na ciebie, abyś przyniósł mi #'końskie włosie'.", getReply(npc));
+
+		// notice a typo here done by the actual player
 		en.step(player, "hore hairs");
-		assertEquals("Horse hairs can be used as a bowstring. Please fetch me some from #Karl.", getReply(npc));
+		assertEquals("Końskie włosie stosowane może być do cięciwy, a dostaniesz go od #Karl.", getReply(npc));
 		en.step(player, "bye");
-		assertEquals("Bye.", getReply(npc));
-		
+		assertEquals("Do widzenia.", getReply(npc));
+
 		assertEquals(player.getQuest(QUEST_SLOT),"hair");
 	}
 
@@ -137,31 +136,31 @@ public class BowsForOuchitTest {
 	public void testGetHairs() {
 		npc = SingletonRepository.getNPCList().get("Karl");
 		en = npc.getEngine();
-		
+
 		// the state wasn't remembered across the new test method so we need to set it to what it was when we ended the last
 		player.setQuest(QUEST_SLOT, "hair");
-		
+
 		en.step(player, "hi");
-		assertEquals("Heyho! Nice to see you here at our farm.", getReply(npc));
+		assertEquals("Heja! Miło Cię widzieć w naszym gospodarstwie.", getReply(npc));
 		en.step(player, "help");
-		assertEquals("You need help? I can tell you a bit about the #neighborhood.", getReply(npc));
+		assertEquals("Potrzebujesz pomocy? Mogę coś ci opowiedzieć o #sąsiedztwie.", getReply(npc));
 		en.step(player, "neighborhood");
 
-		assertEquals("In the north is a cave with bears and other creatures. If you go to the north-east you will reach after some time the great city Ados. At the east is a biiig rock. Does Balduin still live there? You want to go south-east? Well.. you can reach Ados there too, but I think the way is a bit harder.", getReply(npc));
+		assertEquals("Na północy znajduje się jaskinia z niedźwiedziami i innymi potworami. Jeżeli pójdziesz na północny-wschód to po pewnym czasie dojdziesz do dużego miasta Ados. Na wschodzie jest duuuuża skała. Balduin wciąż tam mieszka? Chcesz wyruszyć na południowy-wschód? Cóż.. możesz tamtędy dojść do Ados, ale droga jest trochę trudniejsza.", getReply(npc));
 		en.step(player, "task");
-		assertEquals("I don't have time for those things, sorry. Working.. working.. working..", getReply(npc));
-		
-		// he doesn't seem to reply to horse hairs 
+		assertEquals("Nie mam teraz czasu na takie rzeczy. Praca.. praca.. praca..", getReply(npc));
+
+		// he doesn't seem to reply to horse hairs
 		en.step(player, "horse hairs");
 		assertNull(getReply(npc));
 
-		en.step(player, "ouchit");
-		assertEquals("Hello, hello! Ouchit needs more horse hairs from my horses? No problem, here you are. Send Ouchit greetings from me.", getReply(npc));
+		en.step(player, "Ouchit");
+		assertEquals("Witam, witam! Ouchit potrzebuje więcej włosia z moich koni? Nie ma problemu. Weź to i przekaż Ouchitowi serdeczne pozdrowienia ode mnie.", getReply(npc));
 		en.step(player, "bye");
-		assertEquals("Bye bye. Be careful on your way.", getReply(npc));
-		
+		assertEquals("Do widzenia, do widzenia. Bądź ostrożny.", getReply(npc));
+
 		// check quest slot and item
-		assertTrue(player.isEquipped("horse hair"));
+		assertTrue(player.isEquipped("końskie włosie"));
 		assertEquals(player.getQuest(QUEST_SLOT),"hair");
 	}
 
@@ -169,42 +168,42 @@ public class BowsForOuchitTest {
 	public void testBringHairs() {
 		npc = SingletonRepository.getNPCList().get("Ouchit");
 		en = npc.getEngine();
-		
+
 		// the state wasn't remembered across the new test method so we need to set it to what it was when we ended the last
 		player.setQuest(QUEST_SLOT, "hair");
 		// nor was what the player was equipped with
-		PlayerTestHelper.equipWithItem(player, "horse hair");
-		
+		PlayerTestHelper.equipWithItem(player, "końskie włosie");
+
 		// remember the xp and karma, did it go up?
 		final int xp = player.getXP();
 		final double karma = player.getKarma();
-		
+
 		en.step(player, "hi");
-		assertEquals("Greetings! How may I help you?", getReply(npc));
+		assertEquals("Pozdrawiam! W czym mogę pomóc?", getReply(npc));
 		en.step(player, "task");
-		assertEquals("I'm waiting for you to bring me some #'horse hairs'.", getReply(npc));
+		assertEquals("Czekam tu na ciebie, abyś przyniósł mi #'końskie włosie'.", getReply(npc));
 		en.step(player, "horse hairs");
-		assertEquals("Yay, you got the horse hairs. Thanks a lot. Karl is really nice. Here, take this for your work. Someone left it here and I don't need those things.", getReply(npc));
-		
+		assertEquals("Wspaniale, masz końskie włosie. Dziękuję bardzo. Karl jest bardzo miły. Proszę, zostawił tutaj ten... Mi nie jest to potrzebne, a tobie może się przydać.", getReply(npc));
+
 		// [19:57] kymara earns 100 experience points.
 		// check quest slot and rewards
 		assertTrue(player.getQuest(QUEST_SLOT).equals("done"));
-		assertTrue(player.isEquipped("scale armor"));
-		assertTrue(player.isEquipped("chain legs"));
+		assertTrue(player.isEquipped("zbroja łuskowa"));
+		assertTrue(player.isEquipped("spodnie nabijane ćwiekami"));
 		assertThat(player.getXP(), greaterThan(xp));
 		assertThat(player.getKarma(), greaterThan(karma));
-		
+
 		en.step(player, "bye");
-		assertEquals("Bye.", getReply(npc));
-		
-		// check how he replies when the quest is finished 	
+		assertEquals("Do widzenia.", getReply(npc));
+
+		// check how he replies when the quest is finished
 		en.step(player, "hi");
-		assertEquals("Greetings! How may I help you?", getReply(npc));
+		assertEquals("Pozdrawiam! W czym mogę pomóc?", getReply(npc));
 		en.step(player, "task");
-		assertEquals("Thanks for your help. If I can #offer you anything just ask.", getReply(npc));
+		assertEquals("Dziękuję za twoją pomoc. Jeżeli mogę zaoferować coś po prostu zapytaj o #ofertę.", getReply(npc));
 		en.step(player, "offer");
-		assertEquals("I sell wooden bow and wooden arrow.", getReply(npc));
+		assertEquals("Sprzedaję drewniany łuk oraz strzała.", getReply(npc));
 		en.step(player, "bye");
-		assertEquals("Bye.", getReply(npc));	
+		assertEquals("Do widzenia.", getReply(npc));
 	}
 }

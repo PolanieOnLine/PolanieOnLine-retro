@@ -1,4 +1,4 @@
-/* $Id: EntitySlot.java,v 1.12 2012/05/29 20:37:59 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -17,7 +17,7 @@ import marauroa.common.game.RPSlot;
 
 /**
  * Stendhal specific information about this slot.
- * 
+ *
  * @author hendrik
  */
 public class EntitySlot extends RPSlot implements Slot {
@@ -26,7 +26,7 @@ public class EntitySlot extends RPSlot implements Slot {
 
 	/**
 	 * Creates an uninitialized EntitySlot.
-	 * 
+	 *
 	 */
 	public EntitySlot() {
 		super();
@@ -34,7 +34,7 @@ public class EntitySlot extends RPSlot implements Slot {
 
 	/**
 	 * Creates a new EntitySlot.
-	 * 
+	 *
 	 * @param name name of slot
 	 * @param contentSlotName name of slot used by the "item may be put in" check
 	 */
@@ -43,19 +43,23 @@ public class EntitySlot extends RPSlot implements Slot {
 		this.contentSlotName = contentSlotName;
 	}
 
+	@Override
 	public boolean isReachableForTakingThingsOutOfBy(final Entity entity) {
-		setErrorMessage("" + getName() + " z " + ((Entity) getOwner()).getDescriptionName(true) + " jest zbyt daleko.");
+		setErrorMessage("" + getName() + " z " + ((Entity) getOwner()).getDescriptionName() + " jest zbyt daleko.");
 		return false;
 	}
 
+	@Override
 	public boolean isReachableForThrowingThingsIntoBy(final Entity entity) {
 		return isReachableForTakingThingsOutOfBy(entity);
 	}
 
+	@Override
 	public boolean isItemSlot() {
 		return true;
 	}
 
+	@Override
 	public boolean isTargetBoundCheckRequired() {
 		return false;
 	}

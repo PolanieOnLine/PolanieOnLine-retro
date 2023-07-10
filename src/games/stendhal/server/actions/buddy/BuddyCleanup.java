@@ -1,6 +1,5 @@
-/* $Id: BuddyCleanup.java,v 1.2 2011/01/10 19:07:04 martinfuchs Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2010-2011 - Stendhal                    *
+ *                   (C) Copyright 2010-2013 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -13,6 +12,11 @@
 
 package games.stendhal.server.actions.buddy;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+
 import games.stendhal.server.core.engine.GameEvent;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.dbcommand.QueryCanonicalCharacterNamesCommand;
@@ -20,12 +24,6 @@ import games.stendhal.server.core.events.TurnListener;
 import games.stendhal.server.core.events.TurnListenerDecorator;
 import games.stendhal.server.core.events.TurnNotifier;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-
 import marauroa.server.db.command.DBCommand;
 import marauroa.server.db.command.DBCommandQueue;
 import marauroa.server.db.command.ResultHandle;
@@ -36,13 +34,21 @@ import marauroa.server.db.command.ResultHandle;
  */
 public class BuddyCleanup implements TurnListener {
 
-	private Player player;
-	private ResultHandle handle = new ResultHandle();
+	private final Player player;
+	private final ResultHandle handle = new ResultHandle();
 
+	/**
+	 * creates a BuddyCleanup
+	 *
+	 * @param player player object
+	 */
 	public BuddyCleanup(Player player) {
 		this.player = player;
 	}
 
+	/**
+	 * cleans up the budy list of a player
+	 */
 	public void cleanup() {
 		Map<String, String> buddies = player.getMap("buddies");
 
@@ -70,6 +76,7 @@ public class BuddyCleanup implements TurnListener {
 		}
 	}
 
+	@Override
 	public void onTurnReached(int currentTurn) {
 		QueryCanonicalCharacterNamesCommand checkCommand = DBCommandQueue.get().getOneResult(QueryCanonicalCharacterNamesCommand.class, handle);
 
@@ -105,7 +112,7 @@ public class BuddyCleanup implements TurnListener {
 		for(String newName : newNames) {
 			final Player buddy = SingletonRepository.getRuleProcessor().getPlayer(newName);
 
-			if (player.addBuddy(newName, buddy!=null && !buddy.isGhost())) {
+			if (player.addBuddy(newName, (buddy!=null) && !buddy.isGhost())) {
 				new GameEvent(player.getName(), "buddy", "add", newName).raise();
 			}
 		}

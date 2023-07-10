@@ -1,4 +1,4 @@
-/* $Id: StaticGameLayers.java,v 1.111 2011/11/17 15:06:40 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -12,12 +12,12 @@
  ***************************************************************************/
 package games.stendhal.client;
 
-import games.stendhal.common.CollisionDetection;
-
 import java.awt.Graphics;
 import java.awt.geom.Rectangle2D;
 
 import org.apache.log4j.Logger;
+
+import games.stendhal.common.CollisionDetection;
 
 /** This class stores the layers that make the floor and the buildings. */
 
@@ -27,9 +27,6 @@ public class StaticGameLayers {
 	/** Name of the layers set that we are rendering right now. */
 	private String area;
 
-	/** true when the area has been changed. */
-	private boolean areaChanged;
-
 	/** Global current zone information. */
 	private final ZoneInfo zoneInfo = ZoneInfo.get();
 	/** The current zone. */
@@ -37,12 +34,11 @@ public class StaticGameLayers {
 
 	public StaticGameLayers() {
 		area = null;
-		areaChanged = true;
 	}
 
 	/**
 	 * Get the danger level of the current zone.
-	 * 
+	 *
 	 * @return danger level
 	 */
 	public double getDangerLevel() {
@@ -67,25 +63,24 @@ public class StaticGameLayers {
 
 	/**
 	 * Set the current zone.
-	 * 
+	 *
 	 * @param zone
 	 */
 	public void setZone(Zone zone) {
 		currentZone = zone;
 		if (!zone.getName().equals(area)) {
 			setAreaName(zone.getName());
-			markAreaChanged();
 		}
 	}
 
 	/**
 	 * Check if a shape collides within the current zone.
-	 * 
+	 *
 	 * @param shape
 	 * @return <code>true</code>, if the shape overlaps the static zone
 	 *	collision, <code>false</code> otherwise
 	 */
-	public boolean collides(final Rectangle2D shape) {
+	boolean collides(final Rectangle2D shape) {
 		if (currentZone != null) {
 			return currentZone.collides(shape);
 		}
@@ -93,7 +88,7 @@ public class StaticGameLayers {
 	}
 
 	/** Prepare for zone change. */
-	public void clear() {
+	void clear() {
 		zoneInfo.zoneChanged();
 	}
 
@@ -107,16 +102,25 @@ public class StaticGameLayers {
 
 	/**
 	 * Get the area name.
-	 * 
+	 *
 	 * @return area name
-		 */
+	 */
 	public String getAreaName() {
 		return area;
 	}
 
 	/**
+	 * Get the user representable name of the current zone.
+	 *
+	 * @return user readable zone name
+	 */
+	public String getReadableName() {
+		return currentZone.getReadableName();
+	}
+
+	/**
 	 * Draw a set of layers.
-	 * 
+	 *
 	 * @param g Graphics
 	 * @param area Zone name
 	 * @param compositeName A bundle name for the set of layers. It is used to
@@ -128,7 +132,7 @@ public class StaticGameLayers {
 	 * @param adjustLayer name of the adjustment layer
 	 * @param layers names of the layer set, starting from the bottom
 	 */
-	public void drawLayers(Graphics g, final String area, final String compositeName,
+	void drawLayers(Graphics g, final String area, final String compositeName,
 			final int x, final int y, final int width, final int height,
 			String adjustLayer, String ... layers) {
 		LayerRenderer lr = getMerged(area, compositeName, adjustLayer, layers);
@@ -138,8 +142,25 @@ public class StaticGameLayers {
 	}
 
 	/**
+	 * Draw the weather layer.
+	 *
+	 * @param g Graphics
+	 * @param x
+	 * @param y
+	 * @param width
+	 * @param height
+	 */
+	void drawWeather(Graphics g, int x, int y, int width, int height) {
+		if (currentZone != null) {
+			if (currentZone.getName().equals(area)) {
+				currentZone.getWeather().draw(g, x, y, width, height);
+			}
+		}
+	}
+
+	/**
 	 * Get a composite representation of multiple tile layers.
-	 * 
+	 *
 	 * @param area area name
 	 * @param compositeName name to be used for the composite for caching
 	 * @param adjustLayer name of the adjustment layer
@@ -148,12 +169,12 @@ public class StaticGameLayers {
 	 * @return layer corresponding to all sub layers or <code>null</code> if
 	 * 	they can not be merged
 	 */
-	private LayerRenderer getMerged(String area, String compositeName, 
+	private LayerRenderer getMerged(String area, String compositeName,
 			String adjustLayer, String ... layers) {
 		if (currentZone != null) {
 			if (currentZone.getName().equals(area)) {
 				return currentZone.getMerged(compositeName, adjustLayer, layers);
-				} else {
+			} else {
 				logger.warn("Trying to draw zone: " + area + ", but the current zone is: " + currentZone.getName());
 			}
 		}
@@ -161,9 +182,7 @@ public class StaticGameLayers {
 	}
 
 	/**
-	 * 
 	 * @return the CollisionDetection Layer for the current map
-	 * 
 	 */
 	public CollisionDetection getCollisionDetection() {
 		if (currentZone != null) {
@@ -173,47 +192,22 @@ public class StaticGameLayers {
 	}
 
 	/**
-	 * 
 	 * @return the ProtectionDetection Layer for the current map
-	 * 
 	 */
 	public CollisionDetection getProtectionDetection() {
 		if (currentZone != null) {
 			return currentZone.getProtection();
-	}
+		}
 		return null;
 	}
 
 	/**
-	 * 
 	 * @return the SecretDetection Layer for the current map
-	 * 
 	 */
 	public CollisionDetection getSecretDetection() {
 		if (currentZone != null) {
 			return currentZone.getSecret();
 		}
 		return null;
-	}
-
-	/**
-	 * @return true if the area has changed since the last
-	 */
-	public boolean isAreaChanged() {
-		return areaChanged;
-	}
-
-	/**
-	 * marks the area as changed
-	 */
-	private void markAreaChanged() {
-		this.areaChanged = true;
-	}
-
-	/**
-	 * resets the areaChanged flag.
-	 */
-	public void resetChangedArea() {
-		areaChanged = false;
 	}
 }

@@ -62,12 +62,17 @@ public enum ConversationStates {
 	 * the offer.
 	 */
 	SERVICE_OFFERED,
-	
+
 	/**
 	 * The player wants the NPC to repair an item. The NPC told the price and
 	 * awaits the player's response accepting or rejecting the offer.
 	 */
 	REPAIR_OFFERED,
+
+	/**
+	 * NPC is asking for confirmation before executing an action.
+	 */
+	CONFIRM_REQUESTED,
 
 	/**
 	 * The SpeakerNPC is simply telling something to the player.
@@ -93,6 +98,21 @@ public enum ConversationStates {
 	 * reject it.
 	 */
 	QUEST_2_OFFERED,
+	
+	/**
+	 * The SpeakerNPC has offered a third quest; the player has to accept or
+	 * reject it.
+	 */
+	QUEST_3_OFFERED,
+	
+	/**
+	 * The SpeakerNPC offered a rebirth for player.
+	 */
+	OFFERED_1_REBORN,
+	OFFERED_2_REBORN,
+	OFFERED_3_REBORN,
+	OFFERED_4_REBORN,
+	OFFERED_5_REBORN,
 
 	/**
 	 * The player has just started the quest.
@@ -112,8 +132,17 @@ public enum ConversationStates {
 
 	/** Multi-purpose states for multiple questions. */
 	QUESTION_1,
-
 	QUESTION_2,
+	QUESTION_3,
+	QUESTION_4,
+	QUESTION_5,
 
-	QUESTION_3;
+	/** Special scenarios where player may need to reset quest slot to a previous state
+	 * due to lost item or other problem.
+	 *
+	 */
+	RESTART_OFFERED,
+
+	/** Special state when players should not be able to interact with NPC. */
+	BUSY;
 }

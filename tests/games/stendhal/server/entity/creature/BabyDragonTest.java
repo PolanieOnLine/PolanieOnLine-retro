@@ -1,4 +1,4 @@
-/* $Id: BabyDragonTest.java,v 1.4 2010/09/19 02:39:51 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -14,18 +14,17 @@ package games.stendhal.server.entity.creature;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.entity.player.Player;
-import games.stendhal.server.maps.MockStendlRPWorld;
 
 import java.util.Arrays;
 import java.util.List;
 
-import marauroa.common.game.RPObject;
-
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.maps.MockStendlRPWorld;
+import marauroa.common.game.RPObject;
 import utilities.PlayerTestHelper;
 import utilities.RPClass.BabyDragonTestHelper;
 
@@ -37,7 +36,7 @@ public class BabyDragonTest {
 		MockStendlRPWorld.get();
 	}
 
-	List<String> foods = Arrays.asList("ham", "pizza", "meat");
+	List<String> foods = Arrays.asList("szynka", "pizza", "mięso");
 
 	/**
 	 * Tests for babyDragon.
@@ -67,7 +66,9 @@ public class BabyDragonTest {
 	 */
 	@Test
 	public void testBabyDragonRPObjectPlayer() {
-		final BabyDragon drako = new BabyDragon(new RPObject(), PlayerTestHelper.createPlayer("bob"));
+		RPObject template = new RPObject();
+		template.put("hp", 30);
+		final BabyDragon drako = new BabyDragon(template, PlayerTestHelper.createPlayer("bob"));
 		assertThat(drako.getFoodNames(), is(foods));
 	}
 

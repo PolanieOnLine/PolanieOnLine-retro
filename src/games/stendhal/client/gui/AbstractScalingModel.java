@@ -29,29 +29,33 @@ public abstract class AbstractScalingModel implements ScalingModel {
 	public void addChangeListener(ChangeListener listener) {
 		listeners.add(listener);
 	}
-	
+
 	/**
 	 * Set the representation, and notify listeners if it changed.
-	 * 
+	 *
 	 * @param representation new representation
+	 * @return <code>true</code> if the representation changed, otherwise
+	 * 	<code>false</code>
 	 */
-	protected void setRepresentation(int representation) {
+	protected boolean setRepresentation(int representation) {
 		int oldRepresentation = this.representation;
 		this.representation = representation;
 		if (oldRepresentation != representation) {
 			fireChanged();
+			return true;
 		}
+		return false;
 	}
 
 	@Override
 	public int getRepresentation() {
 		return representation;
 	}
-	
+
 	/**
 	 * Notify change listeners.
 	 */
-	private void fireChanged() {
+	protected void fireChanged() {
 		ChangeEvent e = new ChangeEvent(this);
 		for (ChangeListener listener : listeners) {
 			listener.stateChanged(e);

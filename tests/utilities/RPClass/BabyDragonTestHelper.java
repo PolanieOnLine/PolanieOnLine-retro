@@ -1,4 +1,4 @@
-/* $Id: BabyDragonTestHelper.java,v 1.2 2010/09/19 01:28:49 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -16,12 +16,12 @@ import games.stendhal.server.entity.creature.BabyDragon;
 import marauroa.common.game.RPClass;
 
 public class BabyDragonTestHelper {
-	
-	
+
+
 public static void generateRPClasses() {
-		
+
 		PetTestHelper.generateRPClasses();
-		
+
 		if (!RPClass.hasRPClass("baby_dragon")) {
 			BabyDragon.generateRPClass();
 		}

@@ -1,6 +1,5 @@
-/* $Id: BarMaidNPC.java,v 1.19 2012/08/23 20:05:44 yoriy Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,19 +11,15 @@
  ***************************************************************************/
 package games.stendhal.server.maps.ados.bar;
 
-import games.stendhal.server.core.config.ZoneConfigurator;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.core.pathfinder.FixedPath;
-import games.stendhal.server.core.pathfinder.Node;
-import games.stendhal.server.entity.npc.ShopList;
-import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.behaviour.adder.BuyerAdder;
-import games.stendhal.server.entity.npc.behaviour.impl.BuyerBehaviour;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import games.stendhal.server.core.config.ZoneConfigurator;
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.core.pathfinder.FixedPath;
+import games.stendhal.server.core.pathfinder.Node;
+import games.stendhal.server.entity.npc.SpeakerNPC;
 
 /**
  * Builds a Bar Maid NPC to buy food from players.
@@ -32,16 +27,13 @@ import java.util.Map;
  * @author kymara
  */
 public class BarMaidNPC implements ZoneConfigurator {
-
-	private final ShopList shops = SingletonRepository.getShopList();
-
-
 	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildNPC(zone);
 	}
@@ -72,14 +64,14 @@ public class BarMaidNPC implements ZoneConfigurator {
 				addJob("Jestem kelnerką. Ze względu na ciężkie czasy nie mamy wystarczająco dużo jedzenia aby nakarmić naszych klientów. Czy możesz nam coś #zaoferować? Cokolwiek?");
 				addHelp("Byłabym wdzięczna gdybyś mógł coś #zaoferować aby uzupełnić nasze zapasy: mięso, szynka lub ser.");
 				addQuest("#Zaoferowano nam już dość jedzenia, dziękuję za pomoc.");
- 				addGoodbye("Dowidzenia, dowidzenia!");
- 				new BuyerAdder().addBuyer(this, new BuyerBehaviour(shops.get("buyfood")), true);
+ 				addGoodbye("Do widzenia, do widzenia!");
 			}
 		};
-		npc.setDescription("Oto piękna młoda barmanka.");
+
+		npc.setDescription("Oto piękna młoda barmanka, Siandra.");
 		npc.setEntityClass("woman_004_npc");
+		npc.setGender("F");
 		npc.setPosition(8, 27);
-		npc.initHP(100);
 		zone.add(npc);
 	}
 }

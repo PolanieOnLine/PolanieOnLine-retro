@@ -1,4 +1,4 @@
-/* $Id: DomesticAnimal2DView.java,v 1.33 2012/11/25 10:30:42 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2012 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +12,8 @@
  ***************************************************************************/
 package games.stendhal.client.gui.j2d.entity;
 
+import java.util.Map;
+
 //
 //
 
@@ -19,60 +21,36 @@ import games.stendhal.client.ZoneInfo;
 import games.stendhal.client.entity.ActionType;
 import games.stendhal.client.entity.ActiveEntity;
 import games.stendhal.client.entity.DomesticAnimal;
-import games.stendhal.client.gui.j2d.entity.helpers.HorizontalAlignment;
-import games.stendhal.client.gui.j2d.entity.helpers.VerticalAlignment;
-import games.stendhal.client.gui.styled.cursor.StendhalCursor;
 import games.stendhal.client.sprite.Sprite;
 import games.stendhal.client.sprite.SpriteStore;
 import games.stendhal.common.Direction;
 
-import java.util.Map;
-
 
 /**
  * The 2D view of a domestic animal.
- * 
+ *
  * @param <T> type of domestic animal
  */
-abstract class DomesticAnimal2DView<T extends DomesticAnimal> extends RPEntity2DView<T> {
+abstract class DomesticAnimal2DView<T extends DomesticAnimal> extends NPC2DView<T> {
 	/**
 	 * The down facing big state.
 	 */
-	protected static final String STATE_BIG_DOWN = "big:move_down";
+	private static final String STATE_BIG_DOWN = "big:move_down";
 
 	/**
 	 * The up facing big state.
 	 */
-	protected static final String STATE_BIG_UP = "big:move_up";
+	private static final String STATE_BIG_UP = "big:move_up";
 
 	/**
 	 * The left facing big state.
 	 */
-	protected static final String STATE_BIG_LEFT = "big:move_left";
+	private static final String STATE_BIG_LEFT = "big:move_left";
 
 	/**
 	 * The right facing big state.
 	 */
-	protected static final String STATE_BIG_RIGHT = "big:move_right";
-
-	/**
-	 * The idea property changed.
-	 */
-	private volatile boolean ideaChanged;
-	
-	/**
-	 * The current idea sprite.
-	 */
-	private Sprite ideaSprite;
-
-
-	/**
-	 * Create a 2D view of a animal.
-	 */
-	public DomesticAnimal2DView() {
-		ideaSprite = null;
-		ideaChanged = false;
-	}
+	private static final String STATE_BIG_RIGHT = "big:move_right";
 
 	//
 	// StateEntity
@@ -107,26 +85,10 @@ abstract class DomesticAnimal2DView<T extends DomesticAnimal> extends RPEntity2D
 
 	/**
 	 * Get the weight at which the animal becomes big.
-	 * 
+	 *
 	 * @return A weight.
 	 */
 	protected abstract int getBigWeight();
-
-	/**
-	 * Get the approriete idea sprite.
-	 * 
-	 * @return The sprite representing the current idea, or null.
-	 */
-	protected Sprite getIdeaSprite() {
-		final String idea = entity.getIdea();
-
-		if (idea == null) {
-			return null;
-		}
-
-		return SpriteStore.get().getSprite(
-				"data/sprites/ideas/" + idea + ".png");
-	}
 
 	//
 	// RPEntity2DView
@@ -134,7 +96,7 @@ abstract class DomesticAnimal2DView<T extends DomesticAnimal> extends RPEntity2D
 
 	/**
 	 * Populate named state sprites.
-	 * 
+	 *
 	 * @param map
 	 *            The map to populate.
 	 * @param tiles
@@ -174,19 +136,19 @@ abstract class DomesticAnimal2DView<T extends DomesticAnimal> extends RPEntity2D
 
 	/**
 	 * Get the full directional animation tile set for this entity.
-	 * 
+	 *
 	 * @return A tile sprite containing all animation images.
 	 */
 	@Override
 	protected Sprite getAnimationSprite() {
 		ZoneInfo info = ZoneInfo.get();
-		return SpriteStore.get().getModifiedSprite(translate(entity.getType()), 
+		return SpriteStore.get().getModifiedSprite(translate(entity.getType()),
 				info.getZoneColor(), info.getColorMethod());
 	}
 
 	/**
 	 * Get the number of tiles in the Y axis of the base sprite.
-	 * 
+	 *
 	 * @return The number of tiles.
 	 */
 	@Override
@@ -194,50 +156,11 @@ abstract class DomesticAnimal2DView<T extends DomesticAnimal> extends RPEntity2D
 		return 8;
 	}
 
-	//
-	// ActiveEntity2DView
-	//
-
-	//
-	// Entity2DView
-	//
-
-	/**
-	 * Handle updates.
-	 */
 	@Override
-	protected void update() {
-		super.update();
+	void entityChanged(final Object property) {
+		super.entityChanged(property);
 
-		if (ideaChanged) {
-			ideaChanged = false;
-			detachSprite(ideaSprite);
-			ideaSprite = getIdeaSprite();
-			if (ideaSprite != null) {
-				attachSprite(ideaSprite, HorizontalAlignment.RIGHT, VerticalAlignment.TOP, 8, -8);
-			}
-		}
-	}
-
-	//
-	// EntityChangeListener
-	//
-
-	/**
-	 * An entity was changed.
-	 * 
-	 * @param entity
-	 *            The entity that was changed.
-	 * @param property
-	 *            The property identifier.
-	 */
-	@Override
-	public void entityChanged(final T entity, final Object property) {
-		super.entityChanged(entity, property);
-
-		if (property == DomesticAnimal.PROP_IDEA) {
-			ideaChanged = true;
-		} else if (property == DomesticAnimal.PROP_WEIGHT) {
+		if (property == DomesticAnimal.PROP_WEIGHT) {
 			proceedChangedState(entity);
 		}
 	}
@@ -248,7 +171,7 @@ abstract class DomesticAnimal2DView<T extends DomesticAnimal> extends RPEntity2D
 
 	/**
 	 * Perform an action.
-	 * 
+	 *
 	 * @param at
 	 *            The action.
 	 */
@@ -266,16 +189,5 @@ abstract class DomesticAnimal2DView<T extends DomesticAnimal> extends RPEntity2D
 			super.onAction(at);
 			break;
 		}
-	}
-
-
-	/**
-	 * gets the mouse cursor image to use for this entity
-	 *
-	 * @return StendhalCursor
-	 */
-	@Override
-	public StendhalCursor getCursor() {
-		return StendhalCursor.LOOK;
 	}
 }

@@ -1,4 +1,4 @@
-/* $Id: DropTarget.java,v 1.5 2012/05/28 14:13:49 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2012 - Stendhal                    *
  ***************************************************************************
@@ -19,7 +19,7 @@ import games.stendhal.client.entity.IEntity;
 public interface DropTarget {
 	/**
 	 * Drop an entity at a given location. Called when dragging ends.
-	 * 
+	 *
 	 * @param entity dropped entity
 	 * @param amount number of dropped entities. -1 in case everything in the stack
 	 * 	should be dropped
@@ -28,7 +28,7 @@ public interface DropTarget {
 	void dropEntity(IEntity entity, int amount, Point point);
 	/**
 	 * Check if the DropTarget can accept a certain entity.
-	 * 
+	 *
 	 * @param entity entity to be checked
 	 * @return <code>true</code>, if the DropTarget can process the entity in
 	 * 	question, <code>false</code> otherwise

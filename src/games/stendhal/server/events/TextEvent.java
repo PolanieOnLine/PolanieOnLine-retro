@@ -1,4 +1,4 @@
-/* $Id: TextEvent.java,v 1.5 2010/09/19 02:26:08 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,10 +12,10 @@
  ***************************************************************************/
 package games.stendhal.server.events;
 
-import marauroa.common.game.RPClass;
-import marauroa.common.game.RPEvent;
 import marauroa.common.game.Definition.DefinitionClass;
 import marauroa.common.game.Definition.Type;
+import marauroa.common.game.RPClass;
+import marauroa.common.game.RPEvent;
 
 /**
  * A public text message.
@@ -32,15 +32,32 @@ public class TextEvent extends RPEvent {
 	public static void generateRPClass() {
 		final RPClass rpclass = new RPClass(RPCLASS_NAME);
 		rpclass.add(DefinitionClass.ATTRIBUTE, TEXT, Type.LONG_STRING);
+		rpclass.addAttribute("range", Type.INT);
 	}
 
 	/**
 	 * Creates a new text event.
 	 *
-	 * @param text Text
+	 * @param text
+	 *     Message contents.
 	 */
 	public TextEvent(final String text) {
-		super(RPCLASS_NAME);		
+		super(RPCLASS_NAME);
 		put(TEXT, text);
+	}
+
+	/**
+	 * Creates a new text event.
+	 *
+	 * @param text
+	 *     Message contents.
+	 * @param rangeSquared
+	 *     Distance squared within which message can be heard (-1
+	 *     represents entire map).
+	 */
+	public TextEvent(final String text, final int rangeSquared) {
+		super(RPCLASS_NAME);
+		put(TEXT, text);
+		put("range", rangeSquared);
 	}
 }

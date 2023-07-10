@@ -1,4 +1,4 @@
-/* $Id: Item.java,v 1.50 2011/01/14 14:27:53 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -21,13 +21,13 @@ public class Item extends Entity {
 	 * accessible.
 	 */
 	private RPSlot content;
-	
+
 	/**
 	 * Initialize this entity for an object.
-	 * 
+	 *
 	 * @param object
 	 *            The object.
-	 * 
+	 *
 	 * @see #release()
 	 */
 	@Override
@@ -40,12 +40,12 @@ public class Item extends Entity {
 			content = null;
 		}
 	}
-	
+
 	/**
 	 * Get the content slot.
-	 * 
+	 *
 	 * @return Content slot or <code>null</code> if the item has none or it's
-	 * not accessible. 
+	 * not accessible.
 	 */
 	public RPSlot getContent() {
 		return content;

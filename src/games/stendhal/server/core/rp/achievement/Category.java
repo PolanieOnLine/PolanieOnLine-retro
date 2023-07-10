@@ -1,4 +1,4 @@
-/* $Id: Category.java,v 1.9 2011/11/17 20:53:35 madmetzger Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2010-2010 - Stendhal                    *
  ***************************************************************************
@@ -14,16 +14,24 @@ package games.stendhal.server.core.rp.achievement;
 
 /**
  * categories of achievements
- * 
+ *
  * @author madmetzger
  */
 public enum Category {
 	/** xp points */
-	EXPERIENCE, 
+	EXPERIENCE,
+	/** def level */
+	EXPERIENCE_DEF,
+	/** atk level */
+	EXPERIENCE_ATK,
+	/** ratk level */
+	EXPERIENCE_RATK,
+	/** mining level */
+	EXPERIENCE_MINING,
 	/** fighting and killing creatures */
-	FIGHTING, 
+	FIGHTING,
 	/** solving quests */
-	QUEST, 
+	QUEST,
 	/** visiting groups of outside zones */
 	OUTSIDE_ZONE,
 	/** visiting groups of underground zones */
@@ -31,20 +39,43 @@ public enum Category {
 	/** visiting groups of interior zones */
 	INTERIOR_ZONE,
 	/** age of character */
-	AGE, 
+	AGE,
 	/** looting items */
 	ITEM,
+	/** looting items (sets) */
+	ITEMSETS,
+	/** upgraded items */
+	ITEMUPGRADES,
 	/** getting items */
-	OBTAIN, 
+	OBTAIN,
+	/** buying/selling items */
+	COMMERCE,
 	/** helping others and being friendly */
-	FRIEND, 
+	FRIEND,
 	/** producing items */
-	PRODUCTION, 
+	PRODUCTION,
 	/** ados item quests */
 	QUEST_ADOS_ITEMS,
 	/** semos monster quest */
 	QUEST_SEMOS_MONSTER,
 	/** kirdneh item quest */
-	QUEST_KIRDNEH_ITEM;
-	
+	QUEST_KIRDNEH_ITEM,
+	/** zakopane items quest */
+	QUEST_ZAKOPANE_ITEMS,
+	/** gdansk jewellery quest */
+	QUEST_GDANSK_JEWELLERY,
+	/** kuznice monster quest */
+	QUEST_KUZNICE_MONSTER,
+	/** mithrilbourgh kill enemy army quest */
+	QUEST_MITHRILBOURGH_ENEMY_ARMY,
+	/** kill blordroughs quest */
+	QUEST_KILL_BLORDROUGHS,
+	/** deathmatch related */
+	DEATHMATCH,
+	/** pets weight **/
+	WEIGHT,
+	/** rebirths **/
+	REBORN,
+	/** złote ciupagi **/
+	ZLOTE_CIUPAGI;
 }

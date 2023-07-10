@@ -1,4 +1,4 @@
-/* $Id: FireFactory.java,v 1.5 2010/09/01 07:26:46 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -20,6 +20,7 @@ import games.stendhal.server.core.config.factory.ConfigurableFactoryContext;
  */
 public class FireFactory implements ConfigurableFactory {
 
+	@Override
 	public Object create(final ConfigurableFactoryContext ctx) {
 		return new Fire(ctx.getRequiredInt("width"),
 				ctx.getRequiredInt("height"));

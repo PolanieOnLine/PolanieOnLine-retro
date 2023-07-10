@@ -1,6 +1,5 @@
-/* $Id: WawelBrama.java,v 1.49 2011/12/11 14:26:23 Legolas Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2010-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -10,8 +9,11 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-// Based on LearnAboutOrbs.
 package games.stendhal.server.maps.quests;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
@@ -25,57 +27,26 @@ import games.stendhal.server.entity.npc.condition.QuestCompletedCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotCompletedCondition;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.List;
-
-/**
- * QUEST: Wawel brama
- * 
- 
- * </ul>
- */
 public class WawelBrama extends AbstractQuest {
-
 	private static final String QUEST_SLOT = "brama_wawel";
-
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
-
-	@Override
-	public List<String> getHistory(final Player player) {
-		final List<String> res = new ArrayList<String>();
-		if (!player.hasQuest(QUEST_SLOT)) {
-			return res;
-		}
-		res.add("Stanąłem przed bramą Wawelu.");
-		final String questState = player.getQuest(QUEST_SLOT);
-		if (questState.equals("done")) {
-			res.add("Mam prawo wejść na teren Zamku i stanąć przed królem.");
-		}
-		return res;
-	}
+	private final SpeakerNPC npc = npcs.get("Strażnik");
 
 	private void step1() {
-		final SpeakerNPC npc = npcs.get("Strażnik");
-
 		npc.add(ConversationStates.ATTENDING,
-			ConversationPhrases.QUEST_MESSAGES, 
+			ConversationPhrases.QUEST_MESSAGES,
 			new QuestNotCompletedCondition(QUEST_SLOT),
-			ConversationStates.QUEST_OFFERED, 
+			ConversationStates.QUEST_OFFERED,
 			"Na teren Wawelu mogą #wejść tylko osoby wyższego stanu.", null);
 
 		npc.add(ConversationStates.ATTENDING,
 			ConversationPhrases.QUEST_MESSAGES,
 			new QuestCompletedCondition(QUEST_SLOT),
-			ConversationStates.ATTENDING, 
+			ConversationStates.ATTENDING,
 			"Chciałbyś #wejść i pokłonić się naszemu Królowi.", null);
 
 		// player interested in wejscie
 		npc.add(ConversationStates.QUEST_OFFERED,
-			Arrays.asList("enter", "wejść", "wejście", "wejścia"), 
+			Arrays.asList("enter", "wejść", "wejście", "wejścia"),
 			new LevelGreaterThanCondition(99),
 			ConversationStates.QUESTION_1,
 			"Jeżeli chcesz przejść to powiedz #tak, nie zapomnij pokłonić się naszemu Królowi",
@@ -83,7 +54,7 @@ public class WawelBrama extends AbstractQuest {
 
 		// player interested in wejscie but level < 99
 		npc.add(ConversationStates.QUEST_OFFERED,
-			Arrays.asList("enter", "wejść", "wejście", "wejścia"), 
+			Arrays.asList("enter", "wejść", "wejście", "wejścia"),
 			new NotCondition(new LevelGreaterThanCondition(99)),
 			ConversationStates.ATTENDING,
 			"Zdobądź sławę jeżeli chcesz pokłonić się naszemu Królowi, to nie miejsce dla chłopów i kmieci.",
@@ -108,26 +79,44 @@ public class WawelBrama extends AbstractQuest {
 		npc.add(ConversationStates.QUESTION_1, ConversationPhrases.NO_MESSAGES,
 			null, ConversationStates.QUESTION_1,
 			"Cóż musisz stanąć obok. Podejdź bliżej i powiedz #wejście.", null);
-
 	}
 
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
-			"Straż przed Bramą na Wawel.",
-			"Strażnik Sprawdza kto może wejść na teren zamku. Wpuszcza od 100 poziomu.",
+			"Brama Wawel",
+			"Strażnik sprawdza kto może wejść na teren zamku. Wpuszcza od 100 poziomu.",
 			false);
 
 		step1();
 	}
 
 	@Override
-	public String getName() {
-		return "WawelBrama";
+	public List<String> getHistory(final Player player) {
+		final List<String> res = new ArrayList<String>();
+		if (!player.hasQuest(QUEST_SLOT)) {
+			return res;
+		}
+		res.add("Stanąłem przed bramą Wawelu.");
+		final String questState = player.getQuest(QUEST_SLOT);
+		if (questState.equals("done")) {
+			res.add("Mam prawo wejść na teren Zamku i stanąć przed królem.");
+		}
+		return res;
 	}
+
+	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
+	}
+
+	@Override
+	public String getName() {
+		return "Brama Wawel";
+	}
+
 	@Override
 	public String getNPCName() {
-		return "Strażnik";
+		return npc.getName();
 	}
 }

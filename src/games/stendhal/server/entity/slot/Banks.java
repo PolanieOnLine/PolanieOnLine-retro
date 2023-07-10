@@ -1,4 +1,4 @@
-/* $Id: Banks.java,v 1.11 2010/09/19 01:11:24 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -14,22 +14,28 @@ package games.stendhal.server.entity.slot;
 
 /**
  * List of banks.
- * 
+ *
  * @author hendrik
  */
 public enum Banks {
+	/** private vault. */
+	VAULT("vault"),
 	/** bank in Semos. */
 	SEMOS("bank"),
 	/** bank in Ados. */
 	ADOS("bank_ados"),
+	/** bank in Deniran */
+	DENIRAN("bank_deniran"),
 	/** bank in Fado. */
 	FADO("bank_fado"),
 	/** bank in Nalwor. */
 	NALWOR("bank_nalwor"),
-	/** bank in TSOH. */
-	TSOH("bank_tsoh"),
 	/** bank in Zakopane. */
 	ZAKOPANE("bank_zakopane"),
+	/** bank in Krakow. */
+	KRAKOW("bank_krakow"),
+	/** bank in Gdansk. */
+	GDANSK("bank_gdansk"),
 	/** mini-bank in zaras house. */
 	ZARAS("zaras_chest_ados");
 
@@ -37,7 +43,7 @@ public enum Banks {
 
 	/**
 	 * Creates a new Bank.
-	 * 
+	 *
 	 * @param slotName
 	 *            the banks name
 	 */
@@ -47,7 +53,7 @@ public enum Banks {
 
 	/**
 	 * Gets the slot name.
-	 * 
+	 *
 	 * @return slotName
 	 */
 	public String getSlotName() {

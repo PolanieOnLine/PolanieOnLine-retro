@@ -1,4 +1,4 @@
-/* $Id: AtlasBrowserLaunchCommand.java,v 1.1 2011/08/04 21:17:04 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -16,6 +16,7 @@ import games.stendhal.client.ClientSingletonRepository;
 import games.stendhal.client.entity.User;
 import games.stendhal.client.gui.BareBonesBrowserLaunch;
 import games.stendhal.client.gui.chatlog.HeaderLessEventLine;
+import games.stendhal.client.update.ClientGameConfiguration;
 import games.stendhal.common.NotificationType;
 
 /**
@@ -23,19 +24,20 @@ import games.stendhal.common.NotificationType;
  *
  * @author hendrik
  */
-public class AtlasBrowserLaunchCommand implements SlashAction{
+class AtlasBrowserLaunchCommand implements SlashAction{
 
 	/**
 	 * Opens the atlas URL at the current position
-	 * 
+	 *
 	 * @param params ignored
 	 * @param remainder ignored
 	 * @return <code>true</code>
 	 */
+	@Override
 	public boolean execute(final String[] params, final String remainder) {
 		StringBuilder url = new StringBuilder();
 		User user = User.get();
-		url.append("http://gra.polskaonline.org/strona/kraina-faiumoni");
+		url.append(ClientGameConfiguration.get("DEFAULT_SERVER_WEB") + "/atlas.html");
 		if (user != null) {
 			url.append("?me=");
 			url.append(user.getZoneName());
@@ -44,7 +46,7 @@ public class AtlasBrowserLaunchCommand implements SlashAction{
 			url.append(".");
 			url.append(Math.round(user.getY()));
 		}
-		
+
 		String urlString = url.toString();
 		ClientSingletonRepository.getUserInterface().addEventLine(new HeaderLessEventLine(
 				"Próbuję otworzyć adres #" + urlString + " w twojej przeglądarce internetowej.",
@@ -55,18 +57,20 @@ public class AtlasBrowserLaunchCommand implements SlashAction{
 
 	/**
 	 * Get the maximum number of formal parameters.
-	 * 
+	 *
 	 * @return The parameter count.
 	 */
+	@Override
 	public int getMaximumParameters() {
 		return 0;
 	}
 
 	/**
 	 * Get the minimum number of formal parameters.
-	 * 
+	 *
 	 * @return The parameter count.
 	 */
+	@Override
 	public int getMinimumParameters() {
 		return 0;
 	}

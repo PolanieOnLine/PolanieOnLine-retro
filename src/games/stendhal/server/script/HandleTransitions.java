@@ -1,5 +1,5 @@
 /***************************************************************************
- *                   (C) Copyright 2003-2012 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -11,6 +11,11 @@
  ***************************************************************************/
 package games.stendhal.server.script;
 
+import java.util.LinkedList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.scripting.ScriptImpl;
 import games.stendhal.server.entity.npc.ConversationStates;
@@ -18,14 +23,9 @@ import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.npc.fsm.Transition;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.LinkedList;
-import java.util.List;
-
-import org.apache.log4j.Logger;
-
 /**
  * Handle transitions of the NPC
- * 
+ *
  * @author yoriy
  */
 public class HandleTransitions extends ScriptImpl {
@@ -43,19 +43,19 @@ public class HandleTransitions extends ScriptImpl {
 				"\tArgumenty: nic\n" +
 				"");
 	}
-	
+
 	@Override
 	public void execute(final Player admin, final List<String> args) {
-		
+
 		Logger.getLogger(this.getClass()).info(
 				"admin: "+admin.getName()+", arguments: "+args.toString());
-		
+
 		// help text
 		if (args.size() < 2) {
 			usage(admin);
 			return;
 		}
-		
+
 		// npc
         final String npc_name = args.get(0);
         if(npc_name.equals("")) {
@@ -66,7 +66,7 @@ public class HandleTransitions extends ScriptImpl {
     	if(npc==null) {
     		admin.sendPrivateText("brak NPCa ("+npc_name+") w grze.");
     	}
-    	
+
         // check command
         String command = args.get(1);
         if(!command.startsWith("-")) {
@@ -75,13 +75,13 @@ public class HandleTransitions extends ScriptImpl {
         } else {
         	command = command.substring(1);
         }
-        
+
         // fill arguments
         List<String> arguments = new LinkedList<String>();
         for(int i=2; i<args.size(); i++) {
         	arguments.add(args.get(i));
         }
-        
+
         // parse command
         if(command.equals("add")) {
         	if(arguments.size()<3) {
@@ -97,9 +97,9 @@ public class HandleTransitions extends ScriptImpl {
         		return;
         	}
         	npc.add(ConversationStates.ANY, trigger, null, ConversationStates.ANY, text, null, label);
-        	admin.sendPrivateText("dodano zmainę.");
+        	admin.sendPrivateText("dodano zmianę.");
         	return;
-        	
+
         } else if(command.equals("del")) {
         	if(arguments.size()<1) {
         		usage(admin);
@@ -109,14 +109,14 @@ public class HandleTransitions extends ScriptImpl {
         	if(label.equals("")) {
         		admin.sendPrivateText("nazwa nie powinna być pusta dla "+command);
         		return;
-        	} 
+        	}
         	if(npc.del(label)) {
         		admin.sendPrivateText("zmiana została usunięta.");
         	} else {
         		admin.sendPrivateText("nie powiodło się usuwanie zmiany.");
         	}
         	return;
-        	
+
         } else if(command.equals("alter")) {
         	if(arguments.size()<3) {
         		usage(admin);
@@ -134,7 +134,7 @@ public class HandleTransitions extends ScriptImpl {
         	npc.del(label);
         	npc.add(ConversationStates.ANY, trigger, null, ConversationStates.ANY, text, null, label);
         	return;
-        	
+
         } else if(command.equals("list")) {
         	// no arguments here
         	StringBuilder sb = new StringBuilder();
@@ -144,7 +144,7 @@ public class HandleTransitions extends ScriptImpl {
         	}
     		admin.sendPrivateText(sb.toString());
     		return;
-    		
+
         } else {
         	admin.sendPrivateText("nieznane polecenie ("+command+")");
         	return;

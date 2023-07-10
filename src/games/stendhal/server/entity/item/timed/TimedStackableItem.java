@@ -1,4 +1,4 @@
-/* $Id: TimedStackableItem.java,v 1.13 2012/06/11 09:26:03 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,18 +12,15 @@
  ***************************************************************************/
 package games.stendhal.server.entity.item.timed;
 
-import games.stendhal.common.grammar.Grammar;
+import java.lang.ref.WeakReference;
+import java.util.Map;
+
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.events.TurnNotifier;
-import games.stendhal.server.core.events.UseListener;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.RPEntity;
 import games.stendhal.server.entity.item.StackableItem;
 import games.stendhal.server.entity.player.Player;
-
-import java.lang.ref.WeakReference;
-import java.util.Map;
-
 import marauroa.common.Log4J;
 import marauroa.common.Logger;
 import marauroa.common.game.RPObject;
@@ -31,11 +28,10 @@ import marauroa.common.game.RPObject;
 /**
  * Abstract base class for a stackable timed item. Extend this class and
  * implement methods useItem(Player) and itemFinished(Player).
- * 
+ *
  * @author johnnnny
  */
-public abstract class TimedStackableItem extends StackableItem implements
-		UseListener {
+public abstract class TimedStackableItem extends StackableItem {
 
 	private static Logger logger = Log4J.getLogger(TimedStackableItem.class);
 
@@ -43,7 +39,7 @@ public abstract class TimedStackableItem extends StackableItem implements
 
 	/**
 	 * Creates a TimedItem.
-	 * 
+	 *
 	 * @param name
 	 * @param clazz
 	 * @param subclass
@@ -56,7 +52,7 @@ public abstract class TimedStackableItem extends StackableItem implements
 
 	/**
 	 * copy constructor.
-	 * 
+	 *
 	 * @param item
 	 *            item to copy
 	 */
@@ -64,6 +60,7 @@ public abstract class TimedStackableItem extends StackableItem implements
 		super(item);
 	}
 
+	@Override
 	public boolean onUsed(final RPEntity user) {
 		boolean result = false;
 
@@ -72,20 +69,20 @@ public abstract class TimedStackableItem extends StackableItem implements
 
 			RPObject base = getBaseContainer();
 
-		if (user.nextTo((Entity) base)) {
+			if (user.nextTo((Entity) base)) {
 				if (useItem(userplayer)) {
-				/* set the timer for the duration */
-				final TurnNotifier notifier = SingletonRepository.getTurnNotifier();
-				notifier.notifyInTurns(getAmount(), this);
+					/* set the timer for the duration */
+					final TurnNotifier notifier = SingletonRepository.getTurnNotifier();
+					notifier.notifyInTurns(getAmount(), this);
 					player = new WeakReference<Player>(userplayer);
-				this.removeOne();
-				user.notifyWorldAboutChanges();
+					this.removeOne();
+					user.notifyWorldAboutChanges();
+				}
+				result = true;
+			} else {
+				user.sendPrivateText(getTitle() + " jest zbyt daleko");
+				logger.debug(getTitle() + " is too far away");
 			}
-			result = true;
-		} else {
-			user.sendPrivateText(getTitle() + " jest zbyt daleko");
-			logger.debug(getTitle() + " is too far away");
-		}
 		} else {
 			logger.error("user is no instance of Player but: " + user, new Throwable());
 		}
@@ -100,7 +97,7 @@ public abstract class TimedStackableItem extends StackableItem implements
 
 	@Override
 	public String describe() {
-		String text = "Oto " + Grammar.a_noun(getTitle()) + ".";
+		String text = "Oto " + getTitle() + ".";
 		if (hasDescription()) {
 			text = getDescription();
 		}
@@ -109,7 +106,7 @@ public abstract class TimedStackableItem extends StackableItem implements
 
 		if (isBound()) {
 			text = text + " Oto specjalna nagroda dla " + boundTo
-					+ " za wykonanie zadania, która nie może być używana przez innych.";
+					+ ", która nie może być używana przez innych.";
 		}
 
 		return text;
@@ -117,7 +114,7 @@ public abstract class TimedStackableItem extends StackableItem implements
 
 	/**
 	 * Get the length of the timed event in turns.
-	 * 
+	 *
 	 * @return length in turns
 	 */
 	public int getAmount() {
@@ -126,7 +123,7 @@ public abstract class TimedStackableItem extends StackableItem implements
 
 	/**
 	 * Called when the player uses the item. Implement this in a subclass.
-	 * 
+	 *
 	 * @param player
 	 * @return true if the usage is successful
 	 */
@@ -134,7 +131,7 @@ public abstract class TimedStackableItem extends StackableItem implements
 
 	/**
 	 * Called when the used item is finished. Implement this in a subclass.
-	 * 
+	 *
 	 * @param player
 	 */
 	public abstract void itemFinished(Player player);

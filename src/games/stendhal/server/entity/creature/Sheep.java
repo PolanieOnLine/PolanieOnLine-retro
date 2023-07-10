@@ -1,4 +1,4 @@
-/* $Id: Sheep.java,v 1.111 2011/01/03 18:34:02 kymara Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -12,15 +12,7 @@
  ***************************************************************************/
 package games.stendhal.server.entity.creature;
 
-import games.stendhal.common.Rand;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.core.pathfinder.FixedPath;
-import games.stendhal.server.core.pathfinder.Node;
-import games.stendhal.server.core.pathfinder.Path;
-import games.stendhal.server.entity.Entity;
-import games.stendhal.server.entity.mapstuff.spawner.SheepFood;
-import games.stendhal.server.entity.player.Player;
-
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -28,12 +20,20 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
+
+import games.stendhal.common.Rand;
+import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.core.pathfinder.FixedPath;
+import games.stendhal.server.core.pathfinder.Node;
+import games.stendhal.server.core.pathfinder.Path;
+import games.stendhal.server.entity.Killer;
+import games.stendhal.server.entity.mapstuff.spawner.SheepFood;
+import games.stendhal.server.entity.player.Player;
+import marauroa.common.game.Definition.Type;
 import marauroa.common.game.RPClass;
 import marauroa.common.game.RPObject;
 import marauroa.common.game.SyntaxException;
-import marauroa.common.game.Definition.Type;
-
-import org.apache.log4j.Logger;
 
 /**
  * A sheep is a domestic animal that can be owned by a player. It eats berries
@@ -47,6 +47,8 @@ public class Sheep extends DomesticAnimal {
 
 	/** the logger instance. */
 	private static final Logger logger = Logger.getLogger(Sheep.class);
+	private static final List<String> largeSheepSounds = Arrays.asList("sheep-01", "sheep-02", "sheep-03", "sheep-04");
+	private static final List<String> smallSheepSounds = Arrays.asList("lamb-01", "lamb-02");
 
 	/**
 	 * The amount of hunger that indicates hungry.
@@ -111,11 +113,12 @@ public class Sheep extends DomesticAnimal {
 
 		// set the default movement range
 		setMovementRange(20);
+		updateSoundList();
 	}
 
 	/**
 	 * Creates a new Sheep that is owned by a player.
-	 * @param owner
+	 * @param owner owning player, or <code>null</code>
 	 */
 	public Sheep(final Player owner) {
 		super();
@@ -123,11 +126,8 @@ public class Sheep extends DomesticAnimal {
 		setRPClass("sheep");
 		put("type", "sheep");
 
-		setAtk(ATK);
-		setDef(DEF);
-		setXP(XP);
 		initHP(HP);
-		baseSpeed = 0.25;
+		setUp();
 		hunger = 0;
 		timingAdjust = Rand.rand(10);
 
@@ -136,8 +136,9 @@ public class Sheep extends DomesticAnimal {
 			owner.getZone().add(this);
 			owner.setSheep(this);
 		}
-		
+
 		update();
+		updateSoundList();
 		logger.debug("Created Sheep: " + this);
 	}
 
@@ -145,7 +146,7 @@ public class Sheep extends DomesticAnimal {
 	 * Creates a Sheep based on an existing sheep RPObject, and assigns it to a
 	 * player.
 	 *
-	 * @param object
+	 * @param object object containing the data for the sheep
 	 * @param owner
 	 *            The player who should own the sheep
 	 */
@@ -154,7 +155,6 @@ public class Sheep extends DomesticAnimal {
 
 		setRPClass("sheep");
 		put("type", "sheep");
-		baseSpeed = 0.25;
 		hunger = 0;
 		timingAdjust = Rand.rand(10);
 
@@ -165,7 +165,18 @@ public class Sheep extends DomesticAnimal {
 		}
 
 		update();
+		updateSoundList();
 		logger.debug("Created Sheep: " + this);
+	}
+
+	@Override
+	void setUp() {
+		setHP(HP);
+		setAtk(ATK);
+		setDef(DEF);
+		setXP(XP);
+		incHP = 5;
+		baseSpeed = 0.25;
 	}
 
 	/**
@@ -173,10 +184,8 @@ public class Sheep extends DomesticAnimal {
 	 *
 	 */
 	@Override
-	public void onDead(final Entity killer, final boolean remove) {
-
+	public void onDead(final Killer killer, final boolean remove) {
 		cleanUpSheep();
-
 		super.onDead(killer, remove);
 	}
 
@@ -211,7 +220,7 @@ public class Sheep extends DomesticAnimal {
 			}
 		}
 		Collections.sort(resultList, new Comparator<SheepFood>() {
-
+			@Override
 			public int compare(final SheepFood o1, final SheepFood o2) {
 				return Double.compare(squaredDistance(o1), squaredDistance(o2));
 
@@ -255,17 +264,18 @@ public class Sheep extends DomesticAnimal {
 			if (food.nextTo(this)) {
 				logger.debug("Sheep eats");
 				setIdea("eat");
+				maybeMakeSound(15);
 				eat(food);
 				clearPath();
 				stop();
 				return true;
 			} else {
-
 				final List<Node> path = Path.searchPath(this, food, 6 * 6);
 				if (path.size() != 0) {
 
 					logger.debug("Sheep moves to food");
 					setIdea("food");
+					maybeMakeSound(20);
 
 					setPath(new FixedPath(path, false));
 					return true;
@@ -291,6 +301,7 @@ public class Sheep extends DomesticAnimal {
 			if (((turn % 15) == 0) && isEnemyNear(getPerceptionRange())) {
 				logger.debug("Sheep (ownerless) moves randomly");
 				setIdea("walk");
+				maybeMakeSound(20);
 				moveRandomly();
 			} else {
 				logger.debug("Sheep sleeping");
@@ -301,10 +312,12 @@ public class Sheep extends DomesticAnimal {
 			 * An extremely hungry sheep becomes agitated
 			 */
 			setIdea("food");
+			maybeMakeSound(20);
 			setRandomPathFrom(owner.getX(), owner.getY(), getMovementRange());
 			setSpeed(getBaseSpeed());
 		} else if (!nextTo(owner)) {
 			moveToOwner();
+			maybeMakeSound(20);
 		} else {
 			if ((turn % 100) == 0) {
 				logger.debug("Sheep is bored");
@@ -323,6 +336,7 @@ public class Sheep extends DomesticAnimal {
 	protected void onStarve() {
 		if (weight > 0) {
 			setWeight(weight - 1);
+			updateSoundList();
 		} else {
 			delayedDamage(1, "starvation");
 		}
@@ -344,9 +358,13 @@ public class Sheep extends DomesticAnimal {
 
 			if (weight < MAX_WEIGHT) {
 				setWeight(weight + 1);
+				updateSoundList();
+			}
+			if (owner != null) {
+				SingletonRepository.getAchievementNotifier().onPet(owner);
 			}
 
-			heal(5);
+			heal(incHP);
 			hunger = 0;
 		}
 	}
@@ -360,18 +378,16 @@ public class Sheep extends DomesticAnimal {
 	 */
 	@Override
 	public void logic() {
-
 		if (!getZone().getPlayers().isEmpty()) {
 			hunger++;
 		}
-
-		
 
 		/*
 		 * Allow owner to call sheep (will override other reactions)
 		 */
 		if (isOwnerCallingMe()) {
 			moveToOwner();
+			maybeMakeSound(20);
 		} else if (stopped()) {
 			/*
 			 * Hungry?
@@ -394,11 +410,22 @@ public class Sheep extends DomesticAnimal {
 
 		}
 
-		
+
 		applyMovement();
 
 
 		notifyWorldAboutChanges();
+	}
+
+	/**
+	 * Update the available sound list according to sheep weight.
+	 */
+	private void updateSoundList() {
+		if (getWeight() > 50) {
+			setSounds(largeSheepSounds);
+		} else {
+			setSounds(smallSheepSounds);
+		}
 	}
 
 	//

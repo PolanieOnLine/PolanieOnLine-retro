@@ -1,6 +1,5 @@
-/* $Id: ClientSingletonRepository.java,v 1.5 2012/07/13 05:56:12 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,22 +11,24 @@
  ***************************************************************************/
 package games.stendhal.client;
 
+import games.stendhal.client.gui.ScreenController;
 import games.stendhal.client.gui.UserInterface;
 import games.stendhal.client.sound.facade.SoundSystemFacade;
+import games.stendhal.client.sprite.EmojiStore;
+import games.stendhal.client.sprite.SpriteStore;
 import marauroa.client.ClientFramework;
 
 /**
- * keeps instances of singletons that may depend on the context
+ * Keeps instances of singletons that may depend on the context
  *
  * @author hendrik
  */
 public class ClientSingletonRepository {
-
 	private static ClientFramework clientFramework;
 	private static UserInterface userInterface;
 
 	/**
-	 * gets the ClientFramework
+	 * Gets the ClientFramework
 	 *
 	 * @return ClientFramework
 	 */
@@ -37,7 +38,7 @@ public class ClientSingletonRepository {
 
 
 	/**
-	 * sets the ClientFramework
+	 * Sets the ClientFramework
 	 *
 	 * @param clientFramework ClientFramework
 	 */
@@ -47,7 +48,7 @@ public class ClientSingletonRepository {
 
 
 	/**
-	 * gets the user interface
+	 * Gets the user interface
 	 *
 	 * @return UserInterface
 	 */
@@ -56,7 +57,7 @@ public class ClientSingletonRepository {
 	}
 
 	/**
-	 * sets the user interface
+	 * Sets the user interface
 	 *
 	 * @param userInterface UserInterface
 	 */
@@ -65,11 +66,32 @@ public class ClientSingletonRepository {
 	}
 
 	/**
-	 * gets the sound system
+	 * Gets the screen controller.
+	 *
+	 * @return
+	 *     ScreenController instance.
+	 */
+	public static ScreenController getScreenController() {
+		return ScreenController.get();
+	}
+
+	/**
+	 * Gets the sound system
 	 *
 	 * @return SoundSystemFacade
 	 */
 	public static SoundSystemFacade getSound() {
 		return userInterface.getSoundSystemFacade();
+	}
+
+	public static SpriteStore getSpriteStore() {
+		return SpriteStore.get();
+	}
+
+	/**
+	 * Emoji sprites data.
+	 */
+	public static EmojiStore getEmojiStore() {
+		return EmojiStore.get();
 	}
 }

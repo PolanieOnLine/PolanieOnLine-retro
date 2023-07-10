@@ -1,4 +1,4 @@
-/* $Id: ImageViewPanel.java,v 1.17 2010/10/04 20:32:55 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -23,18 +23,14 @@ import org.apache.log4j.Logger;
 
 /**
  * A JPanel to be viewed from an ImageViewWindow.
- * 
+ *
  * @author timothyb89
  */
-public class ImageViewPanel extends ViewPanel {
+class ImageViewPanel extends ViewPanel {
+	private static final Logger logger = Logger.getLogger(ImageViewPanel.class);
 
-	/**
-	 * serial version uid
-	 */
-	private static final long serialVersionUID = 7018901196859465211L;
-
-	public static final String FONT_COLOR = "#FFFFFF";
-	public static final String FONT_SIZE = "5";
+	private static final String FONT_COLOR = "#FFFFFF";
+	private static final String FONT_SIZE = "5";
 	/**
 	 * The image to be displayed.
 	 */
@@ -43,7 +39,7 @@ public class ImageViewPanel extends ViewPanel {
 	private final URL url;
 	private final String caption;
 
-	public ImageViewPanel(final URL url, final String caption) {
+	ImageViewPanel(final URL url, final String caption) {
 		this.url = url;
 		this.caption = caption;
 	}
@@ -63,7 +59,7 @@ public class ImageViewPanel extends ViewPanel {
 			// maybe there's a better way?
 			image = ImageIO.read(url);
 		} catch (final Exception e) {
-			Logger.getLogger(ImageViewPanel.class).error(e, e);
+			logger.error("Failed to read image from '" + url + "'", e);
 		}
 	}
 
@@ -90,10 +86,10 @@ public class ImageViewPanel extends ViewPanel {
 					+ FONT_SIZE + "\">" + caption + "</big></i></b><br>";
 		}
 
-		
+
 		final String img = "<img width=" + width + " height=" + height + " src="
 					+ url.toString() + ">";
-		
+
 		final String text = "<html>" + htmlCaption + img;
 		final JLabel imageLabel = new JLabel(text);
 

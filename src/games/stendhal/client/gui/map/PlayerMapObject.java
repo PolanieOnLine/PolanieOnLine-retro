@@ -1,4 +1,4 @@
-/* $Id: PlayerMapObject.java,v 1.9 2012/04/06 19:36:32 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -21,7 +21,7 @@ import games.stendhal.client.entity.Player;
 import games.stendhal.client.entity.RPEntity;
 import games.stendhal.client.entity.User;
 
-public class PlayerMapObject extends RPEntityMapObject {
+class PlayerMapObject extends RPEntityMapObject {
 	/**
 	 * The color of the player (blue).
 	 */
@@ -38,19 +38,20 @@ public class PlayerMapObject extends RPEntityMapObject {
 	 * The color of ghostmode players, if visible (gray).
 	 */
 	private static final Color COLOR_GHOST = Color.GRAY;
-	
-	public PlayerMapObject(final IEntity entity) {
+
+	PlayerMapObject(final IEntity entity) {
 		super(entity);
-		
+
 		if (entity instanceof User) {
 			drawColor = COLOR_USER;
 		} else if (entity instanceof Player) {
 			final Player player = (Player) entity;
 
 			choosePlayerColor(player);
-			
+
 			// Follow the ghost mode changes of other players
 			entity.addChangeListener(new EntityChangeListener<IEntity>() {
+				@Override
 				public void entityChanged(final IEntity entity, final Object property) {
 					if ((property == RPEntity.PROP_GHOSTMODE) || (property == RPEntity.PROP_GROUP_MEMBERSHIP)) {
 						choosePlayerColor(player);
@@ -59,18 +60,18 @@ public class PlayerMapObject extends RPEntityMapObject {
 			});
 		}
 	}
-	
+
 	@Override
-	public void draw(final Graphics g, final int scale) {
+	void draw(final Graphics g, final int scale) {
 		if ((drawColor != COLOR_GHOST) || User.isAdmin()) {
 			super.draw(g, scale);
 		}
 	}
-	
+
 	/**
 	 * Select a color for drawing the player depending on
 	 * ghostmode status.
-	 * 
+	 *
 	 * @param player
 	 */
 	private void choosePlayerColor(final Player player) {
@@ -84,16 +85,16 @@ public class PlayerMapObject extends RPEntityMapObject {
 			}
 		}
 	}
-	
+
 	/**
 	 * Draws a player using given color.
-	 * 
+	 *
 	 * @param g The graphics context
 	 * @param scale Scaling factor
 	 * @param color The draw color
 	 */
 	@Override
-	protected void draw(final Graphics g, final int scale,  final Color color) {
+	void draw(final Graphics g, final int scale,  final Color color) {
 		int mapX = worldToCanvas(x, scale);
 		int mapY = worldToCanvas(y, scale);
 		final int scale_2 = scale / 2;

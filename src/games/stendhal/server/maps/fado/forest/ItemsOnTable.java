@@ -21,6 +21,7 @@ import java.util.Map;
  * Creates a slim and an eared bottle on the counter in front of the small hut.
  */
 public class ItemsOnTable implements ZoneConfigurator {
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildOutsideHutArea(zone);
 	}
@@ -30,7 +31,7 @@ public class ItemsOnTable implements ZoneConfigurator {
         // grower for a slim bottle (1h)
 		final PassiveEntityRespawnPoint bottleGrower1 = new PassiveEntityRespawnPoint("wąska butelka", 12000);
 		bottleGrower1.setPosition(48, 28);
-		bottleGrower1.setDescription("Wygląda na miejsce, gdzie można znaleść butelkę.");
+		bottleGrower1.setDescription("Wygląda na miejsce, gdzie można znaleźć butelkę.");
 		zone.add(bottleGrower1);
 
 		bottleGrower1.setToFullGrowth();
@@ -38,7 +39,7 @@ public class ItemsOnTable implements ZoneConfigurator {
         // grower for an eared bottle (1h)
 		final PassiveEntityRespawnPoint bottleGrower2 = new PassiveEntityRespawnPoint("butla czwórniaczka", 12000);
 		bottleGrower2.setPosition(49, 31);
-		bottleGrower2.setDescription("Wygląda na miejsce, gdzie można znaleść butelkę.");
+		bottleGrower2.setDescription("Wygląda na miejsce, gdzie można znaleźć butelkę.");
 		zone.add(bottleGrower2);
 
 		bottleGrower2.setToFullGrowth();

@@ -1,6 +1,5 @@
-/* $Id: CollectRequestedItemsAction.java,v 1.14 2012/09/09 12:19:56 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,7 +11,11 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.action;
 
-import games.stendhal.common.grammar.Grammar;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Arrays;
+import java.util.List;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
 import games.stendhal.server.core.config.annotations.Dev.Category;
@@ -22,11 +25,6 @@ import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.util.ItemCollection;
-
-import java.util.List;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * handles item lists a player has to bring for a quest
@@ -43,6 +41,7 @@ public final class CollectRequestedItemsAction implements ChatAction {
 	private final ChatAction toExecuteOnCompletion;
 	private final String questSlot;
 	private final ConversationStates stateAfterCompletion;
+	private final int position;
 
 	/**
 	 * create a new CollectRequestedItemsAction
@@ -55,20 +54,33 @@ public final class CollectRequestedItemsAction implements ChatAction {
 	 * @param stateAfterCompletion state to change to after completion
 	 */
 	public CollectRequestedItemsAction(String itemName, String quest, String questionForMore, String alreadyBrought, ChatAction completionAction, ConversationStates stateAfterCompletion) {
-		this.itemName = itemName;
-		this.questSlot = quest;
-		this.questionForMore = questionForMore;
-		this.alreadyBrought = alreadyBrought;
-		this.toExecuteOnCompletion = completionAction;
-		this.stateAfterCompletion = stateAfterCompletion;
+		this.itemName = checkNotNull(itemName);
+		this.questSlot = checkNotNull(quest);
+		this.questionForMore = checkNotNull(questionForMore);
+		this.alreadyBrought = checkNotNull(alreadyBrought);
+		this.toExecuteOnCompletion = checkNotNull(completionAction);
+		this.stateAfterCompletion = checkNotNull(stateAfterCompletion);
+		this.position = 0;
 	}
 
+	public CollectRequestedItemsAction(String itemName, String quest, int position, String questionForMore,
+			String alreadyBrought, ChatAction completionAction, ConversationStates stateAfterCompletion) {
+		this.itemName = checkNotNull(itemName);
+		this.questSlot = checkNotNull(quest);
+		this.questionForMore = checkNotNull(questionForMore);
+		this.alreadyBrought = checkNotNull(alreadyBrought);
+		this.toExecuteOnCompletion = checkNotNull(completionAction);
+		this.stateAfterCompletion = checkNotNull(stateAfterCompletion);
+		this.position = position;
+	}
+
+	@Override
 	public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 		ItemCollection missingItems = getMissingItems(player);
 		final Integer missingCount = missingItems.get(itemName);
 
 		if ((missingCount != null) && (missingCount > 0)) {
-			if (dropItems(player, itemName, missingCount)) {
+			if (dropItems(player, missingCount)) {
 				missingItems = getMissingItems(player);
 
 				if (missingItems.size() > 0) {
@@ -78,7 +90,7 @@ public final class CollectRequestedItemsAction implements ChatAction {
 					raiser.setCurrentState(this.stateAfterCompletion);
 				}
 			} else {
-				raiser.say("Nie masz przy sobie " + Grammar.a_noun(itemName) + "!");
+				raiser.say("Nie masz przy sobie " + itemName + "!");
 			}
 		} else {
 			raiser.say(alreadyBrought);
@@ -89,18 +101,18 @@ public final class CollectRequestedItemsAction implements ChatAction {
 	 * Drop specified amount of given item. If player doesn't have enough items,
 	 * all carried ones will be dropped and number of missing items is updated.
 	 *
-	 * @param player
-	 * @param itemName
-	 * @param itemCount
+	 * @param player    player
+	 * @param itemCount count
 	 * @return true if something was dropped
 	 */
-	boolean dropItems(final Player player, final String itemName, int itemCount) {
+	boolean dropItems(final Player player, int itemCount) {
 		boolean result = false;
 
 		// parse the quest state into a list of still missing items
 		final ItemCollection itemsTodo = new ItemCollection();
 
-		itemsTodo.addFromQuestStateString(player.getQuest(questSlot));
+		String questState = player.getQuest(questSlot);
+		itemsTodo.addFromQuestStateString(questState, position);
 
 		if (player.drop(itemName, itemCount)) {
 			if (itemsTodo.removeItem(itemName, itemCount)) {
@@ -135,7 +147,10 @@ public final class CollectRequestedItemsAction implements ChatAction {
 
 		 // update the quest state if some items are handed over
 		if (result) {
-			player.setQuest(questSlot, itemsTodo.toStringForQuestState());
+			// preserve slots preceding indexed position
+			questState = String.join(";", Arrays.copyOfRange(questState.split(";"), 0, position))
+				+ ";" + itemsTodo.toStringForQuestState();
+			player.setQuest(questSlot, questState);
 		}
 
 		return result;
@@ -150,20 +165,35 @@ public final class CollectRequestedItemsAction implements ChatAction {
 	ItemCollection getMissingItems(final Player player) {
 		final ItemCollection missingItems = new ItemCollection();
 
-		missingItems.addFromQuestStateString(player.getQuest(questSlot));
+		missingItems.addFromQuestStateString(player.getQuest(questSlot), position);
 
 		return missingItems;
 	}
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 5051 * (itemName.hashCode()
+				+ 5059 * (questSlot.hashCode()
+				+ 5077 * (questionForMore.hashCode()
+				+ 5081 * (alreadyBrought.hashCode()
+				+ 5087 * (toExecuteOnCompletion.hashCode()
+				+ 5099 * stateAfterCompletion.hashCode()))))
+				* position);
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				CollectRequestedItemsAction.class);
+		if (!(obj instanceof CollectRequestedItemsAction)) {
+			return false;
+		}
+		CollectRequestedItemsAction other = (CollectRequestedItemsAction) obj;
+		return itemName.equals(other.itemName)
+			&& questSlot.equals(other.questSlot)
+			&& questionForMore.equals(other.questionForMore)
+			&& alreadyBrought.equals(other.alreadyBrought)
+			&& toExecuteOnCompletion.equals(other.toExecuteOnCompletion)
+			&& stateAfterCompletion.equals(other.stateAfterCompletion)
+			&& position == other.position;
 	}
 
 	@Override

@@ -1,4 +1,4 @@
-/* $Id: TradeStateChangeEvent.java,v 1.6 2010/10/15 06:53:25 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +12,8 @@
  ***************************************************************************/
 package games.stendhal.client.events;
 
+import org.apache.log4j.Logger;
+
 import games.stendhal.client.GameObjects;
 import games.stendhal.client.entity.IEntity;
 import games.stendhal.client.entity.RPEntity;
@@ -19,14 +21,12 @@ import games.stendhal.client.gui.trade.TradingController;
 import games.stendhal.common.TradeState;
 import marauroa.common.game.RPObject;
 
-import org.apache.log4j.Logger;
-
 /**
  * adjust the player to player trade state
  *
  * @author hendrik
  */
-public class TradeStateChangeEvent extends Event<RPEntity> {
+class TradeStateChangeEvent extends Event<RPEntity> {
 	private static Logger logger = Logger.getLogger(TradeStateChangeEvent.class);
 
 	/**
@@ -38,16 +38,16 @@ public class TradeStateChangeEvent extends Event<RPEntity> {
 			IEntity partner = findPartner();
 			TradeState myState = TradeState.valueOf(event.get("user_trade_state"));
 			TradeState partnerState = TradeState.valueOf(event.get("partner_trade_state"));
-			
+
 			TradingController.get().setState(entity, partner, myState, partnerState);
 		} catch (RuntimeException e) {
 			logger.error("Failed to process trade state change. Event: " + event, e);
 		}
 	}
-	
+
 	/**
 	 * Find the trading partner.
-	 * 
+	 *
 	 * @return trading partner
 	 */
 	private IEntity findPartner() {

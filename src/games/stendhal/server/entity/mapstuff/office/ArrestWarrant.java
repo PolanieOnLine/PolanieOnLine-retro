@@ -1,4 +1,4 @@
-/* $Id: ArrestWarrant.java,v 1.17 2012/09/15 14:12:40 kymara Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2011 - Stendhal                    *
  ***************************************************************************
@@ -14,9 +14,9 @@ package games.stendhal.server.entity.mapstuff.office;
 
 import games.stendhal.server.entity.Entity;
 import marauroa.common.game.Definition;
+import marauroa.common.game.Definition.Type;
 import marauroa.common.game.RPClass;
 import marauroa.common.game.RPObject;
-import marauroa.common.game.Definition.Type;
 
 /**
  * are persistent arrest warrant.
@@ -63,7 +63,7 @@ public class ArrestWarrant extends Entity implements StorableEntity {
 	}
 
 	/**
-	 * creates an ArrestWarrant based on a deserialized RPObject; 
+	 * creates an ArrestWarrant based on a deserialized RPObject;
 	 * use the other constructor.
 	 *
 	 * @param rpobject RPObject

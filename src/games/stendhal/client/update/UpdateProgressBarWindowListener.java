@@ -1,14 +1,14 @@
 /***************************************************************************
  *                   (C) Copyright 2003-2011 - Stendhal                    *
-	 ***************************************************************************
-	 ***************************************************************************
-	 *                                                                         *
-	 *   This program is free software; you can redistribute it and/or modify  *
-	 *   it under the terms of the GNU General Public License as published by  *
-	 *   the Free Software Foundation; either version 2 of the License, or     *
-	 *   (at your option) any later version.                                   *
-	 *                                                                         *
-	 ***************************************************************************/
+ ***************************************************************************
+ ***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
 package games.stendhal.client.update;
 
 import java.awt.event.WindowEvent;
@@ -19,8 +19,9 @@ import javax.swing.JOptionPane;
 /**
  * Ask for confirmation and exists the JVM if the user closes the progress bar window.
  */
-public class UpdateProgressBarWindowListener implements WindowListener {
+class UpdateProgressBarWindowListener implements WindowListener {
 
+	@Override
 	public void windowOpened(WindowEvent e) {
 		// do nothing
 	}
@@ -28,6 +29,7 @@ public class UpdateProgressBarWindowListener implements WindowListener {
 	/**
 	 * Ask for confirmation and closes the JVM
 	 */
+	@Override
 	public void windowClosing(WindowEvent e) {
 		int result = JOptionPane.showConfirmDialog(e.getWindow(),
 				"Czy chcesz przerwać pobieranie?", "Potwierdzenie",
@@ -38,22 +40,27 @@ public class UpdateProgressBarWindowListener implements WindowListener {
 		}
 	}
 
+	@Override
 	public void windowClosed(WindowEvent e) {
 		// do nothing
 	}
 
+	@Override
 	public void windowIconified(WindowEvent e) {
 		// do nothing
 	}
 
+	@Override
 	public void windowDeiconified(WindowEvent e) {
 		// do nothing
 	}
 
+	@Override
 	public void windowActivated(WindowEvent e) {
 		// do nothing
 	}
 
+	@Override
 	public void windowDeactivated(WindowEvent e) {
 		// do nothing
 	}

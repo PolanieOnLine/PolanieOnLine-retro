@@ -1,4 +1,4 @@
-/* $Id: StringUtils.java,v 1.13 2010/09/19 02:36:29 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -86,7 +86,7 @@ public class StringUtils {
     	return substitute(string, map);
     }
 
-	
+
     /**
      * Replaces [variables] in a string
      *
@@ -98,7 +98,7 @@ public class StringUtils {
     	if (params == null) {
     		return string;
     	}
-        StringBuffer res = new StringBuffer();
+        StringBuilder res = new StringBuilder();
         StringTokenizer st = new StringTokenizer(string, "[]", true);
         String lastToken = "";
         while (st.hasMoreTokens()) {
@@ -121,4 +121,48 @@ public class StringUtils {
         }
         return res.toString();
     }
+
+    /**
+     * Converts a string to title case. Example: "hello world" is converted to "Hello World"
+     *
+     * @param st
+     * 		String to be formatted.
+     * @return
+     * 		Title case formatted string.
+     */
+	public static String titleize(final String st) {
+		final StringBuilder titleized = new StringBuilder();
+		boolean nextTitleCase = true;
+
+		for (char c: st.toCharArray()) {
+			if (Character.isSpaceChar(c)) {
+				nextTitleCase = true;
+			} else if (nextTitleCase) {
+				c = Character.toTitleCase(c);
+				nextTitleCase = false;
+			}
+
+			titleized.append(c);
+		}
+
+		return titleized.toString();
+	}
+
+	/**
+	 * trims a string to the specified size. It will not throw an error, if the string is already short enough.
+	 *
+	 * @param string string to trim down
+	 * @param size size
+	 * @return trimmed string
+	 */
+	public static String trimTo(String string, int size) {
+		if (string == null) {
+			return null;
+		}
+		String res = string.trim();
+		if (res.length() > size) {
+			return res.substring(0, size);
+		}
+		return res;
+	}
 }

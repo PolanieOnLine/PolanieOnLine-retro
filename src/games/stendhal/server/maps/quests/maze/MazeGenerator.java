@@ -1,4 +1,3 @@
-/* $Id: MazeGenerator.java,v 1.16 2012/08/02 18:54:53 kiheru Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -39,11 +38,14 @@ import games.stendhal.server.util.TimeUtil;
 import java.awt.Point;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 import marauroa.common.game.RPObject;
+import marauroa.server.db.command.DBCommandPriority;
 import marauroa.server.db.command.DBCommandQueue;
 
 import org.apache.log4j.Logger;
@@ -171,7 +173,7 @@ public class MazeGenerator {
 
 	/**
 	 * Generate the map.
-	 * 
+	 *
 	 * @param width
 	 * @param height
 	 * @return map
@@ -221,7 +223,7 @@ public class MazeGenerator {
 
 	/**
 	 * Generate random maze collisions.
-	 * 
+	 *
 	 * @param layer collision layer
 	 */
 	private void generateCollisions(LayerDefinition layer) {
@@ -247,7 +249,7 @@ public class MazeGenerator {
 	 * @param layer Collision layer
 	 */
 	private void burrowCave(Point point, LayerDefinition layer) {
-		LinkedList<Point> branchPoints = new LinkedList<Point>();
+		Queue<Point> branchPoints = new LinkedList<Point>();
 		HashSet<Point> visited = new HashSet<Point>();
 		branchPoints.add(point);
 		List<Point> neighbours = getUnvisitedNeighbours(point, visited);
@@ -259,28 +261,16 @@ public class MazeGenerator {
 				branchPoints.add(next);
 
 				// Knock down the wall between
-				int diffx = next.x - point.x;
-				if (diffx != 0) {
-					diffx /= Math.abs(diffx);
-				}
-				int diffy = next.y - point.y;
-				if (diffy != 0) {
-					diffy /= Math.abs(diffy);
-				}
-
+				int diffx = Integer.signum(next.x - point.x);
+				int diffy = Integer.signum(next.y - point.y);
 				for (int i = 1; i <= WALL_THICKNESS; i++) {
 					setCollide(layer, point.x + i * diffx, point.y + i * diffy, false);
 				}
 
 				point = next;
 			} else {
-				branchPoints.remove(point);
-				if (branchPoints.size() > 0) {
 					// branch from the beginning to make nice and long tunnels
-					point = branchPoints.getFirst();
-				} else {
-					point = null;
-				}
+				point = branchPoints.poll();
 			}
 
 			neighbours = getUnvisitedNeighbours(point, visited);
@@ -289,8 +279,8 @@ public class MazeGenerator {
 
 	/**
 	 * Get the unvisited neighbors of a node.
-	 * 
-	 * @param point point whose neighbors should be checked 
+	 *
+	 * @param point point whose neighbors should be checked
 	 * @param visited all visited locations
 	 * @return list of unvisited neighbors
 	 */
@@ -299,7 +289,7 @@ public class MazeGenerator {
 			return null;
 		}
 
-		LinkedList<Point> neighbours = new LinkedList<Point>();
+		List<Point> neighbours = new ArrayList<Point>(4);
 
 		Point left = new Point(point.x - (WALL_THICKNESS +1), point.y);
 		if ((left.x > 0) && !visited.contains(left)) {
@@ -327,7 +317,7 @@ public class MazeGenerator {
 	/**
 	 * Enlarge the corridors at the map corners. Creates the "rooms" for the
 	 * portal and the rewards.
-	 * 
+	 *
 	 * @param layer collision layer
 	 */
 	private void widenCorners(LayerDefinition layer) {
@@ -351,7 +341,7 @@ public class MazeGenerator {
 
 	/**
 	 * Get the map corner locations.
-	 * 
+	 *
 	 * @return map corners
 	 */
 	private List<Point> getCorners() {
@@ -370,7 +360,7 @@ public class MazeGenerator {
 
 	/**
 	 * Get the exit portal location.
-	 * 
+	 *
 	 * @return portal location
 	 */
 	private Point getPortalPosition() {
@@ -386,7 +376,7 @@ public class MazeGenerator {
 
 	/**
 	 * Change the collision at a location.
-	 * 
+	 *
 	 * @param layer collision layer
 	 * @param x x coordinate
 	 * @param y y coordinate
@@ -399,29 +389,29 @@ public class MazeGenerator {
 
 	/**
 	 * Make the zone randomly colored using the soft light blend mode.
-	 *  
+	 *
 	 * @param zone
 	 */
 	private void setRandomlyColored(StendhalRPZone zone) {
 		ZoneAttributes attr = new ZoneAttributes(zone);
-		
+
 		// Random hue, Bright color, Medium lightness
 		float[] hsl = new float[] {(float) Rand.rand(), (float) Rand.rand(), 0.5f};
 		hsl[0] = (float) Rand.rand();
 		int[] argb = new int[4];
 		HSL.hsl2rgb(hsl, argb);
 		int color = ARGB.mergeRgb(argb);
-		
+
 		attr.put("color_method", "softlight");
 		attr.put("color", Integer.toString(color));
-		
+
 		zone.setAttributes(attr);
 	}
 
 	/**
 	 * Generate a random map zone with an exit portal and prizes at the other
 	 * corners
-	 * 
+	 *
 	 * @return zone
 	 */
 	private StendhalRPZone generateZone() {
@@ -503,15 +493,18 @@ public class MazeGenerator {
 			area = new Rectangle2D.Double(0, 0, width, height);
 		}
 
+		@Override
 		public Rectangle2D getArea() {
 			return area;
 		}
 
+		@Override
 		public void onEntered(final ActiveEntity entity, final StendhalRPZone zone, final int newX,
 				final int newY) {
 			// ignore
 		}
 
+		@Override
 		public void onExited(final ActiveEntity entity, final StendhalRPZone zone, final int oldX,
 				final int oldY) {
 			if (!(entity instanceof Player)) {
@@ -535,15 +528,22 @@ public class MazeGenerator {
 			}
 		}
 
+		@Override
 		public void onMoved(final ActiveEntity entity, final StendhalRPZone zone, final int oldX,
 				final int oldY, final int newX, final int newY) {
 			// ignore
+		}
+
+		@Override
+		public void beforeMove(ActiveEntity entity, StendhalRPZone zone,
+				int oldX, int oldY, int newX, int newY) {
+			// does nothing, but is specified in the implemented interface
 		}
 	}
 
 	/**
 	 * Give the player a reward, and notify him.
-	 * 
+	 *
 	 * @param player
 	 */
 	protected void rewardPlayer(Player player) {
@@ -554,11 +554,26 @@ public class MazeGenerator {
 		// Give at least one xp for persistent but hopelessly slow players
 		points = Math.max(points, 1);
 
-		DBCommandQueue.get().enqueue(new WriteHallOfFamePointsCommand(player.getName(), "M", points, true));
+		DBCommandQueue.get().enqueue(new WriteHallOfFamePointsCommand(player.getName(), "M", points, true), DBCommandPriority.LOW);
 		new SetQuestAction("maze", 0, "done").fire(player, null, null);
 		new IncrementQuestAction("maze", 2, 1).fire(player, null, null);
-		player.sendPrivateText("Wyjście z labiryntu zajęło Tobie " + TimeUtil.timeUntil((int) (timediff / 1000), true)
-				+ ". Warte jest to " + Grammar.quantityplnoun(points, "point") + ".");
+
+		final Long oldTime = getBestTime(player);
+		final boolean best = oldTime == null || timediff < oldTime;
+
+		String msg = "Wyjście z labiryntu zajęło Tobie "
+				+ TimeUtil.timeUntil((int) (timediff / 1000), true)
+				+ ". Warte jest to "
+				+ Grammar.quantityplnoun(points, "punkt") + ".";
+		if (best) {
+			setBestTime(player, timediff);
+			if (oldTime != null) {
+				msg += "Pobiłeś swój poprzedni czas o "
+					+ TimeUtil.timeUntil((int) (oldTime / 1000), true) + ".";
+			}
+		}
+		player.sendPrivateText(msg);
+
 		SingletonRepository.getAchievementNotifier().onFinishQuest(player);
 		player.addXP(REWARD_XP);
 	}
@@ -585,10 +600,46 @@ public class MazeGenerator {
 
 	/**
 	 * Access the portal from MazeTest.
-	 * 
+	 *
 	 * @return the exit portal
 	 */
 	public Portal getPortal() {
 		return portal;
+	}
+
+	/**
+	 * Stores completion time in quest slot.
+	 *
+	 * @param player
+	 *     Player for whom time is being stored.
+	 * @param timestamp
+	 *     Time to store.
+	 */
+	private static void setBestTime(final Player player, final long timestamp) {
+		player.setQuest("maze", 3, String.valueOf(timestamp));
+		DBCommandQueue.get().enqueue(new WriteHallOfFamePointsCommand(
+				player.getName(), "MT", (int) timestamp, false), DBCommandPriority.LOW);
+	}
+
+	/**
+	 * Retrieves best time from quest slot.
+	 *
+	 * @param player
+	 *     Player for whom time is being retrieved.
+	 * @return
+	 *     Best maze completion time or <code>null</code> if no best
+	 *     time was previously stored.
+	 */
+	public static Long getBestTime(final Player player) {
+		final String bestTime = player.getQuest("maze", 3);
+		if (bestTime != null && !bestTime.equals("")) {
+			try {
+				return Long.parseLong(bestTime);
+			} catch (final NumberFormatException e) {
+				logger.error("Could not parse best maze time from quest slot");
+			}
+		}
+
+		return null;
 	}
 }

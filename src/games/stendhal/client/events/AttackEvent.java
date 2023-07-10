@@ -1,4 +1,4 @@
-/* $Id: AttackEvent.java,v 1.14 2012/07/11 15:12:45 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -22,7 +22,7 @@ import games.stendhal.common.constants.Nature;
  */
 public class AttackEvent extends Event<RPEntity> {
 	private static final Logger logger = Logger.getLogger(AttackEvent.class);
-	
+
 	@Override
 	public void execute() {
 		Nature dtype;
@@ -33,23 +33,21 @@ public class AttackEvent extends Event<RPEntity> {
 			logger.warn("Unknown damage type: " + idx);
 			dtype = Nature.CUT;
 		}
-		
+
 		RPEntity target = entity.getAttackTarget();
 		if (target != null) {
 			boolean ranged = event.has("ranged");
 			if (event.has("hit")) {
 				int damage = event.getInt("damage");
 				if (damage != 0) {
-					entity.onAttackDamage(dtype, ranged);
 					target.onDamaged(entity, damage);
 				} else {
-					entity.onAttackBlocked(dtype, ranged);
-					target.onBlocked(entity);
+					target.onBlocked();
 				}
 			} else {
-				entity.onAttackMissed(dtype, ranged);
-				target.onMissed(entity);
+				target.onMissed();
 			}
+			entity.onAttackPerformed(dtype, ranged, event.get("weapon"));
 		}
 	}
 }

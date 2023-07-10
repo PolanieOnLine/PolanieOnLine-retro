@@ -1,14 +1,19 @@
-/*
- * $Id: LastMinuteScroll.java,v 1.9 2008/08/27 21:27:25 astridemma Exp $
- */
+/***************************************************************************
+ *                   (C) Copyright 2003-2011 - Stendhal                    *
+ ***************************************************************************
+ ***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
 package games.stendhal.server.entity.item.scroll;
 
-import games.stendhal.common.MathHelper;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.entity.item.Item;
-import games.stendhal.server.entity.player.Player;
-
 import java.util.Map;
+
+import games.stendhal.server.entity.player.Player;
 
 /**
  * Represents the last minute that takes the player to the desert world zone,
@@ -46,7 +51,7 @@ public class LastMinuteScroll extends TimedTeleportScroll {
 	
 	@Override
 	protected String getBeforeReturnMessage() {
-		return "Zaczynasz odczuwać pragnie...";
+		return "Zaczynasz odczuwać pragnienie...";
 	}
 
 	@Override

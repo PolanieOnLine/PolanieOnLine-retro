@@ -1,4 +1,4 @@
-/* $Id: ClearChatLogAction.java,v 1.3 2010/09/24 20:52:18 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -17,18 +17,19 @@ import games.stendhal.client.gui.j2DClient;
 /**
  * clears the event and chat log window
  */
-public class ClearChatLogAction implements SlashAction {
+class ClearChatLogAction implements SlashAction {
 
 	/**
 	 * Execute a chat command.
-	 * 
+	 *
 	 * @param params
 	 *            The formal parameters.
 	 * @param remainder
 	 *            Line content after parameters.
-	 * 
+	 *
 	 * @return <code>true</code> if was handled.
 	 */
+	@Override
 	public boolean execute(final String[] params, final String remainder) {
 		j2DClient.get().clearGameLog();
 		return true;
@@ -36,18 +37,20 @@ public class ClearChatLogAction implements SlashAction {
 
 	/**
 	 * Get the maximum number of formal parameters.
-	 * 
+	 *
 	 * @return The parameter count.
 	 */
+	@Override
 	public int getMaximumParameters() {
 		return 0;
 	}
 
 	/**
 	 * Get the minimum number of formal parameters.
-	 * 
+	 *
 	 * @return The parameter count.
 	 */
+	@Override
 	public int getMinimumParameters() {
 		return 0;
 	}

@@ -1,6 +1,5 @@
-/* $Id: RPEntity.java,v 1.395 2012/11/07 18:00:13 kiheru Exp $ */
 /***************************************************************************
- *                      (C) Copyright 2003 - Marauroa                      *
+ *                   (C) Copyright 2003-2023 - Marauroa                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,13 +11,29 @@
  ***************************************************************************/
 package games.stendhal.server.entity;
 
+import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
-import games.stendhal.common.Constants;
+import org.apache.log4j.Logger;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList.Builder;
+
 import games.stendhal.common.EquipActionConsts;
 import games.stendhal.common.Level;
+import games.stendhal.common.NotificationType;
 import games.stendhal.common.Rand;
 import games.stendhal.common.constants.Nature;
-import games.stendhal.common.grammar.Grammar;
+import games.stendhal.common.constants.SoundLayer;
+import games.stendhal.common.constants.Testing;
 import games.stendhal.common.parser.WordList;
 import games.stendhal.server.actions.equip.DropAction;
 import games.stendhal.server.core.engine.GameEvent;
@@ -30,6 +45,7 @@ import games.stendhal.server.core.engine.dbcommand.LogKillEventCommand;
 import games.stendhal.server.core.events.TurnListener;
 import games.stendhal.server.core.events.TutorialNotifier;
 import games.stendhal.server.entity.creature.Creature;
+import games.stendhal.server.entity.creature.Pet;
 import games.stendhal.server.entity.item.CaptureTheFlagFlag;
 import games.stendhal.server.entity.item.Corpse;
 import games.stendhal.server.entity.item.Item;
@@ -37,100 +53,77 @@ import games.stendhal.server.entity.item.StackableItem;
 import games.stendhal.server.entity.mapstuff.portal.Portal;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.entity.slot.EntitySlot;
+import games.stendhal.server.entity.slot.Slots;
+import games.stendhal.server.entity.status.StatusAttacker;
+import games.stendhal.server.entity.status.StatusList;
+import games.stendhal.server.entity.status.StatusType;
 import games.stendhal.server.events.AttackEvent;
+import games.stendhal.server.events.SoundEvent;
 import games.stendhal.server.util.CounterMap;
-
-import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.WeakHashMap;
-
-import marauroa.common.game.Definition;
-import marauroa.common.game.Definition.Type;
 import marauroa.common.game.RPAction;
-import marauroa.common.game.RPClass;
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPSlot;
 import marauroa.common.game.SyntaxException;
+import marauroa.server.db.command.DBCommandPriority;
 import marauroa.server.db.command.DBCommandQueue;
 import marauroa.server.game.Statistics;
 import marauroa.server.game.db.DAORegister;
 
-import org.apache.log4j.Logger;
-
-public abstract class RPEntity extends GuidedEntity {
-	
-	private static final float WEAPON_DEF_MULTIPLIER = 3.0f;
-
-	private static final float RING_DEF_MULTIPLIER = 1.5f;
-
-	private static final float BOOTS_DEF_MULTIPLIER = 1.0f;
-
-	private static final float LEG_DEF_MULTIPLIER = 1.0f;
-
-	private static final float NECKLACE_DEF_MULTIPLIER = 1.0f;
-
-	private static final float HELMET_DEF_MULTIPLIER = 1.0f;
-
-	private static final float GLOVE_DEF_MULTIPLIER = 1.0f;
-
-	private static final float CLOAK_DEF_MULTIPLIER = 1.0f;
-
-	private static final float ARMOR_DEF_MULTIPLIER = 2.0f;
-
-	private static final float SHIELD_DEF_MULTIPLIER = 3.0f;
+public abstract class RPEntity extends CombatEntity {
+	/** The logger instance. */
+	private static final Logger logger = Logger.getLogger(RPEntity.class);
 
 	/**
 	 * The title attribute name.
 	 */
 	protected static final String ATTR_TITLE = "title";
 
-	/** the logger instance. */
-	private static final Logger logger = Logger.getLogger(RPEntity.class);
-
+	private static final float WEAPON_DEF_MULTIPLIER = 2.0f;
+	private static final float BOOTS_DEF_MULTIPLIER = 1.0f;
+	private static final float LEG_DEF_MULTIPLIER = 1.5f;
+	private static final float HELMET_DEF_MULTIPLIER = 1.0f;
+	private static final float CLOAK_DEF_MULTIPLIER = 1.0f;
+	private static final float ARMOR_DEF_MULTIPLIER = 2.0f;
+	private static final float SHIELD_DEF_MULTIPLIER = 3.0f;
+	private static final float RING_DEF_MULTIPLIER = 1.0f;
+	private static final float NECKLACE_DEF_MULTIPLIER = 1.0f;
+	private static final float GLOVE_DEF_MULTIPLIER = 1.0f;
+	private static final float BELT_DEF_MULTIPLIER = 1.0f;
 	private static Statistics stats;
 
+	protected static final int HIT_CHANCE_MULTIPLIER = 20;
+
 	private String name;
-
-	private int atk;
-
+	protected int atk;
 	private int atk_xp;
-
-	private int def;
-
+	protected int def;
 	private int def_xp;
-
+	protected int ratk;
+	private int ratk_xp;
+	protected int mining;
+	private int mining_xp;
 	private int base_hp;
-
 	private int hp;
-
+	protected int lv_cap;
 	private int xp;
-
 	private String gender;
-
-	private int level;
-
+	protected int level;
 	private int mana;
-
 	private int base_mana;
 
-	/**
-	 * Maps each enemy which has recently damaged this RPEntity to the turn when
-	 * the last damage has occurred.
-	 *
-	 * You only get ATK and DEF experience by fighting against a creature that
-	 * is in this list.
-	 */
-	private final Map<RPEntity, Integer> enemiesThatGiveFightXP;
+	private double capacity;
+	private double baseCapacity;
+
+	private String deathSound;
+	private String bloodClass;
+
+	/** Entity uses a status attack */
+	protected ImmutableList<StatusAttacker> statusAttackers = ImmutableList.of();
+	/** a list of current statuses */
+	protected StatusList statusList;
 
 	/** List of all enemies that are currently attacking this entity. */
 	private final List<Entity> attackSources;
-
 	/** the enemy that is currently attacked by this entity. */
 	private RPEntity attackTarget;
 
@@ -139,18 +132,7 @@ public abstract class RPEntity extends GuidedEntity {
 	 * RPEntity.
 	 */
 	protected CounterMap<Entity> damageReceived;
-
-	/** list of players which are to reward with xp on killing this creature. */
-	protected Set<String> playersToReward;
-
 	protected int totalDamageReceived;
-
-	/**
-	 * To prevent players from gaining attack and defense experience by fighting
-	 * against very weak creatures, they only gain atk and def xp for so many
-	 * turns after they have actually been damaged by the enemy. //
-	 */
-	private static final int TURNS_WHILE_FIGHT_XP_INCREASES = 12;
 
 	/**
 	 * To avoid using karma for damage calculations when the natural ability of
@@ -187,7 +169,10 @@ public abstract class RPEntity extends GuidedEntity {
 	@Override
 	protected boolean handlePortal(final Portal portal) {
 		if (isZoneChangeAllowed()) {
-			logger.debug("Using portal " + portal);
+			if (logger.isDebugEnabled() || Testing.DEBUG) {
+				logger.debug("Using portal " + portal);
+			}
+
 			return portal.onUsed(this);
 		}
 		return super.handlePortal(portal);
@@ -196,51 +181,7 @@ public abstract class RPEntity extends GuidedEntity {
 	public static void generateRPClass() {
 		try {
 			stats = Statistics.getStatistics();
-			final RPClass entity = new RPClass("rpentity");
-			entity.isA("active_entity");
-			entity.addAttribute("name", Type.STRING);
-			entity.addAttribute(ATTR_TITLE, Type.STRING);
-			entity.addAttribute("gender", Type.STRING);
-			entity.addAttribute("level", Type.SHORT);
-			entity.addAttribute("xp", Type.INT);
-			entity.addAttribute("mana", Type.INT);
-			entity.addAttribute("base_mana", Type.INT);
-
-			entity.addAttribute("base_hp", Type.SHORT);
-			entity.addAttribute("hp", Type.SHORT);
-
-			entity.addAttribute("atk", Type.SHORT);
-			entity.addAttribute("atk_xp", Type.INT, Definition.PRIVATE);
-			entity.addAttribute("def", Type.SHORT);
-			entity.addAttribute("def_xp", Type.INT, Definition.PRIVATE);
-			entity.addAttribute("atk_item", Type.INT,
-					(byte) (Definition.PRIVATE | Definition.VOLATILE));
-			entity.addAttribute("def_item", Type.INT,
-					(byte) (Definition.PRIVATE | Definition.VOLATILE));
-
-			entity.addAttribute("risk", Type.BYTE, Definition.VOLATILE); // obsolete, do not use
-			entity.addAttribute("damage", Type.INT, Definition.VOLATILE); // obsolete, do not use
-			entity.addAttribute("heal", Type.INT, Definition.VOLATILE);
-			// TODO: check that the binary representation of old saved players is compatible when this is changed into a list.
-			entity.addAttribute("target", Type.INT, Definition.VOLATILE);
-			entity.addAttribute("title_type", Type.STRING, Definition.VOLATILE);
-			entity.addAttribute("base_speed", Type.FLOAT, Definition.VOLATILE);
-
-			entity.addRPSlot("head", 1, Definition.PRIVATE);
-			entity.addRPSlot("neck", 1, Definition.PRIVATE);
-			entity.addRPSlot("rhand", 1, Definition.PRIVATE);
-			entity.addRPSlot("lhand", 1, Definition.PRIVATE);
-			entity.addRPSlot("armor", 1, Definition.PRIVATE);
-			entity.addRPSlot("finger", 1, Definition.PRIVATE);
-			entity.addRPSlot("cloak", 1, Definition.PRIVATE);
-			entity.addRPSlot("glove", 1, Definition.PRIVATE);
-			entity.addRPSlot("legs", 1, Definition.PRIVATE);
-			entity.addRPSlot("feet", 1, Definition.PRIVATE);
-			entity.addRPSlot("bag", 36, Definition.PRIVATE);
-			entity.addRPSlot("keyring", 12, Definition.PRIVATE);
-			entity.addRPSlot("fingerb", 1, Definition.PRIVATE);
-			entity.addRPSlot("money", 1, Definition.PRIVATE);
-			entity.addRPEvent("attack", Definition.VOLATILE);
+			RPEntityRPClass.generateRPClass(ATTR_TITLE);
 		} catch (final SyntaxException e) {
 			logger.error("cannot generateRPClass", e);
 		}
@@ -248,19 +189,15 @@ public abstract class RPEntity extends GuidedEntity {
 
 	public RPEntity(final RPObject object) {
 		super(object);
-		attackSources = new ArrayList<Entity>();
-		damageReceived = new CounterMap<Entity>(true);
-		playersToReward = new HashSet<String>();
-		enemiesThatGiveFightXP = new WeakHashMap<RPEntity, Integer>();
+		attackSources = new ArrayList<>();
+		damageReceived = new CounterMap<>(true);
 		totalDamageReceived = 0;
 	}
 
 	public RPEntity() {
 		super();
-		attackSources = new ArrayList<Entity>();
-		damageReceived = new CounterMap<Entity>(true);
-		playersToReward = new HashSet<String>();
-		enemiesThatGiveFightXP = new WeakHashMap<RPEntity, Integer>();
+		attackSources = new ArrayList<>();
+		damageReceived = new CounterMap<>(true);
 		totalDamageReceived = 0;
 	}
 
@@ -268,7 +205,7 @@ public abstract class RPEntity extends GuidedEntity {
 	 * Give the player some karma (good or bad).
 	 *
 	 * @param karma
-	 *            An amount of karma to add/subtract.
+	 *			An amount of karma to add/subtract.
 	 */
 	public void addKarma(final double karma) {
 		// No nothing
@@ -292,7 +229,7 @@ public abstract class RPEntity extends GuidedEntity {
 	 * should cause no change on an action or outcome.
 	 *
 	 * @param scale
-	 *            A positive number.
+	 *			A positive number.
 	 *
 	 * @return A number between -scale and scale.
 	 */
@@ -307,9 +244,9 @@ public abstract class RPEntity extends GuidedEntity {
 	 * should cause no change on an action or outcome.
 	 *
 	 * @param negLimit
-	 *            The lowest negative value returned.
+	 *			The lowest negative value returned.
 	 * @param posLimit
-	 *            The highest positive value returned.
+	 *			The highest positive value returned.
 	 *
 	 * @return A number within negLimit &lt;= 0 &lt;= posLimit.
 	 */
@@ -324,11 +261,11 @@ public abstract class RPEntity extends GuidedEntity {
 	 * should cause no change on an action or outcome.
 	 *
 	 * @param negLimit
-	 *            The lowest negative value returned.
+	 *			The lowest negative value returned.
 	 * @param posLimit
-	 *            The highest positive value returned.
+	 *			The highest positive value returned.
 	 * @param granularity
-	 *            The amount that any extracted karma is a multiple of.
+	 *			The amount that any extracted karma is a multiple of.
 	 *
 	 * @return A number within negLimit &lt;= 0 &lt;= posLimit.
 	 */
@@ -336,6 +273,14 @@ public abstract class RPEntity extends GuidedEntity {
 			final double granularity) {
 		// No impact
 		return 0.0;
+	}
+
+	public void hitCritical(boolean critted) {
+		if (critted) {
+			put("crit", "");
+		} else {
+			remove("crit");
+		}
 	}
 
 	/**
@@ -359,7 +304,7 @@ public abstract class RPEntity extends GuidedEntity {
 	 * Heal this entity.
 	 *
 	 * @param amount
-	 *            The [maximum] amount to heal by.
+	 *			The [maximum] amount to heal by.
 	 *
 	 * @return The amount actually healed.
 	 */
@@ -371,9 +316,9 @@ public abstract class RPEntity extends GuidedEntity {
 	 * Heal this entity.
 	 *
 	 * @param amount
-	 *            The [maximum] amount to heal by.
+	 *			The [maximum] amount to heal by.
 	 * @param tell
-	 *            Whether to tell the entity they've been healed.
+	 *			Whether to tell the entity they've been healed.
 	 *
 	 * @return The amount actually healed.
 	 */
@@ -437,26 +382,28 @@ public abstract class RPEntity extends GuidedEntity {
 
 		if (has("name")) {
 			final String newName = get("name");
-
 			registerNewName(newName, name);
-
 			name = newName;
 		}
 
-		if (has("atk")) {
-			atk = getInt("atk");
-		}
 		if (has("atk_xp")) {
 			atk_xp = getInt("atk_xp");
 			setAtkXpInternal(atk_xp, false);
 		}
 
-		if (has("def")) {
-			def = getInt("def");
-		}
 		if (has("def_xp")) {
 			def_xp = getInt("def_xp");
 			setDefXpInternal(def_xp, false);
+		}
+
+		if (Testing.COMBAT && has("ratk_xp")) {
+			ratk_xp = getInt("ratk_xp");
+			setRatkXPInternal(ratk_xp, false);
+		}
+
+		if (has("mining_xp")) {
+			mining_xp = getInt("mining_xp");
+			setMiningXpInternal(mining_xp, false);
 		}
 
 		if (has("base_hp")) {
@@ -468,8 +415,13 @@ public abstract class RPEntity extends GuidedEntity {
 
 		if (has("gender")) {
 			gender = get("gender");
+		} else {
+			setGender("0");
 		}
 
+		if (has("lv_cap")) {
+			lv_cap = getInt("lv_cap");
+		}
 		if (has("level")) {
 			level = getInt("level");
 		}
@@ -481,6 +433,12 @@ public abstract class RPEntity extends GuidedEntity {
 		}
 		if (has("base_mana")) {
 			base_mana = getInt("base_mana");
+		}
+		if (has("capacity")) {
+			capacity = getDouble("capacity");
+		}
+		if (has("base_capacity")) {
+			baseCapacity = getDouble("base_capacity");
 		}
 		if (has("base_speed")) {
 			setBaseSpeed(getDouble("base_speed"));
@@ -510,7 +468,7 @@ public abstract class RPEntity extends GuidedEntity {
 	 * random generator.
 	 *
 	 * @param defender
-	 *            The defender.
+	 *			The defender.
 	 * @param attackingWeaponsValue
 	 * 			  ATK-value of all attacking weapons/spells
 	 * @param damageType nature of damage
@@ -519,17 +477,43 @@ public abstract class RPEntity extends GuidedEntity {
 	 * @param maxRange maximum range of a ranged attack
 	 *
 	 * @return The number of hitpoints that the target should lose. 0 if the
-	 *         attack was completely blocked by the defender.
+	 *		 attack was completely blocked by the defender.
 	 */
-	int damageDone(RPEntity defender, double attackingWeaponsValue, Nature damageType,
+	protected int damageDone(RPEntity defender, double attackingWeaponsValue, Nature damageType,
 			boolean isRanged, int maxRange) {
 		// Don't start from 0 to mitigate weird behaviour at very low levels
-		final int effectiveAttackerLevel = getLevel() + 5;
-		final int effectiveDefenderLevel = defender.getLevel() + 5;
+		int effectiveAttackerLevel = getLevel() + 5;
+		int effectiveDefenderLevel = defender.getLevel() + 5;
+
+		if (this instanceof Player) {
+			Player player = (Player) this;
+
+			final String QUEST_SLOT = "reset_level";
+
+			final int value = 300;
+			final int def_value = (value / 2);
+
+			if (player.isQuestInState(QUEST_SLOT, "done;reborn_1")) {
+				effectiveAttackerLevel = getLevel() + 1 * value;
+				effectiveDefenderLevel = defender.getLevel() + 1 * def_value;
+			} else if (player.isQuestInState(QUEST_SLOT, "done;reborn_2")) {
+				effectiveAttackerLevel = getLevel() + 2 * value;
+				effectiveDefenderLevel = defender.getLevel() + 2 * def_value;
+			} else if (player.isQuestInState(QUEST_SLOT, "done;reborn_3")) {
+				effectiveAttackerLevel = getLevel() + 3 * value;
+				effectiveDefenderLevel = defender.getLevel() + 3 * def_value;
+			} else if (player.isQuestInState(QUEST_SLOT, "done;reborn_4")) {
+				effectiveAttackerLevel = getLevel() + 4 * value;
+				effectiveDefenderLevel = defender.getLevel() + 4 * def_value;
+			} else if (player.isQuestInState(QUEST_SLOT, "done;reborn_5")) {
+				effectiveAttackerLevel = getLevel() + 5 * value;
+				effectiveDefenderLevel = defender.getLevel() + 5 * def_value;
+			}
+		}
 
 		// Defending side
 		final double armor = defender.getItemDef();
-		final int targetDef = defender.getDef();
+		final int targetDef = defender.getCappedDef();
 		// Even strong players are vulnerable without any armor.
 		// Armor def gets much higher with high level players unlike
 		// weapon atk, so it can not be treated similarly. Using geometric
@@ -544,16 +528,29 @@ public abstract class RPEntity extends GuidedEntity {
 		 */
 		final int levelDifferenceToNotNeedKarmaDefending = (int) (IGNORE_KARMA_MULTIPLIER * defender.getLevel());
 
+		// using karma here decreases damage done by enemy
 		if (!(effectiveDefenderLevel - levelDifferenceToNotNeedKarmaDefending  > effectiveAttackerLevel)) {
 			defence += defence * defender.useKarma(0.1);
 		}
 
-		// Attacking
-		if (logger.isDebugEnabled()) {
-			logger.debug("attacker has " + getAtk() + " and uses a weapon of "
-					+ getItemAtk());
+		/* Attacking with ranged weapon uses a separate strength value.
+		 *
+		 * XXX: atkStrength never used outside of debugger.
+		 */
+		final int atkStrength, sourceAtk;
+		if (Testing.COMBAT && isRanged) {
+			atkStrength = this.getRatk();
+			sourceAtk = this.getCappedRatk();
+		} else {
+			atkStrength = this.getAtk();
+			sourceAtk = this.getCappedAtk();
 		}
-		final int sourceAtk = getAtk();
+
+		// Attacking
+		if (logger.isDebugEnabled() || Testing.DEBUG) {
+			logger.debug("attacker has " + atkStrength + " (" + getCappedAtk()
+					+ ") and uses a weapon of " + getItemAtk());
+		}
 
 		// Make fast weapons efficient against weak enemies, and heavy
 		// better against strong enemies.
@@ -573,6 +570,7 @@ public abstract class RPEntity extends GuidedEntity {
 		}
 
 		final double weaponComponent = 1.0 + attackingWeaponsValue;
+		// XXX: Is correct to use sourceAtk here instead of atkStrength?
 		final double maxAttack = sourceAtk * weaponComponent
 				* (1 + LEVEL_ATK * effectiveAttackerLevel) * speedEffect;
 		double attack = Rand.rand() * maxAttack;
@@ -582,11 +580,13 @@ public abstract class RPEntity extends GuidedEntity {
 		 * you're a much higher level than what you attack
 		 */
 		final int levelDifferenceToNotNeedKarmaAttacking = (int) (IGNORE_KARMA_MULTIPLIER * getLevel());
+
+		// using karma here increases damage to enemy
 		if (!(effectiveAttackerLevel - levelDifferenceToNotNeedKarmaAttacking > effectiveDefenderLevel)) {
 			attack += attack * useKarma(0.1);
 		}
 
-		if (logger.isDebugEnabled()) {
+		if (logger.isDebugEnabled() || Testing.DEBUG) {
 			logger.debug("DEF MAX: " + maxDefence + "\t DEF VALUE: " + defence);
 		}
 
@@ -594,6 +594,9 @@ public abstract class RPEntity extends GuidedEntity {
 		int damage = (int) (defender.getSusceptibility(damageType)
 				* (WEIGHT_ATK * attack - defence) / maxDefence);
 
+		/* FIXME: Can argument be removed and just use
+		 *		RPEntity.usingRangedAttack() here?
+		 */
 		if (isRanged) {
 			// The attacker is attacking either using a range weapon with
 			// ammunition such as a bow and arrows, or a missile such as a
@@ -612,12 +615,12 @@ public abstract class RPEntity extends GuidedEntity {
 	 * random generator.
 	 *
 	 * @param defender
-	 *            The defender.
+	 *			The defender.
 	 * @param attackingWeaponsValue
 	 * 			  ATK-value of all attacking weapons/spells
 	 * @param damageType nature of damage
 	 * @return The number of hitpoints that the target should lose. 0 if the
-	 *         attack was completely blocked by the defender.
+	 *		 attack was completely blocked by the defender.
 	 */
 	public int damageDone(final RPEntity defender, double attackingWeaponsValue, Nature damageType) {
 		final int maxRange = getMaxRangeForArcher();
@@ -631,10 +634,10 @@ public abstract class RPEntity extends GuidedEntity {
 	 * arrows, spear, etc.).
 	 *
 	 * @param damage
-	 *            The damage that would have been done if there would be no
-	 *            modifiers for distance attacks.
+	 *			The damage that would have been done if there would be no
+	 *			modifiers for distance attacks.
 	 * @param squareDistance
-	 *            the distance
+	 *			the distance
 	 * @param maxrange maximum attack range
 	 * @return The damage that will be done with the distance attack.
 	 */
@@ -661,7 +664,7 @@ public abstract class RPEntity extends GuidedEntity {
 	 * Set the entity's name.
 	 *
 	 * @param name
-	 *            The new name.
+	 *			The new name.
 	 */
 	public void setName(final String name) {
 		registerNewName(name, this.name);
@@ -675,8 +678,12 @@ public abstract class RPEntity extends GuidedEntity {
 	 *
 	 * @return The entity's name.
 	 */
+	@Override
 	public String getName() {
-		return name;
+		if (name != null) {
+			return name;
+		}
+		return super.getName();
 	}
 
 	public void setGender(final String gender) {
@@ -687,6 +694,13 @@ public abstract class RPEntity extends GuidedEntity {
 	public String getGender() {
 		return gender;
 	}
+
+	@Override
+	public void onAdded(final StendhalRPZone zone) {
+		super.onAdded(zone);
+		this.updateItemAtkDef();
+	}
+
 
 	public void setLevel(final int level) {
 		this.level = level;
@@ -702,15 +716,24 @@ public abstract class RPEntity extends GuidedEntity {
 		setAtkInternal(atk, true);
 	}
 
-	private void setAtkInternal(final int atk, boolean notify) {
+	protected void setAtkInternal(final int atk, boolean notify) {
 		this.atk = atk;
-		put("atk", atk);
+		put("atk", atk);  // visible atk
 		if(notify) {
 			this.updateModifiedAttributes();
 		}
 	}
 
 	public int getAtk() {
+		return this.atk;
+	}
+
+	/**
+	 * gets the capped atk level, which prevent players from training their atk way beyond what is reasonable for their level
+	 *
+	 * @return capped atk
+	 */
+	public int getCappedAtk() {
 		return this.atk;
 	}
 
@@ -730,12 +753,20 @@ public abstract class RPEntity extends GuidedEntity {
 		// Handle level changes
 		final int newLevel = Level.getLevel(atk_xp);
 		final int levels = newLevel - (this.atk - 10);
-
-		// In case we level up several levels at a single time.
-		for (int i = 0; i < Math.abs(levels); i++) {
-			setAtkInternal(this.atk + (int) Math.signum(levels) * 1, notify);
+		if (levels != 0) {
+			setAtkInternal(this.atk + levels, notify);
 			new GameEvent(getName(), "atk", Integer.toString(getAtk())).raise();
 		}
+	}
+
+	/**
+	 * Adjust entity's ATK XP by specified amount.
+	 *
+	 * @param xp
+	 * 		Amount to add.
+	 */
+	public void addAtkXP(final int xp) {
+		setAtkXP(getAtkXP() + xp);
 	}
 
 	public int getAtkXP() {
@@ -753,15 +784,24 @@ public abstract class RPEntity extends GuidedEntity {
 		setDefInternal(def, true);
 	}
 
-	private void setDefInternal(final int def, boolean notify) {
+	protected void setDefInternal(final int def, boolean notify) {
 		this.def = def;
-		put("def", def);
+		put("def", def);  // visible def
 		if(notify) {
 			this.updateModifiedAttributes();
 		}
 	}
 
 	public int getDef() {
+		return this.def;
+	}
+
+	/**
+	 * gets the capped def level, which prevent players from training their def way beyond what is reasonable for their level
+	 *
+	 * @return capped def
+	 */
+	public int getCappedDef() {
 		return this.def;
 	}
 
@@ -781,12 +821,20 @@ public abstract class RPEntity extends GuidedEntity {
 		// Handle level changes
 		final int newLevel = Level.getLevel(def_xp);
 		final int levels = newLevel - (this.def - 10);
-
-		// In case we level up several levels at a single time.
-		for (int i = 0; i < Math.abs(levels); i++) {
-			setDefInternal(this.def + (int) Math.signum(levels) * 1, notify);
+		if (levels != 0) {
+			setDefInternal(this.def + levels, notify);
 			new GameEvent(getName(), "def", Integer.toString(this.def)).raise();
 		}
+	}
+
+	/**
+	 * Adjust entity's DEF XP by specified amount.
+	 *
+	 * @param xp
+	 * 		Amount to add.
+	 */
+	public void addDefXP(final int xp) {
+		setDefXP(getDefXP() + xp);
 	}
 
 	public int getDefXP() {
@@ -800,11 +848,168 @@ public abstract class RPEntity extends GuidedEntity {
 		setDefXP(def_xp + 1);
 	}
 
+/* ### --- START RANGED --- ### */
+
+	/**
+	 * Set the value of the entity's ranged attack level.
+	 *
+	 * @param ratk
+	 * 		Integer value representing new ranged attack level
+	 */
+	public void setRatk(final int ratk) {
+		setRatkInternal(ratk, true);
+	}
+
+	/**
+	 * Set the entity's ranged attack level.
+	 *
+	 * @param ratk
+	 * 		Integer value representing new ranged attack level
+	 * @param notify
+	 * 		Update stat in real-time
+	 */
+	protected void setRatkInternal(final int ratk, boolean notify) {
+		this.ratk = ratk;
+		put("ratk", ratk);  // visible ratk
+		if(notify) {
+			this.updateModifiedAttributes();
+		}
+	}
+
+	/**
+	 * Gets the entity's current ranged attack level.
+	 *
+	 * @return
+	 * 		Integer value of ranged attack level
+	 */
+	public int getRatk() {
+		return this.ratk;
+	}
+
+	/**
+	 * gets the capped ranged attack level which prevents players from training
+	 * ratk way beyond what is reasonable for their level.
+	 *
+	 * @return
+	 * 		The maximum value player's ranged attack level can be at current
+	 * 		level
+	 */
+	public int getCappedRatk() {
+		return this.ratk;
+	}
+
+	/**
+	 * Sets the entity's ranged attack experience.
+	 *
+	 * @param ratkXP
+	 * 		Integer value of the target experience
+	 */
+	public void setRatkXP(final int ratkXP) {
+		setRatkXPInternal(ratkXP, true);
+	}
+
+	/**
+	 * Sets the entity's ranged attack experience.
+	 *
+	 * @param ratkXP
+	 * 		Integer value of the target experience
+	 * @param notify
+	 * 		Update ranged attack experience in real-time
+	 */
+	protected void setRatkXPInternal(final int ratkXP, boolean notify) {
+		this.ratk_xp = ratkXP;
+		put("ratk_xp", ratk_xp);
+
+		// Handle level changes
+		final int newLevel = Level.getLevel(ratk_xp);
+		final int levels = newLevel - (this.ratk - 10);
+
+		// In case we level up several levels at a single time.
+		if (levels != 0) {
+			setRatkInternal(this.ratk + levels, notify);
+			new GameEvent(getName(), "ratk", Integer.toString(this.ratk)).raise();
+		}
+	}
+
+	/**
+	 * Adjust entity's RATK XP by specified amount.
+	 *
+	 * @param xp
+	 * 		Amount to add.
+	 */
+	public void addRatkXP(final int xp) {
+		setRatkXP(getRatkXP() + xp);
+	}
+
+	/**
+	 * Get's the entity's current ranged attack experience.
+	 *
+	 * @return
+	 * 		Integer representation of current experience
+	 */
+	public int getRatkXP() {
+		return ratk_xp;
+	}
+
+	/**
+	 * Increase ranged XP by 1.
+	 */
+	public void incRatkXP() {
+		setRatkXP(ratk_xp + 1);
+	}
+
+/* ### --- END RANGED --- ### */
+
+	public void setMining(final int mining) {
+		setMiningInternal(mining, true);
+	}
+
+	protected void setMiningInternal(final int mining, boolean notify) {
+		this.mining = mining;
+		put("mining", mining); // visible mining
+		if(notify) {
+			this.updateModifiedAttributes();
+		}
+	}
+
+	public int getMining() {
+		return this.mining;
+	}
+
+	public int getCappedMining() {
+		return this.mining;
+	}
+
+	public void setMiningXP(final int miningXP) {
+		setMiningXpInternal(miningXP, true);
+	}
+
+	private void setMiningXpInternal(final int miningXP, boolean notify) {
+		this.mining_xp = miningXP;
+		put("mining_xp", mining_xp);
+
+		// Handle level changes
+		final long newLevel = Level.getLevel(mining_xp);
+		final long levels = newLevel - (this.mining - 10);
+		if (levels != 0) {
+			setMiningInternal((int) (this.mining + levels), notify);
+			new GameEvent(getName(), "mining", Integer.toString(this.mining)).raise();
+		}
+	}
+
+	public int getMiningXP() {
+		return mining_xp;
+	}
+
+	public void incMiningXP(final int amount) {
+		setMiningXP(mining_xp + amount);
+	}
+
 	/**
 	 * Set the base and current HP.
 	 *
 	 * @param hp
-	 *            The HP to set.
+	 *			The HP to set.
 	 */
 	public void initHP(final int hp) {
 		setBaseHP(hp);
@@ -815,7 +1020,7 @@ public abstract class RPEntity extends GuidedEntity {
 	 * Set the base HP.
 	 *
 	 * @param newhp
-	 *            The base HP to set.
+	 *			The base HP to set.
 	 */
 	public void setBaseHP(final int newhp) {
 		this.base_hp = newhp;
@@ -842,7 +1047,7 @@ public abstract class RPEntity extends GuidedEntity {
 	 * Use the appropriate damage(), and heal() methods instead.
 	 *
 	 * @param hp
-	 *            The HP to set.
+	 *			The HP to set.
 	 */
 	public void setHP(final int hp) {
 		setHpInternal(hp, true);
@@ -870,6 +1075,15 @@ public abstract class RPEntity extends GuidedEntity {
 	}
 
 	/**
+	 * Get the lv_cap.
+	 *
+	 * @return The current lv_cap.
+	 */
+	public int getLVCap() {
+		return this.lv_cap;
+	}
+
+	/**
 	 * Gets the mana (magic).
 	 *
 	 * @return mana
@@ -888,10 +1102,58 @@ public abstract class RPEntity extends GuidedEntity {
 	}
 
 	/**
+	 * Get the current player capacity.
+	 *
+	 * @return value of capacity.
+	 */
+	public double getCapacity() {
+		return this.capacity;
+	}
+
+	/**
+	 * Get the player max load capacity.
+	 *
+	 * @return value of max load capacity.
+	 */
+	public double getBaseCapacity() {
+		return this.baseCapacity;
+	}
+
+	/**
+	 * Increments player weight.
+	 *
+	 * @param addCapacity
+	 * 			Value of capacity to add or subtract.
+	 */
+	public void addCapacity(final double addCapacity) {
+		capacity += addCapacity;
+		put("capacity", capacity);
+		notifyWorldAboutChanges();
+	}
+	
+	public void setCapacity(final double value) {
+		capacity = value;
+		put("capacity", capacity);
+		this.updateModifiedAttributes();
+	}
+
+	/**
+	 * Increments player load capacity.
+	 *
+	 * @param addCapacity
+	 * 			Value of load capacity to add or subtract.
+	 */
+	public void addBaseCapacity(final double addCapacity) {
+		baseCapacity += addCapacity;
+		put("base_capacity", baseCapacity);
+		notifyWorldAboutChanges();
+	}
+
+	/**
 	 * Sets the available mana.
 	 *
 	 * @param newMana
-	 *            new amount of mana
+	 *			new amount of mana
 	 */
 	public void setMana(final int newMana) {
 		setManaInternal(newMana, true);
@@ -909,7 +1171,7 @@ public abstract class RPEntity extends GuidedEntity {
 	 * Sets the base mana (like base_hp).
 	 *
 	 * @param newBaseMana
-	 *            new amount of base mana
+	 *			new amount of base mana
 	 */
 	public void setBaseMana(final int newBaseMana) {
 		base_mana = newBaseMana;
@@ -921,11 +1183,17 @@ public abstract class RPEntity extends GuidedEntity {
 	 * adds to base mana (like addXP).
 	 *
 	 * @param newBaseMana
-	 *            amount of base mana to be added
+	 *			amount of base mana to be added
 	 */
 	public void addBaseMana(final int newBaseMana) {
 		base_mana += newBaseMana;
 		put("base_mana", base_mana);
+	}
+
+	public void setLVCap(final int newLVCap) {
+		lv_cap = newLVCap;
+		put("lv_cap", newLVCap);
+		this.updateModifiedAttributes();
 	}
 
 	public final void setXP(final int newxp) {
@@ -1057,20 +1325,6 @@ public abstract class RPEntity extends GuidedEntity {
 		}
 	}
 
-	public boolean getsFightXpFrom(final RPEntity enemy) {
-		final Integer turnWhenLastDamaged = enemiesThatGiveFightXP.get(enemy);
-		if (turnWhenLastDamaged == null) {
-			return false;
-		}
-		final int currentTurn = SingletonRepository.getRuleProcessor()
-				.getTurn();
-		if (currentTurn - turnWhenLastDamaged > TURNS_WHILE_FIGHT_XP_INCREASES) {
-			enemiesThatGiveFightXP.remove(enemy);
-			return false;
-		}
-		return true;
-	}
-
 	public void stopAttacking(final Entity attacker) {
 		if (attacker.has("target")) {
 			attacker.remove("target");
@@ -1084,6 +1338,24 @@ public abstract class RPEntity extends GuidedEntity {
 	}
 
 	/**
+	 * sets the blood class
+	 *
+	 * @param name name of blood class
+	 */
+	public final void setBlood(final String name) {
+		this.bloodClass = name;
+	}
+
+	/**
+	 * gets the name of the blood class
+	 *
+	 * @return bloodClass or <code>null</code>
+	 */
+	public final String getBloodClass() {
+		return this.bloodClass;
+	}
+
+	/**
 	 * Creates a blood pool on the ground under this entity, but only if there
 	 * isn't a blood pool at that position already.
 	 */
@@ -1094,7 +1366,7 @@ public abstract class RPEntity extends GuidedEntity {
 		final StendhalRPZone zone = getZone();
 
 		if (zone.getBlood(bx, by) == null) {
-			final Blood blood = new Blood();
+			final Blood blood = new Blood(bloodClass);
 			blood.setPosition(bx, by);
 
 			zone.add(blood);
@@ -1107,60 +1379,39 @@ public abstract class RPEntity extends GuidedEntity {
 	 * currently only considers items in hands.  no other part of body
 	 *
 	 * currently, there is only one type of droppable item - CaptureTheFlagFlag.
-	 *     need some more general solution
+	 *	 need some more general solution
 	 *
 	 * @return list of droppable items.  returns null if no droppable items found
 	 */
 	public List<Item> getDroppables() {
-
-		ArrayList<Item> droppables = null;
-
 		final String[] slots = { "lhand", "rhand" };
 
-		for (String slot : slots) {
-
-			RPSlot rpslot = getSlot(slot);
-
-			if (rpslot == null) {
-				continue;
-			}
-
-			// traverse all items in that slot, looking for droppables.
-			for (RPObject object : rpslot) {
-				// XXX hack - need some generic isDroppable
-				if (object instanceof CaptureTheFlagFlag) {
-					if (droppables == null) {
-						droppables = new ArrayList<Item>();
-					}
-					droppables.add((Item)object);
-				}
-			}
-		}
-		return droppables;
+		Stream<Item> items = Stream.of(slots).map(this::getSlot).filter(Objects::nonNull).flatMap(this::slotStream);
+		return items.filter(CaptureTheFlagFlag.class::isInstance).collect(Collectors.toList());
 	}
 
 	/**
 	 * Drop specified item from entity's equipment
 	 *
 	 * note: seems like this.drop(droppable) should work, but
-	 *       the item just disappears - does not end up on ground.
+	 *	   the item just disappears - does not end up on ground.
 	 *
 	 * TODO: probably need to refactor this in to the general drop system
-	 *       (maybe fixing some of the other code paths)
+	 *	   (maybe fixing some of the other code paths)
 	 *
 	 * @param droppable item to be dropped
 	 */
 	public void dropDroppableItem(Item droppable) {
 
 		// note: this.drop() does not do all necessary operations -
-		//       item disappears from hand, but disappears competely
+		//	   item disappears from hand, but disappears competely
 
-		Player    player = (Player) this;
+		Player	player = (Player) this;
 		RPObject  parent = droppable.getContainer();
 		RPAction  action = new RPAction();
 
-		action.put("type",                        "drop");
-		action.put("baseitem",                    droppable.getID().getObjectID());
+		action.put("type",						"drop");
+		action.put("baseitem",					droppable.getID().getObjectID());
 		action.put(EquipActionConsts.BASE_OBJECT, parent.getID().getObjectID());
 		action.put(EquipActionConsts.BASE_SLOT,   droppable.getContainerSlot().getName());
 
@@ -1176,10 +1427,8 @@ public abstract class RPEntity extends GuidedEntity {
 		this.notifyWorldAboutChanges();
 	}
 
-
-
 	/**
-	 * if defender (this entity) is carrying a droopable item,
+	 * if defender (this entity) is carrying a droppable item,
 	 * then attacker and defender both roll d20, and if attacker
 	 * rolls higher, the defender drops the droppable.
 	 *
@@ -1191,22 +1440,21 @@ public abstract class RPEntity extends GuidedEntity {
 	 * returns string - what happened.  no effect returns null
 	 *
 	 * @param attacker
+	 * @return event description
 	 */
 	public String maybeDropDroppables(RPEntity attacker) {
-
-		List<Item> droppables = this.getDroppables();
-		if (droppables == null) {
+		List<Item> droppables = getDroppables();
+		if (droppables.isEmpty()) {
 			return null;
 		}
 
 		for (Item droppable : droppables) {
-
 			// roll two dice, tie goes to defender
 			//   TODO: integrate skills, ctf atk/def
 			int attackerRoll = Rand.roll1D20();
 			int defenderRoll = Rand.roll1D20();
 
-System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
+			System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 
 			if (attackerRoll > defenderRoll) {
 				this.dropDroppableItem(droppable);
@@ -1217,8 +1465,6 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 		return null;
 	}
 
-
-
 	/**
 	 * This method is called when this entity has been attacked by Entity
 	 * attacker and it has been damaged with damage points.
@@ -1227,7 +1473,16 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 	 * @param damage
 	 */
 	public void onDamaged(final Entity attacker, final int damage) {
-		logger.debug("Damaged " + damage + " points by " + attacker.getID());
+		if (logger.isDebugEnabled() || Testing.DEBUG) {
+			logger.debug("Damaged " + damage + " points by " + attacker.getID());
+		}
+
+		if (this instanceof Creature) {
+			Creature creature = (Creature) this;
+			if (creature.isImmortal()) {
+				return;
+			}
+		}
 
 		bleedOnGround();
 		if (attacker instanceof RPEntity) {
@@ -1243,7 +1498,6 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 		// remember the damage done so that the attacker can later be rewarded
 		// XP etc.
 		damageReceived.add(attacker, damage);
-		addPlayersToReward(attacker);
 
 		if (leftHP > 0) {
 			setHP(leftHP);
@@ -1255,62 +1509,15 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 	}
 
 	/**
-	 * This method is called when this entity has been attacked by Entity
-	 * attacker and it has been damaged with damage points.
-	 * 
-	 * @param attacker
-	 * @param damage
-	 */
-	public void onHealed(final Entity attacker, final int damage) {
-		logger.debug("Healed " + damage + " points by " + attacker.getID());
-
-		if (attacker instanceof RPEntity) {
-			final int currentTurn = SingletonRepository.getRuleProcessor()
-					.getTurn();
-			enemiesThatGiveFightXP.put((RPEntity) attacker, currentTurn);
-		}
-
-		final int leftHP = getHP() + damage;
-
-		totalDamageReceived += damage;
-
-		// remember the damage done so that the attacker can later be rewarded
-		// XP etc.
-		damageReceived.add(attacker, damage);
-		addPlayersToReward(attacker);
-
-		if (leftHP < base_hp) {
-			setHP(leftHP);
-		} else {
-			setHP(base_hp);
-		}
-
-		notifyWorldAboutChanges();
-	}
-
-
-	/**
-	 * Manages a list of players to reward XP in case this creature is killed.
-	 *
-	 * @param player
-	 *            Player
-	 */
-	protected void addPlayersToReward(final Entity player) {
-		if (player instanceof Player) {
-			playersToReward.add(((Player) player).getName());
-		}
-	}
-
-	/**
 	 * Apply damage to this entity. This is normally called from one of the
 	 * other damage() methods to account for death.
 	 *
 	 * @param amount
-	 *            The HP to take.
+	 *			The HP to take.
 	 *
 	 * @return The damage actually taken (in case HP was < amount).
 	 */
-	protected int damage(final int amount) {
+	private int damage(final int amount) {
 		int tempHp = getHP();
 		final int taken = Math.min(amount, tempHp);
 
@@ -1324,13 +1531,13 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 	 * Apply damage to this entity, and call onDead() if HP reaches 0.
 	 *
 	 * @param amount
-	 *            The HP to take.
+	 *			The HP to take.
 	 * @param attacker
-	 *            The attacking entity.
+	 *			The attacking entity.
 	 *
 	 * @return The damage actually taken (in case HP was < amount).
 	 */
-	public int damage(final int amount, final Entity attacker) {
+	public int damage(final int amount, final Killer attacker) {
 		final int taken = damage(amount);
 
 		if (hp <= 0) {
@@ -1347,9 +1554,9 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 	 * reaches 0.
 	 *
 	 * @param amount
-	 *            The HP to take.
+	 *			The HP to take.
 	 * @param attackerName
-	 *            The name of the attacker.
+	 *			The name of the attacker.
 	 */
 	public void delayedDamage(final int amount, final String attackerName) {
 		final RPEntity me = this;
@@ -1382,42 +1589,101 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 		});
 	}
 
+	public void onHealed(final Entity attacker, final int damage) {
+		logger.debug("Healed " + damage + " points by " + attacker.getID());
+
+		if (attacker instanceof RPEntity) {
+			final int currentTurn = SingletonRepository.getRuleProcessor()
+					.getTurn();
+			enemiesThatGiveFightXP.put((RPEntity) attacker, currentTurn);
+		}
+
+		final int leftHP = getHP() + damage;
+
+		totalDamageReceived += damage;
+
+		// remember the damage done so that the attacker can later be rewarded
+		// XP etc.
+		damageReceived.add(attacker, damage);
+
+		if (leftHP < base_hp) {
+			setHP(leftHP);
+		} else {
+			setHP(base_hp);
+		}
+
+		notifyWorldAboutChanges();
+	}
+
 	/**
 	 * Kills this RPEntity.
 	 *
 	 * @param killer
-	 *            The killer
+	 *			The killer
 	 */
-	protected void kill(final Entity killer) {
+	private void kill(final Entity killer) {
 		setHP(0);
 		SingletonRepository.getRuleProcessor().killRPEntity(this, killer);
+	}
+
+	/**
+	 * For rewarding killers. Get the entity as a Player, if the entity is a
+	 * Player. If the player has logged out, try to get the corresponding online
+	 * player.
+	 *
+	 * @param entity entity to be checked
+	 * @return online Player corresponding to the entity, or {@code null} if the
+	 * 	entity is not a Player, or if the equivalent player is not online
+	 */
+	protected Player entityAsOnlinePlayer(Entity entity) {
+		if (!(entity instanceof Player)) {
+			return null;
+		}
+		Player killer = (Player) entity;
+		if (killer.isDisconnected()) {
+			// Try to get the corresponding online player:
+			killer = SingletonRepository.getRuleProcessor().getPlayer(killer.getName());
+		}
+		return killer;
+	}
+
+	protected Pet entityAsPet(Entity entity) {
+		if (!(entity instanceof Pet)) {
+			return null;
+		}
+		Pet killerPet = (Pet) entity;
+		/* isDisconnected is undefined in object Pet;
+		if (killer.isDisconnected()) {
+			// Try to get the corresponding online player:
+			killer = SingletonRepository.getRuleProcessor().getPlayer(killer.getName());
+		}
+		*/
+		return killerPet;
 	}
 
 	/**
 	 * Gives XP to every player who has helped killing this RPEntity.
 	 *
 	 * @param oldXP
-	 *            The XP that this RPEntity had before being killed.
+	 *			The XP that this RPEntity had before being killed.
 	 */
 	protected void rewardKillers(final int oldXP) {
 		final int xpReward = (int) (oldXP * 0.05);
 
-		for (final String killerName : playersToReward) {
-			final Player killer = SingletonRepository.getRuleProcessor()
-					.getPlayer(killerName);
-			// check logout
+		for (Entry<Entity, Integer> entry : damageReceived.entrySet()) {
+			final int damageDone = entry.getValue();
+			if (damageDone == 0) {
+				continue;
+			}
+
+			Player killer = entityAsOnlinePlayer(entry.getKey());
 			if (killer == null) {
 				continue;
 			}
 
 			TutorialNotifier.killedSomething(killer);
 
-			final int damageDone = damageReceived.getCount(killer);
-			if (damageDone == 0) {
-				continue;
-			}
-
-			if (logger.isDebugEnabled()) {
+			if (logger.isDebugEnabled() || Testing.DEBUG) {
 				final String killName;
 				if (killer.has("name")) {
 					killName = killer.get("name");
@@ -1431,8 +1697,10 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 
 			final int xpEarn = (int) (xpReward * ((float) damageDone / (float) totalDamageReceived));
 
-			logger.debug("OnDead: " + xpReward + "\t" + damageDone + "\t"
-					+ totalDamageReceived + "\t");
+			if (logger.isDebugEnabled() || Testing.DEBUG) {
+				logger.debug("OnDead: " + xpReward + "\t" + damageDone + "\t"
+						+ totalDamageReceived + "\t");
+			}
 
 			int reward = xpEarn;
 
@@ -1466,13 +1734,91 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 		}
 	}
 
+	/*
+	 * Reward pets who kill enemies.  don't perks like AchievementNotifier that players.
+	 */
+	protected void rewardKillerAnimals(final int oldXP) {
+		if (!System.getProperty("stendhal.petleveling", "false").equals("true")) {
+			return;
+		}
+		final int xpReward = (int) (oldXP * 0.05);
+
+		for (Entry<Entity, Integer> entry : damageReceived.entrySet()) {
+			final int damageDone = entry.getValue();
+			if (damageDone == 0) {
+				continue;
+			}
+
+			Pet killer = entityAsPet(entry.getKey());
+			if (killer == null) {
+				continue;
+			}
+
+			if (logger.isDebugEnabled() || Testing.DEBUG) {
+				final String killName;
+				if (killer.has("name")) {
+					killName = killer.get("name");
+				} else {
+					killName = killer.get("type");
+				}
+
+				logger.debug(killName + " did " + damageDone + " of "
+						+ totalDamageReceived + ". Reward was " + xpReward);
+			}
+
+			final int xpEarn = (int) (xpReward * ((float) damageDone / (float) totalDamageReceived));
+
+			if (logger.isDebugEnabled() || Testing.DEBUG) {
+				logger.debug("OnDead: " + xpReward + "\t" + damageDone + "\t"
+						+ totalDamageReceived + "\t");
+			}
+
+			int reward = xpEarn;
+
+			// We ensure it gets at least 1 experience
+			// point, because getting nothing lowers motivation.
+			if (reward == 0) {
+				reward = 1;
+			}
+
+			if (killer.getLevel() >= killer.getLVCap())
+			{
+				reward = 0;
+			}
+
+			killer.addXP(reward);
+
+			/*
+			// For some quests etc., it is required that the player kills a
+			// certain creature without the help of others.
+			// Find out if the player killed this RPEntity on his own, but
+			// don't overwrite solo with shared.
+			final String killedName = getName();
+
+			if (killedName == null) {
+				logger.warn("This entity returns null as name: " + this);
+			} else {
+				if (damageDone == totalDamageReceived) {
+					killer.setSoloKill(killedName);
+				} else {
+					killer.setSharedKill(killedName);
+				}
+			}
+
+			SingletonRepository.getAchievementNotifier().onKill(killer);
+			*/
+
+			killer.notifyWorldAboutChanges();
+		}
+	}
+
 	/**
 	 * This method is called when the entity has been killed ( hp==0 ).
 	 *
 	 * @param killer
-	 *            The entity who caused the death
+	 *			The entity who caused the death
 	 */
-	public final void onDead(final Entity killer) {
+	public final void onDead(final Killer killer) {
 		onDead(killer, true);
 	}
 
@@ -1480,50 +1826,50 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 	 * This method is called when this entity has been killed (hp == 0).
 	 *
 	 * @param killer
-	 *            The entity who caused the death, i.e. who did the last hit.
+	 *			The entity who caused the death, i.e. who did the last hit.
 	 * @param remove
-	 *            true iff this entity should be removed from the world. For
-	 *            almost everything remove is true, but not for the players, who
-	 *            are instead moved to afterlife ("reborn").
+	 *			true iff this entity should be removed from the world. For
+	 *			almost everything remove is true, but not for the players, who
+	 *			are instead moved to afterlife ("reborn").
 	 */
-	public void onDead(final Entity killer, final boolean remove) {
+	public void onDead(final Killer killer, final boolean remove) {
 		StendhalKillLogDAO killLog = DAORegister.get().get(StendhalKillLogDAO.class);
-		String killerName = killLog.getEntityName(killer);
+		String killerName = killer.getName();
 
 		if (killer instanceof RPEntity) {
-			new GameEvent(killerName, "killed", killLog.getEntityName(this), killLog.entityToType(killer), killLog.entityToType(this)).raise();
+			new GameEvent(killerName, "killed", this.getName(), killLog.entityToType(killer), killLog.entityToType(this)).raise();
 		}
 
-		DBCommandQueue.get().enqueue(new LogKillEventCommand(this, killer));
+		DBCommandQueue.get().enqueue(new LogKillEventCommand(this, killer), DBCommandPriority.LOW);
 
-		// Players are unique, so they should not get an article.
-		if (!(killer instanceof Player)) {
-			killerName = Grammar.a_noun(killerName);
-		}
-		onDead(killerName, remove);
+		die(killer, remove);
 	}
 
 	/**
 	 * This method is called when this entity has been killed (hp == 0).
 	 *
-	 * @param killerName
-	 *            The killer's name (a phrase suitable in the expression "
-	 *            <code>by</code> <em>killerName</em>".
+	 * @param killer the "official" killer
 	 * @param remove
-	 *            <code>true</code> to remove entity from world.
+	 *			<code>true</code> to remove entity from world.
 	 */
-	protected final void onDead(final String killerName, final boolean remove) {
+	private void die(Killer killer, final boolean remove) {
+		StendhalRPZone zone = this.getZone();
+		if ((zone == null) || !zone.has(this.getID())) {
+			logger.warn("RPEntity died but is not in a zone");
+			return;
+		}
+
+		String killerName = killer.getName();
 		final int oldXP = this.getXP();
 
 		// Establish how much xp points your are rewarded
 		// give XP to everyone who helped killing this RPEntity
 		rewardKillers(oldXP);
+		rewardKillerAnimals(oldXP);
 
 		// Add a corpse
 		final Corpse corpse = makeCorpse(killerName);
-
 		damageReceived.clear();
-		playersToReward.clear();
 		totalDamageReceived = 0;
 
 		// Stats about dead
@@ -1533,17 +1879,22 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 			stats.add("Killed " + get("type"), 1);
 		}
 
-
 		// Add some reward inside the corpse
 		dropItemsOn(corpse);
 		updateItemAtkDef();
 
-		final StendhalRPZone zone = getZone();
+		// Adding to zone clears events, so the sound needs to be added after that.
 		zone.add(corpse);
-
+		if (deathSound != null) {
+			corpse.addEvent(new SoundEvent(deathSound, 23, 100, SoundLayer.FIGHTING_NOISE));
+			corpse.notifyWorldAboutChanges();
+		}
 		// Corpse may want to know who this entity was attacking (RaidCreatureCorpse does),
 		// so defer stopping.
 		stopAttack();
+		if (statusList != null) {
+			statusList.removeAll();
+		}
 		if (remove) {
 			zone.remove(this);
 		}
@@ -1568,6 +1919,10 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 	 */
 	public String getCorpseName() {
 		return "player";
+	}
+
+	public String getHarmlessCorpseName() {
+		return "harmless_player";
 	}
 
 	public int getCorpseWidth() {
@@ -1613,7 +1968,7 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 	 * @return list of all attacking RPEntities
 	 */
 	public List<RPEntity> getAttackingRPEntities() {
-		final List<RPEntity> list = new ArrayList<RPEntity>();
+		final List<RPEntity> list = new ArrayList<>();
 
 		for (final Entity entity : getAttackSources()) {
 			if (entity instanceof RPEntity) {
@@ -1657,7 +2012,7 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 	 * Tries to equip an item in the appropriate slot.
 	 *
 	 * @param item
-	 *            the item
+	 *			the item
 	 * @return true if the item can be equipped, else false
 	 */
 	public final boolean equipToInventoryOnly(final Item item) {
@@ -1709,9 +2064,9 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 			for (RPObject obj : slot) {
 				if (canMergeItems(item, obj)) {
 					return slot;
-							}
-						}
-					}
+				}
+			}
+		}
 		// Then check the slots of the contained items
 		for (RPObject obj : slot) {
 			for (RPSlot childSlot : obj.slots()) {
@@ -1743,9 +2098,9 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 		}
 		if (item.getPossibleSlots().contains(slot.getName())) {
 			if (!slot.isFull()) {
-					return slot;
-	}
+				return slot;
 			}
+		}
 		for (RPObject obj : slot) {
 			for (RPSlot childSlot : obj.slots()) {
 				RPSlot tmp = getSlotToEquip(item, childSlot);
@@ -1764,7 +2119,7 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 	 *
 	 * @param item
 	 * @return the slot for the item or null if there is no matching slot
-	 *         in the entity
+	 *		 in the entity
 	 */
 	public final RPSlot getSlotToEquip(final Item item) {
 		if (item instanceof StackableItem) {
@@ -1805,17 +2160,15 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 		}
 	}
 
-
-
 	/**
 	 * Tries to equip one unit of an item in the given slot. Note: This doesn't
 	 * check if it is allowed to put the given item into the given slot, e.g. it
 	 * is possible to wear your helmet at your feet using this method.
 	 *
 	 * @param slotName
-	 *            the name of the slot
+	 *			the name of the slot
 	 * @param item
-	 *            the item
+	 *			the item
 	 * @return true if the item can be equipped, else false
 	 */
 	public final boolean equip(final String slotName, final Item item) {
@@ -1834,75 +2187,75 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 	 * doesn't remove anything.
 	 *
 	 * @param name
-	 *            The name of the item
+	 *			The name of the item
 	 * @param amount
-	 *            The number of units that should be dropped
+	 *			The number of units that should be dropped
 	 * @return true iff dropping the desired amount was successful.
 	 */
 	public boolean drop(final String name, final int amount) {
-		// first of all we check that this RPEntity has enough of the
-		// specified item. We need to do this to ensure an atomic transaction
-		// semantic later on because the required amount may be distributed
-		// to several stacks.
-		if (!isEquipped(name, amount)) {
+		return drop(nameMatches(name), amount);
+	}
+
+	private boolean isEquipped(Predicate<Item> condition, int amount) {
+		Iterable<Item> matching = getAllEquipped(condition)::iterator;
+		int count = 0;
+		for (Item item : matching) {
+			count += item.getQuantity();
+			if (count >= amount) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean drop(Predicate<Item> condition, int amount) {
+		if (!isEquipped(condition, amount)) {
 			return false;
 		}
 
 		int toDrop = amount;
-
-		for (final String slotName : Constants.CARRYING_SLOTS) {
-			final RPSlot slot = getSlot(slotName);
-
-			Iterator<RPObject> objectsIterator = slot.iterator();
-			while (objectsIterator.hasNext()) {
-				final RPObject object = objectsIterator.next();
-				if (!(object instanceof Item)) {
-					continue;
-				}
-
-				final Item item = (Item) object;
-
-				if (!item.getName().equals(name)) {
-					continue;
-				}
-
-				if (item instanceof StackableItem) {
-					// The item is stackable, we try to remove
-					// multiple ones.
-					final int quantity = item.getQuantity();
-					if (toDrop >= quantity) {
-						new ItemLogger().destroy(this, slot, item);
-						slot.remove(item.getID());
-						toDrop -= quantity;
-						// Recreate the iterator to prevent
-						// ConcurrentModificationExceptions.
-						// This inefficient, but simple.
-						objectsIterator = slot.iterator();
-					} else {
-						((StackableItem) item).setQuantity(quantity - toDrop);
-						new ItemLogger().splitOff(this, item, toDrop);
-						toDrop = 0;
-					}
-				} else {
-					// The item is not stackable, so we only remove a
-					// single one.
-					slot.remove(item.getID());
-					new ItemLogger().destroy(this, slot, item);
-					toDrop--;
-					// recreate the iterator to prevent
-					// ConcurrentModificationExceptions.
-					objectsIterator = slot.iterator();
-				}
-
-				if (toDrop == 0) {
-					updateItemAtkDef();
-					notifyWorldAboutChanges();
-					return true;
-				}
+		Iterable<Item> matchingItems = equippedStream().filter(condition)::iterator;
+		for (Item item : matchingItems) {
+			toDrop -= dropItem(item, toDrop);
+			if (toDrop == 0) {
+				return true;
 			}
 		}
-		// This will never happen because we ran isEquipped() earlier.
+
+		logger.error("Not enough items dropped even though the entity was checked to have them", new Throwable());
 		return false;
+	}
+
+	/**
+	 * Low level drop. <b>Does not check the containing slot or owner. This is
+	 * meant to be used only by higher level drop() methods.</b>
+	 *
+	 * @param item dropped item
+	 * @param amount maximum amout to drop
+	 * @return dropped amount
+	 */
+	private int dropItem(Item item, int amount) {
+		RPSlot slot = item.getContainerSlot();
+		if (item instanceof StackableItem) {
+			// The item is stackable, we try to remove
+			// multiple ones.
+			final int quantity = item.getQuantity();
+			if (amount >= quantity) {
+				new ItemLogger().destroy(this, slot, item);
+				slot.remove(item.getID());
+				return quantity;
+			} else {
+				((StackableItem) item).setQuantity(quantity - amount);
+				new ItemLogger().splitOff(this, item, amount);
+				return amount;
+			}
+		} else {
+			// The item is not stackable, so we only remove a
+			// single one.
+			slot.remove(item.getID());
+			new ItemLogger().destroy(this, slot, item);
+			return 1;
+		}
 	}
 
 	/**
@@ -1911,7 +2264,7 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 	 * doesn't remove anything.
 	 *
 	 * @param name
-	 *            The name of the item
+	 *			The name of the item
 	 * @return true iff dropping the item was successful.
 	 */
 	public boolean drop(final String name) {
@@ -1924,69 +2277,69 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 	 * doesn't remove anything.
 	 *
 	 * @param item
-	 *            the item that should be removed
+	 *			the item that should be removed
 	 * @return true iff dropping the item was successful.
 	 */
 	public boolean drop(final Item item) {
-		for (final String slotName : Constants.CARRYING_SLOTS) {
-			final RPSlot slot = getSlot(slotName);
+		return drop(it -> item == it, 1);
+	}
 
-			final Iterator<RPObject> objectsIterator = slot.iterator();
-			while (objectsIterator.hasNext()) {
-				final RPObject object = objectsIterator.next();
-				if (object instanceof Item) {
-					if (object == item) {
-						slot.remove(object.getID());
-						new ItemLogger().destroy(this, slot, item);
-						return true;
-					}
-				}
-			}
-		}
-		return false;
+	/**
+	 * Removes a specific amount of an item with matching info string from
+	 * the RPEntity. The item can either be stackable or non-stackable.
+	 * The units can be distributed over different slots. If the RPEntity
+	 * doesn't have enough units of the item, doesn't remove anything.
+	 *
+	 * @param name
+	 * 		Name of item to remove.
+	 * @param infostring
+	 * 		Required item info string to match.
+	 * @param amount
+	 * 		Number of items to remove from entity.
+	 * @return
+	 * 		<code>true</code> if dropping the item(s) was successful.
+	 */
+	public boolean dropWithInfostring(final String name, final String infostring, final int amount) {
+		return drop(item -> (name.equals(item.getName()) && infostring.equals(item.getInfoString())), amount);
+	}
+
+	/**
+	 * Removes a single item with matching info string from the RPEntity.
+	 * The item can either be stackable or non-stackable. The units can
+	 * be distributed over different slots. If the RPEntity doesn't have
+	 * enough units of the item, doesn't remove anything.
+	 *
+	 * @param name
+	 * 		Name of item to remove.
+	 * @param infostring
+	 * 		Required item info string to match.
+	 * @return
+	 * 		<code>true</code> if dropping the item(s) was successful.
+	 */
+	public boolean dropWithInfostring(final String name, final String infostring) {
+		return dropWithInfostring(name, infostring, 1);
 	}
 
 	/**
 	 * Determine if this entity is equipped with a minimum quantity of an item.
 	 *
 	 * @param name
-	 *            The item name.
+	 *			The item name.
 	 * @param amount
-	 *            The minimum amount.
+	 *			The minimum amount.
 	 *
 	 * @return <code>true</code> if the item is equipped with the minimum
-	 *         number.
+	 *		 number.
 	 */
 	public boolean isEquipped(final String name, final int amount) {
-		if (amount <= 0) {
-			return false;
-		}
-
-		int found = 0;
-
-		for (final String slotName : Constants.CARRYING_SLOTS) {
-			final RPSlot slot = getSlot(slotName);
-
-			for (final RPObject object : slot) {
-				if (!(object instanceof Item)) {
-					continue;
-				}
-
-				found += getItemCount(name, (Item) object);
-				if (found >= amount) {
-					return true;
-				}
-			}
-		}
-
-		return false;
+		return isEquipped(nameMatches(name), amount);
 	}
 
 	/**
 	 * Determine if this entity is equipped with an item.
 	 *
 	 * @param name
-	 *            The item name.
+	 *			The item name.
 	 *
 	 * @return <code>true</code> if the item is equipped.
 	 */
@@ -1995,52 +2348,45 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 	}
 
 	/**
+	 * Checks if entity carry a number of items with specified info string.
+	 *
+	 * @param name
+	 * 		Name of item to check.
+	 * @param infostring
+	 * 		Info string of item to check.
+	 * @param amount
+	 * 		Quantity of carried items to check.
+	 * @return
+	 * 		<code>true</code> if entity is carrying at least specified amount of items matching name & infostring.
+	 */
+	public boolean isEquippedWithInfostring(final String name, final String infostring, final int amount) {
+		return getAllEquippedWithInfostring(name, infostring).size() >= amount;
+	}
+
+	/**
+	 * Checks if entity carry a number of items with specified info string.
+	 *
+	 * @param name
+	 * 		Name of item to check.
+	 * @param infostring
+	 * 		Info string of item to check.
+	 * @return
+	 * 		<code>true</code> if entity is carrying at least one of items matching name & infostring.
+	 */
+	public boolean isEquippedWithInfostring(final String name, final String infostring) {
+		return isEquippedWithInfostring(name, infostring, 1);
+	}
+
+	/**
 	 * Gets the number of items of the given name that are carried by the
 	 * RPEntity. The item can either be stackable or non-stackable.
 	 *
 	 * @param name
-	 *            The item's name
+	 *			The item's name
 	 * @return The number of carried items
 	 */
 	public int getNumberOfEquipped(final String name) {
-		int result = 0;
-
-		for (final String slotName : Constants.CARRYING_SLOTS) {
-			final RPSlot slot = getSlot(slotName);
-
-			for (final RPObject object : slot) {
-				if (object instanceof Item) {
-					result += getItemCount(name, (Item) object);
-				}
-			}
-		}
-
-		return result;
-	}
-
-	/**
-	 * Get count of items of a given name, including items in the slots of
-	 * items. The count is started from topItem, and topItem is included in the
-	 * count, if applicable.
-	 *
-	 * @param name name of items to be counted
-	 * @param topItem item where to start the recursive count
-	 * @return count of items of the given name
-	 */
-	private int getItemCount(String name, Item topItem) {
-		int count = 0;
-		if (topItem.getName().equals(name)) {
-			count += topItem.getQuantity();
-		}
-		for (RPSlot slot : topItem.slots()) {
-			for (RPObject obj : slot) {
-				if (obj instanceof Item) {
-					count += getItemCount(name, (Item) obj);
-				}
-			}
-		}
-
-		return count;
+		return equippedStream().filter(nameMatches(name)).mapToInt(Item::getQuantity).sum();
 	}
 
 	/**
@@ -2048,21 +2394,12 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 	 * The item can either be stackable or non-stackable.
 	 *
 	 * @param name
-	 *            The item's name
+	 *			The item's name
 	 * @return The number of carried items
 	 */
 	public int getTotalNumberOf(final String name) {
-		int result = 0;
-
-		for (final RPSlot slot : slots()) {
-			for (final RPObject object : slot) {
-				if (object instanceof Item) {
-					result += getItemCount(name, (Item) object);
-				}
-			}
-		}
-
-		return result;
+		Stream<Item> allItems = slots().stream().flatMap(this::slotStream);
+		return allItems.filter(nameMatches(name)).mapToInt(Item::getQuantity).sum();
 	}
 
 	/**
@@ -2070,51 +2407,12 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 	 * gets all that are on the first stack that is found.
 	 *
 	 * @param name
-	 *            The item's name
+	 *			The item's name
 	 * @return The item, or a stack of stackable items, or null if nothing was
-	 *         found
+	 *		 found
 	 */
 	public Item getFirstEquipped(final String name) {
-		for (final String slotName : Constants.CARRYING_SLOTS) {
-			final RPSlot slot = getSlot(slotName);
-
-			for (final RPObject object : slot) {
-				Item item = getFirstNestedEquipped(name, object);
-				if (item != null) {
-					return item;
-				}
-			}
-		}
-
-		return null;
-	}
-
-	/**
-	 * Search recursively the first item of specified name inside an object.
-	 *
-	 * @param name item name to find
-	 * @param obj object where to start the seach
-	 *
-	 * @return First item matching the item name. The returned item can be the
-	 * 	starting object, if that matches the searching criterion. If no matching
-	 * 	item is found, <code>null</code> is returned
-	 */
-	private Item getFirstNestedEquipped(String name, RPObject obj) {
-		if (obj instanceof Item) {
-			Item item = (Item) obj;
-			if (item.getName().equals(name)) {
-				return item;
-			}
-			for (RPSlot slot : obj.slots()) {
-				for (RPObject subobj : slot) {
-					Item tmp = getFirstNestedEquipped(name, subobj);
-					if (tmp != null) {
-						return tmp;
-					}
-				}
-			}
-		}
-		return null;
+		return equippedStream().filter(nameMatches(name)).findFirst().orElse(null);
 	}
 
 	/**
@@ -2122,26 +2420,31 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 	 * gets all that are on the first stack that is found.
 	 *
 	 * @param name
-	 *            The item's name
+	 *			The item's name
 	 * @return The item, or a stack of stackable items, or an empty list if nothing was
-	 *         found
+	 *		 found
 	 */
 	public List<Item> getAllEquipped(final String name) {
-		final List<Item> result = new LinkedList<Item>();
+		return getAllEquipped(nameMatches(name));
+	}
 
-		for (final String slotName : Constants.CARRYING_SLOTS) {
-			final RPSlot slot = getSlot(slotName);
+	private List<Item> getAllEquipped(Predicate<Item> condition) {
+		return equippedStream().filter(condition).collect(Collectors.toList());
+	}
 
-			for (final RPObject object : slot) {
-				if (object instanceof Item) {
-					final Item item = (Item) object;
-					if (item.getName().equals(name)) {
-						result.add(item);
-					}
-				}
-			}
-		}
-		return result;
+	/**
+	 * Retrieves all of an item with matching info string.
+	 *
+	 * @param name
+	 * 		Name of item to match.
+	 * @param infostring
+	 * 		Info string of item to match.
+	 * @return
+	 * 		List<Item>
+	 */
+	public List<Item> getAllEquippedWithInfostring(String name, String infostring) {
+		return getAllEquipped(item -> name.equals(item.getName())
+				&& infostring.equalsIgnoreCase(item.getInfoString()));
 	}
 
 	/**
@@ -2169,12 +2472,33 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 	}
 
 	/**
+	 * checks if an item is equipped in a slot
+	 *
+	 * @param slot
+	 * @param item
+	 * @return true if so false otherwise
+	 */
+	public boolean isEquippedItemInSlot(final String slot, final String item) {
+		if (hasSlot(slot)) {
+			final RPSlot rpslot = getSlot(slot);
+			for (final RPObject object : rpslot) {
+				if ((object instanceof Item) && ((Item) object).getName().equals(item)) {
+					return true;
+				}
+			}
+		}
+
+		// no slot, free slot or wrong item type
+		return false;
+	}
+
+	/**
 	 * Finds the first item of class <i>clazz</i> from the slot.
 	 *
 	 * @param slot
 	 * @param clazz
 	 * @return the item or <code>null</code> if there is no item with the
-	 *         requested clazz.
+	 *		 requested clazz.
 	 */
 	public Item getEquippedItemClass(final String slot, final String clazz) {
 		if (hasSlot(slot)) {
@@ -2200,16 +2524,17 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 	 * Gets the weapon that this entity is holding in its hands.
 	 *
 	 * @return The weapon, or null if this entity is not holding a weapon. If
-	 *         the entity has a weapon in each hand, returns the weapon in its
-	 *         left hand.
+	 *		 the entity has a weapon in each hand, returns the weapon in its
+	 *		 left hand.
 	 */
 	public Item getWeapon() {
-		final String[] weaponsClasses = {"club", "sword", "axe", "ranged", "missile", "wand", "magia"};
+		final String[] weaponsClasses = { "club", "sword", "dagger", "axe", "ranged", "missile", "wand", "whip" };
 
 		for (final String weaponClass : weaponsClasses) {
 			final String[] slots = { "lhand", "rhand" };
 			for (final String slot : slots) {
 				final Item item = getEquippedItemClass(slot, weaponClass);
+				// FIXME: should weapon always be instance of WeaponImpl?
 				if (item != null) {
 					return item;
 				}
@@ -2220,19 +2545,19 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 	}
 
 	public List<Item> getWeapons() {
-		final List<Item> weapons = new ArrayList<Item>();
+		final List<Item> weapons = new ArrayList<>();
 		Item weaponItem = getWeapon();
 		if (weaponItem != null) {
 			weapons.add(weaponItem);
 
 			// pair weapons
-			if (weaponItem.getName().startsWith("l hand ")) {
+			if (weaponItem.getName().endsWith(" leworęczny")) {
 				// check if there is a matching right-hand weapon in
 				// the other hand.
 				final String rpclass = weaponItem.getItemClass();
 				weaponItem = getEquippedItemClass("rhand", rpclass);
 				if ((weaponItem != null)
-						&& (weaponItem.getName().startsWith("r hand "))) {
+						&& (weaponItem.getName().endsWith(" praworęczny"))) {
 					weapons.add(weaponItem);
 				} else {
 					// You can't use a left-hand weapon without the matching
@@ -2242,7 +2567,7 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 			} else {
 				// You can't hold a right-hand weapon with your left hand, for
 				// ergonomic reasons ;)
-				if (weaponItem.getName().startsWith("r hand ")) {
+				if (weaponItem.getName().endsWith(" praworęczny")) {
 					weapons.clear();
 				}
 			}
@@ -2256,33 +2581,35 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 	 * hands.
 	 *
 	 * @return The range weapon, or null if this entity is not holding a range
-	 *         weapon. If the entity has a range weapon in each hand, returns
-	 *         one in its left hand.
+	 *		 weapon. If the entity has a range weapon in each hand, returns
+	 *		 one in its left hand.
 	 */
 	public Item getRangeWeapon() {
 		for (final Item weapon : getWeapons()) {
-			if (weapon.isOfClass("ranged")) {
+			if (!weapon.isOfClass("wand") && weapon.has("range")) {
 				return weapon;
 			}
 		}
+
 		return null;
 	}
 
-	/**
-	 * Gets the range weapon (bow etc.) that this entity is holding in its
-	 * hands.
-	 * 
-	 * @return The range weapon, or null if this entity is not holding a range
-	 *         weapon. If the entity has a range weapon in each hand, returns
-	 *         one in its left hand.
-	 */
-	public Item getWandWeapon() {
+	private Item getRangedWeaponType(String weaponType) {
 		for (final Item weapon : getWeapons()) {
-			if (weapon.isOfClass("wand")) {
+			if (weapon.isOfClass(weaponType)) {
 				return weapon;
 			}
 		}
+
 		return null;
+	}
+
+	public Item getProjectileLauncher() {
+		return getRangedWeaponType("ranged");
+	}
+
+	public Item getWandWeapon() {
+		return getRangedWeaponType("wand");
 	}
 
 	/**
@@ -2290,41 +2617,28 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 	 * holding in its hands.
 	 *
 	 * @return The ammunition, or null if this entity is not holding ammunition.
-	 *         If the entity has ammunition in each hand, returns the ammunition
-	 *         in its left hand.
+	 *		 If the entity has ammunition in each hand, returns the ammunition
+	 *		 in its left hand.
 	 */
-	public StackableItem getAmmunition() {
+	public StackableItem getAmmunition(String ammoType) {
 		final String[] slots = { "lhand", "rhand" };
 
 		for (final String slot : slots) {
-			final StackableItem item = (StackableItem) getEquippedItemClass(
-					slot, "ammunition");
+			final StackableItem item = (StackableItem) getEquippedItemClass(slot, ammoType);
 			if (item != null) {
 				return item;
 			}
 		}
+
 		return null;
 	}
 
-	/**
-	 * Gets the stack of magia that this entity is
-	 * holding in its hands.
-	 * 
-	 * @return The magia, or null if this entity is not holding magia.
-	 *         If the entity has magia in each hand, returns the magia
-	 *         in its left hand.
-	 */
-	public StackableItem getMagia() {
-		final String[] slots = { "lhand", "rhand" };
+	public StackableItem getAmmunition() {
+		return getAmmunition("ammunition");
+	}
 
-		for (final String slot : slots) {
-			final StackableItem item = (StackableItem) getEquippedItemClass(
-					slot, "magia");
-			if (item != null) {
-				return item;
-			}
-		}
-		return null;
+	public StackableItem getMagicSpells() {
+		return getAmmunition("magia");
 	}
 
 	/**
@@ -2338,8 +2652,8 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 	 * holding an ice sword in the other hand.
 	 *
 	 * @return The missiles, or null if this entity is not holding missiles. If
-	 *         the entity has missiles in each hand, returns the missiles in its
-	 *         left hand.
+	 *		 the entity has missiles in each hand, returns the missiles in its
+	 *		 left hand.
 	 */
 	public StackableItem getMissileIfNotHoldingOtherWeapon() {
 		StackableItem missileWeaponItem = null;
@@ -2391,14 +2705,6 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 		return getEquippedItemClass("head", "helmet");
 	}
 
-	public boolean hasNecklace() {
-		return isEquippedItemClass("neck", "necklace");
-	}
-
-	public Item getNecklace() {
-		return getEquippedItemClass("neck", "necklace");
-	}
-
 	public boolean hasLegs() {
 		return isEquippedItemClass("legs", "legs");
 	}
@@ -2415,20 +2721,36 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 		return getEquippedItemClass("feet", "boots");
 	}
 
-	public boolean hasRing() {
-		return isEquippedItemClass("fingerb", "ring");
-	}
-
-	public Item getRing() {
-		return getEquippedItemClass("fingerb", "ring");
-	}
-
 	public boolean hasCloak() {
 		return isEquippedItemClass("cloak", "cloak");
 	}
 
 	public Item getCloak() {
 		return getEquippedItemClass("cloak", "cloak");
+	}
+
+	public boolean hasRing() {
+		return isEquippedItemClass("finger", "ring");
+	}
+
+	public Item getRing() {
+		return getEquippedItemClass("finger", "ring");
+	}
+
+	public boolean hasRingB() {
+		return isEquippedItemClass("fingerb", "ring");
+	}
+
+	public Item getRingB() {
+		return getEquippedItemClass("fingerb", "ring");
+	}
+
+	public boolean hasNecklace() {
+		return isEquippedItemClass("neck", "necklace");
+	}
+
+	public Item getNecklace() {
+		return getEquippedItemClass("neck", "necklace");
 	}
 
 	public boolean hasGloves() {
@@ -2447,11 +2769,35 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 		return getEquippedItemClass("money", "money");
 	}
 
+	public boolean hasBelt() {
+		return isEquippedItemClass("pas", "belts");
+	}
+
+	public Item getBelt() {
+		return getEquippedItemClass("pas", "belts");
+	}
+
 	@Override
 	public String describe() {
 		String text = super.describe();
 		if (getLevel() > 0) {
-			text += " Poziom " + getLevel() + ".";
+			boolean showLevel = true;
+			if (this instanceof Creature) {
+				/**
+				 * Hide level information of chess pieces.
+				 *
+				 * Don't call "Creature.isAbnormal" method here since it also checks "rare" attribute.
+				 */
+				if ((((Creature) this).getAIProfiles().containsKey("abnormal")
+						|| ((Creature) this).getAIProfiles().containsKey("immortal")) &&
+						(this.getName().startsWith("chaos") || this.getName().startsWith("madaram"))) {
+					showLevel = false;
+				}
+			}
+
+			if (showLevel) {
+				text += " Poziom " + getLevel() + ".";
+			}
 		}
 
 		return text;
@@ -2463,103 +2809,145 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 	 * subclasses.
 	 *
 	 * @param text
-	 *            The message.
+	 *			The message.
 	 */
 	public void sendPrivateText(final String text) {
 		// does nothing in this implementation.
 	}
 
-	public float getItemAtk() {
-		int weapon = 0;
-		int armor = 0;
-		int boots = 0;
-		int cloak = 0;
-		int glove = 0;
-		int helmet = 0;
-		int legs = 0;
-		int necklace = 0;
-		int ring = 0;
-		int shield = 0;
+	/**
+	 * Sends a message that only this player can read.
+	 *
+	 * @param type
+	 *			NotificationType
+	 * @param text
+	 *			the message.
+	 */
+	public void sendPrivateText(final NotificationType type, final String text) {
+		// does nothing in this implementation.
+	}
+
+	private float getWeaponsAtk() {
+		float weapon = 0;
+
 		final List<Item> weapons = getWeapons();
 		for (final Item weaponItem : weapons) {
 			weapon += weaponItem.getAttack();
 		}
 
-		if (hasArmor()) {
-			armor += getArmor().getAttack();
-		}
-
-		if (hasBoots()) {
-			boots += getBoots().getAttack();
-		}
-
-		if (hasCloak()) {
-			cloak += getCloak().getAttack();
-		}
-
-		if (hasGloves()) {
-			glove += getGloves().getAttack();
-		}
-
-		if (hasHelmet()) {
-			helmet += getHelmet().getAttack();
-		}
-
-		if (hasLegs()) {
-			legs += getLegs().getAttack();
-		}
-
-		if (hasNecklace()) {
-			necklace += getNecklace().getAttack();
-		}
-
-		if (hasRing()) {
-			ring += getRing().getAttack();
-		}
-
-		if (hasShield()) {
-			shield += getShield().getAttack();
-		}
-
-		// range weapons
-		StackableItem ammunitionItem = null;
-		StackableItem magiaItem = null;
-		if (weapons.size() > 0) {
-			if (weapons.get(0).isOfClass("ranged")) {
-				ammunitionItem = getAmmunition();
-
-				if (ammunitionItem != null) {
-					weapon += ammunitionItem.getAttack();
+		// calculate ammo when not using RATK stat
+		if (!Testing.COMBAT && weapons.size() > 0) {
+			if (getWeapons().get(0).isOfClass("ranged")) {
+				weapon += getAmmoAtk("ammunition");
+			}
+			if (getWeapons().get(0).isOfClass("wand")) {
+				float magic = getAmmoAtk("magia");
+				if (magic != 0) {
+					weapon += magic;
 				} else {
-					// If there is no ammunition...
-					weapon = 0;
-				}
-			} else if (weapons.get(0).isOfClass("wand")) {
-				magiaItem = getMagia();
-
-				if (magiaItem != null) {
-					weapon += magiaItem.getAttack();
-				} else {
-					// If there is no magia...
-					weapon = 0;
+					// Set 10% attack value from equipped wand if player doesn't use magic
+					weapon *= 0.1;
 				}
 			}
 		}
 
-		return weapon + armor + boots + cloak + glove + helmet + legs + necklace + ring + shield;
+		return weapon;
+	}
+
+	/**
+	 * Retrieves total ATK value of held weapons.
+	 */
+	public float getItemAtk() {
+		float weapon = getWeaponsAtk();
+		int glove = 0;
+		int ring = 0;
+		int ringb = 0;
+		int shield = 0;
+		int belt = 0;
+		int neck = 0;
+		int legs = 0;
+		int helmet = 0;
+		int cloak = 0;
+		int boots = 0;
+
+		if (hasGloves()) {
+			glove += getGloves().getAttack();
+		} if (hasRing()) {
+			ring += getRing().getAttack();
+		} if (hasRingB()) {
+			ringb += getRingB().getAttack();
+		} if (hasShield()) {
+			shield += getShield().getAttack();
+		} if (hasBelt()) {
+			belt += getBelt().getAttack();
+		} if (hasNecklace()) {
+			neck += getNecklace().getAttack();
+		} if (hasLegs()) {
+			legs += getLegs().getAttack();
+		} if (hasHelmet()) {
+			helmet += getHelmet().getAttack();
+		} if (hasCloak()) {
+			cloak += getCloak().getAttack();
+		} if (hasBoots()) {
+			boots += getBoots().getAttack();
+		}
+
+		return weapon + glove + ring + ringb + shield + belt + neck + legs + helmet + cloak + boots;
+	}
+
+	/**
+	 * Retrieves total range attack value of held weapon & ammunition.
+	 */
+	public float getItemRatk() {
+		float ratk = 0;
+		final List<Item> weapons = getWeapons();
+
+		if (weapons.size() > 0) {
+			final Item held = getWeapons().get(0);
+			ratk += held.getRangedAttack();
+
+			if (held.isOfClass("ranged")) {
+				ratk += getAmmoAtk("ammunition");
+			}
+			if (held.isOfClass("wand")) {
+				ratk += getAmmoAtk("magia");
+			}
+		}
+
+		return ratk;
+	}
+
+	/**
+	 * Retrieves ATK or RATK (depending on testing.combat system property) value of equipped ammunition.
+	 */
+	private float getAmmoAtk(String ammoType) {
+		float ammo = 0;
+
+		final StackableItem ammoItem = getAmmunition(ammoType);
+		if (ammoItem != null) {
+			if (Testing.COMBAT) {
+				ammo = ammoItem.getRangedAttack();
+			} else {
+				ammo = ammoItem.getAttack();
+			}
+		}
+
+		return ammo;
 	}
 
 	public float getItemDef() {
 		int shield = 0;
 		int armor = 0;
 		int helmet = 0;
-		int necklace = 0;
 		int legs = 0;
 		int boots = 0;
-		int ring = 0;
 		int cloak = 0;
-		int glove = 0;
 		int weapon = 0;
+		int glove = 0;
+		int necklace = 0;
+		int ring = 0;
+		int ringb = 0;
+		int belt = 0;
 
 		Item item;
 
@@ -2578,11 +2966,6 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 			helmet = (int) (item.getDefense() / getItemLevelModifier(item));
 		}
 
-		if (hasNecklace()) {
-			item = getNecklace();
-			necklace = (int) (item.getDefense() / getItemLevelModifier(item));
-		}
-
 		if (hasLegs()) {
 			item = getLegs();
 			legs = (int) (item.getDefense() / getItemLevelModifier(item));
@@ -2593,14 +2976,24 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 			boots = (int) (item.getDefense() / getItemLevelModifier(item));
 		}
 
+		if (hasCloak()) {
+			item = getCloak();
+			cloak = (int) (item.getDefense() / getItemLevelModifier(item));
+		}
+
+		if (hasNecklace()) {
+			item = getNecklace();
+			necklace = (int) (item.getDefense() / getItemLevelModifier(item));
+		}
+
 		if (hasRing()) {
 			item = getRing();
 			ring = (int) (item.getDefense() / getItemLevelModifier(item));
 		}
 
-		if (hasCloak()) {
-			item = getCloak();
-			cloak = (int) (item.getDefense() / getItemLevelModifier(item));
+		if (hasRingB()) {
+			item = getRingB();
+			ringb = (int) (item.getDefense() / getItemLevelModifier(item));
 		}
 
 		if (hasGloves()) {
@@ -2608,16 +3001,29 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 			glove = (int) (item.getDefense() / getItemLevelModifier(item));
 		}
 
+		if (hasBelt()) {
+			item = getBelt();
+			belt = (int) (item.getDefense() / getItemLevelModifier(item));
+		}
+
 		final List<Item> targetWeapons = getWeapons();
 		for (final Item weaponItem : targetWeapons) {
-			weapon += weaponItem.getDefense() / getItemLevelModifier(weaponItem);
+			weapon += (int) (weaponItem.getDefense() / getItemLevelModifier(weaponItem));
+		}
+
+		if (getWandWeapon() != null) {
+			Item amm = getMagicSpells();
+			if (amm != null) {
+				weapon += amm.getDefense();
+			}
 		}
 
 		return SHIELD_DEF_MULTIPLIER * shield + ARMOR_DEF_MULTIPLIER * armor
 				+ CLOAK_DEF_MULTIPLIER * cloak + GLOVE_DEF_MULTIPLIER * glove
 				+ HELMET_DEF_MULTIPLIER * helmet + NECKLACE_DEF_MULTIPLIER * necklace
 				+ LEG_DEF_MULTIPLIER * legs + BOOTS_DEF_MULTIPLIER * boots
-				+ RING_DEF_MULTIPLIER * ring + WEAPON_DEF_MULTIPLIER * weapon;
+				+ RING_DEF_MULTIPLIER * ring + RING_DEF_MULTIPLIER * ringb
+				+ BELT_DEF_MULTIPLIER * belt + WEAPON_DEF_MULTIPLIER * weapon;
 	}
 
 	/**
@@ -2626,7 +3032,7 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 	 * @return a list of all equipped defensive items
 	 */
 	public List<Item> getDefenseItems() {
-		List<Item> items = new LinkedList<Item>();
+		List<Item> items = new LinkedList<>();
 		if (hasShield()) {
 			items.add(getShield());
 		}
@@ -2636,9 +3042,6 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 		if (hasHelmet()) {
 			items.add(getHelmet());
 		}
-		if (hasNecklace()) {
-			items.add(getNecklace());
-		}
 		if (hasLegs()) {
 			items.add(getLegs());
 		}
@@ -2646,14 +3049,24 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 		if (hasBoots()) {
 			items.add(getBoots());
 		}
-		if (hasRing()) {
-			items.add(getRing());
-		}
 		if (hasCloak()) {
 			items.add(getCloak());
 		}
+
+		if (hasRing()) {
+			items.add(getRing());
+		}
+		if (hasRingB()) {
+			items.add(getRingB());
+		}
+		if (hasNecklace()) {
+			items.add(getNecklace());
+		}
 		if (hasGloves()) {
 			items.add(getGloves());
+		}
+		if (hasBelt()) {
+			items.add(getBelt());
 		}
 		return items;
 	}
@@ -2663,8 +3076,36 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 	 */
 	public void updateItemAtkDef() {
 		put("atk_item", ((int) getItemAtk()));
+		if (Testing.COMBAT) {
+			put("ratk_item", ((int) getItemRatk()));
+		}
 		put("def_item", ((int) getItemDef()));
 		notifyWorldAboutChanges();
+	}
+
+	/**
+	 * Get all statuses this entity can try to inflict including from
+	 * weapons.
+	 *
+	 * @return
+	 *	List of inflictable statuses.
+	 */
+	public List<StatusAttacker> getAllStatusAttackers() {
+		final List<StatusAttacker> stattackers = new ArrayList<>();
+		stattackers.addAll(statusAttackers);
+		final List<Item> weapons = getWeapons();
+		final Item ammo = getAmmunition();
+		if (ammo != null) {
+			weapons.add(ammo);
+		}
+		for (final Item weapon: weapons) {
+			for (final StatusAttacker statk: weapon.getStatusAttackers()) {
+				if (!stattackers.contains(statk)) {
+					stattackers.add(statk);
+				}
+			}
+		}
+		return stattackers;
 	}
 
 	/**
@@ -2674,7 +3115,7 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 	 * @param maxrange maximum attack distance
 	 *
 	 * @return true if this entity is armed with a distance weapon and if the
-	 *         target is in range.
+	 *		 target is in range.
 	 */
 	public boolean canDoRangeAttack(final RPEntity target, final int maxrange) {
 		// the target's in range
@@ -2704,68 +3145,43 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 	public int getMaxRangeForArcher() {
 		final Item rangeWeapon = getRangeWeapon();
 		final Item wandWeapon = getWandWeapon();
-		final StackableItem ammunition = getAmmunition();
-		final StackableItem magia = getMagia();
+		final StackableItem ammo = getAmmunition();
+		final StackableItem magicammo = getMagicSpells();
 		final StackableItem missiles = getMissileIfNotHoldingOtherWeapon();
-		int maxRange;
-		if ((rangeWeapon != null) && (ammunition != null)
-				&& (ammunition.getQuantity() > 0)) {
-			maxRange = rangeWeapon.getInt("range") + ammunition.getInt("range");
-		} else if ((missiles != null) && (missiles.getQuantity() > 0)) {
-			maxRange = missiles.getInt("range");
-		} else if ((wandWeapon != null) && (magia != null)
-				&& (magia.getQuantity() > 0)) {
-			maxRange = wandWeapon.getInt("range") + magia.getInt("range");
-		} else {
-			// The entity doesn't hold the necessary distance weapons.
-			maxRange = 0;
+
+		if (rangeWeapon != null) {
+			int itemRange = rangeWeapon.getInt("range");
+			if (rangeWeapon.isMaxImproved()) {
+				itemRange += 1;
+			}
+			// long reaching melee weapons
+			if (!rangeWeapon.isNonMeleeWeapon()) {
+				return itemRange;
+			}
+			// range value for projectile launchers
+			if (ammo != null && ammo.getQuantity() > 0) {
+				return itemRange + ammo.getInt("range");
+			}
 		}
-		return maxRange;
-	}
-
-	/**
-	 * Gets this RPEntity's outfit.
-	 *
-	 * Note: some RPEntities (e.g. sheep, many NPC's, all monsters) don't use
-	 * the outfit system.
-	 *
-	 * @return The outfit, or null if this RPEntity is represented as a single
-	 *         sprite rather than an outfit combination.
-	 */
-	public Outfit getOutfit() {
-		if (has("outfit")) {
-			return new Outfit(getInt("outfit"));
+		if (wandWeapon != null && magicammo != null && magicammo.getQuantity() > 0) {
+			int itemRange = wandWeapon.getInt("range");
+			if (wandWeapon.isMaxImproved()) {
+				itemRange += 1;
+			}
+			return itemRange + magicammo.getInt("range");
 		}
-		return null;
-	}
-
-	/**
-	 * gets the color map
-	 *
-	 * @return color map
-	 */
-	public Map<String, String> getOutfitColors() {
-		return getMap("outfit_colors");
-	}
-
-	/**
-	 * Sets this RPEntity's outfit.
-	 *
-	 * Note: some RPEntities (e.g. sheep, many NPC's, all monsters) don't use
-	 * the outfit system.
-	 *
-	 * @param outfit
-	 *            The new outfit.
-	 */
-	public void setOutfit(final Outfit outfit) {
-		put("outfit", outfit.getCode());
+		if (missiles != null && missiles.getQuantity() > 0) {
+			return missiles.getInt("range");
+		}
+		// The entity doesn't hold the necessary distance weapons.
+		return 0;
 	}
 
 	/**
 	 * Set the entity's formatted title.
 	 *
 	 * @param title
-	 *            The title, or <code>null</code>.
+	 *			The title, or <code>null</code>.
 	 */
 	public void setTitle(final String title) {
 		if (title != null) {
@@ -2784,17 +3200,17 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 	 * the player.
 	 *
 	 * @param definite
-	 *            <code>true</code> for "the", and <code>false</code> for "a/an"
-	 *            in case the entity has no name.
+	 *			<code>true</code> for "the", and <code>false</code> for "a/an"
+	 *			in case the entity has no name.
 	 *
 	 * @return The description name.
 	 */
 	@Override
-	public String getDescriptionName(final boolean definite) {
+	public String getDescriptionName() {
 		if (name != null) {
 			return name;
 		} else {
-			return super.getDescriptionName(definite);
+			return super.getDescriptionName();
 		}
 	}
 
@@ -2825,50 +3241,56 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 	 * (if the defender blocks the attack).
 	 *
 	 * @param defender
-	 *            The attacked RPEntity.
+	 *			The attacked RPEntity.
 	 * @return true if the attacker has hit the defender (the defender may still
-	 *         block this); false if the attacker has missed the defender.
+	 *		 block this); false if the attacker has missed the defender.
 	 */
 	public boolean canHit(final RPEntity defender) {
 		int roll = Rand.roll1D20();
-		final int defenderDEF = defender.getDef();
-		final int attackerATK = this.getAtk();
+		final int defenderDEF = defender.getCappedDef();
+
+		// Check if attacking from distance
+		boolean usesRanged = false;
+		if (!this.nextTo(defender)) {
+			usesRanged = true;
+		}
+
+		final int attackerATK;
+		if (Testing.COMBAT && usesRanged) {
+			attackerATK = this.getCappedRatk(); // player is using ranged weapon
+		} else {
+			attackerATK = this.getCappedAtk(); // player is using hand-to-hand
+		}
 
 		/*
 		 * Use some karma unless attacker is much stronger than defender, in
 		 * which case attacker doesn't need luck to help him hit.
 		 */
 		final int levelDifferenceToNotNeedKarmaAttacking = (int) (IGNORE_KARMA_MULTIPLIER * getLevel());
-		if (!(getLevel() - levelDifferenceToNotNeedKarmaAttacking > defender
-				.getLevel())) {
-			final double karma = this.useKarma(0.1);
+
+		// using karma here increases chance to hit enemy
+		if (!(getLevel() - levelDifferenceToNotNeedKarmaAttacking > defender.getLevel())) {
+			final double karmaMultiplier = this.useKarma(0.1);
 			// the karma effect must be cast to an integer to affect the roll
 			// but in most cases this means the karma use was lost. so multiply by 2 to
 			// make the same amount of karma use be more useful
-			final double karmaEffect = roll * karma * 2.0;
+			final double karmaEffect = roll * karmaMultiplier * 2.0;
 			roll -= (int) karmaEffect;
 		}
-		int risk = calculateRiskForCanHit(roll, defenderDEF, attackerATK);
 
-		if (logger.isDebugEnabled()) {
+		final int risk = calculateRiskForCanHit(roll, defenderDEF, attackerATK);
+
+		if (logger.isDebugEnabled() || Testing.DEBUG) {
 			logger.debug("attack from " + this + " to " + defender
 					+ ": Risk to strike: " + risk);
 		}
 
-		if (risk < 0) {
-			risk = 0;
-		}
-
-		if (risk > 1) {
-			risk = 1;
-		}
-
-		return (risk != 0);
+		return risk > 0;
 	}
 
-	int calculateRiskForCanHit(final int roll, final int defenderDEF,
+	protected int calculateRiskForCanHit(final int roll, final int defenderDEF,
 			final int attackerATK) {
-		return 20 * attackerATK - roll * defenderDEF;
+		return HIT_CHANCE_MULTIPLIER * attackerATK - roll * defenderDEF;
 	}
 
 	/**
@@ -2877,15 +3299,16 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 	 * @return the attack rate
 	 */
 	public int getAttackRate() {
+		boolean meleeDistance = isAttacking() && nextTo(getAttackTarget());
 
 		final List<Item> weapons = getWeapons();
 
 		if (weapons.isEmpty()) {
-			return 5;
+			return Item.getDefaultAttackRate();
 		}
-		int best = weapons.get(0).getAttackRate();
+		int best = weapons.get(0).getAttackRate(meleeDistance);
 		for (final Item weapon : weapons) {
-			final int res = weapon.getAttackRate();
+			final int res = weapon.getAttackRate(meleeDistance);
 			if (res < best) {
 				best = res;
 			}
@@ -2924,14 +3347,31 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 	 * Lets the attacker attack its target.
 	 *
 	 * @return true iff the attacker has done damage to the defender.
-	 *
 	 */
 	public boolean attack() {
 		boolean result = false;
 		final RPEntity defender = this.getAttackTarget();
+
 		// isInZoneandNotDead(defender);
 
 		defender.rememberAttacker(this);
+
+		// Weapon for the use in the attack event
+		Item attackWeapon = getWeapon();
+		String weaponName = null;
+		if (attackWeapon != null) {
+			weaponName = attackWeapon.getWeaponType();
+		}
+
+		/*
+		 * Checks whether the attacker's weapon is a non-melee weapon.
+		 * If the object is a creature, it always returns true because
+		 * creatures can attack at range without using weapons.
+		 */
+		boolean checkWeapon = true;
+		if (this instanceof Player) {
+			checkWeapon = attackWeapon.isNonMeleeWeapon();
+		}
 
 		final int maxRange = getMaxRangeForArcher();
 		/*
@@ -2941,62 +3381,91 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 		 * powers (yes, it's a bit of a hack).
 		 */
 		boolean isRanged = ((maxRange > 0) && canDoRangeAttack(defender, maxRange))
-			&& (((getDamageType() == getRangedDamageType()) || squaredDistance(defender) > 0));
+				&& (((getDamageType() == getRangedDamageType()) || squaredDistance(defender) > 0))
+				&& checkWeapon;
 
 		Nature nature;
-		if (isRanged) {
+		final float itemAtk;
+		if (Testing.COMBAT && isRanged) {
 			nature = getRangedDamageType();
+			itemAtk = getItemRatk();
 		} else {
 			nature = getDamageType();
+			itemAtk = getItemAtk();
+		}
+
+		// Try to inflict a status effect
+		final List<StatusAttacker> allStatusAttackers = getAllStatusAttackers();
+		for (StatusAttacker statusAttacker : allStatusAttackers) {
+			statusAttacker.onAttackAttempt(defender, this);
 		}
 
 		if (this.canHit(defender)) {
-			defender.applyDefXP(this);
+			int damage = damageDone(defender, itemAtk, nature, isRanged, maxRange);
+			final boolean didDamage = damage > 0;
 
-			int damage = damageDone(defender, getItemAtk(), nature, isRanged, maxRange);
+			if (defender.getsDefXpFrom(this, didDamage)) {
+				defender.incDefXP();
+			}
 
-			if (damage > 0) {
+			// Roll a critical hit chance for a creature to player (default: 2%).
+			final boolean critical = Rand.roll1D100() <= 2;
+			defender.hitCritical(critical);
+			// critical damage is doubled to one normal hit
+			if (critical) {
+				damage *= 2;
+			}
 
+			if (didDamage) {
 				// limit damage to target HP
 				damage = Math.min(damage, defender.getHP());
 				this.handleLifesteal(this, this.getWeapons(), damage);
 
 				defender.onDamaged(this, damage);
-				logger.debug("attack from " + this.getID() + " to "
-						+ defender.getID() + ": Damage: " + damage);
+
+				if (logger.isDebugEnabled() || Testing.DEBUG) {
+					logger.debug("attack from " + this.getID() + " to "
+							+ defender.getID() + ": Damage: " + damage);
+				}
 
 				result = true;
 			} else {
 				// The attack was too weak, it was blocked
-				logger.debug("attack from " + this.getID() + " to "
-						+ defender.getID() + ": Damage: " + 0);
+				if (logger.isDebugEnabled() || Testing.DEBUG) {
+					logger.debug("attack from " + this.getID() + " to "
+							+ defender.getID() + ": Damage: " + 0);
+				}
 			}
-			addEvent(new AttackEvent(true, damage, nature, isRanged));
+			this.addEvent(new AttackEvent(true, damage, nature, weaponName, isRanged));
+
+			// Try to inflict a status effect
+			for (StatusAttacker statusAttacker : allStatusAttackers) {
+				statusAttacker.onHit(defender, this, damage);
+			}
+
 		} else {
 			// Missed
-			logger.debug("attack from " + this.getID() + " to "
-					+ defender.getID() + ": Missed");
-			addEvent(new AttackEvent(false, 0, nature, isRanged));
+			if (logger.isDebugEnabled() || Testing.DEBUG) {
+				logger.debug("attack from " + this.getID() + " to "
+						+ defender.getID() + ": Missed");
+			}
+
+			this.addEvent(new AttackEvent(false, 0, nature, weaponName, isRanged));
 		}
 
 		this.notifyWorldAboutChanges();
-
 		return result;
-	}
-
-	protected void applyDefXP(final RPEntity entity) {
-		// implemented in sub classes
 	}
 
 	/**
 	 * Calculate lifesteal and update hp of source.
 	 *
 	 * @param attacker
-	 *            the RPEntity doing the hit
+	 *			the RPEntity doing the hit
 	 * @param attackerWeapons
-	 *            the weapons of the RPEntity doing the hit
+	 *			the weapons of the RPEntity doing the hit
 	 * @param damage
-	 *            the damage done by this hit.
+	 *			the damage done by this hit.
 	 */
 	public void handleLifesteal(final RPEntity attacker,
 			final List<Item> attackerWeapons, final int damage) {
@@ -3020,12 +3489,20 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 			sumLifesteal = Float.parseFloat(value);
 		} else {
 			// weapons with lifesteal attribute for players
-			for (final Item weaponItem : attackerWeapons) {
+			for (Item weaponItem : attackerWeapons) {
 				sumAll += weaponItem.getAttack();
+				double weaponAttack = weaponItem.getAttack();
 				if (weaponItem.has("lifesteal")) {
-					sumLifesteal += weaponItem.getAttack()
-							* weaponItem.getDouble("lifesteal");
+					sumLifesteal += weaponAttack * weaponItem.getDouble("lifesteal");
 				}
+			}
+			if (hasGloves() && getGloves().has("lifesteal")) {
+				sumLifesteal += sumAll * getGloves().getDouble("lifesteal");
+			}
+			if (hasRing() && getRing().has("lifesteal")) {
+				sumLifesteal += sumAll * getRing().getDouble("lifesteal");
+			} else if (hasRingB() && getRingB().has("lifesteal")) {
+				sumLifesteal += sumAll * getRingB().getDouble("lifesteal");
 			}
 		}
 
@@ -3103,5 +3580,146 @@ System.out.printf("  drop: %2d %2d\n", attackerRoll, defenderRoll);
 	 */
 	public String getLanguage() {
 		return null;
+	}
+
+	/**
+	 * Sets the sound played at entity death
+	 *
+	 * @param sound Name of sound
+	 */
+	public void setDeathSound(final String sound) {
+		deathSound = sound;
+	}
+
+	/**
+	 * @return Name of sound played at entity death
+	 */
+	public String getDeathSound() {
+		return deathSound;
+	}
+
+	/**
+	 * Add a status attack type to the entity
+	 *
+	 * @param statusAttacker Status attacker
+	 */
+	public void addStatusAttacker(final StatusAttacker statusAttacker) {
+		// the immutable statusAttackers list is shared between multiple instances of Creatures to reduce memory usage
+		Builder<StatusAttacker> builder = ImmutableList.builder();
+		statusAttackers = builder.addAll(statusAttackers).add(statusAttacker).build();
+	}
+
+	/**
+	 * gets the status list
+	 *
+	 * @return StatusList
+	 */
+	public StatusList getStatusList() {
+		if (statusList == null) {
+			statusList = new StatusList(this);
+		}
+		return statusList;
+	}
+
+	/**
+	 * Find if the entity has a specified status
+	 *
+	 * @param statusType the status type to check for
+	 * @return true, if the entity has status; false otherwise
+	 */
+	public boolean hasStatus(StatusType statusType) {
+		if (statusList == null) {
+			return false;
+		}
+		return statusList.hasStatus(statusType);
+	}
+
+	@Override
+	public void onRemoved(StendhalRPZone zone) {
+		super.onRemoved(zone);
+
+		// Stop other creatures and players attacks on me.
+		// Probably I am dead, and I don't want to die again with a second corpse.
+		for (Entity attacker : new LinkedList<>(attackSources)) {
+			if (attacker instanceof RPEntity) {
+				((RPEntity) attacker).stopAttack();
+			}
+		}
+	}
+
+	/**
+	 * Gets an items as a stream of items, followed by any contained items
+	 * recursively.
+	 *
+	 * @param item
+	 * @return stream of items
+	 */
+	private Stream<Item> itemStream(Item item) {
+		Stream<Item> stream = Stream.of(item);
+		if (item.slots().isEmpty()) {
+			return stream;
+		}
+		Stream<RPSlot> slots = item.slots().stream();
+		Stream<Item> internalItems = slots.flatMap(this::slotStream);
+		return Stream.concat(stream, internalItems);
+	}
+
+	/**
+	 * Get a stream of all items in a slot.
+	 *
+	 * @param slot
+	 * @return items in the slot
+	 */
+	private Stream<Item> slotStream(RPSlot slot) {
+		Stream<RPObject> objects = StreamSupport.stream(slot.spliterator(), false);
+		Stream<Item> items = objects.filter(Item.class::isInstance).map(Item.class::cast);
+		return items.flatMap(this::itemStream);
+	}
+
+	/**
+	 * Get a stream of all equipped items.
+	 *
+	 * @return equipped items
+	 */
+	private Stream<Item> equippedStream() {
+		Stream<String> slotNames = Slots.CARRYING.getNames().stream();
+		Stream<RPSlot> slots = slotNames.map(this::getSlot).filter(Objects::nonNull);
+		return slots.flatMap(this::slotStream);
+	}
+
+	/**
+	 * A convenience method for getting a method for matching item names.
+	 *
+	 * @param name name to match
+	 * @return a predicate for matching the name
+	 */
+	private Predicate<Item> nameMatches(String name) {
+		return it -> name.equalsIgnoreCase(it.getName());
+	}
+
+	/**
+	 * Sets the attribute to define the shadow that the client should use.
+	 *
+	 * @param st
+	 * 		String name of the shadow to use.
+	 */
+	public void setShadowStyle(final String st) {
+		if (st == null || st.equals("none")) {
+			remove("shadow_style");
+			put("no_shadow", "");
+			return;
+		}
+
+		put("shadow_style", st);
+		remove("no_shadow");
+	}
+
+	/**
+	 * Action when entity cannot be attacked.
+	 *
+	 * @param attacker
+	 */
+	public void onRejectedAttackStart(final RPEntity attacker) {
+		// override in sub-classes
 	}
 }

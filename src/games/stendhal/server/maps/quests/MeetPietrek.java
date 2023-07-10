@@ -1,6 +1,5 @@
-/* $Id: MeetPietrek.java,v 1.50 2011/12/11 02:33:23 Legolas Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,15 +11,33 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+
+import games.stendhal.common.grammar.ItemParserResult;
+import games.stendhal.common.parser.Sentence;
+import games.stendhal.server.entity.Entity;
+import games.stendhal.server.entity.item.Item;
+import games.stendhal.server.entity.item.OwnedItem;
 import games.stendhal.server.entity.npc.ChatAction;
+import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
+import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.npc.action.EquipItemAction;
 import games.stendhal.server.entity.npc.action.ExamineChatAction;
 import games.stendhal.server.entity.npc.action.IncreaseXPAction;
 import games.stendhal.server.entity.npc.action.MultipleActions;
 import games.stendhal.server.entity.npc.action.SetQuestAction;
+import games.stendhal.server.entity.npc.behaviour.adder.SellerAdder;
+import games.stendhal.server.entity.npc.behaviour.impl.SellerBehaviour;
 import games.stendhal.server.entity.npc.condition.AndCondition;
 import games.stendhal.server.entity.npc.condition.KilledForQuestCondition;
 import games.stendhal.server.entity.npc.condition.NotCondition;
@@ -28,13 +45,10 @@ import games.stendhal.server.entity.npc.condition.QuestCompletedCondition;
 import games.stendhal.server.entity.npc.condition.QuestInStateCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotCompletedCondition;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import games.stendhal.server.maps.Region;
 
 /**
- * QUEST: Speak with Hayunn 
+ * QUEST: Speak with Hayunn
  * <p>
  * PARTICIPANTS: <ul><li> Hayunn Naratha</ul>
  *
@@ -45,40 +59,22 @@ import java.util.List;
  * <li> Return and learn how to double click move, and get some URLs
  * </ul>
  *
- * REWARD: <ul><li> 20 XP <li> 5 gold coins <li> studded shield </ul>
+ * REWARD: <ul><li> 150 XP <li> 25 gold coins <li> puklerz </ul>
  *
  * REPETITIONS: <ul><li> Get the URLs as much as wanted but you only get the reward once.</ul>
  */
 public class MeetPietrek extends AbstractQuest {
+	private static final Logger logger = Logger.getLogger(MeetPietrek.class);
 
 	private static final String QUEST_SLOT = "meet_pietrek";
+	private final SpeakerNPC npc = npcs.get("Pietrek");
 
 	//This is 1 minute at 300 ms per turn
 	private static final int TIME_OUT = 200;
 
-
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
-
-	@Override
-	public List<String> getHistory(final Player player) {
-		final List<String> res = new ArrayList<String>();
-		if (!player.hasQuest(QUEST_SLOT)) {
-			return res;
-		}
-		res.add("FIRST_CHAT");
-		if (isCompleted(player)) {
-			res.add("DONE");
-		}
-		return res;
-	}
+	private static final int registryPrice = 50000;
 
 	private void preparePietrek() {
-
-		final SpeakerNPC npc = npcs.get("Pietrek");
-
 		// player wants to learn how to attack
 		npc.add(
 			ConversationStates.ATTENDING,
@@ -107,7 +103,7 @@ public class MeetPietrek extends AbstractQuest {
 
 		//player returns to Hayunn having killed a rat
 		final List<ChatAction> actions = new LinkedList<ChatAction>();
-		actions.add(new IncreaseXPAction(10));
+		actions.add(new IncreaseXPAction(150));
 		actions.add(new SetQuestAction(QUEST_SLOT, "killed"));
 
 		npc.add(
@@ -154,10 +150,10 @@ public class MeetPietrek extends AbstractQuest {
 		// The player has had enough info for now. Send them to semos. When they come back they can learn some more tips.
 
 		final List<ChatAction> reward = new LinkedList<ChatAction>();
-		reward.add(new EquipItemAction("money", 5));
-		reward.add(new IncreaseXPAction(10));
+		reward.add(new EquipItemAction("money", 25));
+		reward.add(new IncreaseXPAction(150));
 		reward.add(new SetQuestAction(QUEST_SLOT, "taught"));
-		reward.add(new ExamineChatAction("npcgenowefa.png", "Gaździna Jadźka", "Wschodnia część centrum Zakopanego."));
+		reward.add(new ExamineChatAction("npcgenowefa.png", "Gaździna Jadźka", "Centrum Zakopanego."));
 
 		npc.add(
 			ConversationStates.INFORMATION_5,
@@ -200,24 +196,24 @@ public class MeetPietrek extends AbstractQuest {
 			"To naprawdę proste. Naciskaj dwukrotnie na miejsce do którego chcesz się udać. Tam jest więcej informacji, których nie mogę sobie przypomnieć. Wyleciały mi z głowy... chcesz wiedzieć gdzie można o nich poczytać? #Tak?",
 			null);
 
-		final String epilog = "Na #http://www.gra.polskaonline.org/ możesz znaleźć wiele odpowiedzi listy wszelkiego rodzaju zwierząt, potworów i innych wrogów\n Teraz najważniejsze. Na http://www.gra.polskaonline.org/regulamin-gry-polskaonline-mmorpg koniecznie przeczytaj regulamin PolskaOnLine. To ważne!\n ";
+		final String epilog = "Na #https://s1.polanieonline.eu/ możesz znaleźć wiele odpowiedzi, listy wszelkiego rodzaju zwierząt, potworów i innych wrogów\n Teraz najważniejsze. Na #'https://s1.polanieonline.eu/regulamin/regulamin-gry-polanieonline' koniecznie przeczytaj regulamin PolanieOnLine. To ważne!\n ";
 
 			//This is used if the player returns, asks for #help and then say #yes
 			npc.add(ConversationStates.ATTENDING,
 			ConversationPhrases.YES_MESSAGES, new QuestCompletedCondition(QUEST_SLOT),
-			ConversationStates.ATTENDING, 
-			epilog + "Wiesz przypominasz mi mnie, gdy",
+			ConversationStates.ATTENDING,
+			epilog + "Wiesz, przypominasz mi mnie, gdy",
 			null);
 
 		final List<ChatAction> reward2 = new LinkedList<ChatAction>();
-		reward2.add(new EquipItemAction("tarcza ćwiekowa"));
-		reward2.add(new IncreaseXPAction(20));
+		reward2.add(new EquipItemAction("puklerz"));
+		reward2.add(new IncreaseXPAction(250));
 		reward2.add(new SetQuestAction(QUEST_SLOT, "done"));
 
 		npc.add(ConversationStates.INFORMATION_8,
 			ConversationPhrases.YES_MESSAGES, new QuestNotCompletedCondition(QUEST_SLOT),
-			ConversationStates.IDLE, 
-			epilog + "Cóż powodzenia w walkach! Ta tarcza powinna Ci pomóc. Tutaj znajdziesz sławę i chwałę. Uważaj na potwory!",
+			ConversationStates.IDLE,
+			epilog + "Cóż, powodzenia w walkach! Ta tarcza powinna Ci pomóc. Tutaj znajdziesz sławę i chwałę. Uważaj na potwory!",
 			new MultipleActions(reward2));
 
 		npc.add(new ConversationStates[] { ConversationStates.ATTENDING,
@@ -233,25 +229,129 @@ public class MeetPietrek extends AbstractQuest {
 				"Och mam nadzieję, że ktoś się zatrzyma i porozmawia ze mną.",
 				null);
 
-		npc.setPlayerChatTimeout(TIME_OUT); 
+		npc.setPlayerChatTimeout(TIME_OUT);
+	}
+
+	private void initShop() {
+		final Map<String, Integer> prices = new LinkedHashMap<String, Integer>() {{
+			put("spis", registryPrice);
+		}};
+
+		final SellerBehaviour behaviour = new SellerBehaviour(prices) {
+			@Override
+			public ChatCondition getTransactionCondition() {
+				//return new QuestCompletedCondition(QUEST_SLOT);
+				return questCompletedCondition;
+			}
+
+			@Override
+			public ChatAction getRejectedTransactionAction() {
+				return new ChatAction() {
+					@Override
+					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
+						npc.say("Pierw musisz chwilę ze mną porozmawiać!");
+					}
+				};
+			}
+
+			@Override
+			public boolean transactAgreedDeal(ItemParserResult res, final EventRaiser seller, final Player player) {
+				if (super.transactAgreedDeal(res, seller, player)) {
+					seller.say("Zapisałem w nim twoje imię wojażu, na wypadek gdybyś zgubił. Pamiętaj, że przedmioty, które odnajdziesz"
+							+ " spisał je do swojej księgi. Byś miał czym głosić swą przyszłą chwałę!");
+
+					return true;
+				}
+
+				return false;
+			}
+
+			@Override
+			public Item getAskedItem(final String askedItem, final Player player) {
+				final Item item = super.getAskedItem(askedItem, player);
+
+				if (item != null && player != null) {
+					// set owner to prevent others from using it
+					((OwnedItem) item).setOwner(player.getName());
+					return item;
+				}
+
+				if (player == null) {
+					logger.error("Player is null, cannot set owner in bestiary");
+				}
+				if (item == null) {
+					logger.error("Could not create bestiary item");
+				}
+
+				return null; // don't give a bestiary without owner
+			}
+		};
+		new SellerAdder().addSeller(npc, behaviour, false);
+
+		npc.add(ConversationStates.ATTENDING,
+				ConversationPhrases.OFFER_MESSAGES,
+				//new QuestCompletedCondition(QUEST_SLOT),
+				questCompletedCondition,
+				ConversationStates.ATTENDING,
+				"Mogę sprzedać Ci #spis przedmiotów.",
+				null);
+
+		npc.add(ConversationStates.ATTENDING,
+				Arrays.asList("registry", "spis", "przedmiotów"),
+				//new QuestCompletedCondition(QUEST_SLOT),
+				questCompletedCondition,
+				ConversationStates.ATTENDING,
+				"Spis pozwala zobaczyć jakie i w jakich ilościach zdobyłeś przedmioty.",
+				null);
 	}
 
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
 				"Spotkanie Pietrka",
-				"Pietrek pomaga nowym bohaterom w poznaniu świata PolskaOnLine.",
+				"Pietrek pomaga nowym bohaterom w poznaniu świata PolanieOnLine.",
 				false);
 		preparePietrek();
+		initShop();
+	}
+
+	@Override
+	public List<String> getHistory(final Player player) {
+		final List<String> res = new ArrayList<String>();
+		if (!player.hasQuest(QUEST_SLOT)) {
+			return res;
+		}
+		res.add("FIRST_CHAT");
+		if (isCompleted(player)) {
+			res.add("DONE");
+		}
+		return res;
+	}
+
+	private final ChatCondition questCompletedCondition = new ChatCondition() {
+		@Override
+		public boolean fire(final Player player, final Sentence sentence, final Entity npc) {
+			return isCompleted(player);
+		}
+	};
+
+	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
 	}
 
 	@Override
 	public String getName() {
-		return "MeetPietrek";
+		return "Spotkanie Pietrka";
 	}
+
 	@Override
 	public String getNPCName() {
 		return "Pietrek";
+	}
+
+	@Override
+	public String getRegion() {
+		return Region.ZAKOPANE_CITY;
 	}
 }

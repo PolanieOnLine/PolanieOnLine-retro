@@ -1,4 +1,4 @@
-/* $Id: ProfileList.java,v 1.10 2010/10/04 19:44:33 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -18,15 +18,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.PrintStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
  * User login profile list.
  */
-public class ProfileList {
-
+class ProfileList implements Iterable<Profile >{
 	protected ArrayList<Profile> profiles;
 
 	/**
@@ -42,11 +42,11 @@ public class ProfileList {
 
 	/**
 	 * Add a profile. This will remove duplicates.
-	 * 
+	 *
 	 * @param profile
 	 *            A user login profile.
 	 */
-	public void add(final Profile profile) {
+	void add(final Profile profile) {
 		/*
 		 * Keep one equivalent entry (can't use HasSet and preserve order)
 		 */
@@ -57,15 +57,16 @@ public class ProfileList {
 	/**
 	 * Remove all profiles.
 	 */
-	public void clear() {
+	private void clear() {
 		profiles.clear();
 	}
 
 	/**
 	 * Get an iterator of profiles.
-	 * 
+	 *
 	 * @return An iterator of profiles.
 	 */
+	@Override
 	public Iterator<Profile> iterator() {
 		return profiles.iterator();
 	}
@@ -76,11 +77,11 @@ public class ProfileList {
 	 * @param in The Stream to read
 	 * @throws IOException if any IO operation fails
 	 */
-	public void load(final InputStream in) throws IOException {
+	void load(final InputStream in) throws IOException {
 		final Encoder codec = new Encoder();
 		String s;
 
-		final BufferedReader r = new BufferedReader(new InputStreamReader(in));
+		final BufferedReader r = new BufferedReader(new InputStreamReader(in, "UTF-8"));
 
 		clear();
 
@@ -91,34 +92,33 @@ public class ProfileList {
 
 	/**
 	 * Remove a profile.
-	 * 
+	 *
 	 * @param profile
 	 *            A user login profile.
 	 */
-	public void remove(final Profile profile) {
+	void remove(final Profile profile) {
 		profiles.remove(profile);
 	}
 
 	/**
 	 * Save a list of profiles to an output stream.
-	 * 
+	 *
 	 * @param out
 	 *            The stream to write.
 	 * @throws IOException if any IO operation fails
 	 */
-	public void save(final OutputStream out) throws IOException {
+	void save(final OutputStream out) throws IOException {
 		final Encoder codec = new Encoder();
 
-		final PrintStream ps = new PrintStream(out);
+		final Writer writer = new OutputStreamWriter(out, "UTF-8");
 
 		try {
-			final Iterator<Profile> iter = iterator();
-
-			while (iter.hasNext()) {
-				ps.println(codec.encode(iter.next().encode()));
+			for (Profile p : this) {
+				writer.write(codec.encode(p.encode()));
+				writer.write(System.getProperty("line.separator"));
 			}
 		} finally {
-			ps.flush();
+			writer.flush();
 		}
 	}
 
@@ -147,10 +147,8 @@ public class ProfileList {
 			in.close();
 		}
 
-		final Iterator<Profile> iter = list.iterator();
-
-		while (iter.hasNext()) {
-			System.out.println(iter.next());
+		for (Profile p : list) {
+			System.out.println(p);
 		}
 	}
 }

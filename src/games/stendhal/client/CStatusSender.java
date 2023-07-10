@@ -11,8 +11,6 @@
  ***************************************************************************/
 package games.stendhal.client;
 
-import games.stendhal.common.Debug;
-
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -23,12 +21,13 @@ import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.util.Random;
 
+import org.apache.log4j.Logger;
+
+import games.stendhal.common.Debug;
 import marauroa.common.crypto.Hash;
 import marauroa.common.game.RPAction;
 import marauroa.common.game.RPClass;
 import marauroa.common.io.Persistence;
-
-import org.apache.log4j.Logger;
 
 /**
  * sends client status information
@@ -41,16 +40,14 @@ public final class CStatusSender {
 	/** filename for the settings persistence. */
 	private static final String FILE_NAME = "cid";
 
-	private static String clientid = null;
-
 	/**
 	 * sends id, version and distribution
 	 */
 	public static void send() {
-		readID();
-		if (!haveID()) {
-			generateID();
-			saveID();
+		String clientid = readID();
+		if (clientid == null) {
+			clientid = generateRandomString();
+			saveID(clientid);
 		}
 
 		final RPAction action = new RPAction();
@@ -87,7 +84,7 @@ public final class CStatusSender {
 					.forName("games.stendhal.client.update.Starter");
 			if (clazz != null) {
 				Object[] objects = clazz.getSigners();
-				if ((objects != null) && objects instanceof Certificate[]) {
+				if (objects instanceof Certificate[]) {
 					Certificate[] certs = (Certificate[]) objects;
 					if ((certs.length > 0)) {
 						byte[] key = certs[0].getPublicKey().getEncoded();
@@ -118,19 +115,15 @@ public final class CStatusSender {
 		ClientSingletonRepository.getClientFramework().send(action);
 	}
 
-	private static void generateID() {
-		clientid = generateRandomString();
-	}
-
 	private final static String CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!$/()@";
 
 	/**
 	 * generates a random string
-	 * 
+	 *
 	 * @return random string
 	 */
 	private static String generateRandomString() {
-		final StringBuffer res = new StringBuffer();
+		final StringBuilder res = new StringBuilder();
 		final Random rnd = new SecureRandom();
 		for (int i = 0; i < 32; i++) {
 			int pos = (int) (rnd.nextFloat() * CHARS.length());
@@ -140,14 +133,9 @@ public final class CStatusSender {
 		return res.toString();
 	}
 
-	private static boolean haveID() {
-		if (clientid == null) {
-			return false;
-		}
-		return true;
-	}
 
-	private static void readID() {
+	private static String readID() {
+		String clientid = null;
 		try {
 			final InputStream is = Persistence.get().getInputStream(false, stendhal.getGameFolder(), FILE_NAME);
 			final BufferedInputStream bis = new BufferedInputStream(is);
@@ -159,7 +147,7 @@ public final class CStatusSender {
 					buf.write(b);
 					result = bis.read();
 				}
-				clientid = buf.toString().trim();
+				clientid = buf.toString("UTF-8").trim();
 			} finally {
 				bis.close();
 				is.close();
@@ -167,12 +155,13 @@ public final class CStatusSender {
 		} catch (final IOException e) {
 			// ignore exception
 		}
+		return clientid;
 	}
 
-	private static void saveID() {
+	private static void saveID(String clientid) {
 		try {
 			final OutputStream os = Persistence.get().getOutputStream(false, stendhal.getGameFolder(), FILE_NAME);
-			final OutputStreamWriter writer = new OutputStreamWriter(os);
+			final OutputStreamWriter writer = new OutputStreamWriter(os, "UTF-8");
 			try {
 				writer.write(clientid);
 			} finally {
@@ -181,6 +170,5 @@ public final class CStatusSender {
 		} catch (final IOException e) {
 			logger.error("Can't write " + stendhal.getGameFolder() + FILE_NAME, e);
 		}
-
 	}
 }

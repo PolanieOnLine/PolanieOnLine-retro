@@ -1,6 +1,5 @@
-/* $Id: EasterBunny.java,v 1.2 2012/04/28 06:38:34 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,20 +11,19 @@
  ***************************************************************************/
 package games.stendhal.server.script;
 
+import java.util.List;
+
 import games.stendhal.server.core.rp.StendhalQuestSystem;
 import games.stendhal.server.core.scripting.ScriptImpl;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.quests.MeetBunny;
 
-import java.util.List;
-
 /**
  * Starts or stops EasterBunny.
- * 
+ *
  * @author kymara
  */
 public class EasterBunny extends ScriptImpl {
-
 	@Override
 	public void execute(final Player admin, final List<String> args) {
 		if (args.size() != 1) {
@@ -42,11 +40,13 @@ public class EasterBunny extends ScriptImpl {
 	}
 
 	/**
-	 * starts Easter
+	 * Starts Easter.
+	 *
+	 * @param admin adminstrator running the script
 	 */
 	private void startEaster(Player admin) {
 		if (System.getProperty("stendhal.easterbunny") != null) {
-			admin.sendPrivateText("Króliczek Wielkanocny jest aktywny.");
+			admin.sendPrivateText("Zajączek Wielkanocny został aktywowany.");
 			return;
 		}
 		System.setProperty("stendhal.easterbunny", "true");
@@ -54,11 +54,16 @@ public class EasterBunny extends ScriptImpl {
 	}
 
 	/**
-	 * ends Easter
+	 * Ends Easter.
+	 *
+	 * @param admin adminstrator running the script
 	 */
 	private void stopEaster(Player admin) {
+		if (System.getProperty("stendhal.easterbunny") == null) {
+			admin.sendPrivateText("Zajączek Wielkanocny został dezaktywowany.");
+			return;
+		}
 		System.getProperties().remove("stendhal.easterbunny");
 		StendhalQuestSystem.get().unloadQuest(MeetBunny.QUEST_NAME);
 	}
-
 }

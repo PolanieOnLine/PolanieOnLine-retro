@@ -1,4 +1,4 @@
-/* $Id: TeleportSendExtension.java,v 1.17 2010/09/19 02:26:16 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +12,8 @@
  ***************************************************************************/
 package games.stendhal.server.extension;
 
+import org.apache.log4j.Logger;
+
 import games.stendhal.server.actions.ActionListener;
 import games.stendhal.server.actions.CommandCenter;
 import games.stendhal.server.actions.admin.AdministrationAction;
@@ -21,11 +23,9 @@ import games.stendhal.server.entity.RPEntity;
 import games.stendhal.server.entity.player.Player;
 import marauroa.common.game.RPAction;
 
-import org.apache.log4j.Logger;
-
 /**
  * Stendhal TeleportSend Extenstion
- * 
+ *
  * This extension adds teleportsend to the game world. there is 1 command:
  * /teleportsend [Player] [Player|NPC_Destination] which will teleport the first
  * player to the second player/npc This command is an admin command of the same
@@ -33,7 +33,7 @@ import org.apache.log4j.Logger;
  * server.ini file: # load StendhalServerExtension(s)
  * teleportsend=games.stendhal.server.extension.TeleportSendExtension
  * server_extension=...,teleportsend
- * 
+ *
  * @author Seather
  */
 public class TeleportSendExtension extends StendhalServerExtension implements
@@ -41,8 +41,8 @@ public class TeleportSendExtension extends StendhalServerExtension implements
 
 	private final String CMD_NAME = "teleportsend";
 
-	private final String CMD_USAGE = "Użyj: #/" + CMD_NAME
-			+ " #<Wojownik> #<Wojownik|Docelowy_NPC>";
+	private final String CMD_USAGE = "Usage: #/" + CMD_NAME
+			+ " #<Player> #<Player|NPC_Destination>";
 
 	private static final Logger logger = Logger.getLogger(TeleportSendExtension.class);
 
@@ -59,6 +59,7 @@ public class TeleportSendExtension extends StendhalServerExtension implements
 		// implemented as /commands that are handled onAction
 	}
 
+	@Override
 	public void onAction(final Player player, final RPAction action) {
 		final String type = action.get("type");
 
@@ -79,7 +80,7 @@ public class TeleportSendExtension extends StendhalServerExtension implements
 			final String name1 = action.get("target");
 			final Player player1 = SingletonRepository.getRuleProcessor().getPlayer(name1);
 			if (player1 == null) {
-				final String text = "Wojownik \"" + name1 + "\" nie został znaleziony";
+				final String text = "Player \"" + name1 + "\" not found";
 				admin.sendPrivateText(text);
 				logger.debug(text);
 				return;
@@ -92,7 +93,7 @@ public class TeleportSendExtension extends StendhalServerExtension implements
 				player2 = SingletonRepository.getNPCList().get(name2);
 				if (player2 == null) {
 
-					final String text = "Wojownik \"" + name2 + "\" nie został znaleziony";
+					final String text = "Player \"" + name2 + "\" not found";
 					admin.sendPrivateText(text);
 					logger.debug(text);
 					return;

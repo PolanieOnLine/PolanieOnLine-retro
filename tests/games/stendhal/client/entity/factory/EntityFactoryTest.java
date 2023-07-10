@@ -1,6 +1,5 @@
-/* $Id: EntityFactoryTest.java,v 1.12 2010/11/24 22:30:58 martinfuchs Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2022 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -14,7 +13,10 @@ package games.stendhal.client.entity.factory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import games.stendhal.bot.textclient.TextUI;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import games.stendhal.client.GameObjects;
 import games.stendhal.client.entity.Blood;
 import games.stendhal.client.entity.Box;
@@ -24,6 +26,7 @@ import games.stendhal.client.entity.Corpse;
 import games.stendhal.client.entity.Creature;
 import games.stendhal.client.entity.Door;
 import games.stendhal.client.entity.Fire;
+import games.stendhal.client.entity.GoatFood;
 import games.stendhal.client.entity.GrainField;
 import games.stendhal.client.entity.IEntity;
 import games.stendhal.client.entity.InvisibleEntity;
@@ -33,17 +36,13 @@ import games.stendhal.client.entity.PlantGrower;
 import games.stendhal.client.entity.Player;
 import games.stendhal.client.entity.Portal;
 import games.stendhal.client.entity.Sheep;
-import games.stendhal.client.entity.SheepFood;
 import games.stendhal.client.entity.Sign;
 import games.stendhal.client.entity.StackableItem;
-import games.stendhal.client.entity.UseableEntity;
+import games.stendhal.client.entity.StatefulEntity;
 import games.stendhal.client.entity.UseableItem;
 import games.stendhal.server.maps.MockStendlRPWorld;
 import marauroa.common.Log4J;
 import marauroa.common.game.RPObject;
-
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 public class EntityFactoryTest {
 
@@ -71,7 +70,6 @@ public class EntityFactoryTest {
 		Log4J.init();
 		GameObjects.createInstance(null);
 		MockStendlRPWorld.get();
-		new TextUI();
 	}
 
 
@@ -118,7 +116,7 @@ public class EntityFactoryTest {
 				.getClass());
 
 	}
-	
+
 	@Test
 	public final void seed() {
 		final RPObject rp = new MockRPObject("item", "misc", "seed");
@@ -194,7 +192,7 @@ public class EntityFactoryTest {
 		final IEntity en = EntityFactory.createEntity(rp);
 		assertNotNull("entity should be created", en);
 		assertEquals("we should have created a GoldSource by now",
-				UseableEntity.class, en.getClass());
+				StatefulEntity.class, en.getClass());
 	}
 
 	@Test
@@ -207,12 +205,12 @@ public class EntityFactoryTest {
 	}
 
 	@Test
-	public final void sheepFood() {
+	public final void goatFood() {
 		final RPObject rp = new MockRPObject("food", null);
 		final IEntity en = EntityFactory.createEntity(rp);
 		assertNotNull("entity should be created", en);
-		assertEquals("we should have created a SheepFood by now",
-				SheepFood.class, en.getClass());
+		assertEquals("we should have created a GoatFood by now",
+				GoatFood.class, en.getClass());
 	}
 
 	@Test

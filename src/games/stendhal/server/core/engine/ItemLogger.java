@@ -1,4 +1,4 @@
-/* $Id: ItemLogger.java,v 1.36 2012/08/03 06:31:37 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +12,7 @@
  ***************************************************************************/
 package games.stendhal.server.core.engine;
 
+import games.stendhal.server.core.engine.db.StendhalItemDAO;
 import games.stendhal.server.core.engine.dbcommand.AbstractLogItemEventCommand;
 import games.stendhal.server.core.engine.dbcommand.LogMergeItemEventCommand;
 import games.stendhal.server.core.engine.dbcommand.LogSimpleItemEventCommand;
@@ -23,6 +24,7 @@ import games.stendhal.server.entity.item.Item;
 import games.stendhal.server.entity.player.Player;
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPSlot;
+import marauroa.server.db.command.DBCommandPriority;
 import marauroa.server.db.command.DBCommandQueue;
 
 /**
@@ -34,7 +36,7 @@ public class ItemLogger {
 
 
 	public void addLogItemEventCommand(final AbstractLogItemEventCommand command) {
-		DBCommandQueue.get().enqueue(command);
+		DBCommandQueue.get().enqueue(command, DBCommandPriority.LOW);
 	}
 
 
@@ -47,7 +49,7 @@ public class ItemLogger {
 	}
 
 	public void loadOnLogin(final Player player, final RPSlot slot, final Item item) {
-		if (item.has(AbstractLogItemEventCommand.ATTR_ITEM_LOGID)) {
+		if (item.has(StendhalItemDAO.ATTR_ITEM_LOGID)) {
 			return;
 		}
 		addLogItemEventCommand(new LogSimpleItemEventCommand(item, player, "create", item.get("name"), getQuantity(item), "olditem",
@@ -79,13 +81,10 @@ public class ItemLogger {
 	/**
 	 * Call when the item or its container times out, or the containing zone is
 	 * destroyed
-	 * 
-	 * @param item
+	 *
+	 * @param item Item to log timeout for
 	 */
 	public void timeout(final Item item) {
-		if (!item.has("logid")) {
-			return;
-		}
 		LogSimpleItemEventCommand command;
 		if (!item.isContained()) {
 			command = new LogSimpleItemEventCommand(item, null, "destroy", item.get("name"), getQuantity(item), "timeout", item.getZone().getID().getID() + " " + item.getX() + " " + item.getY());

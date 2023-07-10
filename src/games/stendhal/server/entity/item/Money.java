@@ -1,4 +1,4 @@
-/* $Id: Money.java,v 1.25 2008/09/08 21:42:52 astridemma Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -36,7 +36,7 @@ public class Money extends StackableItem {
 
 	/**
 	 * Copy constructor.
-	 * 
+	 *
 	 * @param item
 	 *            item to copy
 	 */
@@ -46,6 +46,6 @@ public class Money extends StackableItem {
 
 	@Override
 	public String describe() {
-		return "Oto " + getQuantity() + " money.";
+		return "Oto " + getQuantity() + " §money.";
 	}
 }

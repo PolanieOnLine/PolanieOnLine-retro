@@ -1,6 +1,5 @@
-/* $Id: GagAction.java,v 1.11 2010/09/19 02:21:43 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -16,6 +15,7 @@ import static games.stendhal.common.constants.Actions.GAG;
 import static games.stendhal.common.constants.Actions.MINUTES;
 import static games.stendhal.common.constants.Actions.REASON;
 import static games.stendhal.common.constants.Actions.TARGET;
+
 import games.stendhal.server.actions.CommandCenter;
 import games.stendhal.server.core.engine.GameEvent;
 import games.stendhal.server.core.engine.SingletonRepository;
@@ -27,12 +27,10 @@ public class GagAction extends AdministrationAction {
 
 	public static void register() {
 		CommandCenter.register(GAG, new GagAction(), 4);
-
 	}
 
 	@Override
 	public void perform(final Player player, final RPAction action) {
-
 		if (action.has(TARGET) && action.has(MINUTES)) {
 			final String target = action.get(TARGET);
 			String reason = "";

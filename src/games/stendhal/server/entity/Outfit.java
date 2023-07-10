@@ -1,4 +1,3 @@
-/* $Id: Outfit.java,v 1.34 2012/09/29 22:25:58 kymara Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,10 +11,15 @@
  ***************************************************************************/
 package games.stendhal.server.entity;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+
+import games.stendhal.common.MathHelper;
 import games.stendhal.common.Outfits;
 import games.stendhal.common.Rand;
 
-import org.apache.log4j.Logger;
 /**
  * A data structure that represents the outfit of an RPEntity. This RPEntity can
  * either be an NPC which uses the outfit sprite system, or of a player.
@@ -23,12 +27,14 @@ import org.apache.log4j.Logger;
  * You can use this data structure so that you don't have to deal with the way
  * outfits are stored internally.
  *
- * An outfit can contain up to five parts: hair, head, dress, and base.
+ * An outfit can contain up to nine parts: body, dress, head, mouth, eyes, mask,
+ * hair, hat & detail.
  *
  * Note, however, that you can create outfit objects that consist of less than
- * five parts by setting the other parts to <code>null</code>. For example,
+ * nine parts by setting the other parts to <code>null</code>. For example,
  * you can create a dress outfit that you can combine with the player's current
- * so that the player gets the dress, but keeps his hair, head, and base.
+ * so that the player gets the dress, but keeps his hair, head, and body. To
+ * denote that a layer should not be drawn, its value can be set to -1.
  *
  * Not all outfits can be chosen by players.
  *
@@ -40,131 +46,144 @@ public class Outfit {
 	/** the logger instance. */
 	private static final Logger LOGGER = Logger.getLogger(Outfit.class);
 
-	/** The detail index, as a value between 0 and 99, or null. */
-	//private Integer detail;
-	
-	/** The hair index, as a value between 0 and 99, or null. */
-	private final Integer hair;
+	private static final Map<String, String> EMPTY_MAP = new HashMap<>();
 
-	/** The head index, as a value between 0 and 99, or null. */
-	private final Integer head;
-
-	/** The dress index, as a value between 0 and 99, or null. */
-	private final Integer dress;
-
-	/** The base index, as a value between 0 and 99, or null. */
-	private final Integer base;
-
-	/**
-	 * Creates a new default outfit (naked person).
-	 */
-	public Outfit() {
-		this(0, 0, 0, 0);
-	}
+	private final Map<String, Integer> layers = new HashMap<>();
 
 	/**
 	 * Creates a new outfit. Set some of the parameters to null if you want an
 	 * entity that put on this outfit to keep on the corresponding parts of its
 	 * current outfit.
 	 *
+	 * Currently supported layers should be in this order:
+	 * 		body, dress, head, mouth, eyes, mask, hair, hat, detail
+	 *
+	 * @param layers
+	 * 		Integer indexes of each outfit layer or null.
+	 */
+	public Outfit(final Integer... layers) {
+		int idx = 0;
+		for (final String lname: Outfits.LAYER_NAMES) {
+			if (idx >= layers.length) {
+				break;
+			}
+
+			this.layers.put(lname, layers[idx]);
+			idx++;
+		}
+	}
+
+	/**
+	 * Construct an outfit using a string.
+	 *
+	 * @param strcode
+	 * 		Can be a comma separated key=value list or a 10-digit integer
+	 * 		for backward compatibility.
+	 */
+	public Outfit(final String strcode) {
+		if (strcode.contains("=")) {
+			final String[] layers;
+			if (strcode.contains(",")) {
+				layers = strcode.split(",");
+			} else {
+				layers = new String[] {strcode};
+			}
+
+			for (int idx = 0; idx < layers.length; idx++) {
+				final String layer = layers[idx];
+				if (layer.contains("=")) {
+					final String[] key = layer.split("=");
+					if (Outfits.LAYER_NAMES.contains(key[0])) {
+						this.layers.put(key[0], Integer.parseInt(key[1]));
+					}
+				}
+			}
+		} else {
+			try {
+				final int code = Integer.parseInt(strcode);
+
+				this.layers.put("body", code % 100);
+				this.layers.put("dress", code / 100 % 100);
+				this.layers.put("head", (int) (code / Math.pow(100, 2) % 100));
+				this.layers.put("eyes", 0);
+				this.layers.put("mouth", 0);
+				this.layers.put("mask", 0);
+				this.layers.put("hair", (int) (code / Math.pow(100, 3) % 100));
+				this.layers.put("hat", 0);
+				this.layers.put("detail", (int) (code / Math.pow(100, 4) % 100));
+			} catch (NumberFormatException e) {
+				LOGGER.warn("Can't parse outfit code, setting failsafe outfit.");
+			}
+		}
+	}
+
+	/**
+	 * This method is added for backwards compatibility. Anything using this should be updated
+	 * for new method.
+	 *
+	 * Creates a new outfit. Set some of the parameters to null if you want an
+	 * entity that put on this outfit to keep on the corresponding parts of its
+	 * current outfit.
+	 *
+	 * @param detail
+	 *            The index of the detail style, or null
 	 * @param hair
 	 *            The index of the hair style, or null
 	 * @param head
 	 *            The index of the head style, or null
 	 * @param dress
 	 *            The index of the dress style, or null
-	 * @param base
-	 *            The index of the base style, or null
+	 * @param body
+	 *            The index of the body style, or null
 	 */
-	public Outfit(final Integer hair, final Integer head, final Integer dress, final Integer base) {
-		//this.detail = detail;
-		this.hair = hair;
-		this.head = head;
-		this.dress = dress;
-		this.base = base;
+	@Deprecated
+	public Outfit(final Integer detail, Integer hair, Integer head,
+			Integer dress, Integer body) {
+		layers.put("body", body);
+		layers.put("dress", dress);
+		layers.put("head", head);
+		layers.put("hair", hair);
+		layers.put("detail", detail);
 	}
 
-	/**
-	 * Creates a new outfit based on a numeric code.
-	 *
-	 * @param code
-	 *            A 10-digit decimal number where the last part (from the right) stands for base,
-	 *            the next for dress, then head, then hair, then detail
-	 */
-	public Outfit(final int code) {
+	public Integer getLayer(final String layerName) {
+		Integer layer = layers.get(layerName);
+		if (layer == null) {
+			layer = 0;
+		}
 
-		this.base = code % 100;
-
-		this.dress = code / 100 % 1000;
-
-		this.head = code / 100000 % 100;
-
-		this.hair = code / 10000000 % 1000;
+		return layer;
 	}
 
-	/**
-	 * Gets the index of this outfit's base style.
-	 *
-	 * @return The index, or null if this outfit doesn't contain a base.
-	 */
-	public Integer getBase() {
-		return base;
+	public void setLayer(final String layerName, final Integer code) {
+		layers.put(layerName, code);
 	}
-
-	/**
-	 * Gets the index of this outfit's dress style.
-	 *
-	 * @return The index, or null if this outfit doesn't contain a dress.
-	 */
-	public Integer getDress() {
-		return dress;
-	}
-
-
-	/**
-	 * Gets the index of this outfit's hair style.
-	 *
-	 * @return The index, or null if this outfit doesn't contain hair.
-	 */
-	public Integer getHair() {
-		return hair;
-	}
-
-	/**
-	 * Gets the index of this outfit's head style.
-	 *
-	 * @return The index, or null if this outfit doesn't contain a head.
-	 */
-	public Integer getHead() {
-		return head;
-	}
-
-	/**
-	 * Gets the index of this outfit's detail style.
-	 *
-	 * @return The index, or null if this outfit doesn't contain a detail.
-	 */
-	/*public Integer getDetail() {
-		return detail;
-	}*/
-
 
 	/**
 	 * Represents this outfit in a numeric code.
 	 *
+	 * This is for backward-compatibility with old outfit system.
+	 *
 	 * @return A 10-digit decimal number where the first pair of digits stand for
 	 *         detail, the second pair for hair, the third pair for head, the
-	 *         fourth pair for dress, and the fifth pair for base
+	 *         fourth pair for dress, and the fifth pair for body
 	 */
 	public int getCode() {
-		//int de = 0;
+		Integer detail = layers.get("detail");
+		Integer hair = layers.get("hair");
+		Integer head = layers.get("head");
+		Integer dress = layers.get("dress");
+		Integer body = layers.get("body");
+
+		int de = 0;
 		int ha = 0;
 		int he = 0;
 		int dr = 0;
-		int ba = 0;
-		/*if (detail != null) {
+		int bo = 0;
+
+		if (detail != null) {
 			de = detail.intValue();
-		}*/
+		}
 		if (hair != null) {
 			ha = hair.intValue();
 		}
@@ -174,10 +193,12 @@ public class Outfit {
 		if (dress != null) {
 			dr = dress.intValue();
 		}
-		if (base != null) {
-			ba = base.intValue();
+		if (body != null) {
+			bo = body.intValue();
 		}
-		return ha * 10000000 + he * 100000 + dr * 100 + ba;
+
+		return (de * 100000000) + (ha * 1000000) + (he * 10000) + (dr * 100)
+				+ bo;
 	}
 
 	/**
@@ -185,44 +206,61 @@ public class Outfit {
 	 * outfit. Note that this new outfit can contain parts that are marked as
 	 * NONE; in this case, the parts from the other outfit will be used.
 	 *
+	 * FIXME: the Java client cannot render outfit correctly when this is called
+	 *        using an outfit created with Outfit(String) constructor. Not sure
+	 *        if problem is in server or client. (AntumDeluge)
+	 *
 	 * @param other
 	 *            the outfit that should be worn 'under' the current one
 	 * @return the combined outfit
 	 */
-	public Outfit putOver(final Outfit other) {
-		//int newDetail;
-		int newHair;
-		int newHead;
-		int newDress;
-		int newBase;
+	public Outfit putOver(Outfit old) {
+		// make sure old outfit is not null
+		if (old == null) {
+			old = new Outfit();
+		}
+
+		Integer newBody = layers.get("body");
+		Integer newDress = layers.get("dress");
+		Integer newHead = layers.get("head");
+		Integer newMouth = layers.get("mouth");
+		Integer newEyes = layers.get("eyes");
+		Integer newMask = layers.get("mask");
+		Integer newHair = layers.get("hair");
+		Integer newHat = layers.get("hat");
+		Integer newDetail = layers.get("detail");
+
 		// wear the this outfit 'over' the other outfit;
 		// use the other outfit for parts that are not defined for this outfit.
-		/*if (this.detail == null) {
-			newDetail = other.detail;
-		} else {
-			newDetail = this.detail;
-		}*/
-		if (this.hair == null) {
-			newHair = other.hair;
-		} else {
-			newHair = this.hair;
+		if (newBody == null) {
+			newBody = old.getLayer("body");
 		}
-		if (this.head == null) {
-			newHead = other.head;
-		} else {
-			newHead = this.head;
+		if (newDress == null) {
+			newDress = old.getLayer("dress");
 		}
-		if (this.dress == null) {
-			newDress = other.dress;
-		} else {
-			newDress = this.dress;
+		if (newHead == null) {
+			newHead = old.getLayer("head");
 		}
-		if (this.base == null) {
-			newBase = other.base;
-		} else {
-			newBase = this.base;
+		if (newMouth == null) {
+			newMouth = old.getLayer("mouth");
 		}
-		return new Outfit(newHair, newHead, newDress, newBase);
+		if (newEyes == null) {
+			newEyes = old.getLayer("eyes");
+		}
+		if (newMask == null) {
+			newMask = old.getLayer("mask");
+		}
+		if (newHair == null) {
+			newHair = old.getLayer("hair");
+		}
+		if (newHat == null) {
+			newHat = old.getLayer("hat");
+		}
+		if (newDetail == null) {
+			newDetail = old.getLayer("detail");
+		}
+
+		return new Outfit(newBody, newDress, newHead, newMouth, newEyes, newMask, newHair, newHat, newDetail);
 	}
 
 	/**
@@ -235,47 +273,72 @@ public class Outfit {
 	 * @return the new outfit, with the parameter-outfit removed
 	 */
 	public Outfit removeOutfit(final Outfit other) {
-		//int newDetail;
-		int newHair;
-		int newHead;
-		int newDress;
-		int newBase;
+		Integer newBody = layers.get("body");
+		Integer newDress = layers.get("dress");
+		Integer newHead = layers.get("head");
+		Integer newMouth = layers.get("mouth");
+		Integer newEyes = layers.get("eyes");
+		Integer newMask = layers.get("mask");
+		Integer newHair = layers.get("hair");
+		Integer newHat = layers.get("hat");
+		Integer newDetail = layers.get("detail");
+
 		// wear the this outfit 'over' the other outfit;
 		// use the other outfit for parts that are not defined for this outfit.
-		/*if ((detail == null) || detail.equals(other.detail)) {
-			newDetail = 0;
-		} else {
-			newDetail = detail;
-		}*/
-		if ((hair == null) || hair.equals(other.hair)) {
-			newHair = 0;
-		} else {
-			newHair = hair;
+		if (newBody == null || newBody.equals(other.getLayer("body"))) {
+			newBody = 0;
 		}
-		if ((head == null) || head.equals(other.head)) {
-			newHead = 0;
-		} else {
-			newHead = head;
-		}
-		if ((dress == null) || dress.equals(other.dress)) {
+		if ((newDress == null) || newDress.equals(other.getLayer("dress"))) {
 			newDress = 0;
-		} else {
-			newDress = dress;
 		}
-		if ((base == null) || base.equals(other.base)) {
-			newBase = 0;
-		} else {
-			newBase = base;
+		if ((newHead == null) || newHead.equals(other.getLayer("head"))) {
+			newHead = 0;
 		}
-		return new Outfit(/*newDetail, */newHair, newHead, newDress, newBase);
+		if ((newMouth == null) || newMouth.equals(other.getLayer("mouth"))) {
+			newMouth = 0;
+		}
+		if ((newEyes == null) || newEyes.equals(other.getLayer("eyes"))) {
+			newEyes = 0;
+		}
+		if ((newMask == null) || newMask.equals(other.getLayer("mask"))) {
+			newMask = 0;
+		}
+		if ((newHair == null) || newHair.equals(other.getLayer("hair"))) {
+			newHair = 0;
+		}
+		if ((newHat == null) || newHat.equals(other.getLayer("hat"))) {
+			newHat = 0;
+		}
+		if ((newDetail == null) || newDetail.equals(other.getLayer("detail"))) {
+			newDetail = 0;
+		}
+
+		return new Outfit(newBody, newDress, newHead, newMouth, newEyes, newMask, newHair, newHat, newDetail);
+	}
+
+	/**
+	 * Gets the result that you get when you remove (parts of) an outfit.
+	 * Removes the parts in the parameter, from the current outfit.
+	 * NOTE: If a part does not match, the current outfit part will remain the same.
+	 *
+	 * Currently supported layers should be in this order:
+	 * 		body, dress, head, mouth, eyes, mask, hair, hat, detail
+	 *
+	 * @param layers
+	 * 		Integer indexes of each outfit layer that should be removed.
+	 * @return the new outfit, with the layers removed.
+	 */
+	public Outfit removeOutfit(final Integer... layers) {
+		return removeOutfit(new Outfit(layers));
 	}
 
 	/**
 	 * removes the details
 	 */
-	/*public void removeDetail() {
-		detail = 0;
-	}*/
+	public void removeDetail() {
+		// XXX: would it be better to use put("detail", 0)???
+		layers.remove("detail");
+	}
 
 	/**
 	 * Checks whether this outfit is equal to or part of another outfit.
@@ -285,10 +348,36 @@ public class Outfit {
 	 * @return true iff this outfit is part of the given outfit.
 	 */
 	public boolean isPartOf(final Outfit other) {
-		return ((hair == null) || hair.equals(other.hair))
-				&& ((head == null) || head.equals(other.head))
-				&& ((dress == null) || dress.equals(other.dress))
-				&& ((base == null) || base.equals(other.base));
+		Integer hat = layers.get("hat");
+		Integer mask = layers.get("mask");
+		Integer eyes = layers.get("eyes");
+		Integer mouth = layers.get("mouth");
+		Integer detail = layers.get("detail");
+		Integer hair = layers.get("hair");
+		Integer head = layers.get("head");
+		Integer dress = layers.get("dress");
+		Integer body = layers.get("body");
+
+		return ((hat == null) || hat.equals(other.getLayer("hat")))
+				&& ((mask == null) || mask.equals(other.getLayer("mask")))
+				&& ((eyes == null) || eyes.equals(other.getLayer("eyes")))
+				&& ((mouth == null) || mouth.equals(other.getLayer("mouth")))
+				&& ((detail == null) || detail.equals(other.getLayer("detail")))
+				&& ((hair == null) || hair.equals(other.getLayer("hair")))
+				&& ((head == null) || head.equals(other.getLayer("head")))
+				&& ((dress == null) || dress.equals(other.getLayer("dress")))
+				&& ((body == null) || body.equals(other.getLayer("body")));
+	}
+
+	/**
+	 * Checks a single layer of the outfit.
+	 *
+	 * @param layer
+	 * @param index
+	 * @return
+	 */
+	public boolean isPartOf(final String layer, final Integer index) {
+		return index.equals(layers.get(layer));
 	}
 
 	/**
@@ -298,10 +387,25 @@ public class Outfit {
 	 * @return true if it is a normal outfit
 	 */
 	public boolean isChoosableByPlayers() {
-		return (hair < Outfits.HAIR_OUTFITS) && (hair >= 0) 
- 			&& (head < Outfits.HEAD_OUTFITS) && (head >= 0)
-			&& (dress < Outfits.CLOTHES_OUTFITS) && (dress >= 0)
-			&& (base < Outfits.BODY_OUTFITS) && (base >= 0);
+		Integer hat = layers.get("hat");
+		Integer mask = layers.get("mask");
+		Integer eyes = layers.get("eyes");
+		Integer mouth = layers.get("mouth");
+		Integer detail = layers.get("detail");
+		Integer hair = layers.get("hair");
+		Integer head = layers.get("head");
+		Integer dress = layers.get("dress");
+		Integer body = layers.get("body");
+
+		return (hat == null || (hat < Outfits.HAT_OUTFITS) && (hat >= 0))
+			&& (mask == null || (mask < Outfits.MASK_OUTFITS) && (mask >= 0))
+			&& (eyes == null || (eyes < Outfits.EYES_OUTFITS) && (eyes >= 0))
+			&& (mouth == null || (mouth < Outfits.MOUTH_OUTFITS) && (mouth >= 0))
+			&& (detail == null || detail == 0)
+			&& (hair == null || (hair < Outfits.HAIR_OUTFITS) && (hair >= 0))
+			&& (head == null || (head < Outfits.HEAD_OUTFITS) && (head >= 0))
+			&& (dress == null || (dress < Outfits.CLOTHES_OUTFITS) && (dress >= 0))
+			&& (body == null || (body < Outfits.BODY_OUTFITS) && (body >= 0));
 	}
 
 	/**
@@ -310,16 +414,17 @@ public class Outfit {
 	 * @return true if naked, false if dressed
 	 */
 	public boolean isNaked() {
+		final Integer dress = layers.get("dress");
+
 		if (isCompatibleWithClothes()) {
 			return (dress == null) || dress.equals(0);
-		} else {
-			return false;
-		} 
-		
+		}
+
+		return false;
 	}
 
 	/**
-	 * Create a random unisex outfit, with a 'normal' face and unisex base
+	 * Create a random unisex outfit, with a 'normal' face and unisex body
 	 *
 	 * <ul>
 	 * <li>hair number (1 to 26) selection of hairs which look ok with both goblin
@@ -330,39 +435,44 @@ public class Outfit {
 	 * </ul>
 	 * @return the new random outfit
 	 */
-
 	public static Outfit getRandomOutfit() {
-		final int newHair = Rand.randUniform(1, 26);
-		final int newHead = Rand.randUniform(1, 15);
-		final int newDress = Rand.randUniform(1, 16);
-		final int newBase = Rand.randUniform(1, 5);
-		LOGGER.debug("chose random outfit: "  + newHair + " " + newHead + " " + newDress + " " + newBase);
-		return new Outfit(newHair, newHead, newDress, newBase);
+		final int newEyes = Rand.randUniform(0, Outfits.EYES_OUTFITS - 1);
+		final int newMouth = Rand.randUniform(0, Outfits.MOUTH_OUTFITS - 1);
+		final int newHair = Rand.randUniform(0, Outfits.HAIR_OUTFITS - 1);
+		final int newHead = Rand.randUniform(0, Outfits.HEAD_OUTFITS - 1);
+		final int newDress = Rand.randUniform(1, Outfits.CLOTHES_OUTFITS - 1);
+		final int newBody = Rand.randUniform(0, Outfits.BODY_OUTFITS - 1);
+
+		LOGGER.debug("chose random outfit: "
+				+ " " + newEyes + " " + newMouth + " " + newHair
+				+ " " + newHead + " " + newDress + " " + newBody);
+		return new Outfit(newBody, newDress, newHead, newMouth, newEyes, 0, newHair, 0, 0);
 	}
-	
+
 	/**
 	 * Can this outfit be worn with normal clothes
 	 *
 	 * @return true if the outfit is compatible with clothes, false otherwise
 	 */
 	public boolean isCompatibleWithClothes() {
-		if (base > 26 && base < 37) {
-			return false;
-		}
-		return true;
+		return Outfits.isDressCompatibleBody(layers.get("body"));
+	}
+
+	public boolean isFemale() {
+		return Outfits.isFemaleBody(layers.get("body"));
 	}
 
 	@Override
 	public boolean equals(Object other) {
+		boolean ret = false;
 
 		if (!(other instanceof Outfit)) {
-			return false;
+			return ret;
 		}
 		else {
 			Outfit outfit = (Outfit)other;
 			return this.getCode() == outfit.getCode();
 		}
-
 	}
 
 	@Override
@@ -370,4 +480,48 @@ public class Outfit {
 		return this.getCode();
 	}
 
+	public String getData(Map<String, String> colors) {
+		if (colors == null) {
+			colors = EMPTY_MAP;
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append("body-" + getLayer("body") + "-");
+		sb.append(Integer.toHexString(MathHelper.parseIntDefault(colors.get("skin"), 0)));
+		sb.append("_dress-" + getLayer("dress") + "-");
+		sb.append(Integer.toHexString(MathHelper.parseIntDefault(colors.get("dress"), 0)));
+		sb.append("_head-" + getLayer("head") + "-");
+		sb.append(Integer.toHexString(MathHelper.parseIntDefault(colors.get("skin"), 0)));
+		sb.append("_mouth-" + getLayer("mouth") + "-");
+		sb.append(Integer.toHexString(MathHelper.parseIntDefault(colors.get("mouth"), 0)));
+		sb.append("_eyes-" + getLayer("eyes") + "-");
+		sb.append(Integer.toHexString(MathHelper.parseIntDefault(colors.get("eyes"), 0)));
+		sb.append("_mask-" + getLayer("mask") + "-");
+		sb.append(Integer.toHexString(MathHelper.parseIntDefault(colors.get("mask"), 0)));
+		sb.append("_hair-" + getLayer("hair") + "-");
+		sb.append(Integer.toHexString(MathHelper.parseIntDefault(colors.get("hair"), 0)));
+		sb.append("_hat-" + getLayer("hat") + "-");
+		sb.append(Integer.toHexString(MathHelper.parseIntDefault(colors.get("hat"), 0)));
+		sb.append("_detail-" + getLayer("detail") + "-");
+		sb.append(Integer.toHexString(MathHelper.parseIntDefault(colors.get("detail"), 0)));
+		return sb.toString();
+	}
+
+	@Override
+	public String toString() {
+		final StringBuilder sb = new StringBuilder();
+
+		int idx = 0;
+		for (final String layer: Outfits.LAYER_NAMES) {
+			final Integer value = layers.get(layer);
+			if (value != null) {
+				if (idx > 0) {
+					sb.append(",");
+				}
+				sb.append(layer + "=" + layers.get(layer));
+				idx++;
+			}
+		}
+
+		return sb.toString();
+	}
 }

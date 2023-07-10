@@ -1,6 +1,5 @@
-/* $Id: DiceGambling.java,v 1.51 2011/11/13 17:13:16 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2011 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -11,6 +10,12 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.engine.SingletonRepository;
@@ -25,28 +30,13 @@ import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.npc.condition.NotCondition;
 import games.stendhal.server.entity.npc.condition.PlayerHasItemWithHimCondition;
 import games.stendhal.server.entity.player.Player;
-import games.stendhal.server.maps.Region;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import marauroa.common.Pair;
 
 public class DiceGambling extends AbstractQuest {
-
 	private static final int STAKE = 100;
 
 	@Override
-	public String getSlotName() {
-		return "dice_gambling";
-	}
-
-	@Override
 	public void addToWorld() {
-
 		final CroupierNPC ricardo = (CroupierNPC) SingletonRepository.getNPCList().get("Ricardo");
 
 		final Map<Integer, Pair<String, String>> prizes = initPrices();
@@ -86,6 +76,7 @@ public class DiceGambling extends AbstractQuest {
 			ConversationStates.ATTENDING,
 			"Dobrze, oto kości do gry. Rzuć je na stół, gdy będziesz gotowy. Powodzenia!",
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					player.drop("money", STAKE);
 					final Dice dice = (Dice) SingletonRepository.getEntityManager()
@@ -94,9 +85,9 @@ public class DiceGambling extends AbstractQuest {
 					player.equipOrPutOnGround(dice);
 				}
 			});
-		
+
 		ricardo.add(ConversationStates.QUESTION_1,
-			ConversationPhrases.YES_MESSAGES, 
+			ConversationPhrases.YES_MESSAGES,
 			new NotCondition(new PlayerHasItemWithHimCondition("money", STAKE)),
 			ConversationStates.ATTENDING,
 			"Hej! Nie masz pieniędzy!", null);
@@ -108,19 +99,19 @@ public class DiceGambling extends AbstractQuest {
 			ConversationStates.ATTENDING,
 			"Tchórz! Jak chcesz zostać bohaterem skoro boisz się zaryzykować?",
 			null);
-		
+
 		fillQuestInfo(
-				"Hazard Koścmi",
-				"Spróbuj szczęścia w kości w Semos's Tavern.",
+				"Hazard Kośćmi",
+				"Spróbuj szczęścia w kości w Semoskiej tawernie.",
 				true);
 	}
 
 	private Map <Integer, Pair<String, String>> initPrices() {
 		Map<Integer, Pair<String, String>> map = new HashMap<Integer, Pair<String, String>>();
-		map.put(3, new Pair<String, String>("lazurowa tarcza",
-				"Facet, jesteś jednym wielkim pechowcem! Tak mi przykro! Weź tą tarczę lazurową."));
+		map.put(3, new Pair<String, String>("tarcza lazurowa",
+				"Facet, jesteś jednym wielkim pechowcem! Tak mi przykro! Weź tę tarczę lazurową."));
 		map.put(7, new Pair<String, String>("sok z chmielu",
-				"Oto nagroda pocieszenia, sok z chmielu."));
+				"Oto nagroda pocieszenia, sok z chmielu. Miejmy nadzieję, że chociaż trochę spragniony jesteś."));
 		map.put(8, new Pair<String, String>("napój z winogron",
 				"Wygrałeś ten wyborny napój z winogron!"));
 		map.put(9, new Pair<String, String>("tarcza ćwiekowa",
@@ -141,30 +132,25 @@ public class DiceGambling extends AbstractQuest {
 				"Z tą nagrodą możesz być budzącym grozę łucznikiem!"));
 		map.put(17,	new Pair<String, String>("płaszcz karmazynowy",
 				"Wyglądasz niesamowicie w tym modnym karmazynowym płaszczu!"));
-		map.put(18, new Pair<String, String>("magiczny hełm kolczy",
-				"Trafiłeś JACKPOT! Magiczny hełm kolczy!"));
-		
+		map.put(18, new Pair<String, String>("hełm zabójcy",
+				"Trafiłeś JACKPOT, ale masz szczęście! Główna nagroda to hełm zabójcy!"));
+
 		return map;
 	}
 
 	@Override
 	public String getName() {
-		return "DiceGambling";
+		return "Hazard Kośćmi";
 	}
-	
+
 	@Override
 	public boolean isVisibleOnQuestStatus() {
 		return false;
 	}
-	
+
 	@Override
 	public List<String> getHistory(final Player player) {
 		return new ArrayList<String>();
-	}
-	
-	@Override
-	public String getRegion() {
-		return Region.SEMOS_CITY;
 	}
 
 	@Override
@@ -172,4 +158,8 @@ public class DiceGambling extends AbstractQuest {
 		return "Ricardo";
 	}
 
+	@Override
+	public String getSlotName() {
+		return "dice_gambling";
+	}
 }

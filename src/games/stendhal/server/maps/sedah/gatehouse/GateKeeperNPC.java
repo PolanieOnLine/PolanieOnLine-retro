@@ -1,4 +1,3 @@
-/* $Id: GateKeeperNPC.java,v 1.26 2012/12/07 00:44:55 tigertoes Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +11,10 @@
  ***************************************************************************/
 package games.stendhal.server.maps.sedah.gatehouse;
 
+import java.util.Arrays;
+import java.util.Map;
+
+import games.stendhal.common.Direction;
 import games.stendhal.common.Rand;
 import games.stendhal.common.grammar.ItemParserResult;
 import games.stendhal.common.parser.Sentence;
@@ -26,9 +29,6 @@ import games.stendhal.server.entity.npc.action.BehaviourAction;
 import games.stendhal.server.entity.npc.behaviour.impl.Behaviour;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.Arrays;
-import java.util.Map;
-
 /**
  * Builds a gatekeeper NPC Bribe him with at least 300 money to get the key for
  * the Sedah city walls. He stands in the doorway of the gatehouse till the
@@ -37,7 +37,6 @@ import java.util.Map;
  * @author kymara
  */
 public class GateKeeperNPC implements ZoneConfigurator {
-
 	/**
 	 * Configure a zone.
 	 *
@@ -46,23 +45,17 @@ public class GateKeeperNPC implements ZoneConfigurator {
 	 * @param attributes
 	 *            Configuration attributes.
 	 */
-	public void configureZone(final StendhalRPZone zone,
-			final Map<String, String> attributes) {
+	@Override
+	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildNPC(zone);
 	}
 
 	private void buildNPC(final StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Revi Borak") {
-
-			@Override
-			protected void createPath() {
-				// not moving.
-				setPath(null);
-			}
-
 			@Override
 			protected void createDialog() {
 				addGreeting(null, new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						if (player.isEquipped("klucz do bram Sedah")) {
 							// toss a coin to see if he notices player still has
@@ -130,19 +123,20 @@ public class GateKeeperNPC implements ZoneConfigurator {
 						}
 				});
 
-				addGoodbye("Dowidzenia. Nie mów, że Cię nie ostrzegałem!");
+				addGoodbye("Do widzenia. Nie mów, że Cię nie ostrzegałem!");
 			}
 		};
 
-		npc.setDescription("Oto wyglądający na silnego żołnierz. Wygląda na skłonnego do wpółpracy za odpowiednią kwotę.");
+		npc.setDescription("Oto Revi Borak, sprawia wrażenie na silnego żołnierza. Wygląda na skłonnego do wpółpracy za odpowiednią kwotę.");
 		/*
 		 * We don't seem to be using the recruiter images that lenocas made for
 		 * the Fado Raid area so I'm going to put him to use here. If the raid
 		 * part ever gets done, this image can change.
 		 */
 		npc.setEntityClass("recruiter2npc");
+		npc.setGender("M");
 		npc.setPosition(120, 67);
-		npc.initHP(100);
+		npc.setIdleDirection(Direction.DOWN);
 		zone.add(npc);
 	}
 }

@@ -1,4 +1,4 @@
-/* $Id: SpriteStore.java,v 1.34 2012/01/10 20:38:13 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -13,10 +13,6 @@
 package games.stendhal.client.sprite;
 
 
-import games.stendhal.client.IGameScreen;
-import games.stendhal.client.gui.j2d.Blend;
-import games.stendhal.client.sprite.TileSprite.TSRef;
-
 import java.awt.Color;
 import java.awt.Composite;
 import java.awt.Graphics2D;
@@ -24,7 +20,6 @@ import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsEnvironment;
 import java.awt.HeadlessException;
 import java.awt.Image;
-import java.awt.Transparency;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
@@ -32,6 +27,12 @@ import java.net.URL;
 import javax.imageio.ImageIO;
 
 import org.apache.log4j.Logger;
+
+import games.stendhal.client.IGameScreen;
+import games.stendhal.client.gui.TransparencyMode;
+import games.stendhal.client.gui.j2d.Blend;
+import games.stendhal.client.gui.wt.core.WtWindowManager;
+import games.stendhal.client.sprite.TileSprite.TSRef;
 
 /**
  * A resource manager for sprites in the game. Its often quite important how and
@@ -52,7 +53,7 @@ public class SpriteStore {
 	/**
 	 * Screen graphics configuration.
 	 */
-	protected GraphicsConfiguration gc;
+	private GraphicsConfiguration gc;
 
 	protected SpriteStore() {
 		try {
@@ -64,7 +65,7 @@ public class SpriteStore {
 
 	/**
 	 * Get the single instance of this class.
-	 * 
+	 *
 	 * @return The single instance of this class
 	 */
 	public static SpriteStore get() {
@@ -73,7 +74,7 @@ public class SpriteStore {
 
 	/**
 	 * Create an animated sprite from a tile sprite using pixel units.
-	 * 
+	 *
 	 * @param sprite
 	 *            The image which contains the different frames.
 	 * @param x
@@ -88,7 +89,7 @@ public class SpriteStore {
 	 *            The tile height (in pixels).
 	 * @param delay
 	 *            The minimum delay between frames.
-	 * 
+	 *
 	 * @return An animated sprite.
 	 */
 	public AnimatedSprite getAnimatedSprite(final Sprite sprite, final int x,
@@ -99,8 +100,41 @@ public class SpriteStore {
 	}
 
 	/**
+	 * Get an animated sprite from a sprite. The frames are calculated
+	 * automatically from the dimensions of the origin sprite. The intended
+	 * frames should be in a row. Each frame will have height of the origin
+	 * sprite and the specified width. The number of frames will depend on
+	 * the width of the origin sprite.
+	 *
+	 * @param sprite Origin sprite
+	 * @param width frame width
+	 * @param delay delay between the frames
+	 * @return animated sprite
+	 */
+	public AnimatedSprite getAnimatedSprite(Sprite sprite, int width, int delay) {
+		int height = sprite.getHeight();
+		int frames = sprite.getWidth() / width;
+		return getAnimatedSprite(sprite, 0, 0, frames, width, height, delay);
+	}
+
+	/**
+	 * Get an animated sprite from a sprite. The frames are calculated
+	 * automatically from the dimensions of the origin sprite. The intended
+	 * frames should be in a row. Each frame will be a square with the height of
+	 * the origin. The number of frames will depend on the width of the origin
+	 * sprite.
+	 *
+	 * @param sprite Origin sprite
+	 * @param delay delay between the frames
+	 * @return animated sprite
+	 */
+	public AnimatedSprite getAnimatedSprite(Sprite sprite, int delay) {
+		return getAnimatedSprite(sprite, sprite.getHeight(), delay);
+	}
+
+	/**
 	 * Get sprite tiles from a sprite using pixel units.
-	 * 
+	 *
 	 * @param sprite
 	 *            The base image.
 	 * @param x
@@ -113,7 +147,7 @@ public class SpriteStore {
 	 *            The tile width (in pixels).
 	 * @param height
 	 *            The tile height (in pixels).
-	 * 
+	 *
 	 * @return An array of sprites.
 	 */
 	public Sprite[] getTiles(final Sprite sprite, final int x, final int y,
@@ -137,13 +171,13 @@ public class SpriteStore {
 	private static final String FAILSAFE_ICON_REF = "data/sprites/failsafe.png";
 
 	/**
-	 * Get the failsafe sprite. 
+	 * Get the failsafe sprite.
 	 * The failsafe sprite is needed in case there are newer graphic requested in server than in client.
-	 * 
-	 * It is ok not to return a handmade one. 
+	 *
+	 * It is ok not to return a handmade one.
 	 * If we cannot reach the failsafe icon,
 	 * we have bigger problems then just the need to show anything.
-	 * 
+	 *
 	 * @return The failsafe sprite.
 	 */
 	public Sprite getFailsafe() {
@@ -152,7 +186,7 @@ public class SpriteStore {
 
 	/**
 	 * Retrieve a sprite from the store.
-	 * 
+	 *
 	 * @param ref
 	 *            The reference to the image to use for the sprite
 	 * @return A sprite instance containing an accelerate image of the request
@@ -173,10 +207,36 @@ public class SpriteStore {
 
 		return sprite;
 	}
-	 
+
+	/**
+	 * Retrieve a sprite from the "combat" folder
+	 *
+	 * @param icon
+	 * 		Name of pixmaps without full path
+	 * @return
+	 * 		A sprite instance containing an accelerate
+	 * 		image of the request reference
+	 */
+	public Sprite getCombatSprite(final String icon) {
+		return getSprite("data/sprites/combat/" + icon);
+	}
+
+	/**
+	 * Retrieve a sprite from the "status" folder
+	 *
+	 * @param icon
+	 * 		Name of pixmaps without full path
+	 * @return
+	 * 		A sprite instance containing an accelerate
+	 * 		image of the request reference
+	 */
+	public Sprite getStatusSprite(final String icon) {
+		return getSprite("data/sprites/status/" + icon);
+	}
+
 	/**
 	 * Get a colored version of a sprite.
-	 * 
+	 *
 	 * @param ref base sprite reference
 	 * @param color painting color
 	 * @return base sprite colored with color
@@ -188,21 +248,21 @@ public class SpriteStore {
 			return getModifiedSprite(ref, color, Blend.TrueColor);
 		}
 	}
-	
+
 	/**
 	 * Get a modified version of a sprite.
-	 * 
+	 *
 	 * @param baseRef base sprite reference
 	 * @param color modifying color
 	 * @param blend composite mode to paint color over the original sprite
 	 * @return base sprite colored with color
 	 */
-	public Sprite getModifiedSprite(final String baseRef, final Color color, 
+	public Sprite getModifiedSprite(final String baseRef, final Color color,
 			final Composite blend) {
 		if ((color == null) || (blend == null)) {
 			return getSprite(baseRef);
 		}
-		
+
 		final SpriteCache cache = SpriteCache.get();
 
 		String realRef = createModifiedRef(baseRef, color, blend);
@@ -213,10 +273,10 @@ public class SpriteStore {
 
 		return sprite;
 	}
-	
+
 	/**
 	 * Get a reference string for a modified sprite.
-	 * 
+	 *
 	 * @param baseRef reference for the base sprite
 	 * @param color
 	 * @param blend
@@ -226,12 +286,12 @@ public class SpriteStore {
 		String colorName = Integer.toHexString(color.getRGB());
 		return baseRef + "@" + blend.toString() + "#" + colorName;
 	}
-	
+
 	/**
 	 * Get a modified variant of a sprite. The existence of a previous instance
 	 * is <b>not</b> checked, so this should not be called unless retrieving
 	 * an existing modified sprite has failed.
-	 * 
+	 *
 	 * @param base original sprite
 	 * @param color adjustment color
 	 * @param blend blend mode for applying the adjustment color
@@ -242,24 +302,24 @@ public class SpriteStore {
 		int width = base.getWidth();
 		int height = base.getHeight();
 		BufferedImage image = gc.createCompatibleImage(width, height,
-				Transparency.BITMASK);
+				TransparencyMode.TRANSPARENCY);
 		Graphics2D g = image.createGraphics();
 		base.draw(g, 0, 0);
 		g.setColor(color);
 		g.setComposite(blend);
 		g.fillRect(0, 0, width, height);
 		g.dispose();
-		
+
 		Sprite sprite = new ImageSprite(image, ref);
 		SpriteCache cache = SpriteCache.get();
 		cache.add(ref, sprite);
-		
+
 		return sprite;
 	}
 
 	/**
 	 * Checks if a file exists.
-	 * 
+	 *
 	 * @param ref
 	 *            the file name
 	 * @return if sprite exists in store false otherwise
@@ -271,18 +331,27 @@ public class SpriteStore {
 
 	/**
 	 * Load a sprite from a resource reference.
-	 * 
+	 *
 	 * @param ref
 	 *            The image resource name.
-	 * 
+	 *
 	 * @return A sprite, or <code>null</code> if missing/on error.
 	 */
-	protected Sprite loadSprite(final String ref) {
+	private Sprite loadSprite(String ref) {
 		BufferedImage sourceImage = null;
+
+		// No blood mode
+		boolean showBlood = WtWindowManager.getInstance().getPropertyBoolean("gamescreen.blood", true);
+		String safeRef = ref.split(".png")[0] + "-safe.png";
+		URL safeURL = DataLoader.getResource(safeRef);
+		if (!showBlood && (safeURL != null)) {
+			logger.debug("Using safe image: " + safeRef);
+			ref = safeRef;
+		}
 
 		try {
 			URL url;
-			if (ref.startsWith("http://")) {
+			if (ref.startsWith("http://") || ref.startsWith("https://")) {
 				logger.info("Loading sprite from a URL...");
 				url = new URL(ref);
 			} else {
@@ -314,14 +383,8 @@ public class SpriteStore {
 			}
 		}
 
-		// create an accelerated image of the right size to store our sprite in
-		final int mode = Transparency.BITMASK;
-
-		// ALPHA channel makes it runs 30% slower.
-		// mode=Transparency.TRANSLUCENT;
-
 		final Image image = gc.createCompatibleImage(sourceImage.getWidth(),
-				sourceImage.getHeight(), mode);
+				sourceImage.getHeight(), TransparencyMode.TRANSPARENCY);
 
 		// draw our source image into the accelerated image
 		image.getGraphics().drawImage(sourceImage, 0, 0, null);
@@ -334,7 +397,7 @@ public class SpriteStore {
 
 	/**
 	 * Get an empty sprite with the size of a single tile.
-	 * 
+	 *
 	 * @return An empty sprite.
 	 */
 	public Sprite getEmptySprite() {
@@ -344,12 +407,12 @@ public class SpriteStore {
 
 	/**
 	 * Get an empty sprite.
-	 * 
+	 *
 	 * @param width
 	 *            The width.
 	 * @param height
 	 *            The height.
-	 * 
+	 *
 	 * @return An empty sprite.
 	 */
 	public Sprite getEmptySprite(final int width, final int height) {
@@ -369,12 +432,12 @@ public class SpriteStore {
 
 	/**
 	 * Create a sprite tile (sub-region).
-	 * @param sprite 
-	 * @param x 
-	 * @param y 
-	 * 
-	 * 
-	 * 
+	 * @param sprite
+	 * @param x
+	 * @param y
+	 *
+	 *
+	 *
 	 * @param width
 	 *            The width.
 	 * @param height

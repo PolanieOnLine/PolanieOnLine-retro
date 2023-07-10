@@ -1,4 +1,4 @@
-/* $Id: NotEmptyValidator.java,v 1.3 2010/09/19 02:22:40 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -16,7 +16,7 @@ import marauroa.common.game.Result;
 
 /**
  * validates that the given parameter is neither null nor the empty string.
- * 
+ *
  * @author hendrik
  */
 public class NotEmptyValidator implements AccountParameterValidator {
@@ -24,7 +24,7 @@ public class NotEmptyValidator implements AccountParameterValidator {
 
 	/**
 	 * create a new NotEmptyValidator.
-	 * 
+	 *
 	 * @param parameterValue
 	 *            value to validate
 	 */
@@ -32,6 +32,7 @@ public class NotEmptyValidator implements AccountParameterValidator {
 		this.parameterValue = parameterValue;
 	}
 
+	@Override
 	public Result validate() {
 		if (parameterValue == null) {
 			return Result.FAILED_EMPTY_STRING;

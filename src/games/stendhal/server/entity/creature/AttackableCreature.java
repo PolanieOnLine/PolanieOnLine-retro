@@ -1,4 +1,4 @@
-/* $Id: AttackableCreature.java,v 1.23 2011/03/23 19:21:45 kymara Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,15 +12,15 @@
  ***************************************************************************/
 package games.stendhal.server.entity.creature;
 
+import java.util.List;
+
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.RPEntity;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.List;
-
 /**
  * A creature that will be attacked by normal Creatures.
- * 
+ *
  * @author hendrik
  */
 public class AttackableCreature extends Creature {
@@ -30,7 +30,7 @@ public class AttackableCreature extends Creature {
 
 	/**
 	 * Class Constructor.
-	 * 
+	 *
 	 * @param copy
 	 */
 	public AttackableCreature(final Creature copy) {
@@ -42,7 +42,7 @@ public class AttackableCreature extends Creature {
 		List<RPEntity> res = this.getAttackingRPEntities();
 
 		Player masterPlayer = SingletonRepository.getRuleProcessor().getPlayer(master);
-		
+
 		if (masterPlayer != null) {
 			res.addAll(masterPlayer.getAttackingRPEntities());
 		}
@@ -51,7 +51,7 @@ public class AttackableCreature extends Creature {
 
 	/**
 	 * Sets the master of this creature.
-	 * 
+	 *
 	 * @param master
 	 *            master
 	 */

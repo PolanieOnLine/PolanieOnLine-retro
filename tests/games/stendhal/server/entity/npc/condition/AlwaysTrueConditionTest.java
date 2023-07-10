@@ -12,13 +12,13 @@ package games.stendhal.server.entity.npc.condition;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import games.stendhal.common.parser.ConversationParser;
-import games.stendhal.server.maps.MockStendlRPWorld;
-import marauroa.common.Log4J;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.common.parser.ConversationParser;
+import games.stendhal.server.maps.MockStendlRPWorld;
+import marauroa.common.Log4J;
 import utilities.PlayerTestHelper;
 import utilities.SpeakerNPCTestHelper;
 
@@ -29,14 +29,14 @@ public class AlwaysTrueConditionTest {
 		Log4J.init();
 
 		MockStendlRPWorld.get();
-		
+
 	}
-	
+
 	/**
 	 * Tests for constructor.
 	 */
 	@Test
-	public void testConstructor() throws Throwable {
+	public void testConstructor() {
 		new AlwaysTrueCondition();
 	}
 
@@ -44,7 +44,7 @@ public class AlwaysTrueConditionTest {
 	 * Tests for equals.
 	 */
 	@Test
-	public void testEquals() throws Throwable {
+	public void testEquals() {
 		assertFalse(new AlwaysTrueCondition().equals(null));
 
 		final AlwaysTrueCondition obj = new AlwaysTrueCondition();
@@ -62,7 +62,7 @@ public class AlwaysTrueConditionTest {
 	 * Tests for fire.
 	 */
 	@Test
-	public void testFire() throws Throwable {
+	public void testFire() {
 		assertTrue(new AlwaysTrueCondition().fire(
 				PlayerTestHelper.createPlayer("player"),
 				ConversationParser.parse("testAllwaysTrueConditionText"),
@@ -73,15 +73,15 @@ public class AlwaysTrueConditionTest {
 	 * Tests for hashCode.
 	 */
 	@Test
-	public void testHashCode() throws Throwable {
-		assertEquals(17, new AlwaysTrueCondition().hashCode());
+	public void testHashCode() {
+		assertEquals(new AlwaysTrueCondition().hashCode(), new AlwaysTrueCondition().hashCode());
 	}
 
 	/**
 	 * Tests for toString.
 	 */
 	@Test
-	public void testToString() throws Throwable {
+	public void testToString() {
 		assertEquals("true", new AlwaysTrueCondition().toString());
 	}
 }

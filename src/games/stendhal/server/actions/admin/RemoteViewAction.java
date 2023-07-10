@@ -1,6 +1,5 @@
-/* $Id: RemoteViewAction.java,v 1.2 2012/07/24 16:14:18 kiheru Exp $ */
 /***************************************************************************
- *                      (C) Copyright 2003 - Marauroa                      *
+ *                   (C) Copyright 2003-2016 - Marauroa                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -9,7 +8,8 @@
  *   the Free Software Foundation; either version 2 of the License, or     *
  *   (at your option) any later version.                                   *
  *                                                                         *
- ***************************************************************************/package games.stendhal.server.actions.admin;
+ ***************************************************************************/
+package games.stendhal.server.actions.admin;
 
 import games.stendhal.common.NotificationType;
 import games.stendhal.server.actions.CommandCenter;
@@ -18,12 +18,12 @@ import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.events.ViewChangeEvent;
 import marauroa.common.game.RPAction;
 
-/**
- * Sends an remote view event
- * 
- * @author hendrik
- */
-public class RemoteViewAction extends AdministrationAction {
+ /**
+  * Sends an remote view event
+  *
+  * @author hendrik
+  */
+ public class RemoteViewAction extends AdministrationAction {
 
 	public static void register() {
 		CommandCenter.register("remoteview", new RemoteViewAction(), 5);
@@ -61,6 +61,7 @@ public class RemoteViewAction extends AdministrationAction {
 		}
 
 		targetPlayer.addEvent(new ViewChangeEvent(Integer.parseInt(x), Integer.parseInt(y)));
+		targetPlayer.notifyWorldAboutChanges();
 	}
 
 }

@@ -1,5 +1,7 @@
 package games.stendhal.server.entity.npc.action;
 
+import java.util.Arrays;
+
 import games.stendhal.common.grammar.ItemParserResult;
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
@@ -8,7 +10,6 @@ import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.npc.behaviour.impl.RepairerBehaviour;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.Arrays;
 /**
  * Behaviour action for repairing npcs
  *
@@ -37,5 +38,4 @@ public class RepairingBehaviourAction extends AbstractBehaviourAction<RepairerBe
 			Sentence sentence, EventRaiser npc) {
 		npc.say("Nie rozumiem ciebie.");
 	}
-
 }

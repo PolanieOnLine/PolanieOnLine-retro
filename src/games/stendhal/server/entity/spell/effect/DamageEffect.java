@@ -1,4 +1,4 @@
-/* $Id: DamageEffect.java,v 1.14 2012/07/11 15:10:51 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +12,8 @@
  ***************************************************************************/
 package games.stendhal.server.entity.spell.effect;
 
+import org.apache.log4j.Logger;
+
 import games.stendhal.common.constants.Nature;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.events.TurnListener;
@@ -20,16 +22,14 @@ import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.RPEntity;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.events.AttackEvent;
-
-import org.apache.log4j.Logger;
 /**
  * An effect to cause magical damage with a spell
- * 
+ *
  * Used attributes:
  * - amount: How often will this effect hit a player
  * - atk: for usage of the usual damage calcuation acting as a weapon
  * - lifesteal: percentage of health points healed based on damage done
- * 
+ *
  * @author madmetzger
  */
 public class DamageEffect extends AbstractEffect implements TurnListener {
@@ -38,7 +38,7 @@ public class DamageEffect extends AbstractEffect implements TurnListener {
 
 	/** the entity getting damaged */
 	private RPEntity rpEntityToDamage;
-	
+
 	/** the player issuing the effect */
 	private Player damageOrigin;
 
@@ -49,26 +49,29 @@ public class DamageEffect extends AbstractEffect implements TurnListener {
 		super(nature, amount, atk, def, lifesteal, rate, regen, modifier);
 	}
 
+	@Override
 	public void act(Player caster, Entity target) {
 		if (target instanceof RPEntity) {
-		actInternal(caster, (RPEntity) target);
+			actInternal(caster, (RPEntity) target);
 		} else {
 			LOGGER.error("target is no instance of RPEntitty but: " + target, new Throwable());
 		}
 	}
-	
+
+	@Override
 	public void onTurnReached(int currentTurn) {
 		if(numberOfLeftOverHits > 0 && rpEntityToDamage.getHP() > 0) {
-			
+
 			int damageDone = damageOrigin.damageDone(rpEntityToDamage, getAtk(), getNature());
 			damageDone = Math.min(damageDone, rpEntityToDamage.getBaseHP());
 			int toSteal = (int) Math.ceil(damageDone * Double.valueOf(getLifesteal()));
-			
+
 			if(damageDone > 0) {
 				rpEntityToDamage.onDamaged(damageOrigin, damageDone);
-				damageOrigin.addEvent(new AttackEvent(true, damageDone, getNature(), true));
+				damageOrigin.addEvent(new AttackEvent(true, damageDone, getNature(), null, true));
+				damageOrigin.notifyWorldAboutChanges();
 			}
-			
+
 			damageOrigin.heal(toSteal);
 			numberOfLeftOverHits = numberOfLeftOverHits -1;
 			if (numberOfLeftOverHits > 0 && rpEntityToDamage.getHP() > 0) {
@@ -77,7 +80,7 @@ public class DamageEffect extends AbstractEffect implements TurnListener {
 		}
 	}
 
-	
+
 	private void actInternal(Player caster, RPEntity target) {
 		// remember caster and target
 		rpEntityToDamage = target;

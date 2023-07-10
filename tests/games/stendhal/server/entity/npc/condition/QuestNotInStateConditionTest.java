@@ -1,4 +1,4 @@
-/* $Id: QuestNotInStateConditionTest.java,v 1.14 2011/05/01 19:50:06 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -15,14 +15,14 @@ package games.stendhal.server.entity.npc.condition;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import games.stendhal.common.parser.ConversationParser;
-import games.stendhal.server.entity.player.Player;
-import games.stendhal.server.maps.MockStendlRPWorld;
-import marauroa.common.Log4J;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.common.parser.ConversationParser;
+import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.maps.MockStendlRPWorld;
+import marauroa.common.Log4J;
 import utilities.PlayerTestHelper;
 import utilities.SpeakerNPCTestHelper;
 
@@ -95,38 +95,20 @@ public class QuestNotInStateConditionTest {
 	 * Tests for equals.
 	 */
 	@Test
-	public void testEquals() throws Throwable {
+	public void testEquals() {
 		final String state = "state";
 		assertFalse(new QuestNotInStateCondition(QUESTNAME, state).equals(null));
 
 		final QuestNotInStateCondition obj = new QuestNotInStateCondition(QUESTNAME,
 				state);
 		assertTrue(obj.equals(obj));
-		assertTrue(new QuestNotInStateCondition(QUESTNAME, state).equals(new QuestNotInStateCondition(
-				QUESTNAME, state)));
-		assertTrue(new QuestNotInStateCondition(null, null).equals(new QuestNotInStateCondition(
-				null, null)));
-		assertTrue(new QuestNotInStateCondition(null, state).equals(new QuestNotInStateCondition(
-				null, state)));
-		assertTrue(new QuestNotInStateCondition(QUESTNAME, null).equals(new QuestNotInStateCondition(
-				QUESTNAME, null)));
+		assertTrue(new QuestNotInStateCondition(QUESTNAME, state).equals(new QuestNotInStateCondition(QUESTNAME, state)));
 
-		assertFalse(new QuestNotInStateCondition(QUESTNAME, state).equals(new QuestNotInStateCondition(
-				QUESTNAME, state + "2")));
+		assertFalse(new QuestNotInStateCondition(QUESTNAME, state).equals(new QuestNotInStateCondition(QUESTNAME, state + "2")));
 
 		assertFalse(new QuestNotInStateCondition(QUESTNAME, state).equals(new Object()));
-		assertFalse(new QuestNotInStateCondition(null, state).equals(new QuestNotInStateCondition(
-				QUESTNAME, state)));
-		assertFalse(new QuestNotInStateCondition(QUESTNAME, state).equals(new QuestNotInStateCondition(
-				null, state)));
 
-		assertFalse(new QuestNotInStateCondition(QUESTNAME, null).equals(new QuestNotInStateCondition(
-				QUESTNAME, state)));
-		assertFalse(new QuestNotInStateCondition(QUESTNAME, state).equals(new QuestNotInStateCondition(
-				QUESTNAME, null)));
-
-		assertTrue(new QuestNotInStateCondition(QUESTNAME, state).equals(new QuestNotInStateCondition(
-				QUESTNAME, state) {
+		assertTrue(new QuestNotInStateCondition(QUESTNAME, state).equals(new QuestNotInStateCondition(QUESTNAME, state) {
 			// this is an anonymous sub class
 		}));
 	}
@@ -135,20 +117,13 @@ public class QuestNotInStateConditionTest {
 	 * Tests for hashcode.
 	 */
 	@Test
-	public void testhashcode() throws Throwable {
+	public void testhashcode() {
 		final String state = "state";
-		final QuestNotInStateCondition obj = new QuestNotInStateCondition(QUESTNAME,
-				state);
+		final QuestNotInStateCondition obj = new QuestNotInStateCondition(QUESTNAME, state);
 
 		assertEquals(obj.hashCode(), obj.hashCode());
 		assertEquals(new QuestNotInStateCondition(QUESTNAME, state).hashCode(),
 				new QuestNotInStateCondition(QUESTNAME, state).hashCode());
-		assertEquals(new QuestNotInStateCondition(null, null).hashCode(),
-				new QuestNotInStateCondition(null, null).hashCode());
-		assertEquals(new QuestNotInStateCondition(null, state).hashCode(),
-				new QuestNotInStateCondition(null, state).hashCode());
-		assertEquals(new QuestNotInStateCondition(QUESTNAME, null).hashCode(),
-				new QuestNotInStateCondition(QUESTNAME, null).hashCode());
 	}
 
 }

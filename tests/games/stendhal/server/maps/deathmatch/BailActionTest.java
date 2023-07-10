@@ -1,4 +1,4 @@
-/* $Id: BailActionTest.java,v 1.7 2010/09/19 02:41:36 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -19,6 +19,12 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static utilities.SpeakerNPCTestHelper.getReply;
 
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.entity.item.Item;
@@ -30,13 +36,6 @@ import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.MockStendlRPWorld;
 import games.stendhal.server.maps.quests.AdosDeathmatch;
 import games.stendhal.server.util.Area;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import utilities.PlayerTestHelper;
 
 public class BailActionTest {
@@ -74,7 +73,7 @@ public class BailActionTest {
 		final Player player = PlayerTestHelper.createPlayer("bob");
 		en.setCurrentState(ConversationStates.ATTENDING);
 		en.step(player, "bail");
-		assertEquals("Coward, you haven't even #started!", getReply(th));
+		assertEquals("Tchórz! Nawet nie #zacząłeś!", getReply(th));
 		th.put("text", "");
 	}
 
@@ -93,7 +92,7 @@ public class BailActionTest {
 		en.setCurrentState(ConversationStates.ATTENDING);
 		player.setQuest("deathmatch", "done");
 		en.step(player, "bail");
-		assertEquals("Coward, we haven't even #started!", getReply(th));
+		assertEquals("Tchórz! Nawet nie #zaczęliśmy!", getReply(th));
 		th.put("text", "");
 
 	}
@@ -113,7 +112,7 @@ public class BailActionTest {
 		en.setCurrentState(ConversationStates.ATTENDING);
 		player.setQuest("deathmatch", "start");
 		en.step(player, "bail");
-		assertEquals("Coward! You're not as experienced as you used to be.", getReply(th));
+		assertEquals("Tchórz! Nie jesteś tak doświadczony jak powinieneś.", getReply(th));
 		th.put("text", "");
 	}
 
@@ -130,14 +129,14 @@ public class BailActionTest {
 		final Engine en = th.getEngine();
 		final Player player = PlayerTestHelper.createPlayer("bob");
 		en.setCurrentState(ConversationStates.ATTENDING);
-		final Item helmet = SingletonRepository.getEntityManager().getItem("trophy helmet");
+		final Item helmet = SingletonRepository.getEntityManager().getItem("zdobyczny hełm");
 		player.equipToInventoryOnly(helmet);
-		assertTrue(player.isEquipped("trophy helmet"));
+		assertTrue(player.isEquipped("zdobyczny hełm"));
 		helmet.put("def", 2);
 		assertThat(helmet.getInt("def"), greaterThan(1));
 		player.setQuest("deathmatch", "start");
 		en.step(player, "bail");
-		assertEquals("Coward! I'm sorry to inform you, for this your helmet has been magically weakened.",
+		assertEquals("Tchórz! Z przykrością informuje, że twój hełm został magicznie osłabiony.",
 				getReply(th));
 
 	}

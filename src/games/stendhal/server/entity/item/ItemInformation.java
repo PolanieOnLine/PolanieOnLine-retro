@@ -1,4 +1,4 @@
-/* $Id: ItemInformation.java,v 1.2 2010/09/19 02:23:49 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -13,15 +13,15 @@
 package games.stendhal.server.entity.item;
 
 import marauroa.common.game.Definition;
-import marauroa.common.game.RPClass;
 import marauroa.common.game.Definition.Type;
+import marauroa.common.game.RPClass;
 
 public class ItemInformation extends Item {
 
 
 	/**
 	 * copy constructor.
-	 * 
+	 *
 	 * @param item
 	 *            item to copy
 	 */

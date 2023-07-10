@@ -1,6 +1,5 @@
-/* $Id: MeetHayunn.java,v 1.55 2011/11/13 17:14:15 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2011 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,6 +11,14 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
+import games.stendhal.common.grammar.Grammar;
+import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
@@ -22,20 +29,16 @@ import games.stendhal.server.entity.npc.action.IncreaseXPAction;
 import games.stendhal.server.entity.npc.action.MultipleActions;
 import games.stendhal.server.entity.npc.action.SetQuestAction;
 import games.stendhal.server.entity.npc.condition.AndCondition;
+import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
 import games.stendhal.server.entity.npc.condition.KilledForQuestCondition;
 import games.stendhal.server.entity.npc.condition.NotCondition;
 import games.stendhal.server.entity.npc.condition.QuestCompletedCondition;
 import games.stendhal.server.entity.npc.condition.QuestInStateCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotCompletedCondition;
-import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.Region;
-
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
-import org.apache.log4j.Logger;
+import games.stendhal.server.maps.semos.guardhouse.RetiredAdventurerNPC;
+import games.stendhal.server.util.ResetSpeakerNPC;
 
 /**
  * QUEST: Speak with Hayunn 
@@ -49,59 +52,18 @@ import org.apache.log4j.Logger;
  * <li> Return and learn how to click move, and get some URLs
  * </ul>
  *
- * REWARD: <ul><li> 20 XP <li> 5 gold coins <li> studded shield </ul>
+ * REWARD: <ul><li> 200 XP <li> 150 gold coins <li> studded shield </ul>
  *
  * REPETITIONS: <ul><li> Get the URLs as much as wanted but you only get the reward once.</ul>
  */
 public class MeetHayunn extends AbstractQuest {
-
 	private static final String QUEST_SLOT = "meet_hayunn";
 
-	//This is 1 minute at 300 ms per turn
-	private static final int TIME_OUT = 200;
+	private static final int TIME_OUT = 60;
 
 	private static Logger logger = Logger.getLogger(MeetHayunn.class);
-	
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
-
-	@Override
-	public List<String> getHistory(final Player player) {
-		final List<String> res = new ArrayList<String>();
-		if (!player.hasQuest(QUEST_SLOT)) {
-			return res;
-		}
-		final String questState = player.getQuest(QUEST_SLOT);
-		res.add("Hayunn Naratha jest pierwszą osobą jaką kiedykolwiek spotkałem na tym świecie, kazał mi zabić szczura.");
-		if (player.getQuest(QUEST_SLOT, 0).equals("start") && (new KilledForQuestCondition(QUEST_SLOT,1)).fire(player, null, null)) {
-			res.add("Zabiłem tego szczura, powinienem wrócić i mu powiedzieć!");
-		}
-		if (player.getQuest(QUEST_SLOT, 0).equals("start")) {
-			return res;
-		} 
-		res.add("Zabiłem szczura. Hayunn opowie mi teraz więcej o tym świecie.");
-		if ("killed".equals(questState)) {
-			return res;
-		} 
-		res.add("Hayunn dał mi trochę pieniędzy i kazał mi iść znaleźć Monogenes w Semos City. Dał mi też mapę.");
-		if ("taught".equals(questState)) {
-			return res;
-		} 
-		res.add("Hayunn powiedział mi wiele przydatnych informacji na temat jak przetrwać,  dał mi też tarczę ćwiekową i pieniądze.");
-		if (isCompleted(player)) {
-			return res;
-		}
-		// if things have gone wrong and the quest state didn't match any of the above, debug a bit:
-		final List<String> debug = new ArrayList<String>();
-		debug.add("Stan zadania to: " + questState);
-		logger.error("Historia nie pasujące do stanu poszukiwania " + questState);
-		return debug;
-	}
 
 	private void prepareHayunn() {
-
 		final SpeakerNPC npc = npcs.get("Hayunn Naratha");
 
 		// player wants to learn how to attack
@@ -134,7 +96,7 @@ public class MeetHayunn extends AbstractQuest {
 
 		//player returns to Hayunn having killed a rat
 		final List<ChatAction> actions = new LinkedList<ChatAction>();
-		actions.add(new IncreaseXPAction(10));
+		actions.add(new IncreaseXPAction(100));
 		actions.add(new SetQuestAction(QUEST_SLOT, "killed"));
 
 		npc.add(
@@ -151,10 +113,10 @@ public class MeetHayunn extends AbstractQuest {
 	   	// The player has had enough info for now. Send them to semos. When they come back they can learn some more tips.
 
 		final List<ChatAction> reward = new LinkedList<ChatAction>();
-		reward.add(new EquipItemAction("money", 5));
-		reward.add(new IncreaseXPAction(10));
+		reward.add(new EquipItemAction("money", 150));
+		reward.add(new IncreaseXPAction(100));
 		reward.add(new SetQuestAction(QUEST_SLOT, "taught"));
-		reward.add(new ExamineChatAction("monogenes.png", "Monogenes", "North part of Semos city."));
+		reward.add(new ExamineChatAction("monogenes.png", "Monogenes", "Północna część miasteczka Semos."));
 
 		npc.add(
 			ConversationStates.INFORMATION_1,
@@ -171,7 +133,7 @@ public class MeetHayunn extends AbstractQuest {
 				new AndCondition(new GreetingMatchesNameCondition(npc.getName()),
 						new QuestInStateCondition(QUEST_SLOT, "killed")),
 				ConversationStates.INFORMATION_1,
-		      "Szybko się uwinąłeś od momentu, gdy przyszedłeś mi oznajmić, że zabiłeś szczura! Chciałbym Ci przekazać kilka wskazówek i podpowiedzi. Czy chcesz je usłyszeć?",
+				"Szybko się uwinąłeś od momentu, gdy przyszedłeś mi oznajmić, że zabiłeś szczura! Chciałbym Ci przekazać kilka wskazówek i podpowiedzi. Czy chcesz je usłyszeć?",
 				null);
 		
 		// Player has returned to say hi again.
@@ -188,7 +150,7 @@ public class MeetHayunn extends AbstractQuest {
 			ConversationPhrases.YES_MESSAGES,
 			null,
 			ConversationStates.INFORMATION_3,
-			"Być może znajdziesz lochy Semos. Korytarze są tam bardzo wąskie, więc musisz uważać. Chcesz usłyszeć więcej # Tak?",
+			"Być może znajdziesz lochy Semos. Korytarze są tam bardzo wąskie, więc musisz uważać. Chcesz usłyszeć więcej #'Tak'?",
 			null);
 
 		npc.add(
@@ -196,10 +158,10 @@ public class MeetHayunn extends AbstractQuest {
 			ConversationPhrases.YES_MESSAGES,
 			null,
 			ConversationStates.INFORMATION_4,
-		"To proste, naprawdę. Naciskaj raz na miejsce do którego chcesz się udać. Tam jest więcej informacji, których nie mogę sobie przypomnieć. Wyleciały mi z głowy... chcesz wiedzieć gdzie można o nich poczytać?",
+			"To proste, naprawdę. Naciskaj raz na miejsce do którego chcesz się udać. Tam jest więcej informacji, których nie mogę sobie przypomnieć. Wyleciały mi z głowy... chcesz wiedzieć gdzie można o nich poczytać?",
 			null);
 
-		final String epilog = "Na #http://www.gra.polskaonline.org możesz znaleźć wiele odpowiedzi listy wszelkiego rodzaju zwierząt, potworów i innych wrogów\n Na #http://www.gra.polskaonline.org/node/722 możesz znaleźć informacje o punktach doświadczenia i zdobywaniu poziomów\nNa #http://www.gra.polskaonline.org możesz poczytać o najlepszych wojownikach\n ";
+		final String epilog = "Na #https://s1.polanieonline.eu możesz znaleźć wiele odpowiedzi, listy wszelkiego rodzaju zwierząt, potworów i innych wrogów\n Na #https://s1.polanieonline.eu/tabela-doswiadczenia.html możesz znaleźć informacje o punktach doświadczenia i zdobywaniu poziomów\nNa #https://s1.polanieonline.eu/world/hall-of-fame/all_overview.html możesz poczytać o najlepszych wojownikach\n ";
 		
 			//This is used if the player returns, asks for #help and then say #yes
 			npc.add(ConversationStates.ATTENDING,
@@ -209,14 +171,14 @@ public class MeetHayunn extends AbstractQuest {
 			null);
 
 		final List<ChatAction> reward2 = new LinkedList<ChatAction>();
-		reward2.add(new EquipItemAction("tarcza ćwiekowa"));
+		reward2.add(new EquipItemAction("drewniana tarcza"));
 		reward2.add(new IncreaseXPAction(20));
 		reward2.add(new SetQuestAction(QUEST_SLOT, "done"));
 
 		npc.add(ConversationStates.INFORMATION_4,
 				ConversationPhrases.YES_MESSAGES, new QuestNotCompletedCondition(QUEST_SLOT),
 				ConversationStates.IDLE, 
-			epilog + "Cóż powodzenia w podziemiach! Ta tarcza powinna Ci pomóc. Tutaj znajdziesz sławę i chwałę. Uważaj na potwory!",
+				epilog + "Cóż powodzenia w podziemiach! Ta tarcza powinna Ci pomóc. Tutaj znajdziesz sławę i chwałę. Uważaj na potwory!",
 				new MultipleActions(reward2));
 
 		npc.add(new ConversationStates[] { ConversationStates.ATTENDING,
@@ -228,22 +190,67 @@ public class MeetHayunn extends AbstractQuest {
 				"Och mam nadzieję, że ktoś się zatrzyma i porozmawia ze mną.",
 				null);
 
-		npc.setPlayerChatTimeout(TIME_OUT); 
+		npc.setPlayerChatTimeout(TIME_OUT);
 	}
 
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
 				"Spotkanie Hayunna Naratha",
-				"Hayunn Naratha może nauczyć młodych bohaterów podstaw świata PolskaOnLine.",
+				"Hayunn Naratha może nauczyć młodych bohaterów podstaw świata PolanieOnLine.",
 				false);
 		prepareHayunn();
 	}
 
 	@Override
+	public boolean removeFromWorld() {
+		final boolean res = ResetSpeakerNPC.reload(new RetiredAdventurerNPC(), getNPCName());
+		// reload other associated quests
+		SingletonRepository.getStendhalQuestSystem().reloadQuestSlots("beer_hayunn");
+		return res;
+	}
+
+	@Override
+	public List<String> getHistory(final Player player) {
+		final List<String> res = new ArrayList<String>();
+		if (!player.hasQuest(QUEST_SLOT)) {
+			return res;
+		}
+		final String questState = player.getQuest(QUEST_SLOT);
+		res.add("Hayunn Naratha jest pierwszą osobą jaką kiedykolwiek " + Grammar.genderVerb(player.getGender(), "spotkałem") + " na tym świecie, kazał mi zabić szczura.");
+		if (player.getQuest(QUEST_SLOT, 0).equals("start") && new KilledForQuestCondition(QUEST_SLOT,1).fire(player, null, null)) {
+			res.add(Grammar.genderVerb(player.getGender(), "Zabiłem") + " tego szczura, powinienem wrócić i mu powiedzieć!");
+		}
+		if (player.getQuest(QUEST_SLOT, 0).equals("start")) {
+			return res;
+		} 
+		res.add(Grammar.genderVerb(player.getGender(), "Zabiłem") + " szczura. Hayunn opowie mi teraz więcej o tym świecie.");
+		if ("killed".equals(questState)) {
+			return res;
+		} 
+		res.add("Hayunn dał mi trochę pieniędzy i kazał mi iść znaleźć Monogenes w mieście Semos. Dał mi też mapę.");
+		if ("taught".equals(questState)) {
+			return res;
+		} 
+		res.add("Hayunn powiedział mi wiele przydatnych informacji na temat jak przetrwać,  dał mi też tarczę ćwiekową i pieniądze.");
+		if (isCompleted(player)) {
+			return res;
+		}
+		// if things have gone wrong and the quest state didn't match any of the above, debug a bit:
+		final List<String> debug = new ArrayList<String>();
+		debug.add("Stan zadania to: " + questState);
+		logger.error("Historia nie pasujące do stanu poszukiwania " + questState);
+		return debug;
+	}
+
+	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
+	}
+
+	@Override
 	public String getName() {
-		return "MeetHayunn";
+		return "Spotkanie Hayunna Naratha";
 	}
 	
 	@Override

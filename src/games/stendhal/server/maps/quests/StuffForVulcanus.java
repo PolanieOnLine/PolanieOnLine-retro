@@ -1,6 +1,5 @@
-/* $Id: StuffForVulcanus.java,v 1.58 2012/04/24 17:01:18 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -11,6 +10,10 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
+
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 
 import games.stendhal.common.MathHelper;
 import games.stendhal.common.grammar.Grammar;
@@ -24,16 +27,13 @@ import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.npc.action.SetQuestAndModifyKarmaAction;
 import games.stendhal.server.entity.npc.condition.AndCondition;
-import games.stendhal.server.entity.npc.condition.QuestStartedCondition;
-import games.stendhal.server.entity.npc.condition.QuestStateStartsWithCondition;
 import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
+import games.stendhal.server.entity.npc.condition.QuestStateStartsWithCondition;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.Region;
+import games.stendhal.server.maps.quests.logic.BringOrderedListOfItemsQuestLogic;
+import games.stendhal.server.maps.quests.logic.ItemCollector;
 import games.stendhal.server.util.TimeUtil;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * QUEST: The immortal sword forging.
@@ -56,7 +56,8 @@ import java.util.List;
  * REWARD:
  * <ul>
  * <li> immortal sword
- * <li>15000 XP
+ * <li> 15000 XP
+ * <li> some karma (25)
  * </ul>
  * 
  * 
@@ -66,30 +67,34 @@ import java.util.List;
  * </ul>
  */
 public class StuffForVulcanus extends AbstractQuest {
-	private static final int REQUIRED_IRON = 15;
+	private static final String QUEST_SLOT = "immortalsword_quest";
+	private final SpeakerNPC npc = npcs.get("Vulcanus");
 
-	private static final int REQUIRED_GOLD_BAR = 12;
-
-	private static final int REQUIRED_WOOD = 26;
-
-	private static final int REQUIRED_GIANT_HEART = 6;
+	private static final String I_WILL_NEED_SEVERAL_THINGS = "Będę potrzebował kilku rzeczy: ";
+	private static final String IN_EXACT_ORDER = "Wróć, gdy będziesz je miał #dokładnie w tej kolejności!";
 
 	private static final int REQUIRED_MINUTES = 10;
 
-	private static final String QUEST_SLOT = "immortalsword_quest";
+	private final ItemCollector itemCollector = new ItemCollector();
 
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
+	private final BringOrderedListOfItemsQuestLogic questLogic = new BringOrderedListOfItemsQuestLogic();
+
+	public StuffForVulcanus() {
+		itemCollector.require().item("żelazo").pieces(15).bySaying("Nie mogę #wykuć bez %s.");
+		itemCollector.require().item("polano").pieces(26).bySaying("Jak możesz wymagać #wykucia skoro nie masz %s do ognia?");
+		itemCollector.require().item("sztabka złota").pieces(12).bySaying("Muszę zapłacić rachunek duchom za włożenie uczuć w ten miecz. Potrzebuję %s.");
+		itemCollector.require().item("serce olbrzyma").pieces(6).bySaying("To główny składnik uczuć. Potrzebuję %s.");
+
+		questLogic.setItemCollector(itemCollector);
+		questLogic.setQuest(this);
 	}
 
 	private void step_1() {
-		final SpeakerNPC npc = npcs.get("Vulcanus");
-
 		npc.add(ConversationStates.ATTENDING,
 			ConversationPhrases.QUEST_MESSAGES, null,
 			ConversationStates.QUEST_OFFERED, null,
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 					if (!player.hasQuest(QUEST_SLOT) || "rejected".equals(player.getQuest(QUEST_SLOT))) {
 						raiser.say("Raz wykułem najpotężniejszy spośród mieczy. Mogę to zrobić ponownie dla Ciebie. Jesteś zainteresowany?");
@@ -107,31 +112,21 @@ public class StuffForVulcanus extends AbstractQuest {
 			ConversationPhrases.YES_MESSAGES, null,
 			ConversationStates.ATTENDING, null,
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
-					raiser.say("Będę potrzebował kilku rzeczy: "
-						+ REQUIRED_IRON
-						+ " żelaza, "
-						+ REQUIRED_WOOD
-						+ " polan, "
-						+ REQUIRED_GOLD_BAR
-						+ " sztabk złota i "
-						+ REQUIRED_GIANT_HEART
-						+ " serc olbrzyma. Wróć, gdy będziesz je miał #dokładnie w tej kolejności! Jeżeli zapomnisz to powiedz #przypomnij");
+					raiser.say(I_WILL_NEED_SEVERAL_THINGS + questLogic.itemsStillNeeded(player) + ". " + IN_EXACT_ORDER);
 					player.setQuest(QUEST_SLOT, "start;0;0;0;0");
-					player.addKarma(10);
-
 				}
 			});
 
-		npc.add(
-			ConversationStates.QUEST_OFFERED,
+		npc.add(ConversationStates.QUEST_OFFERED,
 			ConversationPhrases.NO_MESSAGES,
 			null,
 			ConversationStates.IDLE,
 			"Och, zapomnij o tym jeżeli nie potrzebujesz miecza nieśmiertelnych...",
 			new SetQuestAndModifyKarmaAction(QUEST_SLOT, "rejected", -10.0));
 
-		npc.addReply(Arrays.asList("exact", "dokładnie"),
+		npc.addReply("exact",
 			"Ta archaiczna magia potrzebuje tych składników w dokładnie podanej kolejności.");
 	}
 
@@ -140,95 +135,14 @@ public class StuffForVulcanus extends AbstractQuest {
 	}
 
 	private void step_3() {
-
-		final SpeakerNPC npc = npcs.get("Vulcanus");
-
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 			new AndCondition(new GreetingMatchesNameCondition(npc.getName()),
 						new QuestStateStartsWithCondition(QUEST_SLOT, "start")),
 			ConversationStates.ATTENDING, null,
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
-					final String[] tokens = player.getQuest(QUEST_SLOT).split(";");
-
-					int neededIron = REQUIRED_IRON
-							- Integer.parseInt(tokens[1]);
-					int neededWoodLogs = REQUIRED_WOOD
-							- Integer.parseInt(tokens[2]);
-					int neededGoldBars = REQUIRED_GOLD_BAR
-							- Integer.parseInt(tokens[3]);
-					int neededGiantHearts = REQUIRED_GIANT_HEART
-							- Integer.parseInt(tokens[4]);
-					boolean missingSomething = false;
-
-					if (!missingSomething && (neededIron > 0)) {
-						if (player.isEquipped("żelazo", neededIron)) {
-							player.drop("żelazo", neededIron);
-							neededIron = 0;
-						} else {
-							final int amount = player.getNumberOfEquipped("żelazo");
-							if (amount > 0) {
-								player.drop("żelazo", amount);
-								neededIron -= amount;
-							}
-
-							raiser.say("Nie mogę wykuć bez "
-								+ Grammar.quantityplnoun(
-										neededIron, "żelazo", "a")
-								+ ".");
-							missingSomething = true;
-						}
-					}
-
-					if (!missingSomething && (neededWoodLogs > 0)) {
-						if (player.isEquipped("polano", neededWoodLogs)) {
-							player.drop("polano", neededWoodLogs);
-							neededWoodLogs = 0;
-						} else {
-							final int amount = player.getNumberOfEquipped("polano");
-							if (amount > 0) {
-								player.drop("polano", amount);
-								neededWoodLogs -= amount;
-							}
-
-							raiser.say("Jak możesz wymagać wykucia #forge skoro nie masz "
-								+ Grammar.quantityplnoun(neededWoodLogs, "polano","a")
-								+ " do ognia?");
-							missingSomething = true;
-						}
-					}
-
-					if (!missingSomething && (neededGoldBars > 0)) {
-						if (player.isEquipped("sztabka złota", neededGoldBars)) {
-							player.drop("sztabka złota", neededGoldBars);
-							neededGoldBars = 0;
-						} else {
-							final int amount = player.getNumberOfEquipped("sztabka złota");
-							if (amount > 0) {
-								player.drop("sztabka złota", amount);
-								neededGoldBars -= amount;
-							}
-							raiser.say("Muszę zapłacić rachunek duchom za włożenie uczuć w ten miecz. Potrzebuję "
-									+ Grammar.quantityplnoun(neededGoldBars, "sztabka złota","one") + " więcej.");
-							missingSomething = true;
-						}
-					}
-
-					if (!missingSomething && (neededGiantHearts > 0)) {
-						if (player.isEquipped("serce olbrzyma", neededGiantHearts)) {
-							player.drop("serce olbrzyma", neededGiantHearts);
-							neededGiantHearts = 0;
-						} else {
-							final int amount = player.getNumberOfEquipped("serce olbrzyma");
-							if (amount > 0) {
-								player.drop("serce olbrzyma", amount);
-								neededGiantHearts -= amount;
-							}
-							raiser.say("To główny składnik uczuć. Potrzebuję "
-								+ Grammar.quantityplnoun(neededGiantHearts, "serce olbrzyma","one") + " wciąż.");
-							missingSomething = true;
-						}
-					}
+					boolean missingSomething = questLogic.proceedItems(player, raiser);
 
 					if (player.hasKilled("olbrzym") && !missingSomething) {
 						raiser.say("Przyniosłeś wszystko. Muszę zrobić nieśmiertelny miecz. Poza tym jesteś wystarczająco silny, aby władać nim. Wróć za "
@@ -240,15 +154,7 @@ public class StuffForVulcanus extends AbstractQuest {
 							raiser.say("Naprawdę własnoręcznie zdobyłeś te serce olbrzyma? Nie sądzę! Ten potężny miecz może być dany tylko tym, którzy są wystarczająco silni, aby zabić #olbrzyma.");
 						}
 
-						player.setQuest(QUEST_SLOT,
-							"start;"
-							+ (REQUIRED_IRON - neededIron)
-							+ ";"
-							+ (REQUIRED_WOOD - neededWoodLogs)
-							+ ";"
-							+ (REQUIRED_GOLD_BAR - neededGoldBars)
-							+ ";"
-							+ (REQUIRED_GIANT_HEART - neededGiantHearts));
+						questLogic.updateQuantitiesInQuestStatus(player);
 					}
 				}
 			});
@@ -257,12 +163,13 @@ public class StuffForVulcanus extends AbstractQuest {
 			new AndCondition(new GreetingMatchesNameCondition(npc.getName()),
 						new QuestStateStartsWithCondition(QUEST_SLOT, "forging;")),
 			ConversationStates.IDLE, null, new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 
 					final String[] tokens = player.getQuest(QUEST_SLOT).split(";");
 					
 					final long delay = REQUIRED_MINUTES * MathHelper.MILLISECONDS_IN_ONE_MINUTE; 
-					final long timeRemaining = (Long.parseLong(tokens[1]) + delay)
+					final long timeRemaining = Long.parseLong(tokens[1]) + delay
 							- System.currentTimeMillis();
 
 					if (timeRemaining > 0L) {
@@ -272,7 +179,7 @@ public class StuffForVulcanus extends AbstractQuest {
 						return;
 					}
 
-					raiser.say("Skończyłem wykuwanie nieśmiertelnika. Zasługujesz na niego. Teraz pozwolisz, że udam się na długi odpoczynek. Dowidzenia!");
+					raiser.say("Skończyłem wykuwanie nieśmiertelnika. Zasługujesz na niego. Teraz pozwolisz, że udam się na długi odpoczynek. Do widzenia!");
 					player.addXP(15000);
 					player.addKarma(25);
 					final Item magicSword = SingletonRepository.getEntityManager().getItem("miecz nieśmiertelnych");
@@ -285,56 +192,47 @@ public class StuffForVulcanus extends AbstractQuest {
 
 		npc.add(ConversationStates.ATTENDING,
 			Arrays.asList("forge", "missing", "wykuj", "brakuje", "lista", "przypomnij"), 
-			new QuestStartedCondition(QUEST_SLOT),
+			new QuestStateStartsWithCondition(QUEST_SLOT, "start;"),
 			ConversationStates.ATTENDING,
 			null,
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
-					final String[] tokens = player.getQuest(QUEST_SLOT).split(";");
-
-					final int neededIron = REQUIRED_IRON
-							- Integer.parseInt(tokens[1]);
-					final int neededWoodLogs = REQUIRED_WOOD
-							- Integer.parseInt(tokens[2]);
-					final int neededGoldBars = REQUIRED_GOLD_BAR
-							- Integer.parseInt(tokens[3]);
-					final int neededGiantHearts = REQUIRED_GIANT_HEART
-							- Integer.parseInt(tokens[4]);
-
-					raiser.say("Będę potrzebował " + neededIron + " #żelazo, "
-							+ neededWoodLogs + " #polano, "
-							+ neededGoldBars + " #sztabka złota i "
-							+ neededGiantHearts + " #serce olbrzyma.");
+					final String questState = player.getQuest(QUEST_SLOT);
+					if (!broughtAllItems(questState)) {
+						raiser.say("Będę potrzebował " + questLogic.itemsStillNeededWithHash(player) + ".");
+					}
 				}
 			});
 
-		npc.add(
-			ConversationStates.ANY,
-			"żelazo",
-			null,
-			ConversationStates.ATTENDING,
-			"Zbierz kilka rud żelaza, które są bogate w minerały.",
-			null);
-
-		npc.add(ConversationStates.ANY, "polano", null,
+		npc.add(ConversationStates.ANY,
+				"żelazo",
+				null,
 				ConversationStates.ATTENDING,
-				"W lesie jest pełno drewna.", null);
-		npc.add(ConversationStates.ANY, "złoto", null,
+				"Zbierz kilka rud żelaza, które są bogate w minerały.",
+				null);
+		npc.add(ConversationStates.ANY,
+				"polano",
+				null,
+				ConversationStates.ATTENDING,
+				"W lesie jest pełno drewna.",
+				null);
+		npc.add(ConversationStates.ANY,
+				Arrays.asList("gold", "gold bar", "złoto", "sztabka złota"),
+				null,
 				ConversationStates.ATTENDING,
 				"Kowal w Ados może dla Ciebie odlać bryłki złoto w sztabki złota.",
 				null);
-		npc.add(
-			ConversationStates.ANY,
-			Arrays.asList("giant","olbrzyma", "olbrzym"),
-			null,
-			ConversationStates.ATTENDING,
-			"Są starodawne legendy o olbrzymach żyjących w górach na północ od Semos i Ados.",
-			null);
+		npc.add(ConversationStates.ANY,
+				Arrays.asList("giant", "giant heart", "olbrzym", "serce olbrzyma"),
+				null,
+				ConversationStates.ATTENDING,
+				"Są starodawne legendy o olbrzymach żyjących w górach na północ od Semos i Ados.",
+				null);
 	}
 
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
 				"Rzeczy dla Vulcanusa",
 				"Vulcanus syn Zeusa wykuje dla Ciebie boski miecz.",
@@ -345,49 +243,54 @@ public class StuffForVulcanus extends AbstractQuest {
 	}
 
 	@Override
-	public String getName() {
-		return "StuffForVulcanus";
-	}
-	
-	@Override
 	public List<String> getHistory(final Player player) {
-			final List<String> res = new ArrayList<String>();
-			if (!player.hasQuest(QUEST_SLOT)) {
-				return res;
+		final List<String> res = new LinkedList<>();
+		if (!player.hasQuest(QUEST_SLOT)) {
+			return res;
+		}
+		final String questState = player.getQuest(QUEST_SLOT);
+		res.add(Grammar.genderVerb(player.getGender(), "Spotkałem") + " Vulcanus w Kotoch.");
+		if (questState.equals("rejected")) {
+			res.add("Nie potrzebny mi miecz nieśmiertelnych.");
+			return res;
+		}
+		res.add("Aby wykuć miecz nieśmiertelnych muszę przynieść kilka rzeczy Vulkanusowi.");
+		if (questState.startsWith("start") && !broughtAllItems(questState)) {
+			String suffix = ".";
+			if (questLogic.neededItemsWithAmounts(player).size() > 1) {
+				suffix = ", w tej kolejności.";
 			}
-			final String questState = player.getQuest(QUEST_SLOT);
-			res.add("Spotkałem Vulcanus w Kotoch.");
-			if (questState.equals("rejected")) {
-				res.add("Nie potrzebny mi miecz nieśmiertelnych.");
-				return res;
-			} 
-			res.add("Aby wykuć miecz nieśmiertelnych Vulkanus potrzebuje: " + REQUIRED_IRON
-					+ " żelazo, "
-					+ REQUIRED_WOOD
-					+ " polana, "
-					+ REQUIRED_GOLD_BAR
-					+ " sztabki zlota i "
-					+ REQUIRED_GIANT_HEART
-					+ " serc olbrzyma, dokładnie w tej kolejności.");
-			// yes, yes. this is the most horrible quest code and so you get a horrible quest history. 
-			if(questState.startsWith("start") && !"start;15;26;12;6".equals(questState)){
-				res.add("Nie dostarczyłem wszystkiego. Vulkanus powie mi co jeszcze potrzebuje.");
-			} else if ("start;15;26;12;6".equals(questState) || !questState.startsWith("start")) {
-				res.add("Dostarczyłem wszystko co potrzebne dla Vulcanus.");
-			}
-			if("start;15;26;12;6".equals(questState) && !player.hasKilled("olbrzym")){
-				res.add("Aby zasłużyć na miecz muszę zabić pare gigantów i zebrać ich serca.");
-			} 
-			if (questState.startsWith("forging")) {
-				res.add("Vulcanus, syn Zeusa wykuwa mi miecz.");
-			} 
-			if (isCompleted(player)) {
-				res.add("Za sztabki złota serca olbrzymów i pare innach drobiazgów zostałem nagrodzony mieczem nieśmiertelnych.");
-			}
-			return res;	
+			res.add("Wciąż potrzebuję dostarczyć " + questLogic.itemsStillNeeded(player) + suffix);
+		} else if (broughtAllItems(questState) || !questState.startsWith("start")) {
+			res.add(Grammar.genderVerb(player.getGender(), "Dostarczyłem") + " wszystko co potrzebne dla Vulcanus.");
+		}
+		if (broughtAllItems(questState) && !player.hasKilled("giant")) {
+			res.add("Aby zasłużyć na miecz muszę zabić pare gigantów i zebrać ich serca.");
+		}
+		if (questState.startsWith("forging")) {
+			res.add("Vulcanus, syn Zeusa wykuwa mi miecz.");
+		}
+		if (isCompleted(player)) {
+			res.add("Za sztabki złota serca olbrzymów i pare innach drobiazgów " + Grammar.genderVerb(player.getGender(), "zostałem") + " " +Grammar.genderVerb(player.getGender(), "nagrodzony") + " mieczem nieśmiertelnych.");
+		}
+		return res;
 	}
 
- 	// match to the min level of the immortal sword
+	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
+	}
+
+	@Override
+	public String getName() {
+		return "Rzeczy dla Vulcanusa";
+	}
+
+	private boolean broughtAllItems(final String questState) {
+		return "start;15;26;12;6".equals(questState);
+	}
+
+	// match to the min level of the immortal sword
 	@Override
 	public int getMinLevel() {
 		return 80;
@@ -395,9 +298,9 @@ public class StuffForVulcanus extends AbstractQuest {
 
 	@Override
 	public String getNPCName() {
-		return "Vulcanus";
+		return npc.getName();
 	}
-	
+
 	@Override
 	public String getRegion() {
 		return Region.KOTOCH;

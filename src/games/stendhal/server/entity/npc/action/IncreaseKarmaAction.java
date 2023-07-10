@@ -1,4 +1,3 @@
-/* $Id: IncreaseKarmaAction.java,v 1.15 2012/09/09 12:19:56 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -37,6 +36,7 @@ public class IncreaseKarmaAction implements ChatAction {
 		this.karmaDiff = karmaDiff;
 	}
 
+	@Override
 	public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 		player.addKarma(karmaDiff);
 	}
@@ -72,5 +72,9 @@ public class IncreaseKarmaAction implements ChatAction {
 			return false;
 		}
 		return true;
+	}
+
+	public static ChatAction increaseKarma(double amount) {
+		return new IncreaseKarmaAction(amount);
 	}
 }

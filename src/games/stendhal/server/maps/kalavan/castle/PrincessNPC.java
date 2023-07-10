@@ -1,4 +1,3 @@
-/* $Id: PrincessNPC.java,v 1.13 2010/09/19 02:30:42 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,16 +11,16 @@
  ***************************************************************************/
 package games.stendhal.server.maps.kalavan.castle;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Builds the princess in Kalavan castle.
@@ -29,10 +28,6 @@ import java.util.Map;
  * @author kymara
  */
 public class PrincessNPC implements ZoneConfigurator {
-	//
-	// ZoneConfigurator
-	//
-
 	/**
 	 * Configure a zone.
 	 *
@@ -41,14 +36,13 @@ public class PrincessNPC implements ZoneConfigurator {
 	 * @param attributes
 	 *            Configuration attributes.
 	 */
-	public void configureZone(final StendhalRPZone zone,
-			final Map<String, String> attributes) {
-		buildNPC(zone, attributes);
+	@Override
+	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
+		buildNPC(zone);
 	}
 
-	private void buildNPC(final StendhalRPZone zone, final Map<String, String> attributes) {
-		final SpeakerNPC princessNPC = new SpeakerNPC("Princess Ylflia") {
-
+	private void buildNPC(final StendhalRPZone zone) {
+		final SpeakerNPC princessNPC = new SpeakerNPC("Księżniczka Ylflia") {
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -68,21 +62,21 @@ public class PrincessNPC implements ZoneConfigurator {
 
 			@Override
 			protected void createDialog() {
-				addGreeting("Jak się masz?");
+				addGreeting("He, co tutaj robisz?!");
 				addReply(Arrays.asList("dobrze", "wspaniale", "good", "fine"), "Dobrze! W czym mogę pomóc?");
 				addReply(Arrays.asList("źle", "bad"), "O rany ... W czym mogę pomóc?");
 				addReply(Arrays.asList("wspaniale", "well"), "Cudownie! W czym mogę pomóc?");
 				addJob("Jestem księżniczką tego królestwa. Aby zostać obywatelem tego królestwa porozmawiaj w mieście z Barrett Holmesem. Może sprzeda Ci dom. Zanim pójdziesz mógłbyś mi wyświadczyć przysługę ( #favour )...");
 				addHelp("Uważaj na szalonych naukowców. Mój ojciec uwolnił ich, aby wykonali pewną pracę w podziemiach i obawiam się, że pewne rzeczy, wymknęły się im spod kontroli...");
-				addOffer("Przepraszam, ale nie mam Ci nic do zaoferowania. Mógłbyś mi wyświadczyć pewną przysługę ( #favour ), chociaż...");
-				addGoodbye("Dowidzenia i powodzenia.");
+				addOffer("Przepraszam, ale nie mam Ci nic do zaoferowania. Mógłbyś mi wyświadczyć pewną #przysługę, chociaż...");
+				addGoodbye("Do widzenia i powodzenia.");
 			}
 		};
 
+		princessNPC.setDescription("Oto Księżniczka Ylflia. Mimo, że jest księżniczką, wydaje się być bardzo przyjazną i pomocną.");
 		princessNPC.setEntityClass("princess2npc");
+		princessNPC.setGender("F");
 		princessNPC.setPosition(19, 21);
-		princessNPC.initHP(100);
-		princessNPC.setDescription("Widzisz Princess Ylflia. Mimo, że jest księżniczką, wydaje się być bardzo przyjazną i pomocną.");
 		zone.add(princessNPC);
 	}
 }

@@ -1,27 +1,10 @@
 /*
  * @(#) src/games/stendhal/server/config/ZonesXMLLoader.java
  *
- * $Id: ZonesXMLLoader.java,v 1.36 2012/12/13 23:00:55 nhnb Exp $
+ * $Id$
  */
 
 package games.stendhal.server.core.config;
-
-//
-//
-
-import games.stendhal.common.tiled.LayerDefinition;
-import games.stendhal.common.tiled.ServerTMXLoader;
-import games.stendhal.common.tiled.StendhalMapStructure;
-import games.stendhal.server.core.config.zone.AttributesXMLReader;
-import games.stendhal.server.core.config.zone.ConfiguratorXMLReader;
-import games.stendhal.server.core.config.zone.EntitySetupXMLReader;
-import games.stendhal.server.core.config.zone.PortalSetupXMLReader;
-import games.stendhal.server.core.config.zone.RegionNameSubstitutionHelper;
-import games.stendhal.server.core.config.zone.SetupDescriptor;
-import games.stendhal.server.core.config.zone.SetupXMLReader;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.core.engine.StendhalRPWorld;
-import games.stendhal.server.core.engine.StendhalRPZone;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -37,6 +20,23 @@ import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
+
+//
+//
+
+import games.stendhal.common.tiled.LayerDefinition;
+import games.stendhal.common.tiled.StendhalMapStructure;
+import games.stendhal.server.core.config.zone.AttributesXMLReader;
+import games.stendhal.server.core.config.zone.ConfiguratorXMLReader;
+import games.stendhal.server.core.config.zone.EntitySetupXMLReader;
+import games.stendhal.server.core.config.zone.PortalSetupXMLReader;
+import games.stendhal.server.core.config.zone.RegionNameSubstitutionHelper;
+import games.stendhal.server.core.config.zone.SetupDescriptor;
+import games.stendhal.server.core.config.zone.SetupXMLReader;
+import games.stendhal.server.core.config.zone.TMXLoader;
+import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.core.engine.StendhalRPWorld;
+import games.stendhal.server.core.engine.StendhalRPZone;
 
 /**
  * Load and configure zones via an XML configuration file.
@@ -123,8 +123,8 @@ public final class ZonesXMLLoader {
 		// just to speed up starting of the server in while developing
 		// add -Dstendhal.zone.regex=".*semos.*" (for example) to your server start script just after the "java "
 		// or for multiple regions: -Dstendhal.zone.regex=".*semos.*|.*fado.*"
-		// it's a good idea to keep semos loaded as that's a default place to put the character 
-		// if there is a problem with the zone 
+		// it's a good idea to keep semos loaded as that's a default place to put the character
+		// if there is a problem with the zone
 		final String regex = System.getProperty("stendhal.zone.regex", ".*");
 
 		/*
@@ -145,7 +145,7 @@ public final class ZonesXMLLoader {
 			logger.info("Loading zone: " + name);
 
 			try {
-				final StendhalMapStructure zonedata = ServerTMXLoader.load(StendhalRPWorld.MAPS_FOLDER
+				final StendhalMapStructure zonedata = TMXLoader.load(StendhalRPWorld.MAPS_FOLDER
 						+ zdesc.getFile());
 
 				if (verifyMap(zdesc, zonedata)) {
@@ -231,6 +231,11 @@ public final class ZonesXMLLoader {
 
 		zone.setPublicAccessible(desc.accessible);
 
+		final String az = desc.getAssociatedZones();
+		if (az != null) {
+			zone.setAssociatedZones(az);
+		}
+
 		SingletonRepository.getRPWorld().addRPZone(desc.getRegion(), zone);
 
 		try {
@@ -267,19 +272,19 @@ public final class ZonesXMLLoader {
 			Constructor<StendhalRPZone> constr = zoneclass.getConstructor(String.class);
 			return constr.newInstance(name);
 		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
+			logger.error(e, e);
 		} catch (SecurityException e) {
-			e.printStackTrace();
+			logger.error(e, e);
 		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
+			logger.error(e, e);
 		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
+			logger.error(e, e);
 		} catch (InstantiationException e) {
-			e.printStackTrace();
+			logger.error(e, e);
 		} catch (IllegalAccessException e) {
-			e.printStackTrace();
+			logger.error(e, e);
 		} catch (InvocationTargetException e) {
-			e.printStackTrace();
+			logger.error(e, e);
 		}
 		return new StendhalRPZone(name);
 	}
@@ -297,7 +302,7 @@ public final class ZonesXMLLoader {
 			return null;
 		}
 
-		final String file = element.getAttribute("file");
+		String file = element.getAttribute("file");
 
 		int level;
 		int x;
@@ -378,7 +383,7 @@ public final class ZonesXMLLoader {
 		for (final Element child : XMLUtil.getElements(element)) {
 			final String tag = child.getTagName();
 
-			if (!checkCondition(child)) {
+			if (!XMLUtil.checkCondition(child.getAttribute("condition"))) {
 				continue;
 			}
 
@@ -386,6 +391,9 @@ public final class ZonesXMLLoader {
 
 			if (tag.equals("attributes")) {
 				setupDesc = attributesReader.read(child);
+				if (setupDesc.getParameters().get("file") != null) {
+					desc.file = setupDesc.getParameters().get("file");
+				}
 			} else if (tag.equals("configurator")) {
 				setupDesc = configuratorReader.read(child);
 			} else if (tag.equals("implementation")) {
@@ -398,6 +406,8 @@ public final class ZonesXMLLoader {
 			} else if (tag.equals("title") || tag.equals("point-of-interest")) {
 				// Ignore
 				continue;
+			} else if (tag.equals("associated")) {
+				desc.setAssociatedZones(child.getAttribute("zones"));
 			} else {
 				logger.warn("Zone [" + name + "] has unknown element: " + tag);
 				continue;
@@ -411,25 +421,6 @@ public final class ZonesXMLLoader {
 		return desc;
 	}
 
-	/**
-	 * checks if a condition is true
-	 *
-	 * @param element element to check the condition on
-	 * @return result of the evaluation of the condition
-	 */
-	private boolean checkCondition(Element element) {
-		String condition = element.getAttribute("condition");
-		if ((condition == null) || condition.trim().equals("")) {
-			return true;
-		}
-
-		condition = condition.trim();
-		if (condition.charAt(0) == '!') {
-			return System.getProperty(condition.substring(1)) == null;
-		}
-
-		return System.getProperty(condition) != null;
-	}
 
 	//
 	//
@@ -442,6 +433,8 @@ public final class ZonesXMLLoader {
 	 * interiors:
 	 * int_region_zonename_number (number for houses)
 	 * @param name the name of the zone to parse
+	 *
+	 * @return region name
 	 */
 	private String parseRegionFromZone(String name) {
 		String[] split = name.split("_");
@@ -503,6 +496,8 @@ public final class ZonesXMLLoader {
 		private String implementation;
 
 		private final boolean accessible;
+
+		private String associatedZones;
 
 		public ZoneDesc(final String name, final String file, final String region, final int level, final int x, final int y, final boolean accessible) {
 			this.name = name;
@@ -612,6 +607,14 @@ public final class ZonesXMLLoader {
 
 		public boolean isAccessible() {
 			return accessible;
+		}
+
+		public void setAssociatedZones(final String zones) {
+			associatedZones = zones;
+		}
+
+		public String getAssociatedZones() {
+			return associatedZones;
 		}
 	}
 }

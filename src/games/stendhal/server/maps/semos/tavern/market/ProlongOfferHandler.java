@@ -1,4 +1,3 @@
-/* $Id: ProlongOfferHandler.java,v 1.17 2011/05/01 19:50:07 martinfuchs Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,9 +11,14 @@
  ***************************************************************************/
 package games.stendhal.server.maps.semos.tavern.market;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import games.stendhal.common.grammar.Grammar;
+import games.stendhal.common.parser.Expression;
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.ConversationPhrases;
@@ -26,21 +30,26 @@ import games.stendhal.server.entity.trade.Market;
 import games.stendhal.server.entity.trade.Offer;
 import games.stendhal.server.util.TimeUtil;
 
-import java.util.Arrays;
-
 public class ProlongOfferHandler extends OfferHandler {
 	@Override
 	public void add(SpeakerNPC npc) {
-		npc.add(ConversationStates.ATTENDING, Arrays.asList("prolong", "przedłuż"), null, ConversationStates.ATTENDING, null, 
+		npc.add(ConversationStates.ATTENDING, Arrays.asList("prolong", "przedłuż"), null, ConversationStates.ATTENDING, null,
 				new ProlongOfferChatAction());
-		npc.add(ConversationStates.SERVICE_OFFERED, ConversationPhrases.YES_MESSAGES, 
+		npc.add(ConversationStates.SERVICE_OFFERED, ConversationPhrases.YES_MESSAGES,
 				ConversationStates.ATTENDING, null, new ConfirmProlongOfferChatAction());
-		npc.add(ConversationStates.SERVICE_OFFERED, ConversationPhrases.NO_MESSAGES, null, 
+		// PRODUCTION is a misnomer for "prolong all" service, but it's a simple
+		// way to distinguish it from a single prolong
+		npc.add(ConversationStates.PRODUCTION_OFFERED, ConversationPhrases.YES_MESSAGES,
+				ConversationStates.ATTENDING, null, new ConfirmProlongAllChatAction());
+		npc.add(ConversationStates.SERVICE_OFFERED, ConversationPhrases.NO_MESSAGES, null,
+				ConversationStates.ATTENDING, "Zatem, jak jeszcze mogę ci pomóc?", null);
+		npc.add(ConversationStates.PRODUCTION_OFFERED, ConversationPhrases.NO_MESSAGES, null,
 				ConversationStates.ATTENDING, "Zatem, jak jeszcze mogę ci pomóc?", null);
 	}
-	
+
 	protected class ProlongOfferChatAction extends KnownOffersChatAction {
 
+		@Override
 		public void fire(Player player, Sentence sentence, EventRaiser npc) {
 			if (sentence.hasError()) {
 				npc.say("Niestety, nie rozumiem co mówisz. "
@@ -55,7 +64,7 @@ public class ProlongOfferHandler extends OfferHandler {
 			MarketManagerNPC manager = (MarketManagerNPC) npc.getEntity();
 			try {
 				String offerNumber = getOfferNumberFromSentence(sentence).toString();
-				
+
 				Map<String,Offer> offerMap = manager.getOfferMap();
 				if (offerMap == null) {
 					npc.say("Proszę, sprawdź najpierw swoje oferty.");
@@ -70,10 +79,10 @@ public class ProlongOfferHandler extends OfferHandler {
 							quantity = getQuantity(o.getItem());
 						}
 						StringBuilder message = new StringBuilder();
-						
+
 						if (TradeCenterZoneConfigurator.getShopFromZone(player.getZone()).contains(o)) {
 							message.append("Twoja oferta na ");
-							message.append(Grammar.quantityplnoun(quantity, o.getItemName(), "jeden"));
+							message.append(Grammar.quantityplnoun(quantity, o.getItemName()));
 							message.append(" wygaśnie za ");
 							message.append(TimeUtil.approxTimeUntil((int) ((o.getTimestamp() - System.currentTimeMillis() + 1000 * OfferExpirer.TIME_TO_EXPIRING) / 1000)));
 							message.append(". Czy chcesz ją przedłużyć do ");
@@ -83,7 +92,7 @@ public class ProlongOfferHandler extends OfferHandler {
 							message.append(" money?");
 						} else {
 							message.append("Czy chcesz przedłużyć swoją ofertę na ");
-							message.append(Grammar.quantityplnoun(quantity, o.getItemName(), "jeden"));
+							message.append(Grammar.quantityplnoun(quantity, o.getItemName()));
 							message.append(" w cenie ");
 							message.append(o.getPrice());
 							message.append(" i podatek ");
@@ -100,17 +109,60 @@ public class ProlongOfferHandler extends OfferHandler {
 					return;
 				}
 			} catch (NumberFormatException e) {
-				npc.say("Musisz powiedzieć #przedłuż #numer");
+				if (!handleProlongAll(player, sentence, npc)) {
+					npc.say("Musisz powiedzieć #przedłuż #numer");
+				}
 			}
 		}
+
+		private boolean handleProlongAll(Player player, Sentence sentence, EventRaiser npc) {
+			MarketManagerNPC manager = (MarketManagerNPC) npc.getEntity();
+			int last = sentence.getExpressions().size();
+
+			for (Expression expr : sentence.getExpressions().subList(1, last)) {
+				if ("all".equals(expr.toString())) {
+					Collection<Offer> offers = manager.getOfferMap().values();
+					if (offers.isEmpty()) {
+						npc.say("Musisz podać listę ofert do przedłużenia.");
+						return true;
+					}
+					int price = 0;
+					int numOffers = offers.size();
+					List<String> offerDesc = new ArrayList<>(numOffers);
+					for (Offer o : offers) {
+						if (!o.getOfferer().equals(player.getName())) {
+							npc.say("Możesz przedłużyć tylko swoje oferty. Powiedz #pokaż #moje lub #pokaż #wygaśnięte, aby zobaczyć swoje oferty.");
+							return true;
+						}
+						int quantity = 1;
+						if (o.hasItem()) {
+							quantity = getQuantity(o.getItem());
+						}
+						price += TradingUtility.calculateFee(player, o.getPrice()).intValue();
+						offerDesc.add(Grammar.quantityplnoun(quantity, o.getItemName())
+								+ " w cenie " + o.getPrice());
+					}
+					String total = numOffers > 1 ? "w sumie" : "";
+					npc.say("Czychcesz przedłużyć "
+							+ Grammar.plnoun(numOffers, "offer") + " z "
+							+ Grammar.enumerateCollection(offerDesc)
+							+ " za " + total + " za opłatą " + price + " money?");
+					npc.setCurrentState(ConversationStates.PRODUCTION_OFFERED);
+					return true;
+				}
+			}
+
+			return false;
+		}
 	}
-	
+
 	protected class ConfirmProlongOfferChatAction implements ChatAction {
+		@Override
 		public void fire (Player player, Sentence sentence, EventRaiser npc) {
 			Offer offer = getOffer();
 			if (!wouldOverflowMaxOffers(player, offer)) {
 				Integer fee = Integer.valueOf(TradingUtility.calculateFee(player, offer.getPrice()).intValue());
-				if (player.isEquipped("money", fee)) { 
+				if (player.isEquipped("money", fee)) {
 					if (prolongOffer(player, offer)) {
 						TradingUtility.substractTradingFee(player, offer. getPrice());
 						npc.say("Przedłużam ofertę i pobieram znów prowizję w wysokości "+fee.toString()+".");
@@ -127,37 +179,90 @@ public class ProlongOfferHandler extends OfferHandler {
 						+ " aktywne oferty.");
 			}
 		}
-		
+
 		/**
 		 * Check if prolonging an offer would result the player having too many active offers on market.
-		 * 
+		 *
 		 * @param player the player to be checked
 		 * @param offer the offer the player wants to prolong
 		 * @return true if prolonging the offer should be denied
 		 */
-		private boolean wouldOverflowMaxOffers(Player player, Offer offer) {
+		boolean wouldOverflowMaxOffers(Player player, Offer offer) {
 			Market market = TradeCenterZoneConfigurator.getShopFromZone(player.getZone());
-			
+
 			if ((market.countOffersOfPlayer(player) == TradingUtility.MAX_NUMBER_OFF_OFFERS)
 					&& market.getExpiredOffers().contains(offer)) {
 				return true;
 			}
-			
+
 			return false;
 		}
-		
-		private boolean prolongOffer(Player player, Offer o) {
+
+		boolean prolongOffer(Player player, Offer o) {
 			Market market = TradeCenterZoneConfigurator.getShopFromZone(player.getZone());
 			if (market != null) {
 				if (market.prolongOffer(o) != null) {
 					String messageNumberOfOffers = "Dotychczas złożyłeś "+Integer.valueOf(market.countOffersOfPlayer(player)).toString()+" oferty.";
 					player.sendPrivateText(messageNumberOfOffers);
-					
+
 					return true;
 				}
 			}
-			
+
 			return false;
+		}
+	}
+
+	private class ConfirmProlongAllChatAction extends ConfirmProlongOfferChatAction {
+		@Override
+		public void fire (Player player, Sentence sentence, EventRaiser npc) {
+			MarketManagerNPC manager = (MarketManagerNPC) npc.getEntity();
+			Collection<Offer> offers = manager.getOfferMap().values();
+			boolean clear = false;
+			for (Offer offer : offers) {
+				int quantity = 1;
+				if (offer.hasItem()) {
+					quantity = getQuantity(offer.getItem());
+				}
+				String offerDesc = Grammar.quantityplnoun(quantity, offer.getItemName());
+
+				if (!offer.getOfferer().equals(player.getName())) {
+					// This should not be possible, but it does not hurt to check
+					// it anyway.
+					npc.say("You can only prolong your own offers.");
+					// clear the offer map as it apparently resulted in an
+					// incorrect request already.
+					clear = true;
+					break;
+				}
+
+				if (!wouldOverflowMaxOffers(player, offer)) {
+					Integer fee = Integer.valueOf(TradingUtility.calculateFee(player, offer.getPrice()).intValue());
+					if (player.isEquipped("money", fee)) {
+
+						if (prolongOffer(player, offer)) {
+							TradingUtility.substractTradingFee(player, offer.getPrice());
+							npc.say("Przedłużyłam twoją ofertę " + offerDesc
+									+ " i pobrałam opłatę " + fee.toString() + ".");
+						} else {
+							npc.say("Przykro mi, ale ta oferta " + offerDesc + " już została usunięta z rynku.");
+						}
+						clear = true;
+					} else {
+						npc.say("Nie możesz opłacić opłaty handlowej " + fee.toString());
+					}
+				} else {
+					npc.say("Przykro mi, ale możesz mieć tylko " + TradingUtility.MAX_NUMBER_OFF_OFFERS
+							+ " ofert naraz.");
+					// Avoid complaining about the offer limit multiple times
+					break;
+				}
+			}
+
+			if (clear) {
+				// Changed the status, or it has been changed by expiration. Obsolete the offers
+				((MarketManagerNPC) npc.getEntity()).getOfferMap().clear();
+			}
 		}
 	}
 }

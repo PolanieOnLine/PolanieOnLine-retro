@@ -1,6 +1,5 @@
-/* $Id: StorageNPC.java,v 1.17 2012/08/23 20:05:45 yoriy Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,18 +11,15 @@
  ***************************************************************************/
 package games.stendhal.server.maps.sedah.storage;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
-import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.behaviour.adder.BuyerAdder;
-import games.stendhal.server.entity.npc.behaviour.impl.BuyerBehaviour;
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Builds the storage NPC in Sedah City.
@@ -31,10 +27,6 @@ import java.util.Map;
  * @author Teiv
  */
 public class StorageNPC implements ZoneConfigurator {
-	//
-	// ZoneConfigurator
-	//
-
 	/**
 	 * Configure a zone.
 	 *
@@ -43,20 +35,19 @@ public class StorageNPC implements ZoneConfigurator {
 	 * @param attributes
 	 *            Configuration attributes.
 	 */
-	public void configureZone(final StendhalRPZone zone, final
-			Map<String, String> attributes) {
+	@Override
+	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildNPC(zone);
 	}
 
 	private void buildNPC(final StendhalRPZone zone) {
 		final SpeakerNPC storageNPC = new SpeakerNPC("Pjotr Yearl") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
 				nodes.add(new Node(35, 23));
-				nodes.add(new Node(35, 15));
-				nodes.add(new Node(21, 15));
+				nodes.add(new Node(35, 16));
+				nodes.add(new Node(21, 16));
 				nodes.add(new Node(21, 23));
 				nodes.add(new Node(18, 23));
 				nodes.add(new Node(18, 12));
@@ -67,30 +58,28 @@ public class StorageNPC implements ZoneConfigurator {
 				nodes.add(new Node(15, 13));
 				nodes.add(new Node(15, 20));
 				nodes.add(new Node(21, 20));
-				nodes.add(new Node(21, 15));
-				nodes.add(new Node(35, 15));
+				nodes.add(new Node(21, 16));
+				nodes.add(new Node(35, 16));
 				nodes.add(new Node(35, 23));
 				setPath(new FixedPath(nodes, true));
 			}
 
 			@Override
 			protected void createDialog() {
-				addGreeting("Witaj przyjacielu. Powinienem być zajęty.");
+				addGreeting("Witaj przyjacielu. Jestem nieco zajęty.");
 				addJob("Moją pracą jest służenie Wojsku #Scarlet.");
-				addReply(
-						"scarlet",
+				addReply("scarlet",
 						"Wojsko Scarlet jest specjalną dywizją Wojska Kalavańskiego. Noszą oni czerwone zbroje.");
-				addHelp("Widziałeś nie została mi ani jedna zbroja. Teraz nie mogę służyć Wojsku #Scarlet!");
+				addHelp("Widzisz to, nie została mi ani jedna zbroja. W tej chwili nie jestem w stanie służyć dla armii #Scarlet!");
 				addOffer("Przynieś mi jakąś zbroję, a zapłacę za nią!");
-				new BuyerAdder().addBuyer(this, new BuyerBehaviour(SingletonRepository.getShopList().get("buyred")), false);
 				addGoodbye("Życzę miłego dnia!");
 			}
 		};
 
+		storageNPC.setDescription("Oto Pjotr Yearl, który wydaje się być nieco zestresowany. Czy on może potrzebuje pomocy?");
 		storageNPC.setEntityClass("scarletarmynpc");
+		storageNPC.setGender("M");
 		storageNPC.setPosition(35, 23);
-		storageNPC.initHP(100);
-		storageNPC.setDescription("Pjotr Yearl wydaje się być nieco zestresowany. Czy on może potrzebuje pomocy?");
 		zone.add(storageNPC);
 	}
 }

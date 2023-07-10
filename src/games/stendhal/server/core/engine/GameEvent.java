@@ -1,6 +1,5 @@
-/* $Id: GameEvent.java,v 1.8 2011/11/03 22:24:44 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2020 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -13,11 +12,6 @@
 package games.stendhal.server.core.engine;
 
 import java.util.List;
-
-import marauroa.server.db.command.DBCommand;
-import marauroa.server.db.command.DBCommandQueue;
-import marauroa.server.game.dbcommand.LogGameEventCommand;
-
 
 /**
  * a game event for logging
@@ -32,7 +26,7 @@ public class GameEvent {
 	 *
 	 * @param source source of the event, usually a character
 	 * @param event  name of event
-	 * @param params paramter
+	 * @param params parameters
 	 */
 	public GameEvent(final String source, final String event, final String... params) {
 		this.source = source;
@@ -45,7 +39,7 @@ public class GameEvent {
 	 *
 	 * @param source source of the event, usually a character
 	 * @param event  name of event
-	 * @param params paramter
+	 * @param params parameters
 	 */
 	public GameEvent(final String source, final String event, final List<String> params) {
 		this.source = source;
@@ -54,10 +48,21 @@ public class GameEvent {
 	}
 
 	/**
-	 * writes the envent to the database
+	 * writes the event to the database
 	 */
 	public void raise() {
-		DBCommand command = new LogGameEventCommand(source, event, params);
-		DBCommandQueue.get().enqueue(command);
+		StendhalRPRuleProcessor.get().logGameEvent(this);
+	}
+
+	public String[] getParams() {
+		return params;
+	}
+
+	public String getSource() {
+		return source;
+	}
+
+	public String getEvent() {
+		return event;
 	}
 }

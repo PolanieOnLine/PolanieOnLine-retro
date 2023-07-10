@@ -1,4 +1,4 @@
-/* $Id: Food2DView.java,v 1.26 2012/04/08 12:10:23 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -13,14 +13,14 @@
 package games.stendhal.client.gui.j2d.entity;
 
 
+import java.util.Map;
+
 import games.stendhal.client.IGameScreen;
 import games.stendhal.client.ZoneInfo;
 import games.stendhal.client.entity.Food;
 import games.stendhal.client.gui.styled.cursor.StendhalCursor;
 import games.stendhal.client.sprite.Sprite;
 import games.stendhal.client.sprite.SpriteStore;
-
-import java.util.Map;
 
 /**
  * The 2D view of food.
@@ -32,7 +32,7 @@ class Food2DView extends StateEntity2DView<Food> {
 
 	/**
 	 * Populate named state sprites.
-	 * 
+	 *
 	 * @param entity the entity to build sprites for
 	 * @param map
 	 *            The map to populate.
@@ -56,7 +56,7 @@ class Food2DView extends StateEntity2DView<Food> {
 
 	/**
 	 * Get the current entity state.
-	 * 
+	 *
 	 * @param entity
 	 * @return The current state.
 	 */
@@ -73,9 +73,9 @@ class Food2DView extends StateEntity2DView<Food> {
 	 * Determines on top of which other entities this entity should be drawn.
 	 * Entities with a high Z index will be drawn on top of ones with a lower Z
 	 * index.
-	 * 
+	 *
 	 * Also, players can only interact with the topmost entity.
-	 * 
+	 *
 	 * @return The drawing index.
 	 */
 	@Override
@@ -83,21 +83,9 @@ class Food2DView extends StateEntity2DView<Food> {
 		return 6000;
 	}
 
-	//
-	// EntityChangeListener
-	//
-
-	/**
-	 * An entity was changed.
-	 * 
-	 * @param entity
-	 *            The entity that was changed.
-	 * @param property
-	 *            The property identifier.
-	 */
 	@Override
-	public void entityChanged(final Food entity, final Object property) {
-		super.entityChanged(entity, property);
+	void entityChanged(final Object property) {
+		super.entityChanged(property);
 
 		if (property == Food.PROP_AMOUNT) {
 			proceedChangedState(entity);

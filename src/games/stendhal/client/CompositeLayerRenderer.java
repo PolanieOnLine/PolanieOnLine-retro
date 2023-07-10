@@ -11,44 +11,44 @@
  ***************************************************************************/
 package games.stendhal.client;
 
-import games.stendhal.client.sprite.CompositeSprite;
-import games.stendhal.client.sprite.Sprite;
-import games.stendhal.client.sprite.SpriteCache;
-
 import java.awt.Composite;
 import java.util.ArrayList;
 import java.util.List;
+
+import games.stendhal.client.sprite.CompositeSprite;
+import games.stendhal.client.sprite.Sprite;
+import games.stendhal.client.sprite.SpriteCache;
 
 /**
  * A LayerRenderer that merges several tile layers in to one using
  * CompositeSprites.
  */
-public class CompositeLayerRenderer extends TileRenderer {
+class CompositeLayerRenderer extends TileRenderer {
 	/**
 	 * Create a CompositeLayerRenderer from a set of {@link TileRenderer}s
-	 * 
+	 *
 	 * @param layerRenderers TileRenderers used for compositing
 	 * @param blend composite mode for drawing the adjustment layer
 	 * @param adjustLayer adjustment layer
 	 */
-	public CompositeLayerRenderer(List<TileRenderer> layerRenderers,
+	CompositeLayerRenderer(List<TileRenderer> layerRenderers,
 			Composite blend, TileRenderer adjustLayer) {
 		LayerRenderer lr = layerRenderers.get(0);
 		width = lr.getWidth();
 		height = lr.getHeight();
-		
+
 		Sprite maps[][] = new Sprite[layerRenderers.size()][];
 		int i = 0;
 		for (LayerRenderer layer : layerRenderers) {
-				maps[i] = ((TileRenderer) layer).spriteMap;
-				i++;				
+			maps[i] = ((TileRenderer) layer).spriteMap;
+			i++;
 		}
 		createComposites(layerRenderers, blend, adjustLayer);
 	}
 
 	/**
 	 * Fill the spriteMap with composite sprites.
-	 * 
+	 *
 	 * @param renderers slave layers
 	 * @param blend composite mode for drawing the adjustment layer
 	 * @param adjustLayer adjustment layer
@@ -59,9 +59,9 @@ public class CompositeLayerRenderer extends TileRenderer {
 		spriteMap = new Sprite[size];
 		SpriteCache cache = SpriteCache.get();
 		int layers = renderers.size();
-		
+
 		List<Sprite> slaveSprites = new ArrayList<Sprite>(layers);
-		
+
 		for (int i = 0; i < size; i++) {
 			for (TileRenderer r : renderers) {
 				slaveSprites.add(r.tileset.getSprite(r.map[i]));
@@ -74,7 +74,7 @@ public class CompositeLayerRenderer extends TileRenderer {
 					blend, adjSprite);
 			slaveSprites.clear();
 		}
-		
+
 		// Wipe out unneeded data from the slaves. Assumes their draw() method
 		// will not be called from anywhere. The renderers will be useless by
 		// themselves after this, so if the assumption changes, this needs code

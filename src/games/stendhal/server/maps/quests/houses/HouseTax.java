@@ -1,6 +1,5 @@
-/* $Id: HouseTax.java,v 1.25 2011/05/01 19:50:06 martinfuchs Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -11,6 +10,14 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.maps.quests.houses;
+
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.log4j.Logger;
 
 import games.stendhal.common.MathHelper;
 import games.stendhal.common.grammar.Grammar;
@@ -28,18 +35,11 @@ import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.player.Player;
-
-import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.List;
-
 import marauroa.server.db.DBTransaction;
 import marauroa.server.db.command.AbstractDBCommand;
 import marauroa.server.db.command.DBCommandQueue;
 import marauroa.server.game.db.CharacterDAO;
 import marauroa.server.game.db.DAORegister;
-
-import org.apache.log4j.Logger;
 
 /**
  * House tax, and confiscation of houses.
@@ -88,7 +88,7 @@ class HouseTax implements TurnListener {
 		int debt = 0;
 
 		for (int i = 0; i < periods; i++) {
-			debt += BASE_TAX * Math.pow(1 + INTEREST_RATE, i);
+			debt += (int) (BASE_TAX * Math.pow(1 + INTEREST_RATE, i));
 		}
 		logger.debug(debt + " was the debt for periods " + periods);
 		return debt;
@@ -127,6 +127,7 @@ class HouseTax implements TurnListener {
 		portal.setExpireTime(portal.getExpireTime() +  ((long) periods * (long) TAX_PAYMENT_PERIOD * 1000));
 	}
 
+	@Override
 	public void onTurnReached(final int turn) {
 		SingletonRepository.getTurnNotifier().notifyInSeconds(TAX_CHECKING_PERIOD, this);
 
@@ -158,15 +159,15 @@ class HouseTax implements TurnListener {
 					if (payments == MAX_UNPAID_TAXES) {
 						// Give a final warning if appropriate
 						remainder = " To jest ostatnie ostrzeżenie. Jeżeli nie zapłacisz podatków w przeciągu miesiąca to "
-							+ "twój dom będzie dopuszczony do sprzedaży, a zamki zostaną zmienione. " 
+							+ "twój dom będzie dopuszczony do sprzedaży, a zamki zostaną zmienione. "
 							+ "Nie będziesz mógł się dostać do domu, ani do skrzyni.";
 
 					} else {
-						remainder = " Płać punktualnie, ponieważ będą rosły koszty zadłużenia. Jeżeli nie zapłacisz za " 
-							+ Integer.toString(MAX_UNPAID_TAXES + 1) + "  miesięcy to twój dom zostanie sprzedany."; 
+						remainder = " Płać punktualnie, ponieważ będą rosły koszty zadłużenia. Jeżeli nie zapłacisz za "
+							+ Integer.toString(MAX_UNPAID_TAXES + 1) + "  miesięcy to twój dom zostanie sprzedany.";
 					}
-					notifyIfNeeded(owner, "Jesteś dłużny " +  Integer.toString(getTaxDebt(payments)) + " money za podatek od nieruchomości za " 
-							+ Grammar.quantityplnoun(payments, "month", "one") 
+					notifyIfNeeded(owner, "Jesteś dłużny " + Integer.toString(getTaxDebt(payments)) + " money za podatek od nieruchomości za "
+							+ Grammar.quantityplnoun(payments, "miesiąc")
 							+ ". Możesz przyjść do ratusza w Ados, aby uregulować dług." + remainder);
 				}
 			}
@@ -193,35 +194,37 @@ class HouseTax implements TurnListener {
 	 * @param message the delivered message
 	 */
 	private void notifyIfNeeded(final String owner, final String message) {
-		DBCommandQueue.get().enqueue(new MaybeStoreMessageCommand("Mr Taxman", owner, message));
+		DBCommandQueue.get().enqueue(new MaybeStoreMessageCommand("Mr. Taxman", owner, message));
 	}
 
 	private void setupTaxman() {
-		final SpeakerNPC taxman = SingletonRepository.getNPCList().get("Mr Taxman");
+		final SpeakerNPC taxman = SingletonRepository.getNPCList().get("Mr. Taxman");
 
 		taxman.addReply(Arrays.asList("tax", "podatek"),"Wszyscy właściciele domów muszą #płacić podatki pośrednikowi.");
 
 		taxman.add(ConversationStates.ATTENDING,
 				Arrays.asList("pay", "płacić", "zapłacić"),
 				new ChatCondition() {
+					@Override
 					public boolean fire(final Player player, final Sentence sentence, final Entity npc) {
 						return getUnpaidTaxPeriods(player) > 0;
 					}
 		},
 		ConversationStates.QUESTION_1,
-		"Czy chcesz teraz zapłacić podatki?", 
+		"Czy chcesz teraz zapłacić podatki?",
 		null);
 
 		taxman.add(ConversationStates.ATTENDING,
 				   Arrays.asList("pay", "payment", "płacić", "zapłata", "zapłacić"),
 				   new ChatCondition() {
+					   @Override
 					   public boolean fire(final Player player, final Sentence sentence, final Entity npc) {
 						   return getUnpaidTaxPeriods(player) <= 0;
 					   }
 				   },
 				   ConversationStates.ATTENDING,
 				   "Sprawdziłem moje zapiski i na razie nie jesteś nic winny. Właściciele domów są informowani przez "
-				   + "postman, gdy przyjdzie czas zapłaty.", 
+				   + "postman, gdy przyjdzie czas zapłaty.",
 				   null);
 
 		taxman.add(ConversationStates.QUESTION_1,
@@ -230,6 +233,7 @@ class HouseTax implements TurnListener {
 				ConversationStates.ATTENDING,
 				null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 						final int periods = getUnpaidTaxPeriods(player);
 						final int cost = getTaxDebt(periods);
@@ -248,7 +252,7 @@ class HouseTax implements TurnListener {
 							}
 							npc.say(msg.toString());
 						} else {
-							npc.say("Nie masz tyle money, aby zapłacić podatki. Potrzebujesz co najmniej " 
+							npc.say("Nie masz tyle money, aby zapłacić podatki. Potrzebujesz co najmniej "
 									+ cost + " money. Nie zwlekaj, albo dług wzrośnie.");
 						}
 				}
@@ -305,7 +309,7 @@ class HouseTax implements TurnListener {
 					}
 				}
 				logger.info("sending a notice to '" + target + "': " + message);
-				postmandao.storeMessage(source, target, message, "N");
+				postmandao.storeMessage(transaction, source, target, message, "N", new Timestamp(new Date().getTime()));
 			} else {
 				logger.error("Not sending a Taxman notice to '" + target
 						+ ", because the account does not exist. Message': " + message);

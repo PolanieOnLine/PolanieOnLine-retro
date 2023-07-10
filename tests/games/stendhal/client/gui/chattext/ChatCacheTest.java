@@ -1,4 +1,4 @@
-/* $Id: ChatCacheTest.java,v 1.4 2010/09/19 02:37:45 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -13,8 +13,9 @@
 package games.stendhal.client.gui.chattext;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
-
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.util.NoSuchElementException;
 
@@ -51,7 +52,7 @@ public class ChatCacheTest {
 		assertFalse(cache.getLines().isEmpty());
 	}
 
-	
+
 	/**
 	 * Tests for getAndSetCurrent.
 	 */
@@ -73,16 +74,16 @@ public class ChatCacheTest {
 		ChatCache cache = new ChatCache(null);
 
 		cache.addlinetoCache("one");
-		assertThat(cache.current(), is("one"));
+		assertThat(cache.previous(), is("one"));
 		cache.addlinetoCache("two");
-		assertThat(cache.current(), is("two"));
+		assertThat(cache.previous(), is("two"));
 	}
 
 	/**
 	 * Tests for nextAndPrevious.
 	 */
 	@Test
-	public void testNextAndPrevious() throws Exception {
+	public void testNextAndPrevious() {
 		ChatCache cache = new ChatCache(null);
 		assertFalse(cache.hasNext());
 		cache.addlinetoCache("one");
@@ -91,6 +92,9 @@ public class ChatCacheTest {
 		cache.addlinetoCache("two");
 		assertFalse(cache.hasNext());
 		assertTrue(cache.hasPrevious());
+
+		assertThat(cache.previous(), is("two"));
+		assertThat(cache.current(), is("two"));
 
 		assertThat(cache.previous(), is("one"));
 		assertThat(cache.current(), is("one"));
@@ -104,7 +108,7 @@ public class ChatCacheTest {
 	 * Tests for nextOnEmptyCache.
 	 */
 	@Test
-	public void testNextOnEmptyCache() throws Exception {
+	public void testNextOnEmptyCache() {
 
 		ChatCache cache = new ChatCache(null);
 		cache.addlinetoCache("one");
@@ -120,7 +124,7 @@ public class ChatCacheTest {
 	/**
 	 * Tests for previousOnEmptyCache.
 	 */
-	public void testPreviousOnEmptyCache() throws Exception {
+	public void testPreviousOnEmptyCache() {
 
 		ChatCache cache = new ChatCache(null);
 		assertFalse(cache.hasPrevious());

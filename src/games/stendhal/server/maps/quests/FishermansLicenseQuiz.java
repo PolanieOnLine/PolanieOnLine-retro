@@ -1,6 +1,5 @@
-/* $Id: FishermansLicenseQuiz.java,v 1.47 2011/11/13 17:13:16 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2011 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,6 +11,12 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import games.stendhal.common.grammar.Grammar;
 import games.stendhal.common.parser.ConversationParser;
 import games.stendhal.common.parser.Expression;
 import games.stendhal.common.parser.JokerExprMatcher;
@@ -29,50 +34,43 @@ import games.stendhal.server.entity.npc.condition.TriggerInListCondition;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.Region;
 import games.stendhal.server.util.TimeUtil;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 import marauroa.common.game.RPObjectNotFoundException;
 
 /**
  * QUEST: Fisherman's license Quiz.
- * 
- * PARTICIPANTS: 
+ *
+ * PARTICIPANTS:
  * <ul>
  * <li>Santiago the fisherman</li>
  * </ul>
- * 
+ *
  * STEPS:
  * <ul>
  * <li> The fisherman puts all fish species onto the table and the player must
  * 		identify the names of the fish in the correct order.</li>
  * <li> The player has one try per day.</li>
  * </ul>
- * 
+ *
  * REWARD:
  * <ul>
  * <li> 500 XP</li>
  * <li> Karma: 15</li>
  * <li> The 2nd part of the exam will be unlocked.</li>
  * </ul>
- * 
+ *
  * REPETITIONS:
  * <ul>
  * <li> If the player has failed the quiz, he can retry after 24 hours.</li>
  * <li> After passing the quiz, no more repetitions are possible.</li>
  * </ul>
- * 
+ *
  * @author dine
  */
-
 public class FishermansLicenseQuiz extends AbstractQuest {
 	static final String QUEST_SLOT = "fishermans_license1";
-	
-	// TODO: use standard conditions and actions
+	private final SpeakerNPC npc = npcs.get("Santiago");
 
+	// TODO: use standard conditions and actions
 	private final List<String> speciesList = Arrays.asList("pstrąg", "okoń",
 			"makrela", "dorsz", "płotka", "palia alpejska", "błazenek", "pokolec");
 
@@ -82,30 +80,6 @@ public class FishermansLicenseQuiz extends AbstractQuest {
 			"int_ados_fishermans_hut_west");
 
 	private Item fishOnTable;
-
-
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
-	@Override
-	public List<String> getHistory(final Player player) {
-		final List<String> res = new ArrayList<String>();
-		if (!player.hasQuest(QUEST_SLOT)) {
-			return res;
-		}
-		res.add("Spotkałem Santiago w chatce w mieście Ados. Jeżeli zaliczę jego egzamin to dostanę kartę wędkarską.");
-		if (!player.isQuestCompleted(QUEST_SLOT)) {
-			if (remainingTimeToWait(player)>0) {
-				res.add("Jest zbyt wcześnie, aby spróbować ponownie, przystąpić do egzaminu.");
-			} else {
-				res.add("Minelo sporo czasu od oblania ostatniego egzaminu, mogę teraz spróbować ponownie.");
-			}
-		} else {
-			res.add("Znam wszystkie nazwy ryb i jestem teraz lepszym wędkarzem!");
-		}
-		return res;
-	}
 
 	public void cleanUpTable() {
 		if (fishOnTable != null) {
@@ -147,7 +121,7 @@ public class FishermansLicenseQuiz extends AbstractQuest {
 			return 0L;
 		}
 		final long timeLastFailed = Long.parseLong(player.getQuest(QUEST_SLOT));
-		final long onedayInMilliseconds = 60 * 60 * 24 * 1000; 
+		final long onedayInMilliseconds = 60 * 60 * 24 * 1000;
 		final long timeRemaining = timeLastFailed + onedayInMilliseconds
 				- System.currentTimeMillis();
 
@@ -155,13 +129,12 @@ public class FishermansLicenseQuiz extends AbstractQuest {
 	}
 
 	private void createQuizStep() {
-		final SpeakerNPC fisherman = npcs.get("Santiago");
-
 		// Don't Use condition here, because of FishermansLicenseCollector
-		fisherman.add(ConversationStates.ATTENDING,
+		npc.add(ConversationStates.ATTENDING,
 				ConversationPhrases.QUEST_MESSAGES, null,
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 						if (player.isQuestCompleted(FishermansLicenseCollector.QUEST_SLOT)) {
 							npc.say("Masz już kartę wędkarską i nie mam dla ciebie zadania.");
@@ -171,9 +144,10 @@ public class FishermansLicenseQuiz extends AbstractQuest {
 					}
 				});
 
-		fisherman.add(ConversationStates.ATTENDING, Arrays.asList("exam", "egzamin", "egzaminu"), null,
+		npc.add(ConversationStates.ATTENDING, Arrays.asList("exam", "egzamin", "egzaminu"), null,
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 						if (player.isQuestCompleted(FishermansLicenseCollector.QUEST_SLOT)) {
 							npc.say("Już masz kartę wędkarską.");
@@ -194,31 +168,33 @@ public class FishermansLicenseQuiz extends AbstractQuest {
 					}
 				});
 
-		fisherman.add(ConversationStates.QUEST_OFFERED,
+		npc.add(ConversationStates.QUEST_OFFERED,
 				ConversationPhrases.NO_MESSAGES, null,
 				ConversationStates.ATTENDING, "Wróć, gdy będziesz gotowy.",
 				null);
 
-		fisherman.add(ConversationStates.QUEST_OFFERED,
+		npc.add(ConversationStates.QUEST_OFFERED,
 				ConversationPhrases.YES_MESSAGES, null,
 				ConversationStates.QUESTION_1,
 				"Dobrze. Pierwsze pytanie brzmi: Co to za rodzaj ryby?",
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 						startQuiz();
 						player.setQuest(QUEST_SLOT, "" + System.currentTimeMillis());
 					}
 				});
 
-		fisherman.addMatching(ConversationStates.QUESTION_1, Expression.JOKER, new JokerExprMatcher(),
+		npc.addMatching(ConversationStates.QUESTION_1, Expression.JOKER, new JokerExprMatcher(),
 				new NotCondition(new TriggerInListCondition(ConversationPhrases.GOODBYE_MESSAGES)),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 						String species = getCurrentSpecies();
 						String obj = sentence.getObjectName();
 
-						if ((obj!=null && obj.contains(species)) ||
+						if (obj!=null && obj.contains(species) ||
 								sentence.getOriginalText().endsWith(species) ||
 								sentence.getNormalized().endsWith(species) ||
 								sentence.getTriggerExpression().matches(ConversationParser.createTriggerExpression(species))) {
@@ -243,10 +219,11 @@ public class FishermansLicenseQuiz extends AbstractQuest {
 					}
 				});
 
-		fisherman.add(ConversationStates.ANY, ConversationPhrases.GOODBYE_MESSAGES,
-				ConversationStates.IDLE, "Dowidzenia.", new ChatAction() {
-			
+		npc.add(ConversationStates.ANY, ConversationPhrases.GOODBYE_MESSAGES,
+				ConversationStates.IDLE, "Do widzenia.", new ChatAction() {
+
 		    // this should be put into a custom ChatAction for this quest when the quest is refactored
+			@Override
 			public void fire(final Player player, final Sentence sentence,
 					final EventRaiser npc) {
 				cleanUpTable();
@@ -256,25 +233,49 @@ public class FishermansLicenseQuiz extends AbstractQuest {
 
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
-				"Karta Rybacka Quiz",
+				"Karta Rybacka cześć I",
 				"Wędkarz Santiago chce sprawdzić moją więdze o rybach.",
 				false);
 		createQuizStep();
 	}
-	
+
+	@Override
+	public List<String> getHistory(final Player player) {
+		final List<String> res = new ArrayList<String>();
+		if (!player.hasQuest(QUEST_SLOT)) {
+			return res;
+		}
+		res.add(Grammar.genderVerb(player.getGender(), "Spotkałem") + " Santiago w chatce w mieście Ados. Jeżeli zaliczę jego egzamin to dostanę kartę wędkarską.");
+		if (!player.isQuestCompleted(QUEST_SLOT)) {
+			if (remainingTimeToWait(player)>0) {
+				res.add("Jest zbyt wcześnie, aby spróbować ponownie, przystąpić do egzaminu.");
+			} else {
+				res.add("Minelo sporo czasu od oblania ostatniego egzaminu, mogę teraz spróbować ponownie.");
+			}
+		} else {
+			res.add("Znam wszystkie nazwy ryb i jestem teraz lepszym wędkarzem!");
+		}
+		return res;
+	}
+
+	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
+	}
+
 	@Override
 	public String getName() {
-		return "FishermansLicenseQuiz";
+		return "Karta Rybacka cześć I";
 	}
-	
+
 	@Override
 	public String getRegion() {
 		return Region.ADOS_CITY;
 	}
+
 	@Override
 	public String getNPCName() {
-		return "Santiago";
+		return npc.getName();
 	}
 }

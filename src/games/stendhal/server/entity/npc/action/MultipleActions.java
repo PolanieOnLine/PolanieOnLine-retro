@@ -1,4 +1,4 @@
-/* $Id: MultipleActions.java,v 1.17 2012/06/05 10:54:06 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,16 +12,16 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.action;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
 import games.stendhal.server.core.config.annotations.Dev.Category;
 import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * executes a list of actions in the order they have been added.
@@ -53,6 +53,7 @@ public class MultipleActions implements ChatAction {
 		this.actions = new LinkedList<ChatAction>(actions);
 	}
 
+	@Override
 	public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 		for (final ChatAction action : actions) {
 			action.fire(player, sentence, npc);
@@ -66,34 +67,16 @@ public class MultipleActions implements ChatAction {
 
 	@Override
 	public int hashCode() {
-		final int PRIME = 31;
-		if (actions == null) {
-			return PRIME;
-		} else {
-			return PRIME + actions.hashCode();
-		}
+		return 5323 * actions.hashCode();
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
+		if (!(obj instanceof MultipleActions)) {
 			return false;
 		}
 		final MultipleActions other = (MultipleActions) obj;
-		if (actions == null) {
-			if (other.actions != null) {
-				return false;
-			}
-		} else if (!actions.equals(other.actions)) {
-			return false;
-		}
-		return true;
+		return actions.equals(other.actions);
 	}
 
 }

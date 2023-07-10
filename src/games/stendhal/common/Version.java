@@ -1,4 +1,4 @@
-/* $Id: Version.java,v 1.12 2011/07/04 20:38:55 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2011 - Stendhal                    *
  ***************************************************************************
@@ -15,19 +15,20 @@ package games.stendhal.common;
 
 /**
  * Handles version numbers
- * 
+ *
  * Actual number stored in games.stendhal.common.Debug.VERSION
- * This file duplicates methods from games.stendhal.client.update.Version 
+ * This file duplicates methods from games.stendhal.client.update.Version
  * as the updater should not depend on anything outside games.stendhal.client.update
- * 
+ *
  * @author hendrik
  */
 public class Version {
+	/** Stendhal version */
 	public final static String VERSION = Debug.VERSION;
 
 	/**
 	 * Extract the specified number of parts from a version-string.
-	 * 
+	 *
 	 * @param version
 	 *            version-string
 	 * @param parts
@@ -49,7 +50,7 @@ public class Version {
 
 	/**
 	 * Compares two versions.
-	 * 
+	 *
 	 * @param v1
 	 *            1st version string
 	 * @param v2
@@ -109,9 +110,17 @@ public class Version {
 		return 0;
 	}
 
+	private static String firstWord(String sentence) {
+		int pos = sentence.indexOf(' ');
+		if (pos > -1) {
+			return sentence.substring(0, pos);
+		}
+		return sentence;
+	}
+
 	/**
 	 * Checks whether these versions of stendhal are compatible.
-	 * 
+	 *
 	 * @param v1
 	 *            one version string
 	 * @param v2
@@ -119,8 +128,8 @@ public class Version {
 	 * @return true, iff the first two components are equal
 	 */
 	public static boolean checkCompatibility(final String v1, final String v2) {
-		final String ev1 = cut(v1, 2);
-		final String ev2 = cut(v2, 2);
+		final String ev1 = cut(firstWord(v1), 2);
+		final String ev2 = cut(firstWord(v2), 2);
 		final boolean res = ev1.equals(ev2);
 		return res;
 	}
@@ -131,7 +140,7 @@ public class Version {
 
 	/**
 	 * gets the version
-	 * 
+	 *
 	 * @return version
 	 */
 	public static String getVersion() {

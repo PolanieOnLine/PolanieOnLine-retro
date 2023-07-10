@@ -1,4 +1,4 @@
-/* $Id: CloakForJosephine.java,v 1.7 2011/05/01 19:50:07 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -60,6 +60,7 @@ class CloakForJosephine {
 		npc.add(ConversationStates.QUESTION_1, "prążkowany płaszcz lazurowy", new QuestInStateCondition(mithrilcloak.getQuestSlot(), "taking_striped_cloak"),
 			ConversationStates.QUESTION_1, null,
 			new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 						if (player.drop("prążkowany płaszcz lazurowy")) {
 							npc.say("Zaczekaj czy to nie jest od Idy?! Ach tak! Dziękuję! Podziękuj jej ode mnie!!");
@@ -75,6 +76,7 @@ class CloakForJosephine {
 		npc.add(ConversationStates.QUESTION_2, "prążkowany płaszcz lazurowy", new QuestInStateCondition(mithrilcloak.getQuestSlot(), "taking_striped_cloak"),
 				ConversationStates.QUESTION_2, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 						if (player.drop("prążkowany płaszcz lazurowy")) {
 							npc.say("Zaczekaj czy to nie jest od Idy?! Ach tak! Dziękuję! Podziękuj jej ode mnie!!");
@@ -119,6 +121,7 @@ class CloakForJosephine {
 	public void addToWorld() {
 		takeStripedCloakStep();
 		askforClaspStep();
+
 	}
 
 }

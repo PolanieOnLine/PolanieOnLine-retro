@@ -1,4 +1,4 @@
-/* $Id: GroundContainer.java,v 1.15 2012/05/28 14:34:44 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -11,6 +11,23 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.client.gui;
+
+import static games.stendhal.common.constants.Actions.DIR;
+import static games.stendhal.common.constants.Actions.FACE;
+import static games.stendhal.common.constants.Actions.TYPE;
+
+import java.awt.Point;
+import java.awt.event.InputEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
+import java.awt.geom.Point2D;
+
+import javax.swing.JComponent;
+
+import org.apache.log4j.Logger;
 
 import games.stendhal.client.IGameScreen;
 import games.stendhal.client.StaticGameLayers;
@@ -27,49 +44,37 @@ import games.stendhal.client.gui.styled.cursor.StendhalCursor;
 import games.stendhal.common.Direction;
 import games.stendhal.common.EquipActionConsts;
 import games.stendhal.common.NotificationType;
-
-import java.awt.Point;
-import java.awt.event.InputEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
-import java.awt.geom.Point2D;
-
-import javax.swing.JComponent;
-
 import marauroa.common.game.RPAction;
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPSlot;
 
-import org.apache.log4j.Logger;
-
 /**
  * Mouse handler for the game screen floor.
  */
-public class GroundContainer extends MouseHandler implements Inspector, 
+public class GroundContainer implements Inspector, MouseListener, MouseMotionListener,
 	MouseWheelListener {
 
 	private static final Logger logger = Logger.getLogger(GroundContainer.class);
 
-	private CursorRepository cursorRepository = new CursorRepository(); 
-	
-	/** The game screen this handler is providing mouse processing */
+	private CursorRepository cursorRepository = new CursorRepository();
+
+	/** The game screen this handler is providing mouse processing. */
 	private final IGameScreen screen;
-	/** Client for sending actions */
+	/** Client for sending actions. */
 	private final StendhalClient client;
-	/** Component to place popup menus */
+	/** Component to place popup menus. */
 	private final JComponent canvas;
 
 	private GroundContainerMouseState state;
 
 	/**
 	 * Create a new GroundContainer.
-	 * 
-	 * @param client
-	 * @param gameScreen
+	 *
+	 * @param client client
+	 * @param gameScreen screen corresponding to the ground
 	 * @param canvas The component to place popup menus
 	 */
-	public GroundContainer(final StendhalClient client, final IGameScreen gameScreen, 
+	public GroundContainer(final StendhalClient client, final IGameScreen gameScreen,
 			final JComponent canvas) {
 		this.client = client;
 		this.screen = gameScreen;
@@ -78,16 +83,9 @@ public class GroundContainer extends MouseHandler implements Inspector,
 	}
 
 	@Override
-	protected void onDragStart(Point point) {
-		state.onDragStart(point);
-	}
-
-	@Override
 	public synchronized void mouseMoved(MouseEvent e) {
-		super.mouseMoved(e);
-		/*
-		 * Get cursor from entity below the mouse.
-		 */
+		state.mouseMoved(e);
+
 		if ((e.getModifiersEx() & InputEvent.BUTTON1_DOWN_MASK) != 0) {
 			return;
 		}
@@ -98,17 +96,17 @@ public class GroundContainer extends MouseHandler implements Inspector,
 
 	/**
 	 * Get cursor for a point.
-	 * 
-	 * @param point
+	 *
+	 * @param point location of the pointer
 	 * @return cursor
 	 */
-	public StendhalCursor getCursor(Point point) {
+	private StendhalCursor getCursor(Point point) {
 		return state.getCursor(point);
 	}
 
 	/**
 	 * Send a move to command to the server.
-	 * 
+	 *
 	 * @param point destination
 	 * @param doubleClick <code>true</code> if the action was created with a
 	 * 	double click, <code>false</code> otherwise
@@ -121,18 +119,18 @@ public class GroundContainer extends MouseHandler implements Inspector,
 		if (doubleClick) {
 			action.put("double_click", "");
 		}
-		
+
 		Direction dir = calculateZoneChangeDirection(point);
 		if (dir != null) {
 			action.put("extend", dir.ordinal());
 		}
-		
+
 		client.send(action);
 	}
 
 	/**
-	 * calculates whether the click was close enough to a zone border to trigger
-	 * a zone change
+	 * Calculates whether the click was close enough to a zone border to trigger
+	 * a zone change.
 	 *
 	 * @param point click point in world coordinates
 	 * @return Direction of the zone to change to, <code>null</code> if no zone change should happen
@@ -158,50 +156,27 @@ public class GroundContainer extends MouseHandler implements Inspector,
 		return null;
 	}
 
-	@Override
-	protected boolean onMouseClick(Point point) {
-		return this.state.onMouseClick(point);
-	}
-
-	@Override
-	protected boolean onMouseDoubleClick(Point point) {
-		return this.state.onMouseDoubleClick(point);
-	}
-
-	@Override
-	protected void onMouseRightClick(Point point) {
-		this.state.onMouseRightClick(point);
-	}
-	
 	/**
-	 * Remembers whether the client was active on last mouse down
-	 */
-	@Override
-	public void mousePressed(MouseEvent e) {
-		super.mousePressed(e);
-		state.mousePressed(e);
-	}
-
-	
-
-	/*
-	 * (non-Javadoc)
-	 * @see games.stendhal.client.gui.DropTarget#dropEntity(games.stendhal.client.entity.IEntity, java.awt.Point)
+	 * Drop an entity to the container.
+	 *
+	 * @param entity dropped entity
+	 * @param amount number of entities dropped
+	 * @param point dropping location
 	 */
 	public void dropEntity(IEntity entity, int amount, Point point) {
 		final RPAction action = new RPAction();
 
 		RPObject item = entity.getRPObject();
 		if (item == null) {
-				return;
-			}
+			return;
+		}
 
 		RPObject parent = item.getContainer();
 		action.put(EquipActionConsts.SOURCE_PATH, entity.getPath());
 		if (parent != null) {
 			// looks like an drop
 			action.put("type", "drop");
-			
+
 			// Compatibility object addressing
 			action.put(EquipActionConsts.BASE_OBJECT, parent.getID().getObjectID());
 			action.put(EquipActionConsts.BASE_SLOT, item.getContainerSlot().getName());
@@ -220,6 +195,7 @@ public class GroundContainer extends MouseHandler implements Inspector,
 		final Point2D location = screen.convertScreenViewToWorld(point);
 		action.put("x", (int) location.getX());
 		action.put("y", (int) location.getY());
+		action.put("zone", entity.getRPObject().getBaseContainer().get("zoneid"));
 
 		client.send(action);
 	}
@@ -228,6 +204,7 @@ public class GroundContainer extends MouseHandler implements Inspector,
 	 * (non-Javadoc)
 	 * @see java.awt.event.MouseWheelListener#mouseWheelMoved(java.awt.event.MouseWheelEvent)
 	 */
+	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
 		if (User.isNull()) {
 			return;
@@ -239,13 +216,23 @@ public class GroundContainer extends MouseHandler implements Inspector,
 		 */
 		logger.debug(e.getClickCount() + " click count and " + e.getScrollType() + " scroll type and wheel rotation " + e.getWheelRotation());
 		if (e.getClickCount() <= 1) {
-			Direction current = User.get().getDirection();
+			final User user = User.get();
+			Direction currentDirection = user.getDirection();
+			Direction newDirection = null;
 			if (e.getUnitsToScroll() > 0) {
 				// Turn right
-				client.addDirection(current.nextDirection(), true);
+				newDirection = currentDirection.nextDirection();
 			} else {
 				// Turn left
-				client.addDirection(current.nextDirection().oppositeDirection(), true);
+				newDirection =
+						currentDirection.nextDirection().oppositeDirection();
+			}
+
+			if (newDirection != null && newDirection != currentDirection) {
+				final RPAction turnAction = new RPAction();
+				turnAction.put(TYPE, FACE);
+				turnAction.put(DIR, newDirection.get());
+				client.send(turnAction);
 			}
 		}
 	}
@@ -254,6 +241,7 @@ public class GroundContainer extends MouseHandler implements Inspector,
 	 * (non-Javadoc)
 	 * @see games.stendhal.client.entity.Inspector#inspectMe(games.stendhal.client.entity.IEntity, marauroa.common.game.RPSlot, games.stendhal.client.gui.SlotWindow, int, int)
 	 */
+	@Override
 	public SlotWindow inspectMe(final IEntity suspect, final RPSlot content,
 			final SlotWindow container, final int width, final int height) {
 		if ((container != null) && container.isVisible()) {
@@ -265,34 +253,89 @@ public class GroundContainer extends MouseHandler implements Inspector,
 			window.setSlot(suspect, content.getName());
 			// Only display the window if it's actually going to stay open
 			if (window.isCloseEnough()) {
-			j2DClient.get().addWindow(window);
-			window.raise();
-			window.setVisible(true);
-			return window;
+				j2DClient.get().addWindow(window);
+				window.raise();
+				window.setVisible(true);
+				return window;
 			} else {
 				// Otherwise just give a message to the user and let the window
 				// be collected as garbage
-				j2DClient.get().addEventLine(new EventLine("", "" + suspect.getType() + " jest zbyt daleko.", NotificationType.CLIENT));
+				j2DClient.get().addEventLine(new EventLine("", suspect.getType() + " jest zbyt daleko.", NotificationType.CLIENT));
 				return null;
 			}
 		}
 	}
-	
 
+
+	/**
+	 * Get the screen corresponding to the ground container.
+	 *
+	 * @return screen
+	 */
 	public IGameScreen getScreen() {
 		return screen;
 	}
 
+	/**
+	 * Get the JComponent of the container.
+	 *
+	 * @return component
+	 */
 	public JComponent getCanvas() {
 		return canvas;
 	}
 
+	/**
+	 * Get the client.
+	 *
+	 * @return client
+	 */
 	public StendhalClient getClient() {
 		return client;
 	}
 
+	/**
+	 * Set the mouse handler state for the ground.
+	 *
+	 * @param newState new mouse state
+	 */
 	public void setNewMouseHandlerState(
 			GroundContainerMouseState newState) {
 		this.state = newState;
+	}
+
+	@Override
+	public void mouseDragged(MouseEvent e) {
+		state.mouseDragged(e);
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		state.mouseReleased(e);
+	}
+
+	/**
+	 * Remembers whether the client was active on last mouse down.
+	 *
+	 * @param e event
+	 */
+	@Override
+	public void mousePressed(MouseEvent e) {
+		state.mousePressed(e);
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		state.mouseReleased(e);
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		state.mouseEntered(e);
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		state.mouseExited(e);
 	}
 }

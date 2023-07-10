@@ -1,4 +1,4 @@
-/* $Id: PlayerHasCompletedAchievementsCondition.java,v 1.5 2012/09/09 12:33:24 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,15 +12,15 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.condition;
 
+import java.util.Arrays;
+import java.util.List;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
 import games.stendhal.server.core.config.annotations.Dev.Category;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * has the player completed the specified number of the specified achievements?
@@ -59,6 +59,7 @@ public class PlayerHasCompletedAchievementsCondition implements ChatCondition {
 		this(-1, achievementIdentifiers);
 	}
 
+	@Override
 	public boolean fire(Player player, Sentence sentence, Entity npc) {
 		int reached = 0;
 		for (String achievementIdentifier : achievements) {
@@ -72,4 +73,18 @@ public class PlayerHasCompletedAchievementsCondition implements ChatCondition {
 		return false;
 	}
 
+	@Override
+	public int hashCode() {
+		return 43793 * achievements.hashCode() + minimumToComplete;
+	}
+
+	@Override
+	public boolean equals(final Object obj) {
+		if (!(obj instanceof PlayerHasCompletedAchievementsCondition)) {
+			return false;
+		}
+		PlayerHasCompletedAchievementsCondition other = (PlayerHasCompletedAchievementsCondition) obj;
+		return (minimumToComplete == other.minimumToComplete)
+			&& achievements.equals(other.achievements);
+	}
 }

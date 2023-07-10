@@ -1,4 +1,3 @@
-/* $Id: ReadAchievementsOnLogin.java,v 1.5 2010/11/07 15:02:36 madmetzger Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,29 +11,29 @@
  ***************************************************************************/
 package games.stendhal.server.entity.player;
 
+import java.util.Set;
+
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.dbcommand.ReadAchievementsForPlayerCommand;
 import games.stendhal.server.core.events.LoginListener;
 import games.stendhal.server.core.events.TurnListener;
 import games.stendhal.server.core.events.TurnListenerDecorator;
 import games.stendhal.server.core.events.TurnNotifier;
-
-import java.util.Set;
-
 import marauroa.server.db.command.DBCommand;
 import marauroa.server.db.command.DBCommandQueue;
 import marauroa.server.db.command.ResultHandle;
 
 public class ReadAchievementsOnLogin implements LoginListener, TurnListener {
-	
 	private ResultHandle handle = new ResultHandle();
-	
+
+	@Override
 	public void onLoggedIn(Player player) {
 		DBCommand command = new ReadAchievementsForPlayerCommand(player);
 		DBCommandQueue.get().enqueueAndAwaitResult(command, handle);
 		TurnNotifier.get().notifyInTurns(1, new TurnListenerDecorator(this));
 	}
 
+	@Override
 	public void onTurnReached(int currentTurn) {
 		ReadAchievementsForPlayerCommand command = DBCommandQueue.get().getOneResult(ReadAchievementsForPlayerCommand.class, handle);
 		if (command == null) {
@@ -49,5 +48,4 @@ public class ReadAchievementsOnLogin implements LoginListener, TurnListener {
 		}
 		SingletonRepository.getAchievementNotifier().onLogin(command.getPlayer());
 	}
-
 }

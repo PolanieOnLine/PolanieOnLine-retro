@@ -1,4 +1,4 @@
-/* $Id: PunctuationParserTest.java,v 1.1 2011/05/01 19:41:43 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -13,13 +13,12 @@
 package games.stendhal.common.parser;
 
 import static org.junit.Assert.assertEquals;
-import games.stendhal.common.parser.PunctuationParser;
 
 import org.junit.Test;
 
 /**
  * Test the NPC conversation PunctuationParser class.
- * 
+ *
  * @author Martin Fuchs
  */
 public class PunctuationParserTest {
@@ -56,7 +55,7 @@ public class PunctuationParserTest {
 		assertEquals(".,?!", p.getPrecedingPunctuation());
 		assertEquals("", p.getTrailingPunctuation());
 	}
-	
+
 	/**
 	 * Tests for emptyString.
 	 */

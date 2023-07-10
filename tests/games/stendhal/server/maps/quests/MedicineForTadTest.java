@@ -1,4 +1,4 @@
-/* $Id: MedicineForTadTest.java,v 1.13 2012/09/15 15:33:07 kymara Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -14,214 +14,236 @@ package games.stendhal.server.maps.quests;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static utilities.SpeakerNPCTestHelper.getReply;
-import games.stendhal.server.entity.Outfit;
-import games.stendhal.server.entity.item.StackableItem;
-import games.stendhal.server.entity.npc.ConversationPhrases;
-import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.fsm.Engine;
-import games.stendhal.server.maps.MockStendhalRPRuleProcessor;
-import games.stendhal.server.maps.MockStendlRPWorld;
-import games.stendhal.server.maps.semos.hostel.BoyNPC;
-import games.stendhal.server.maps.semos.temple.HealerNPC;
-import games.stendhal.server.maps.semos.townhall.DecencyAndMannersWardenNPC;
-import games.stendhal.server.maps.quests.MeetKetteh;
 
-import marauroa.common.Log4J;
-import marauroa.common.game.RPObject.ID;
-import marauroa.server.game.db.DatabaseFactory;
-
+import org.junit.After;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.entity.npc.SpeakerNPC;
+import games.stendhal.server.entity.npc.condition.QuestStartedCondition;
+import games.stendhal.server.entity.npc.fsm.Engine;
+import games.stendhal.server.maps.semos.hostel.BoyNPC;
+import games.stendhal.server.maps.semos.temple.HealerNPC;
+import games.stendhal.server.maps.semos.townhall.DecencyAndMannersWardenNPC;
+import utilities.PlayerTestHelper;
+import utilities.QuestHelper;
 import utilities.ZonePlayerAndNPCTestImpl;
-import utilities.RPClass.ItemTestHelper;
 
 public class MedicineForTadTest extends ZonePlayerAndNPCTestImpl {
 
-	private static final String ZONE_NAME       = "testzone";
-	private static final String QUEST_SLOT      = "introduce_players";
-	private static final String SSSHH_COME_HERE = "Ssshh! Come here, player! I have a #task for you.";
+	private static final String HOSTEL_ZONE_NAME = "int_semos_hostel";
+	private static final String TEMPLE_ZONE_NAME = "int_semos_temple";
+	private static final String TOWNHALL_ZONE_NAME = "int_semos_townhall";
+
+	private static final String TAD_TALK_SSSHH_COME_HERE = "Ciii! Podejdź tutaj player! Miałbym #zadanie dla Ciebie.";
+	private static final String TAD_TALK_REMIND_TASK = "*siąknięcie* *siąknięcie* Wciąż czuje się chory. Pospiesz się z #przysługą dla mnie.";
+
+	private SpeakerNPC npc;
+	private Engine en;
+
+	private String questSlot;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		Log4J.init();
-		new DatabaseFactory().initializeDatabase();
-		ItemTestHelper.generateRPClasses();
+		QuestHelper.setUpBeforeClass();
 
-		MockStendhalRPRuleProcessor.get();
-		MockStendlRPWorld.get();
-
-		setupZone(ZONE_NAME, new BoyNPC());
-		setupZone(ZONE_NAME, new HealerNPC());
-		setupZone(ZONE_NAME, new DecencyAndMannersWardenNPC());
-
-		new MedicineForTad().addToWorld();
-		new MeetKetteh().addToWorld();
+		setupZone(HOSTEL_ZONE_NAME);
+		setupZone(TEMPLE_ZONE_NAME);
+		setupZone(TOWNHALL_ZONE_NAME);
 	}
 
 	public MedicineForTadTest() {
-		super(ZONE_NAME, "Tad", "Ilisa", "Ketteh Wehoh");
+		super(HOSTEL_ZONE_NAME, "Tad");
 	}
 
-	/**
-	 * Tests for hiAndbye.
-	 */
+	@Override
+	@Before
+	public void setUp() {
+		StendhalRPZone hostelZone = new StendhalRPZone(HOSTEL_ZONE_NAME);
+		new BoyNPC().configureZone(hostelZone, null);
+
+		StendhalRPZone templeZone = new StendhalRPZone(TEMPLE_ZONE_NAME);
+		new HealerNPC().configureZone(templeZone, null);
+
+		StendhalRPZone townhallZone = new StendhalRPZone(TOWNHALL_ZONE_NAME);
+		new DecencyAndMannersWardenNPC().configureZone(townhallZone, null);
+
+		quest = new MedicineForTad();
+		quest.addToWorld();
+		new MeetKetteh().addToWorld();
+
+		questSlot = quest.getSlotName();
+
+		player = PlayerTestHelper.createPlayer("player");
+		player.setQuest("TadFirstChat", "done");
+	}
+
+	@Override
+	@After
+	public void tearDown() {
+		en.step(player, "bye");
+	}
+
+	private String startTalkingToNpc(String name) {
+		npc = SingletonRepository.getNPCList().get(name);
+		en = npc.getEngine();
+
+		en.step(player, "hi");
+		return getReply(npc);
+	}
+
 	@Test
-	public void testHiAndbye() {
-		final SpeakerNPC npc = getNPC("Tad");
-		final Engine en = npc.getEngine();
-		en.step(player, ConversationPhrases.GREETING_MESSAGES.get(0));
-		assertTrue(npc.isTalking());
-		assertEquals(SSSHH_COME_HERE, getReply(npc));
-		en.step(player, "task");
-		assertTrue(npc.isTalking());
-		assertEquals(
-				"I'm not feeling well... I need to get a bottle of medicine made. Can you fetch me an empty #flask?",
-				getReply(npc));
-		en.step(player, "flask");
-		assertTrue(npc.isTalking());
-		assertEquals("You could probably get a flask from #Margaret.", getReply(npc));
-		en.step(player, ConversationPhrases.GOODBYE_MESSAGES.get(0));
-		assertFalse(npc.isTalking());
-		assertEquals("Bye.", getReply(npc));
+	public void testKettehIntroducesTad() {
+		player.setQuest(questSlot, null);
+
+		startTalkingToNpc("Ketteh Wehoh");
+
+		en.step(player, "bye");
+		assertEquals(MedicineForTad.KETTEH_TALK_BYE_INTRODUCES_TAD, getReply(npc));
 	}
 
-	/**
-	 * Tests for hiNoAndHiAgain.
-	 */
 	@Test
-	public void testHiNoAndHiAgain() {
-		final SpeakerNPC npc = getNPC("Tad");
-		final Engine en = npc.getEngine();
-		en.step(player, ConversationPhrases.GREETING_MESSAGES.get(0));
-		assertTrue(npc.isTalking());
+	public void testKettehRemindsOfTad() {
+		player.setQuest(questSlot, MedicineForTad.STATE_START);
 
-		en.step(player, "task");
-		assertTrue(npc.isTalking());
-		assertEquals(
-				"I'm not feeling well... I need to get a bottle of medicine made. Can you fetch me an empty #flask?",
-				getReply(npc));
-		en.step(player, "No");
-		assertTrue(npc.isTalking());
-		assertEquals("Oh, please won't you change your mind? *sneeze*", getReply(npc));
-		en.step(player, ConversationPhrases.GOODBYE_MESSAGES.get(0));
-		assertFalse(npc.isTalking());
-		assertFalse(player.hasQuest(QUEST_SLOT));
-		assertEquals("Bye.", getReply(npc));
-		en.step(player, ConversationPhrases.GREETING_MESSAGES.get(0));
-		assertTrue(npc.isTalking());
-		assertEquals(MedicineForTadTest.SSSHH_COME_HERE, getReply(npc));
-		en.step(player, ConversationPhrases.GOODBYE_MESSAGES.get(0));
+		startTalkingToNpc("Ketteh Wehoh");
+
+		en.step(player, "bye");
+		assertEquals(MedicineForTad.KETTEH_TALK_BYE_REMINDS_OF_TAD, getReply(npc));
 	}
 
-	/**
-	 * Tests for quest.
-	 */
 	@Test
-	public void testQuest() {
-		final SpeakerNPC tad          = getNPC("Tad");
-		final Engine     engineTad    = tad.getEngine();
-		final SpeakerNPC ketteh       = getNPC("Ketteh Wehoh");
-		final Engine     engineKetteh = ketteh.getEngine();
+	public void testAcceptQuest() {
+		player.setQuest(questSlot, null);
 
-		// before quest starts, ketteh will ask if you've met TAd
-		engineKetteh.step(player, ConversationPhrases.GREETING_MESSAGES.get(0));
-		engineKetteh.step(player, ConversationPhrases.GOODBYE_MESSAGES.get(0));
-		assertEquals("Farewell. Have you met Tad, in the hostel? If you get a chance, please check in on him. I heard he was not feeling well. You can find the hostel in Semos village, close to Nishiya.", 
-				     getReply(ketteh));
+		String firstReply = startTalkingToNpc("Tad");
+		assertEquals(TAD_TALK_SSSHH_COME_HERE, firstReply);
 
-		
-		engineTad.step(player, ConversationPhrases.GREETING_MESSAGES.get(0));
-		assertTrue(tad.isTalking());
-		assertEquals(SSSHH_COME_HERE, getReply(tad));
-		engineTad.step(player, "task");
-		assertTrue(tad.isTalking());
-		assertEquals(
-				"I'm not feeling well... I need to get a bottle of medicine made. Can you fetch me an empty #flask?",
-				getReply(tad));
-		engineTad.step(player, "yes");
-		assertTrue(player.hasQuest(QUEST_SLOT));
-		engineTad.step(player, ConversationPhrases.GOODBYE_MESSAGES.get(0));
-		assertFalse(tad.isTalking());
-		assertEquals("Bye.", getReply(tad));
-		
-		// don't be naked when talking to ketteh and trying to do this quest
-        player.setOutfit(Outfit.getRandomOutfit());
-        
-		// quest started but not complete - ketteh will remind player
-		engineKetteh.step(player, ConversationPhrases.GREETING_MESSAGES.get(0));
-		engineKetteh.step(player, ConversationPhrases.GOODBYE_MESSAGES.get(0));
-		assertEquals("Goodbye. Don't forget to check on Tad. I hope he's feeling better.", getReply(ketteh));
-		
-		
-		final StackableItem flask = new StackableItem("flask", "", "", null);
-		flask.setQuantity(1);
-		flask.setID(new ID(2, ZONE_NAME));
-		player.getSlot("bag").add(flask);
-		assertTrue(player.isEquipped("flask"));
-		engineTad.step(player, ConversationPhrases.GREETING_MESSAGES.get(0));
-		assertTrue(tad.isTalking());
-		assertEquals(
-				"Ok, you got the flask! Here take this money to cover your expense. Now, I need you to take it to #ilisa... she'll know what to do next.",
-				getReply(tad));
-		assertTrue(player.hasQuest(QUEST_SLOT));
-		assertEquals("ilisa", player.getQuest(QUEST_SLOT));
-		engineTad.step(player, ConversationPhrases.GOODBYE_MESSAGES.get(0));
+		en.step(player, "quest");
+		assertEquals(MedicineForTad.TAD_TALK_ASK_FOR_EMPTY_FLASK, getReply(npc));
 
-		final SpeakerNPC ilisa = getNPC("Ilisa");
-		final Engine engineIlisa = ilisa.getEngine();
-		engineIlisa.step(player, ConversationPhrases.GREETING_MESSAGES.get(0));
-		
-		assertEquals("Ah, I see you have that flask. #Tad needs medicine, right? Hmm... I'll need a #herb. Can you help?",
-					getReply(ilisa));
-		engineIlisa.step(player, "yes");
-		assertEquals("North of Semos, near the tree grove, grows a herb called arandula. Here is a picture I drew so you know what to look for.",getReply(ilisa));
-		assertEquals("corpse&herbs", player.getQuest(QUEST_SLOT));
-		engineIlisa.step(player, "tad");
-		assertEquals("He needs a very powerful potion to heal himself. He offers a good reward to anyone who will help him.", getReply(ilisa));
-		engineIlisa.step(player, ConversationPhrases.GOODBYE_MESSAGES.get(0));
-		assertEquals("Bye.", getReply(ilisa));
+		en.step(player, "yes");
+		assertEquals(MedicineForTad.TAD_TALK_QUEST_ACCEPTED, getReply(npc));
 
-		engineTad.step(player, ConversationPhrases.GREETING_MESSAGES.get(0));
-		assertTrue(tad.isTalking());
-
-		assertEquals("Tad has already asked and the quest was accepted",
-				"*sniff* *sniff* I still feel ill, please hurry with that #favour for me.", getReply(tad));
-		engineTad.step(player, ConversationPhrases.GOODBYE_MESSAGES.get(0));
-		assertFalse(tad.isTalking());
-		assertEquals("Bye.", getReply(tad));
-
-		engineIlisa.step(player, ConversationPhrases.GREETING_MESSAGES.get(0));
-		assertEquals("Can you fetch those #herbs for the #medicine?", getReply(ilisa));
-		engineIlisa.step(player, ConversationPhrases.GOODBYE_MESSAGES.get(0));
-		assertEquals("Bye.", getReply(ilisa));
-		
-		// doesn't work as it causes an npe and adding it to setUp() doesn't help
-		//PlayerTestHelper.equipWithItem(player, "arandula");
-		final StackableItem arandula = new StackableItem("arandula", "", "", null);
-		arandula.setQuantity(1);
-		arandula.setID(new ID(2, ZONE_NAME));
-		player.getSlot("bag").add(arandula);
-		engineIlisa.step(player, ConversationPhrases.GREETING_MESSAGES.get(0));
-		assertEquals(
-				"Okay! Thank you. Now I will just mix these... a pinch of this... and a few drops... there! Can you ask #Tad to stop by and collect it? I want to see how he's doing.",
-				getReply(ilisa));
-		engineIlisa.step(player, ConversationPhrases.GOODBYE_MESSAGES.get(0));
-		assertEquals("Bye.", getReply(ilisa));
-		
-		assertEquals("potion", player.getQuest(QUEST_SLOT));
-		
-		engineTad.step(player, ConversationPhrases.GREETING_MESSAGES.get(0));
-		assertEquals("Thanks! I will go talk with #ilisa as soon as possible.", getReply(tad));
-		assertEquals("done", player.getQuest(QUEST_SLOT));
-		
-		// quest complete.  ketteh no longer reminds player
-		engineKetteh.step(player, ConversationPhrases.GREETING_MESSAGES.get(0));
-		engineKetteh.step(player, ConversationPhrases.GOODBYE_MESSAGES.get(0));
-		assertEquals("Bye.", getReply(ketteh));
-		
+		assertEquals(MedicineForTad.STATE_START, player.getQuest(questSlot));
+		assertHistory(MedicineForTad.HISTORY_MET_TAD, MedicineForTad.HISTORY_QUEST_OFFERED);
 	}
 
+	@Test
+	public void testRefuseQuest() {
+		player.setQuest(questSlot, null);
+
+		String firstReply = startTalkingToNpc("Tad");
+		assertEquals(TAD_TALK_SSSHH_COME_HERE, firstReply);
+
+		en.step(player, "quest");
+		assertEquals(MedicineForTad.TAD_TALK_ASK_FOR_EMPTY_FLASK, getReply(npc));
+
+		en.step(player, "no");
+		assertEquals(MedicineForTad.TAD_TALK_QUEST_REFUSED, getReply(npc));
+
+		assertEquals(null, player.getQuest(questSlot));
+		assertHistory(MedicineForTad.HISTORY_MET_TAD);
+	}
+
+	@Test
+	public void testBackToTadWithFlask() {
+		player.setQuest(questSlot, MedicineForTad.STATE_START);
+		PlayerTestHelper.equipWithItem(player, "butelka");
+
+		String firstReply = startTalkingToNpc("Tad");
+
+		String expectedReply = MedicineForTad.TAD_TALK_GOT_FLASK + " "
+				+ MedicineForTad.TAD_TALK_REWARD_MONEY + " "
+				+ MedicineForTad.TAD_TALK_FLASK_ILISA;
+		assertEquals(expectedReply, firstReply);
+		assertEquals(MedicineForTad.STATE_ILISA, player.getQuest(questSlot));
+	}
+
+	@Test
+	public void testGoToIlisaWithFlask() {
+		player.setQuest(questSlot, MedicineForTad.STATE_ILISA);
+		PlayerTestHelper.equipWithItem(player, "butelka");
+
+		String firstReply = startTalkingToNpc("Ilisa");
+
+		assertEquals(MedicineForTad.ILISA_TALK_ASK_FOR_HERB, firstReply);
+		assertEquals(MedicineForTad.STATE_HERB, player.getQuest(questSlot));
+
+		en.step(player, "yes");
+		assertEquals(MedicineForTad.ILISA_TALK_DESCRIBE_HERB, getReply(npc));
+
+		en.step(player, "yes");
+		assertEquals(null, getReply(npc));
+
+		en.step(player, "tad");
+		assertEquals(MedicineForTad.ILISA_TALK_INTRODUCE_TAD, getReply(npc));
+	}
+
+	@Test
+	public void testBackToTadWithoutPotion() {
+		player.setQuest(questSlot, MedicineForTad.STATE_HERB);
+		PlayerTestHelper.equipWithItem(player, "butelka");
+
+		String firstReply = startTalkingToNpc("Tad");
+
+		assertEquals(TAD_TALK_REMIND_TASK, firstReply);
+	}
+
+	@Test
+	public void testBackToIlisaWithoutHerb() {
+		player.setQuest(questSlot, MedicineForTad.STATE_HERB);
+		PlayerTestHelper.equipWithItem(player, "butelka");
+
+		String firstReply = startTalkingToNpc("Ilisa");
+
+		assertEquals(MedicineForTad.ILISA_TALK_REMIND_HERB, firstReply);
+	}
+
+	@Test
+	public void testBackToIlisaWithHerb() {
+		player.setQuest(questSlot, MedicineForTad.STATE_HERB);
+		PlayerTestHelper.equipWithItem(player, "butelka");
+		PlayerTestHelper.equipWithItem(player, "arandula");
+
+		String firstReply = startTalkingToNpc("Ilisa");
+
+		assertEquals(MedicineForTad.ILISA_TALK_PREPARE_MEDICINE, firstReply);
+
+		assertEquals("eliksir", player.getQuest(questSlot));
+	}
+
+	@Test
+	public void testBackToTadWithPotion() {
+		player.setQuest(questSlot, MedicineForTad.STATE_POTION);
+
+		String firstReply = startTalkingToNpc("Tad");
+
+		assertEquals(MedicineForTad.TAD_TALK_COMPLETE_QUEST, firstReply);
+		assertEquals("done", player.getQuest(questSlot));
+	}
+
+	@Test
+	public void testKettehDoesNotMentionTad() {
+		player.setQuest(questSlot, MedicineForTad.STATE_DONE);
+
+		startTalkingToNpc("Ketteh Wehoh");
+
+		en.step(player, "bye");
+		assertEquals("Do widzenia.", getReply(npc));
+	}
+
+	@Test
+	public void testTalkAboutHerbsBeforeStarting() {
+		// Test for bug #5839. Saying "herbs" to Ilisa broke the quest state
+		// in a way that it was not possible to start the quest.
+		player.setQuest(questSlot, null);
+		startTalkingToNpc("Ilisa");
+		en.step(player, "herbs");
+		assertFalse(new QuestStartedCondition(questSlot).fire(player, null, null));
+	}
 }

@@ -1,4 +1,4 @@
-/* $Id: ErrorBuffer.java,v 1.2 2010/09/19 02:20:44 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -19,14 +19,15 @@ package games.stendhal.common;
  */
 public class ErrorBuffer implements ErrorDrain {
 
-	// start with no errors
+	/** buffer for error messages */
 	protected String errorBuffer = null;
 
 	/**
 	 * Store error message.
-	 * 
+	 *
 	 * @param error message
 	 */
+	@Override
 	public void setError(final String error) {
 		if (errorBuffer == null) {
 			errorBuffer = error;
@@ -38,18 +39,20 @@ public class ErrorBuffer implements ErrorDrain {
 
 	/**
 	 * Return whether some error has been registered.
-	 * 
+	 *
 	 * @return error flag
 	 */
+	@Override
 	public boolean hasError() {
 		return errorBuffer != null;
 	}
 
 	/**
 	 * Return the concatenated error message.
-	 * 
+	 *
 	 * @return error string
 	 */
+	@Override
 	public String getErrorString() {
 		return errorBuffer;
 	}

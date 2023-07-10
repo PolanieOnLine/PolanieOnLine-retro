@@ -1,4 +1,4 @@
-/* $Id: DomesticAnimal.java,v 1.38 2011/01/02 23:10:47 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -12,13 +12,13 @@
  ***************************************************************************/
 package games.stendhal.server.entity.creature;
 
+import org.apache.log4j.Logger;
+
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.item.Corpse;
 import games.stendhal.server.entity.item.Food;
 import games.stendhal.server.entity.player.Player;
 import marauroa.common.game.RPObject;
-
-import org.apache.log4j.Logger;
 
 /**
  * A domestic animal can be owned by a player;
@@ -34,6 +34,7 @@ public abstract class DomesticAnimal extends Creature {
 	private static final Logger logger = Logger.getLogger(DomesticAnimal.class);
 
 	protected int weight;
+	int incHP = 2;
 
 	protected boolean wasOwned = false;
 
@@ -47,15 +48,14 @@ public abstract class DomesticAnimal extends Creature {
 	 */
 	public DomesticAnimal() {
 		put("title_type", "friend");
-
 		setPosition(0, 0);
 		setSize(1, 1);
 	}
 
 	/**
 	 * Creates a wild DomesticAnimal based on an existing RPObject.
-	 * 
-	 * @param object
+	 *
+	 * @param object object containing the data for the animal
 	 */
 	public DomesticAnimal(final RPObject object) {
 		super(object);
@@ -67,13 +67,15 @@ public abstract class DomesticAnimal extends Creature {
 
 		// set the default range for movements
 		setPerceptionRange(20);
+		// make pets passable so players don't get trapped
+		setResistance(75);
 	}
 
 	/**
 	 * Creates a wild DomesticAnimal based on an existing RPObject, and assigns
 	 * it to a player.
-	 * 
-	 * @param object
+	 *
+	 * @param object owning player, or <code>null</code>
 	 * @param owner
 	 *            The player who should own the sheep
 	 */
@@ -83,6 +85,11 @@ public abstract class DomesticAnimal extends Creature {
 		if (owner != null) {
 			wasOwned = true;
 		}
+		int storedHP = getInt("hp");
+		// fetch the speed etc values...
+		setUp();
+		// ...but don't heal the animal
+		setHP(storedHP);
 	}
 
 	public void setOwner(final Player owner) {
@@ -92,8 +99,18 @@ public abstract class DomesticAnimal extends Creature {
 			if (takesPartInCombat() && getZone() != null) {
 				getZone().addToPlayersAndFriends(this);
 			}
+			// make pets passable so players don't get trapped
+			setResistance(75);
+		} else {
+			setResistance(100);
 		}
 	}
+
+	/**
+	 * Set the default stats of the animal. This should include HP, incHP (the
+	 * amount of healing when eating), ATK, DEF, XP and base speed.
+	 */
+	abstract void setUp();
 
 	/**
 	 * Does this domestic animal take part in combat?
@@ -109,8 +126,11 @@ public abstract class DomesticAnimal extends Creature {
 	}
 
 	/**
-	 * checks if this domestic animal was owned by a player, 
+	 * Checks if this domestic animal was owned by a player,
 	 * regardless of whether it is owned at the moment.
+	 *
+	 * @return <code>true</code>, if the creature had been owned, otherwise
+	 * 	<code>false</code>
 	 */
 	public boolean wasOwned() {
 		return wasOwned;
@@ -140,14 +160,10 @@ public abstract class DomesticAnimal extends Creature {
 		// setAsynchonousMovement(owner,0,0);
 	}
 
-	protected void moveRandomly() {
-		setRandomPathFrom(getX(), getY(), getMovementRange()/2);
-	}
-
 	/**
 	 * Can be called when the sheep dies. Puts meat onto its corpse; the amount
 	 * of meat depends on the domestic animal's weight.
-	 * 
+	 *
 	 * @param corpse
 	 *            The corpse on which to put the meat
 	 */
@@ -195,8 +211,6 @@ public abstract class DomesticAnimal extends Creature {
     			}
     		}
     	}
-    
     	return false;
     }
-
 }

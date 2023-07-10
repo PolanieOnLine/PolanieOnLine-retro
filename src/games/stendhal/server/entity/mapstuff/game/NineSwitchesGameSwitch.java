@@ -1,4 +1,4 @@
-/* $Id: NineSwitchesGameSwitch.java,v 1.2 2010/09/02 08:12:54 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -25,7 +25,7 @@ public class NineSwitchesGameSwitch extends UseableEntity{
 
 	/**
 	 * creates a new Switch for the 9 switches game.
-	 * 
+	 *
 	 * @param board
 	 */
 	public NineSwitchesGameSwitch(NineSwitchesGameBoard board) {
@@ -38,6 +38,7 @@ public class NineSwitchesGameSwitch extends UseableEntity{
 	/**
 	 * someone clicked a switch.
 	 */
+	@Override
 	public boolean onUsed(RPEntity user) {
 		board.usedSwitch(user, this);
 		return true;

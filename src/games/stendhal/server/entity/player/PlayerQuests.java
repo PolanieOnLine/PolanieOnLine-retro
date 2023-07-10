@@ -1,6 +1,5 @@
-/* $Id: PlayerQuests.java,v 1.17 2011/02/15 20:45:41 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2020 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,17 +11,17 @@
  ***************************************************************************/
 package games.stendhal.server.entity.player;
 
-import games.stendhal.common.MathHelper;
-import games.stendhal.server.core.engine.GameEvent;
-import games.stendhal.server.core.engine.SingletonRepository;
-
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
+import games.stendhal.common.MathHelper;
+import games.stendhal.server.core.engine.GameEvent;
+import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.util.QuestUtils;
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPSlot;
-
-import org.apache.log4j.Logger;
 
 /**
  * Accesses the player quest states.
@@ -31,17 +30,17 @@ import org.apache.log4j.Logger;
  */
 class PlayerQuests {
 	private final Player player;
-	
+
 	private static Logger logger = Logger.getLogger(PlayerQuests.class);
 
-	
+
 	public PlayerQuests(final Player player) {
 		this.player = player;
 	}
 
 	/**
 	 * Checks whether the player has completed the given quest or not.
-	 * 
+	 *
 	 * @param name
 	 *            The quest's name
 	 * @return true if the quest has been completed by the player
@@ -60,24 +59,24 @@ class PlayerQuests {
 	 * Checks whether the player has made any progress in the given quest or
 	 * not. For many quests, this is true right after the quest has been
 	 * started.
-	 * 
+	 *
 	 * @param name
 	 *            The quest's name
 	 * @return true iff the player has made any progress in the quest
 	 */
 	public boolean hasQuest(final String name) {
-		return (player.getKeyedSlot("!quests", name) != null);
+		return (player.getKeyedSlot("!quests", QuestUtils.evaluateQuestSlotName(name)) != null);
 	}
 
 	/**
 	 * Gets the player's current status in the given quest.
-	 * 
+	 *
 	 * @param name
 	 *            The quest's name
 	 * @return the player's status in the quest
 	 */
 	public String getQuest(final String name) {
-		return player.getKeyedSlot("!quests", name);
+		return player.getKeyedSlot("!quests", QuestUtils.evaluateQuestSlotName(name));
 	}
 
 	/**
@@ -86,7 +85,7 @@ class PlayerQuests {
 	 * list of items that need to be brought/NPCs that need to be met, or the
 	 * number of items that still need to be brought. Note that the string
 	 * "done" has a special meaning: see isQuestComplete().
-	 * 
+	 *
 	 * @param name
 	 *            The quest's name
 	 * @param status
@@ -94,19 +93,19 @@ class PlayerQuests {
 	 *            reset the player's status for the quest.
 	 */
 	public void setQuest(final String name, final String status) {
-		final String oldStatus = player.getKeyedSlot("!quests", name);
-		player.setKeyedSlot("!quests", name, status);
+		final String oldStatus = player.getKeyedSlot("!quests", QuestUtils.evaluateQuestSlotName(name));
+		player.setKeyedSlot("!quests", QuestUtils.evaluateQuestSlotName(name), status);
 		if ((status == null) || !status.equals(oldStatus)) {
-			new GameEvent(player.getName(), "quest", name, status).raise();
+			new GameEvent(player.getName(), "quest", QuestUtils.evaluateQuestSlotName(name), status).raise();
 		}
 		// check for reached achievements
 		SingletonRepository.getAchievementNotifier().onFinishQuest(player);
 	}
 
-	
+
 	/**
 	 * Gets the player's current status in the given quest.
-	 * 
+	 *
 	 * @param name
 	 *            The quest's name
 	 * @param index
@@ -118,11 +117,11 @@ class PlayerQuests {
 		if (state == null) {
 			return null;
 		}
-		
+
 		if(index == -1) {
 			return state;
 		}
-		
+
 		String[] elements = state.split(";");
 		if (index < elements.length) {
 			return elements[index];
@@ -136,7 +135,7 @@ class PlayerQuests {
 	 * list of items that need to be brought/NPCs that need to be met, or the
 	 * number of items that still need to be brought. Note that the string
 	 * "done" has a special meaning: see isQuestComplete().
-	 * 
+	 *
 	 * @param name
 	 *            The quest's name
 	 * @param index
@@ -156,7 +155,7 @@ class PlayerQuests {
 			System.arraycopy(elements, 0, temp, 0, elements.length);
 			elements = temp;
 		}
-		
+
 		elements[index] = subStatus;
 		StringBuilder res = new StringBuilder();
 		for (int i = 0; i < elements.length; i++) {
@@ -169,7 +168,7 @@ class PlayerQuests {
 		}
 		setQuest(name, res.toString());
 	}
-	
+
 	public List<String> getQuests() {
 		final RPSlot slot = player.getSlot("!quests");
 		final RPObject quests = slot.iterator().next();
@@ -184,12 +183,12 @@ class PlayerQuests {
 	}
 
 	public void removeQuest(final String name) {
-		player.setKeyedSlot("!quests", name, null);
+		player.setKeyedSlot("!quests", QuestUtils.evaluateQuestSlotName(name), null);
 	}
 
 	/**
 	 * Is the named quest in one of the listed states?
-	 * 
+	 *
 	 * @param name
 	 *            quest
 	 * @param states
@@ -209,13 +208,13 @@ class PlayerQuests {
 
 		return false;
 	}
-	
+
 	/**
 	 * Is the named quest in one of the listed states?
-	 * 
+	 *
 	 * @param name
 	 *            quest
-	 * @param index         
+	 * @param index
 	 *            quest index
 	 * @param states
 	 *            valid states
@@ -236,8 +235,8 @@ class PlayerQuests {
 	}
 
 	/**
-	 * Gets the recorded item stored in a substate of quest slot 
-	 * 
+	 * Gets the recorded item stored in a substate of quest slot
+	 *
 	 * @param name
 	 *            The quest's name
 	 * @param index
@@ -252,12 +251,12 @@ class PlayerQuests {
 		String questSubString = getQuest(name, index);
 		final String[] elements = questSubString.split("=");
 		String questItem = elements[0];
-		return questItem;		
+		return questItem;
 	}
-	
+
 	/**
-	 * Gets the recorded item quantity stored in a substate of quest slot 
-	 * 
+	 * Gets the recorded item quantity stored in a substate of quest slot
+	 *
 	 * @param name
 	 *            The quest's name
 	 * @param index
@@ -276,12 +275,12 @@ class PlayerQuests {
 			amount=MathHelper.parseIntDefault(elements[1], 1);
 		}
 		return amount;
-		
+
 	}
-	
+
 	/**
-	 * Gets the number of repetitions in a substate of quest slot 
-	 * 
+	 * Gets the number of repetitions in a substate of quest slot
+	 *
 	 * @param name
 	 *            The quest's name
 	 * @param index

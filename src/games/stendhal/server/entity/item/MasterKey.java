@@ -1,4 +1,4 @@
-/* $Id: MasterKey.java,v 1.6 2010/09/19 02:23:49 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -19,17 +19,17 @@ import java.util.Map;
  * Opens any door that can be used with <code>HouseKey</code>.
  */
 public class MasterKey extends HouseKey {
-	
+
 	public MasterKey(final MasterKey key) {
 		super(key);
 	}
 
 	public MasterKey(final String name, final String clazz, final String subclass, final Map<String, String> attributes) {
 		super(name, clazz, subclass, attributes);
-		
 		setInfoString("każdego domku wojowników;0;");
+
 	}
-	
+
 	// Open any door that can be opened with HouseKeys
 	@Override
 	public boolean matches(final String houseId, final int number) {

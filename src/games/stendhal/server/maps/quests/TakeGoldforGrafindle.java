@@ -1,6 +1,5 @@
-/* $Id: TakeGoldforGrafindle.java,v 1.34 2011/11/13 17:15:18 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2011 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,6 +11,12 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
+import games.stendhal.common.grammar.Grammar;
 import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
@@ -24,20 +29,15 @@ import games.stendhal.server.entity.npc.action.MultipleActions;
 import games.stendhal.server.entity.npc.action.SetQuestAction;
 import games.stendhal.server.entity.npc.action.SetQuestAndModifyKarmaAction;
 import games.stendhal.server.entity.npc.condition.AndCondition;
+import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
 import games.stendhal.server.entity.npc.condition.NotCondition;
 import games.stendhal.server.entity.npc.condition.PlayerHasItemWithHimCondition;
 import games.stendhal.server.entity.npc.condition.QuestCompletedCondition;
 import games.stendhal.server.entity.npc.condition.QuestInStateCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotCompletedCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotStartedCondition;
-import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.Region;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * QUEST: Take gold for Grafindle
@@ -52,55 +52,19 @@ import java.util.List;
  * <li> Return the gold bars to Grafindle</ul>
  * 
  * REWARD:<ul>
- * <li> 200 XP
+ * <li> 2000 XP
+ * <li> some karma (10)
  * <li> key to nalwor bank customer room
  * </ul>
  * REPETITIONS: <ul><li> None.</ul>
  */
 public class TakeGoldforGrafindle extends AbstractQuest {
-	
+	private static final String QUEST_SLOT = "grafindle_gold";
+	private final SpeakerNPC npc = npcs.get("Grafindle");
+
 	private static final int GOLD_AMOUNT = 25;
 
-	private static final String QUEST_SLOT = "grafindle_gold";
-
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
-
-	@Override
-	public List<String> getHistory(final Player player) {
-		final List<String> res = new ArrayList<String>();
-		if (!player.hasQuest(QUEST_SLOT)) {
-			return res;
-		}
-				res.add("Poszłem do banku w Nalwor i spotkałem Grafindle.");
-		final String questState = player.getQuest(QUEST_SLOT);
-		if (questState.equals("rejected")) {
-			res.add("Odpowiedzialność za sztabki była dla mnie zbyt wysoka, więc byłem zmuszony odrzucić prośbę Grafindle. ");
-		}
-		if (player.isQuestInState(QUEST_SLOT, "start", "lorithien", "done")) {
-			res.add("Ponieważ jestem osobą godną zaufania, obiecałem przynieść Grafindle złoto od Lorithien.");
-		}
-		if ((questState.equals("lorithien") && player.isEquipped("sztabka złota",
-				GOLD_AMOUNT))
-				|| questState.equals("done")) {
-			res.add("Udało się! Zebrałem sztabki, których potrzebuje Grafindle.");
-		}
-		if (questState.equals("lorithien")
-				&& !player.isEquipped("sztabka złota", GOLD_AMOUNT)) {
-			res.add("O nie! Zgubiłam złote sztabki, które miałam przynieść Grafindle!");
-		}
-		if (questState.equals("done")) {
-			res.add("Dałem złote sztabki Grafindle, a on wynagrodził mnie - dostałem klucz do pokoju klienta banku Nalwor.");
-		}
-		return res;
-	}
-
 	private void step_1() {
-
-		final SpeakerNPC npc = npcs.get("Grafindle");
-
 		npc.add(ConversationStates.ATTENDING,
 			ConversationPhrases.QUEST_MESSAGES, 
 			new QuestNotCompletedCondition(QUEST_SLOT),
@@ -211,13 +175,11 @@ public class TakeGoldforGrafindle extends AbstractQuest {
 	}
 
 	private void step_3() {
-		final SpeakerNPC npc = npcs.get("Grafindle");
-
 		/** Complete the quest */
 		final List<ChatAction> reward = new LinkedList<ChatAction>();
 		reward.add(new DropItemAction("sztabka złota", GOLD_AMOUNT));
 		reward.add(new EquipItemAction("klucz do banku Nalwor", 1, true));
-		reward.add(new IncreaseXPAction(200));
+		reward.add(new IncreaseXPAction(2000));
 		reward.add(new SetQuestAction(QUEST_SLOT, "done"));
 		reward.add(new IncreaseKarmaAction(10));
 		
@@ -240,7 +202,6 @@ public class TakeGoldforGrafindle extends AbstractQuest {
 
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
 				"Zabierz Złoto dla Grafindla",
 				"Grafindle w banku w Nalwor szuka kogoś komu może zaufać.",
@@ -251,16 +212,50 @@ public class TakeGoldforGrafindle extends AbstractQuest {
 	}
 
 	@Override
-	public String getName() {
-		return "TakeGoldforGrafindle";
+	public List<String> getHistory(final Player player) {
+		final List<String> res = new ArrayList<String>();
+		if (!player.hasQuest(QUEST_SLOT)) {
+			return res;
+		}
+		res.add(Grammar.genderVerb(player.getGender(), "Poszedłem") + " do banku w Nalwor i " + Grammar.genderVerb(player.getGender(), "spotkałem") + " Grafindle.");
+		final String questState = player.getQuest(QUEST_SLOT);
+		if (questState.equals("rejected")) {
+			res.add("Odpowiedzialność za sztabki była dla mnie zbyt wysoka, więc byłem zmuszony odrzucić prośbę Grafindle. ");
+		}
+		if (player.isQuestInState(QUEST_SLOT, "start", "lorithien", "done")) {
+			res.add("Ponieważ jestem osobą godną zaufania, " + Grammar.genderVerb(player.getGender(), "obiecałem") + " przynieść Grafindle złoto od Lorithien.");
+		}
+		if (questState.equals("lorithien") && player.isEquipped("sztabka złota",
+				GOLD_AMOUNT)
+				|| questState.equals("done")) {
+			res.add("Udało się! " + Grammar.genderVerb(player.getGender(), "Zebrałem") + " sztabki, których potrzebuje Grafindle.");
+		}
+		if (questState.equals("lorithien")
+				&& !player.isEquipped("sztabka złota", GOLD_AMOUNT)) {
+			res.add("O nie! " + Grammar.genderVerb(player.getGender(), "Zgubiłem") + " złote sztabki, które " + Grammar.genderVerb(player.getGender(), "miałem") + " przynieść Grafindle!");
+		}
+		if (questState.equals("done")) {
+			res.add(Grammar.genderVerb(player.getGender(), "Dałem") + " złote sztabki Grafindle, a on wynagrodził mnie - " + Grammar.genderVerb(player.getGender(), "dostałem") + " klucz do pokoju klienta banku Nalwor.");
+		}
+		return res;
 	}
-	
+
+	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
+	}
+
+	@Override
+	public String getName() {
+		return "Zabierz Złoto dla Grafindla";
+	}
+
 	// it is not easy to get to Nalwor
 	@Override
 	public int getMinLevel() {
 		return 50;
 	}
-	
+
 	@Override
 	public String getRegion() {
 		return Region.NALWOR_CITY;

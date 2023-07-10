@@ -1,4 +1,4 @@
-/* $Id: TestRPClass.java,v 1.5 2010/09/19 01:29:05 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -14,9 +14,10 @@ package conf;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import marauroa.common.game.RPClass;
 
 import org.junit.Test;
+
+import marauroa.common.game.RPClass;
 
 public class TestRPClass {
 

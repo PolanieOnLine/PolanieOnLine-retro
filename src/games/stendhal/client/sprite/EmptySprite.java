@@ -1,4 +1,4 @@
-/* $Id: EmptySprite.java,v 1.13 2010/11/09 19:29:52 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -22,26 +22,26 @@ public class EmptySprite implements Sprite {
 	/**
 	 * The identifier reference.
 	 */
-	protected Object reference;
+	private Object reference;
 
 	/**
 	 * The sprite height.
 	 */
-	protected int height;
+	private int height;
 
 	/**
 	 * The sprite width.
 	 */
-	protected int width;
+	private int width;
 
 	/**
 	 * Create an empty sprite.
-	 * 
+	 *
 	 * @param width
 	 *            The sprite width.
 	 * @param height
 	 *            The sprite height.
-	 * @param reference 
+	 * @param reference
 	 */
 	public EmptySprite(final int width, final int height, final Object reference) {
 		this.width = width;
@@ -55,13 +55,13 @@ public class EmptySprite implements Sprite {
 
 	/**
 	 * Create an empty sprite reference.
-	 * @param width 
-	 * @param height 
+	 * @param width
+	 * @param height
 	 * @return an Object of the type ESRef
-	 * 
-	 * 
+	 *
+	 *
 	 */
-	public static Object createReference(final int width, final int height) {
+	static Object createReference(final int width, final int height) {
 		return new ESRef(width, height);
 	}
 
@@ -72,7 +72,7 @@ public class EmptySprite implements Sprite {
 	/**
 	 * Create a sub-region of this sprite. <strong>NOTE: This does not use
 	 * caching.</strong>
-	 * 
+	 *
 	 * @param x
 	 *            The starting X coordinate.
 	 * @param y
@@ -83,9 +83,10 @@ public class EmptySprite implements Sprite {
 	 *            The region height.
 	 * @param ref
 	 *            The sprite reference.
-	 * 
+	 *
 	 * @return A new sprite.
 	 */
+	@Override
 	public Sprite createRegion(final int x, final int y, final int width,
 			final int height, final Object ref) {
 		return new EmptySprite(width, height, ref);
@@ -93,7 +94,7 @@ public class EmptySprite implements Sprite {
 
 	/**
 	 * Draw the sprite onto the graphics context provided.
-	 * 
+	 *
 	 * @param g
 	 *            The graphics context on which to draw the sprite
 	 * @param x
@@ -101,12 +102,13 @@ public class EmptySprite implements Sprite {
 	 * @param y
 	 *            The y location at which to draw the sprite
 	 */
+	@Override
 	public void draw(final Graphics g, final int x, final int y) {
 	}
 
 	/**
 	 * Draws the image.
-	 * 
+	 *
 	 * @param g
 	 *            the graphics context where to draw to
 	 * @param destx
@@ -122,15 +124,17 @@ public class EmptySprite implements Sprite {
 	 * @param h
 	 *            the height
 	 */
+	@Override
 	public void draw(final Graphics g, final int destx, final int desty, final int x, final int y, final int w,
 			final int h) {
 	}
 
 	/**
 	 * Get the height of the drawn sprite.
-	 * 
+	 *
 	 * @return The height in pixels of this sprite
 	 */
+	@Override
 	public int getHeight() {
 		return height;
 	}
@@ -139,19 +143,21 @@ public class EmptySprite implements Sprite {
 	 * Get the sprite reference. This identifier is an externally opaque object
 	 * that implements equals() and hashCode() to uniquely/repeatably reference
 	 * a keyed sprite.
-	 * 
+	 *
 	 * @return The reference identifier, or <code>null</code> if not
 	 *         referencable.
 	 */
+	@Override
 	public Object getReference() {
 		return reference;
 	}
 
 	/**
 	 * Get the width of the drawn sprite.
-	 * 
+	 *
 	 * @return The width in pixels of this sprite
 	 */
+	@Override
 	public int getWidth() {
 		return width;
 	}
@@ -162,11 +168,11 @@ public class EmptySprite implements Sprite {
 	/**
 	 * An opaque sprite reference for an empty sprite.
 	 */
-	protected static class ESRef {
-		protected int width;
-		protected int height;
+	private static class ESRef {
+		private int width;
+		private int height;
 
-		public ESRef(final int width, final int height) {
+		private ESRef(final int width, final int height) {
 			this.width = width;
 			this.height = height;
 		}
@@ -184,15 +190,7 @@ public class EmptySprite implements Sprite {
 			if (obj instanceof ESRef) {
 				final ESRef esref = (ESRef) obj;
 
-				if (width != esref.width) {
-					return false;
-				}
-
-				if (height != esref.height) {
-					return false;
-				}
-
-				return true;
+				return (width == esref.width) && (height == esref.height);
 			}
 
 			return false;
@@ -207,5 +205,10 @@ public class EmptySprite implements Sprite {
 		public String toString() {
 			return "[" + width + "x" + height + "]";
 		}
+	}
+
+	@Override
+	public boolean isConstant() {
+		return true;
 	}
 }

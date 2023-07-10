@@ -1,4 +1,4 @@
-/* $Id: IdleBehaviourFactory.java,v 1.2 2010/12/02 20:48:01 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -17,11 +17,13 @@ import java.util.Map;
 
 public class IdleBehaviourFactory {
 	private static final IdleBehaviour nothing = new StandOnIdle();
-	
+
 	public static IdleBehaviour get(final Map<String, String> aiProfiles) {
 		if (aiProfiles.containsKey("patrolling")) {
 			return new Patroller();
-		}
-		return nothing;
+        } else if (aiProfiles.containsKey("camouflage")) {
+            return new CamouflagedIdleBehaviour();
+        }
+        return nothing;
 	}
 }

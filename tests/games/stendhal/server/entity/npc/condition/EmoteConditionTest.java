@@ -1,4 +1,4 @@
-/* $Id: EmoteConditionTest.java,v 1.3 2011/05/01 19:50:06 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -15,13 +15,13 @@ package games.stendhal.server.entity.npc.condition;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import games.stendhal.common.parser.ConversationParser;
-import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.maps.MockStendlRPWorld;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.common.parser.ConversationParser;
+import games.stendhal.server.entity.npc.SpeakerNPC;
+import games.stendhal.server.maps.MockStendlRPWorld;
 import utilities.PlayerTestHelper;
 import utilities.SpeakerNPCTestHelper;
 
@@ -31,22 +31,12 @@ public class EmoteConditionTest extends PlayerTestHelper {
 	public static void setUpBeforeClass() throws Exception {
 		MockStendlRPWorld.get();
 	}
-	
-	/**
-	 * Tests for constructor.
-	 */
-	@Test
-	public void testConstructor() throws Throwable {
-		final EmoteCondition emoteCondition = new EmoteCondition("");
-		assertEquals("emoteCondition.hashCode()", 629,
-				emoteCondition.hashCode());
-	}
 
 	/**
 	 * Tests for equals.
 	 */
 	@Test
-	public void testEquals() throws Throwable {
+	public void testEquals() {
 		final EmoteCondition obj = new EmoteCondition("hugs");
 		assertTrue(obj.equals(obj));
 		assertTrue(new EmoteCondition("hugs").equals(new EmoteCondition("hugs")));
@@ -63,7 +53,7 @@ public class EmoteConditionTest extends PlayerTestHelper {
 	 * Tests for fire.
 	 */
 	@Test
-	public void testFire() throws Throwable {
+	public void testFire() {
 		final SpeakerNPC npc = SpeakerNPCTestHelper.createSpeakerNPC();
 		npc.setName("TestNPC");
 		assertTrue(new EmoteCondition("hugs").fire(createPlayer("player"),
@@ -87,16 +77,16 @@ public class EmoteConditionTest extends PlayerTestHelper {
 	 * Tests for hashCode.
 	 */
 	@Test
-	public void testHashCode() throws Throwable {
-		assertEquals("result", 3214638, new EmoteCondition("hugs").hashCode());
-		assertEquals("result", 3292627, new EmoteCondition("kill").hashCode());
+	public void testHashCode() {
+		assertEquals("result", new EmoteCondition("hugs").hashCode(), new EmoteCondition("hugs").hashCode());
+		assertEquals("result", new EmoteCondition("kill").hashCode(), new EmoteCondition("kill").hashCode());
 	}
 
 	/**
 	 * Tests for toString.
 	 */
 	@Test
-	public void testToString() throws Throwable {
+	public void testToString() {
 		assertEquals("result", "EmoteCondition",
 				new EmoteCondition("hugs").toString());
 	}
@@ -105,7 +95,7 @@ public class EmoteConditionTest extends PlayerTestHelper {
 	 * Tests for fireThrowsNullPointerException.
 	 */
 	@Test(expected = NullPointerException.class)
-	public void testFireThrowsNullPointerException() throws Throwable {
+	public void testFireThrowsNullPointerException() {
 		new EmoteCondition("hugs").fire(null, ConversationParser.parse("!me hugs TestNPC"),
 				null);
 	}

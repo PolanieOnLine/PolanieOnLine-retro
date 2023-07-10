@@ -1,6 +1,5 @@
-/* $Id: ListProducersAction.java,v 1.1 2010/12/04 20:28:35 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -13,6 +12,7 @@
 package games.stendhal.server.actions.query;
 
 import static games.stendhal.common.constants.Actions.LISTPRODUCERS;
+
 import games.stendhal.server.actions.ActionListener;
 import games.stendhal.server.actions.CommandCenter;
 import games.stendhal.server.core.engine.SingletonRepository;
@@ -23,12 +23,13 @@ import marauroa.common.game.RPAction;
  * Lists the producers with have open tasks for the asking player.
  */
 public class ListProducersAction implements ActionListener {
-	
+
 
 	public static void register() {
 		CommandCenter.register(LISTPRODUCERS, new ListProducersAction());
 	}
 
+	@Override
 	public void onAction(final Player player, final RPAction action) {
 
 		final StringBuilder st = new StringBuilder();

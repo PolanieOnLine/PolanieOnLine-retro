@@ -1,4 +1,4 @@
-/* $Id: KHtmlEdit.java,v 1.23 2012/12/02 17:53:11 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -11,9 +11,6 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.client.gui;
-
-import games.stendhal.client.StendhalClient;
-import games.stendhal.common.NotificationType;
 
 import java.awt.Color;
 import java.io.IOException;
@@ -32,9 +29,11 @@ import javax.swing.text.Element;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.StyleSheet;
 
-import marauroa.common.game.RPAction;
-
 import org.apache.log4j.Logger;
+
+import games.stendhal.client.StendhalClient;
+import games.stendhal.common.NotificationType;
+import marauroa.common.game.RPAction;
 
 /**
  * A HTML implementation of a KTextEdit component.
@@ -52,6 +51,10 @@ public class KHtmlEdit extends KTextEdit {
 	private static final long serialVersionUID = -8415450500521691744L;
 
 	private static Logger logger = Logger.getLogger(KHtmlEdit.class);
+
+	KHtmlEdit() {
+		textPane.addHyperlinkListener(new ActivateLinkCB());
+	}
 
 	//
 	// KHtmlEdit
@@ -84,8 +87,8 @@ public class KHtmlEdit extends KTextEdit {
 		} else {
 			text = ev.getDescription();
 
-			if (text.startsWith("powiedział:")) {
-				text = text.substring(11);
+			if (text.startsWith("say:")) {
+				text = text.substring(4);
 
 				try {
 					text = URLDecoder.decode(text, "UTF-8");
@@ -369,17 +372,6 @@ public class KHtmlEdit extends KTextEdit {
 	//
 	// KTextEdit
 	//
-
-	/**
-	 * Build the GUI.
-	 */
-	@Override
-	protected void buildGUI() {
-		super.buildGUI();
-
-		textPane.addHyperlinkListener(new ActivateLinkCB());
-	}
-
 	@Override
 	protected void initStylesForTextPane(final JTextPane textPane, int mainTextSize) {
 		textPane.setContentType("text/html");
@@ -471,7 +463,7 @@ public class KHtmlEdit extends KTextEdit {
 	/**
 	 * A hyperlink listener for link activation.
 	 */
-	protected class ActivateLinkCB implements HyperlinkListener {
+	private class ActivateLinkCB implements HyperlinkListener {
 		@Override
 		public void hyperlinkUpdate(final HyperlinkEvent ev) {
 			if (ev.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {

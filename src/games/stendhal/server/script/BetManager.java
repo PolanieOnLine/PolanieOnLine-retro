@@ -1,4 +1,4 @@
-/* $Id: BetManager.java,v 1.51 2011/05/01 19:50:06 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -11,6 +11,13 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.script;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
 
 import games.stendhal.common.parser.Expression;
 import games.stendhal.common.parser.Sentence;
@@ -29,67 +36,60 @@ import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-
-import org.apache.log4j.Logger;
-
 /**
  * Creates an NPC which manages bets.
- * 
+ *
  * <p>
  * A game master has to tell him on what the players can bet:
- * 
+ *
  * <pre>
  * /script BetManager.class accept fire water earth
  * </pre>
- * 
+ *
  * </p>
- * 
+ *
  * <p>
  * Then players can bet by saying something like
- * 
+ *
  * <pre>
  * bet 50 ham on fire
  * bet 5 cheese on water
  * </pre>
- * 
+ *
  * The NPC retrieves the items from the player and registers the bet.
  * </p>
- * 
+ *
  * <p>
  * The game master starts the action closing the betting time:
- * 
+ *
  * <pre>
  * /script BetManager.class action
  * </pre>
- * 
+ *
  * </p>
- * 
+ *
  * <p>
  * After the game the game master has to tell the NPC who won:
  * </p>
- * 
+ *
  * <pre>
  * /script BetManager.class winner fire
  * </pre>.
- * 
+ *
  * <p>
  * The NPC will than tell all players the results and give it to winners:
- * 
+ *
  * <pre>
  * mort bet 50 ham on fire and won an additional 50 ham
  * hendrik lost 5 cheese betting on water
  * </pre>
- * 
+ *
  * </p>
- * 
+ *
  * Note: Betting is possible in "idle conversation state" to enable interaction
  * of a large number of players in a short time. (The last time i did a
  * show-fight i was losing count because there where more than 15 players)
- * 
+ *
  * @author hendrik
  */
 public class BetManager extends ScriptImpl implements TurnListener {
@@ -129,12 +129,12 @@ public class BetManager extends ScriptImpl implements TurnListener {
 		/** name of item .*/
 		private String itemName;
 
-		
+
 		private int amount;
 
 		/**
 		 * Converts the bet into a string.
-		 * 
+		 *
 		 * @return String
 		 */
 		public String betToString() {
@@ -172,6 +172,7 @@ public class BetManager extends ScriptImpl implements TurnListener {
 	 */
 	protected class BetCondition implements ChatCondition {
 
+		@Override
 		public boolean fire(final Player player, final Sentence sentence, final Entity entity) {
 			return state == State.ACCEPTING_BETS;
 		}
@@ -182,6 +183,7 @@ public class BetManager extends ScriptImpl implements TurnListener {
 	 */
 	protected class NoBetCondition implements ChatCondition {
 
+		@Override
 		public boolean fire(final Player player, final Sentence sentence, final Entity entity) {
 			return state != State.ACCEPTING_BETS;
 		}
@@ -192,6 +194,7 @@ public class BetManager extends ScriptImpl implements TurnListener {
 	 */
 	protected class BetAction implements ChatAction {
 
+		@Override
 		public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 			final BetInfo betInfo = new BetInfo();
 			betInfo.playerName = player.getName();
@@ -209,9 +212,9 @@ public class BetManager extends ScriptImpl implements TurnListener {
 				if ((object1 != null) && (object2 != null) && (preposition != null)) {
     				if (preposition.getNormalized().equals("on")) {
         				betInfo.amount = object1.getAmount();
-        				
+
         				// cheese
-        				betInfo.itemName = object1.getNormalized(); 
+        				betInfo.itemName = object1.getNormalized();
         				betInfo.target = object2.getNormalized();
     				} else {
     					errorMsg = "missing preposition 'on'";
@@ -257,12 +260,13 @@ public class BetManager extends ScriptImpl implements TurnListener {
 					+ betInfo.betToString() + " został przyjęty");
 
 			// TODO: put items on ground and mark items on ground with: playername "betted" amount
-			// itemname "on" target. 
+			// itemname "on" target.
 			// dont forget to remove the items after bet is done and to remove the notfullyimplemented warning
 
 		}
 	}
 
+	@Override
 	public void onTurnReached(final int currentTurn) {
 		if (state != State.PAYING_BETS) {
 			logger.error("onTurnReached invoked but state is not PAYING_BETS: "
@@ -320,14 +324,14 @@ public class BetManager extends ScriptImpl implements TurnListener {
 					if (item instanceof StackableItem) {
 						final StackableItem stackableItem = (StackableItem) item;
 						// bet + win
-						stackableItem.setQuantity(2 * betInfo.amount); 
+						stackableItem.setQuantity(2 * betInfo.amount);
 					}
 					player.equipOrPutOnGround(item);
 				}
 
 			}
 
-	
+
 
 			if (betInfos.isEmpty()) {
 				winner = null;
@@ -377,7 +381,7 @@ public class BetManager extends ScriptImpl implements TurnListener {
 				ConversationStates.IDLE,
 				"Teraz nie akceptuje zakładów.", null);
 
-		
+
 		admin.sendPrivateText("BetManager nie jest do końca napisany");
 	}
 
@@ -395,7 +399,7 @@ public class BetManager extends ScriptImpl implements TurnListener {
 
 		final int idx = commands.indexOf(args.get(0));
 		switch (idx) {
-		case 0: 
+		case 0:
 			// accept #fire #water
 			if (state != State.IDLE) {
 				admin.sendPrivateText("polecenie akceptowania jest dostępne podczas stanu BEZCZYNNOŚCI, ale jestem teraz w "
@@ -414,7 +418,7 @@ public class BetManager extends ScriptImpl implements TurnListener {
 			state = State.ACCEPTING_BETS;
 			break;
 
-		case 1: 
+		case 1:
 			// action
 			if (state != State.ACCEPTING_BETS) {
 				admin.sendPrivateText("komenda zakładu jest akceptowana podczas stanu ACCEPTING_BETS, ale teraz jest "
@@ -425,7 +429,7 @@ public class BetManager extends ScriptImpl implements TurnListener {
 			state = State.ACTION;
 			break;
 
-		case 2: 
+		case 2:
 			// winner #fire
 			if (state != State.ACTION) {
 				admin.sendPrivateText("komenda wygranej jest akceptowana podczas stanu ACTION, ale teraz jest "

@@ -1,6 +1,5 @@
-/* $Id: KanmararnSoldiers.java,v 1.74 2012/04/24 17:01:18 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,6 +11,14 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
+import games.stendhal.common.grammar.Grammar;
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
@@ -37,22 +44,16 @@ import games.stendhal.server.entity.npc.condition.NotCondition;
 import games.stendhal.server.entity.npc.condition.OrCondition;
 import games.stendhal.server.entity.npc.condition.PlayerHasInfostringItemWithHimCondition;
 import games.stendhal.server.entity.npc.condition.PlayerOwnsItemIncludingBankCondition;
+import games.stendhal.server.entity.npc.condition.QuestActiveCondition;
 import games.stendhal.server.entity.npc.condition.QuestCompletedCondition;
 import games.stendhal.server.entity.npc.condition.QuestInStateCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotCompletedCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotInStateCondition;
+import games.stendhal.server.entity.npc.condition.QuestNotStartedCondition;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.Region;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-
 import marauroa.common.game.RPObject;
 import marauroa.common.game.SlotIsFullException;
-
-import org.apache.log4j.Logger;
 
 /**
  * QUEST:
@@ -84,10 +85,12 @@ import org.apache.log4j.Logger;
  * <p>
  * from Henry:
  * <li> you can keep the IOU paper (for quest MCPeglegIOU)
- * <li> 2500 XP
+ * <li> 2,500 XP
+ * <li> some karma (15)
  * <p>
  * from Sergeant James
- * <li> steel boots
+ * <li> mainio boots
+ * <li> some karma (15)
  *
  * REPETITIONS:
  * <li> None.
@@ -95,10 +98,9 @@ import org.apache.log4j.Logger;
  * @see McPeglegIOU
  */
 public class KanmararnSoldiers extends AbstractQuest {
+	private static final String QUEST_SLOT = "soldier_henry";
 
 	private static final Logger logger = Logger.getLogger(KanmararnSoldiers.class);
-
-	private static final String QUEST_SLOT = "soldier_henry";
 
 	/**
 	 * The maximum time (in seconds) until plundered corpses will be filled
@@ -106,24 +108,22 @@ public class KanmararnSoldiers extends AbstractQuest {
 	 */
 	private static final int CORPSE_REFILL_SECONDS = 60;
 
+	/* Soldier names used in quest */
+	private static final String SLD_HENRY = "Henry";
+	private static final String SLD_CHARLES = "Charles";
+	private static final String SLD_TOM = "Tom";
+	private static final String SLD_PETER = "Peter";
+	private static final String SRG_JAMES = "Sergeant James";
 
-
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
-	
 	/**
 	 * A CorpseRefiller checks, in regular intervals, if the given corpse.
 	 *
 	 * @author daniel
 	 *
 	 */
-	static class CorpseRefiller implements TurnListener {
+	private static class CorpseRefiller implements TurnListener {
 		private final Corpse corpse;
-
 		private final String itemName;
-
 		private final String description;
 
 		public CorpseRefiller(final Corpse corpse, final String itemName, final String description) {
@@ -140,7 +140,6 @@ public class KanmararnSoldiers extends AbstractQuest {
 			if (!item.getName().equals(itemName)) {
 				return false;
 			}
-
 			if (!item.getDescription().equals(description)) {
 				return false;
 			}
@@ -148,6 +147,7 @@ public class KanmararnSoldiers extends AbstractQuest {
 			return corpse.getName().equals(item.getInfoString());
 		}
 
+		@Override
 		public void onTurnReached(final int currentTurn) {
 			boolean isStillFilled = false;
 			// Check if the item is still in the corpse. Note that somebody
@@ -180,27 +180,28 @@ public class KanmararnSoldiers extends AbstractQuest {
 		}
 	}
 
-
-
-	static class HenryQuestNotCompletedCondition implements ChatCondition {
+	private static class HenryQuestNotCompletedCondition implements ChatCondition {
+		@Override
 		public boolean fire(final Player player, final Sentence sentence, final Entity npc) {
-			return (!player.hasQuest(QUEST_SLOT) || player.getQuest(QUEST_SLOT).equals("start"));
+			return !player.hasQuest(QUEST_SLOT) || player.getQuest(QUEST_SLOT).equals("start");
 		}
 	}
 
-	static class HenryQuestCompletedCondition implements ChatCondition {
+	private static class HenryQuestCompletedCondition implements ChatCondition {
+		@Override
 		public boolean fire(final Player player, final Sentence sentence, final Entity npc) {
-			return (player.hasQuest(QUEST_SLOT) && !player.getQuest(QUEST_SLOT).equals("start"));
+			return player.hasQuest(QUEST_SLOT) && !player.getQuest(QUEST_SLOT).equals("start");
 		}
 	}
 
-	static class GiveMapAction implements ChatAction {
+	private static class GiveMapAction implements ChatAction {
 		private boolean bind = false;
 
 		public GiveMapAction(boolean bind) {
 			this.bind = bind;
 		}
 
+		@Override
 		public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 			final Item map = SingletonRepository.getEntityManager().getItem("mapa");
 			map.setInfoString(npc.getName());
@@ -213,34 +214,42 @@ public class KanmararnSoldiers extends AbstractQuest {
 		}
 	}
 
-
 	/**
 	 * We add text for NPC Henry who will get us on the quest.
 	 */
 	private void prepareCowardSoldier() {
-		final SpeakerNPC henry = npcs.get("Henry");
+		final SpeakerNPC henry = npcs.get(SLD_HENRY);
 
 		henry.add(ConversationStates.ATTENDING,
-			ConversationPhrases.QUEST_MESSAGES, 
-			new AndCondition(new QuestNotCompletedCondition(QUEST_SLOT),
-							 new QuestNotInStateCondition(QUEST_SLOT,"map")),
-			ConversationStates.QUEST_OFFERED, 
-			"Znajdź moją #drużynę Peter, Tom i Charles. Udowodnij, że ich znalazłeś a ja Cię wynagrodzę. Zrobisz to?", 
+			ConversationPhrases.QUEST_MESSAGES,
+			new AndCondition(new QuestNotStartedCondition(QUEST_SLOT),
+					new QuestNotInStateCondition(QUEST_SLOT,"map")),
+			ConversationStates.QUEST_OFFERED,
+			"Znajdź moją #drużynę Peter, Tom i Charles. Udowodnij, że ich znalazłeś a ja Cię wynagrodzę. Zrobisz to?",
 			null);
-		
+
 		henry.add(ConversationStates.ATTENDING,
-				ConversationPhrases.QUEST_MESSAGES, 
-				new OrCondition(new QuestCompletedCondition(QUEST_SLOT),
-								 new QuestInStateCondition(QUEST_SLOT,"map")),
-				ConversationStates.ATTENDING, 
-				"Jestem smutny, że większość moich przyjaciół nie żyje.", 
-				null);
-		
+			ConversationPhrases.QUEST_MESSAGES,
+			new OrCondition(new QuestCompletedCondition(QUEST_SLOT),
+					new QuestInStateCondition(QUEST_SLOT,"map")),
+			ConversationStates.ATTENDING,
+			"Jestem smutny, że większość moich przyjaciół nie żyje.",
+			null);
+
 		henry.add(ConversationStates.QUEST_OFFERED,
 			ConversationPhrases.YES_MESSAGES, null,
 			ConversationStates.ATTENDING,
 			"Dziękuje! Bedę czekał na twój powrót.",
 			new SetQuestAndModifyKarmaAction(QUEST_SLOT, "start", 5.0));
+		
+		// player tries to ask for quest again after starting
+		henry.add(ConversationStates.ATTENDING,
+			ConversationPhrases.QUEST_MESSAGES,
+			new AndCondition(new QuestActiveCondition(QUEST_SLOT),
+					new QuestNotInStateCondition(QUEST_SLOT, "map")),
+			ConversationStates.ATTENDING,
+			"Już Cię poprosiłem, abyś odnalazł moich przyjaciół Peter, Tom i Charles.",
+			null);
 
 		henry.add(
 			ConversationStates.QUEST_OFFERED,
@@ -251,35 +260,35 @@ public class KanmararnSoldiers extends AbstractQuest {
 			null);
 
         henry.add(
-				ConversationStates.QUEST_OFFERED,
-				Arrays.asList("treasure", "skarb"),
-				null,
-				ConversationStates.QUEST_OFFERED,
-				"Duży skarb jest #gdzieś w tych podziemiach. Pomożesz mi znalexć moją drużynę?",
-				null);
+			ConversationStates.QUEST_OFFERED,
+			Arrays.asList("treasure", "skarb"),
+			null,
+			ConversationStates.QUEST_OFFERED,
+			"Duży skarb jest #gdzieś w tych podziemiach. Pomożesz mi znaleźć moją drużynę?",
+			null);
 
 		henry.add(ConversationStates.QUEST_OFFERED,
-				ConversationPhrases.NO_MESSAGES, null,
-				ConversationStates.ATTENDING,
-				"Dobrze. Rozumiem. Też się boje #krasnali.", 
-				new SetQuestAndModifyKarmaAction(QUEST_SLOT, "rejected", -5.0));
-		
+			ConversationPhrases.NO_MESSAGES, null,
+			ConversationStates.ATTENDING,
+			"Dobrze. Rozumiem. Też się boje #krasnali.",
+			new SetQuestAndModifyKarmaAction(QUEST_SLOT, "rejected", -5.0));
+
 		final List<ChatAction> actions = new LinkedList<ChatAction>();
 		actions.add(new IncreaseXPAction(2500));
-		actions.add(new DropInfostringItemAction("skórzane spodnie","tom"));
-		actions.add(new DropInfostringItemAction("zbroja łuskowa","peter"));
-		actions.add(new IncreaseKarmaAction(15.0));	
+		actions.add(new DropInfostringItemAction("skórzane spodnie", SLD_TOM));
+		actions.add(new DropInfostringItemAction("zbroja łuskowa", SLD_PETER));
+		actions.add(new IncreaseKarmaAction(15.0));
 		actions.add(new GiveMapAction(false));
-		
+
 		henry.add(ConversationStates.IDLE,
 				ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new GreetingMatchesNameCondition(henry.getName()),
 						new QuestInStateCondition(QUEST_SLOT, "start"),
-						new PlayerHasInfostringItemWithHimCondition("skórzane spodnie", "tom"),
-						new PlayerHasInfostringItemWithHimCondition("karteczka", "charles"),
-						new PlayerHasInfostringItemWithHimCondition("zbroja łuskowa", "peter")),
+						new PlayerHasInfostringItemWithHimCondition("skórzane spodnie", SLD_TOM),
+						new PlayerHasInfostringItemWithHimCondition("karteczka", SLD_CHARLES),
+						new PlayerHasInfostringItemWithHimCondition("zbroja łuskowa", SLD_PETER)),
 				ConversationStates.ATTENDING,
-				"Och nie! Peter, Tom i Charles nie żyją? *płacz*. W każdym razie oto twoja nagroda i zatrzymaj IOU.", 
+				"Och nie! Peter, Tom i Charles nie żyją? *płacz*. W każdym razie oto twoja nagroda i zatrzymaj IOU.",
 				new MultipleActions(actions));
 
 		henry.add(ConversationStates.IDLE,
@@ -288,34 +297,34 @@ public class KanmararnSoldiers extends AbstractQuest {
 						new QuestInStateCondition(QUEST_SLOT, "start"),
 						new NotCondition(
 								new AndCondition(
-										new PlayerHasInfostringItemWithHimCondition("skórzane spodnie", "tom"),
-										new PlayerHasInfostringItemWithHimCondition("karteczka", "charles"),
-										new PlayerHasInfostringItemWithHimCondition("zbroja łuskowa", "peter")))),
+										new PlayerHasInfostringItemWithHimCondition("skórzane spodnie", SLD_TOM),
+										new PlayerHasInfostringItemWithHimCondition("karteczka", SLD_CHARLES),
+										new PlayerHasInfostringItemWithHimCondition("zbroja łuskowa", SLD_PETER)))),
 				ConversationStates.ATTENDING,
-				"Nie udowodniłeś, że znalazłeś wszystkich!", 
+				"Nie udowodniłeś, że znalazłeś wszystkich!",
 				null);
 
-		henry.add(ConversationStates.ATTENDING, Arrays.asList("mapa", "group", "help"), 
+		henry.add(ConversationStates.ATTENDING, Arrays.asList("map", "group", "help", "mapa", "pomoc"),
 				new OrCondition(
-					new	QuestCompletedCondition(QUEST_SLOT), 
+					new	QuestCompletedCondition(QUEST_SLOT),
 					new AndCondition(new HenryQuestCompletedCondition(),
 					new PlayerOwnsItemIncludingBankCondition("mapa"))),
 				ConversationStates.ATTENDING,
 				"Jestem smutny, bo większość moich przyjaciół nie żyje.", null);
 
-		henry.add(ConversationStates.ATTENDING, Arrays.asList("mapa"), 
+		henry.add(ConversationStates.ATTENDING, Arrays.asList("map", "mapa"),
 				new AndCondition(
-					new	QuestNotCompletedCondition(QUEST_SLOT), 
+					new	QuestNotCompletedCondition(QUEST_SLOT),
 					new HenryQuestCompletedCondition(),
 					new NotCondition(new PlayerOwnsItemIncludingBankCondition("mapa"))),
 				ConversationStates.ATTENDING,
-				"Na szczęście narysowałem kopię mapy, ale proszę nie zgub jej.", 
+				"Na szczęście narysowałem kopię mapy, ale proszę nie zgub jej.",
 				new GiveMapAction(true));
 
 		henry.add(ConversationStates.ATTENDING, Arrays.asList("map", "mapa"),
 				new HenryQuestNotCompletedCondition(),
 				ConversationStates.ATTENDING,
-				"Jeżeli znajdziesz moich przyjaciół to dam Ci mapę", null);
+				"Jeżeli znajdziesz moich przyjaciół to dam Ci mapę.", null);
 	}
 
 	/**
@@ -327,35 +336,39 @@ public class KanmararnSoldiers extends AbstractQuest {
 		// Now we create the corpse of the second NPC
 		final Corpse tom = new Corpse("youngsoldiernpc", 5, 47);
 		// he died first
-		tom.setStage(4); 
-		tom.setName("Tom");
+		tom.setStage(4);
+		tom.setName(SLD_TOM);
 		tom.setKiller("patrol krasnali");
 		// Add our new Ex-NPC to the game world
 		zone.add(tom);
 
 		// Add a refiller to automatically fill the corpse of unlucky Tom
-		final CorpseRefiller tomRefiller = new CorpseRefiller(tom, "skórzane spodnie",
-				"Oto podarte skórzane spodnie zalane krwią");
+		final CorpseRefiller tomRefiller = new CorpseRefiller(
+				tom,
+				"skórzane spodnie",
+				"Oto podarte skórzane spodnie zalane krwią.");
 		tomRefiller.start();
 
 		// Now we create the corpse of the third NPC
 		final Corpse charles = new Corpse("youngsoldiernpc", 94, 5);
 		// he died second
-		charles.setStage(3); 
-		charles.setName("Charles");
+		charles.setStage(3);
+		charles.setName(SLD_CHARLES);
 		charles.setKiller("patrol krasnali");
 		// Add our new Ex-NPC to the game world
 		zone.add(charles);
 		// Add a refiller to automatically fill the corpse of unlucky Charles
-		final CorpseRefiller charlesRefiller = new CorpseRefiller(charles, "karteczka",
+		final CorpseRefiller charlesRefiller = new CorpseRefiller(
+				charles,
+				"karteczka",
 				"Czytasz: \"Czek na  250 money. (podpisano) McPegleg\"");
 		charlesRefiller.start();
 
 		// Now we create the corpse of the fourth NPC
 		final Corpse peter = new Corpse("youngsoldiernpc", 11, 63);
 		// he died recently
-		peter.setStage(2); 
-		peter.setName("Peter");
+		peter.setStage(2);
+		peter.setName(SLD_PETER);
 		peter.setKiller("patrol krasnali");
 		// Add our new Ex-NPC to the game world
 		zone.add(peter);
@@ -371,7 +384,7 @@ public class KanmararnSoldiers extends AbstractQuest {
 	 * add James.
 	 */
 	private void prepareSergeant() {
-		final SpeakerNPC james = npcs.get("Sergeant James");
+		final SpeakerNPC james = npcs.get(SRG_JAMES);
 
 		// quest related stuff
 		james.addHelp("Pomyśl potrzebuję małej pomocy. Moja #drużyna została wybita, a #jeden uciekł. Nie dobrze, bo on miał #mapę.");
@@ -390,93 +403,100 @@ public class KanmararnSoldiers extends AbstractQuest {
 			"Był dobrym żołnierzem i walczył dzielnie.");
 		james.addReply(Arrays.asList("kingdom", "kanmararn", "królestwa", "królestwie"),
 			"Kanmararn jest legendarnym królestwem #krasnali.");
+		james.addReply("dreamscape",
+			"Jest pewien mężczyzna na wschód od miasta. On zna drogę.");
 
 		final List<ChatAction> actions = new LinkedList<ChatAction>();
 		actions.add(new IncreaseXPAction(5000));
-		actions.add(new DropInfostringItemAction("mapa","Henry"));
-		actions.add(new SetQuestAndModifyKarmaAction(QUEST_SLOT, "done", 15.0));	
-		actions.add(new EquipItemAction("buty żelazne", 1, true));
-		
-		james.add(ConversationStates.ATTENDING, 
+		actions.add(new DropInfostringItemAction("mapa", SLD_HENRY));
+		actions.add(new SetQuestAndModifyKarmaAction(QUEST_SLOT, "done", 15.0));
+		actions.add(new EquipItemAction("buty mainiocyjskie", 1, true));
+
+		james.add(ConversationStates.ATTENDING,
 				Arrays.asList("map", "henry", "mapa"),
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, "map"),
-								new PlayerHasInfostringItemWithHimCondition("mapa", "henry")),
-				ConversationStates.ATTENDING, 
-				"Mapa! Cudownie! Dziękuję. Oto twoja nagroda.",
+								new PlayerHasInfostringItemWithHimCondition("mapa", SLD_HENRY)),
+				ConversationStates.ATTENDING,
+				"Mapa! Cudownie! Dziękuję. Oto twoja nagroda. Zdobyłem te buty, gdy byłem w #dreamscape.",
 				new MultipleActions(actions));
 
-		james.add(ConversationStates.ATTENDING, 
+		james.add(ConversationStates.ATTENDING,
 				Arrays.asList("map", "henry", "mapa"),
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, "map"),
-								new NotCondition(new PlayerHasInfostringItemWithHimCondition("mapa", "henry"))),
-				ConversationStates.ATTENDING, 
+								new NotCondition(new PlayerHasInfostringItemWithHimCondition("mapa", SLD_HENRY))),
+				ConversationStates.ATTENDING,
 				"Cóż, gdzie jest mapa?",
 				null);
 
-		james.add(ConversationStates.ATTENDING, ConversationPhrases.QUEST_MESSAGES, 
+		james.add(ConversationStates.ATTENDING, ConversationPhrases.QUEST_MESSAGES,
 				new QuestCompletedCondition(QUEST_SLOT),
 				ConversationStates.ATTENDING,
 				"Dziękuję za przyniesienie mapy!", null);
-		
-		james.add(ConversationStates.ATTENDING, ConversationPhrases.HELP_MESSAGES, 
+
+		james.add(ConversationStates.ATTENDING, ConversationPhrases.HELP_MESSAGES,
 				new QuestCompletedCondition(QUEST_SLOT),
 				ConversationStates.ATTENDING,
 				"Dziękuję za przyniesienie mapy!", null);
-		
+
 		james.add(ConversationStates.ATTENDING, Arrays.asList("map", "henry",
-			 "group", "one", "mapa", "drużyna"),
-			new QuestCompletedCondition(QUEST_SLOT),
-			ConversationStates.ATTENDING,
-			"Dziękuję za przyniesienie mapy!", null);
+				"group", "one", "mapa", "drużyna"),
+				new QuestCompletedCondition(QUEST_SLOT),
+				ConversationStates.ATTENDING,
+				"Dziękuję za przyniesienie mapy!", null);
 	}
 
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
-				"Żołnierz Kanmararn",
+				"Żołnierze Kanmararn",
 				"Jakiś czas temu Sergeant James wraz ze swoimi najdzielniejszymi żołnierzami rozpoczął poszukiwanie skarbu w Kanmararn mieście krasnali. Jeszcze nie wrócili. Pójdziesz ich poszukać?.",
 				true);
 		prepareCowardSoldier();
 		prepareCorpses();
 		prepareSergeant();
 	}
-	
+
 	@Override
 	public List<String> getHistory(final Player player) {
-			final List<String> res = new ArrayList<String>();
-			if (!player.hasQuest(QUEST_SLOT)) {
-				return res;
-			}
-			final String questState = player.getQuest(QUEST_SLOT);
-			res.add("Spotkałem przerażonego żołnierza w Kanmararn City. Zapytał mnie, czy odnazał bym jego przyjaciół: Petera, Charlesa, i Toma.");
-			if ("rejected".equals(questState)) {
-				res.add("Nie pomogę dla Henry.");
-				return res;
-			} 
-			if ("start".equals(questState)) {
-				return res;
-			} 
-			res.add("Niestety znalazłem tylko ich zwłoki Petera, Charlesa, i Toma. Henry był przerażony. Za fatygę dał mi mapę i jakąś karteczkę. Nie mam pojęcia po co mi to.");
-			if ("map".equals(questState)) {
-				return res;
-			} 
-			res.add("Poznałem sierżanta Jamesa  i dałem mu mapę. On dał mi w zamian solidne żelazne buty.");
-			if (isCompleted(player)) {
-				return res;
-			}
-			// if things have gone wrong and the quest state didn't match any of the above, debug a bit:
-			final List<String> debug = new ArrayList<String>();
-			debug.add("Stan zadania to: " + questState);
-			logger.error("History doesn't have a matching quest state for " + questState);
-			return debug;
+		final List<String> res = new ArrayList<String>();
+		if (!player.hasQuest(QUEST_SLOT)) {
+			return res;
+		}
+		final String questState = player.getQuest(QUEST_SLOT);
+		res.add(Grammar.genderVerb(player.getGender(), "Spotkałem") + " przerażonego żołnierza w Kanmararn City. Zapytał mnie, czy odnazał bym jego przyjaciół: Petera, Charlesa, i Toma.");
+		if ("rejected".equals(questState)) {
+			res.add("Nie pomogę dla Henry.");
+			return res;
+		}
+		if ("start".equals(questState)) {
+			return res;
+		}
+		res.add("Niestety " + Grammar.genderVerb(player.getGender(), "znalazłem") + " tylko ich zwłoki Petera, Charlesa, i Toma. Henry był przerażony. Za fatygę dał mi mapę i jakąś karteczkę. Nie mam pojęcia po co mi to.");
+		if ("map".equals(questState)) {
+			return res;
+		}
+		res.add(Grammar.genderVerb(player.getGender(), "Poznałem") + " sierżanta Jamesa i " + Grammar.genderVerb(player.getGender(), "dałem") + " mu mapę. On dał mi w zamian solidne buty mainiocyjskie.");
+		if (isCompleted(player)) {
+			return res;
+		}
+
+		// if things have gone wrong and the quest state didn't match any of the above, debug a bit:
+		final List<String> debug = new ArrayList<String>();
+		debug.add("Stan zadania to: " + questState);
+		logger.error("History doesn't have a matching quest state for " + questState);
+		return debug;
+	}
+
+	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
 	}
 
 	@Override
 	public String getName() {
-		return "KanmararnSoldiers";
+		return "Żołnierze Kanmararn";
 	}
-	
+
 	@Override
 	public int getMinLevel() {
 		return 40;
@@ -484,9 +504,9 @@ public class KanmararnSoldiers extends AbstractQuest {
 
 	@Override
 	public String getNPCName() {
-		return "Henry";
+		return SLD_HENRY;
 	}
-	
+
 	@Override
 	public String getRegion() {
 		return Region.SEMOS_DUNGEONS;

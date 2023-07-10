@@ -18,7 +18,7 @@ import java.util.Properties;
 
 /**
  * read the configuration file for the client.
- * 
+ *
  * @author hendrik
  */
 public class ClientGameConfiguration {
@@ -64,7 +64,7 @@ public class ClientGameConfiguration {
 	 * gets a configuration value, in case it is undefined, the default of
 	 * game-default.properties is returned. If this is undefined, too, the
 	 * return value is null
-	 * 
+	 *
 	 * @param key
 	 *            key
 	 * @return configured value

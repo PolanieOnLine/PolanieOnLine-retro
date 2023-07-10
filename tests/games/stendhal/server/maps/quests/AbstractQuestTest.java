@@ -1,4 +1,4 @@
-/* $Id: AbstractQuestTest.java,v 1.19 2011/11/13 17:19:29 kymara Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -15,8 +15,6 @@ package games.stendhal.server.maps.quests;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import games.stendhal.server.entity.player.Player;
-import games.stendhal.server.maps.MockStendlRPWorld;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +23,8 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.maps.MockStendlRPWorld;
 import utilities.PlayerTestHelper;
 
 public class AbstractQuestTest {
@@ -38,7 +38,7 @@ public class AbstractQuestTest {
 		public String getName() {
 			return null;
 		}
-		
+
 		@Override
 		public List<String> getHistory(final Player player) {
 			return new ArrayList<String>();
@@ -47,6 +47,11 @@ public class AbstractQuestTest {
 		@Override
 		public String getNPCName() {
 			return QUESTNPCNAME;
+		}
+
+		@Override
+		public void addToWorld() {
+			// do nothing
 		}
 	}
 	@BeforeClass
@@ -63,7 +68,7 @@ public class AbstractQuestTest {
 	private static String QUESTSlotSTRING = "TESTQUEST";
 
 	private static String QUESTNAMESTRING = "test quest name";
-	
+
 	private static String QUESTNPCNAME = "test npc name";
 
 
@@ -78,7 +83,7 @@ public class AbstractQuestTest {
 		assertTrue(quest.getHint(pl).isEmpty());
 		assertTrue(quest.getHistory(pl).isEmpty());
 	}
-	
+
 	/**
 	 * Tests for getLevel.
 	 */
@@ -89,7 +94,7 @@ public class AbstractQuestTest {
 		final AbstractQuest quest = new Mockquest();
 		assertTrue(quest.getMinLevel()==0);
 	}
-	
+
 	/**
 	 * Tests for isCompleted.
 	 */
@@ -166,17 +171,22 @@ public class AbstractQuestTest {
 			public String getName() {
 				return QUESTNAMESTRING;
 			}
-			
+
 			@Override
 			public List<String> getHistory(final Player player) {
 				return new ArrayList<String>();
 			}
+
+			@Override
+			public void addToWorld() {
+				// do nothing
+			}
 		};
 
-		
+
 		assertEquals(QUESTNAMESTRING, quest.getName());
 	}
-	
+
 	/**
 	 * Tests for isVisibleOnQuestStatus.
 	 */
@@ -186,14 +196,14 @@ public class AbstractQuestTest {
 		assertTrue("abstract quests are visible by default",
 				quest.isVisibleOnQuestStatus());
 	}
-	
+
 	/**
 	 * Tests for getNPCName.
 	 */
 	@Test
 	public final void testGetNPCName() {
 		final AbstractQuest quest = new Mockquest();
-		
+
 		assertEquals(QUESTNPCNAME, quest.getNPCName());
 	}
 

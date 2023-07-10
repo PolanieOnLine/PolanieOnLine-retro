@@ -1,6 +1,5 @@
-/* $Id: MeetMonogenes.java,v 1.52 2011/12/11 01:38:00 Legolas Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -10,14 +9,22 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-// Based on MeetMonogomes
 package games.stendhal.server.maps.quests;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
+import games.stendhal.common.grammar.Grammar;
+import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.npc.action.ExamineChatAction;
-import games.stendhal.server.entity.npc.action.SayTextWithPlayerNameAction;
+import games.stendhal.server.entity.npc.action.IncreaseXPAction;
+import games.stendhal.server.entity.npc.action.MultipleActions;
+import games.stendhal.server.entity.npc.action.SayTextAction;
 import games.stendhal.server.entity.npc.action.SetQuestAction;
 import games.stendhal.server.entity.npc.condition.AndCondition;
 import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
@@ -26,52 +33,47 @@ import games.stendhal.server.entity.npc.condition.QuestNotCompletedCondition;
 import games.stendhal.server.entity.npc.condition.TriggerInListCondition;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * QUEST: Speak with Monogenes PARTICIPANTS: - Fryderyk
- * 
+ *
  * STEPS: - Talk to Fryderyk to activate the quest and keep speaking with
  * Fryderyk. - Be polite and say "bye" at the end of the conversation to get a
  * small reward.
- * 
+ *
  * REWARD: broken (- 10 XP (check that user's level is lesser than 2) - No money)
- * 
+ *
  * REPETITIONS: - None
- * 
+ *
  */
 public class MeetFryderyk extends AbstractQuest {
 	@Override
-	public String getSlotName() {
-		return "meetFryderyk";
-	}
-	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
 				"Spotkanie Fryderyka",
 				"Słuchaj uważnie mądrego starego człowieka w Zakopanem. Jego mapa może ci pomóc w poruszaniu się po miasteczku.",
 				false);
 		final SpeakerNPC npc = npcs.get("Fryderyk");
 
-		npc.addGreeting(null, new SayTextWithPlayerNameAction("Witaj ponownie [name]. W czym mogę #pomóc tym razem?"));
+		npc.addGreeting(null, new SayTextAction("Witaj ponownie [name]. W czym mogę #pomóc tym razem?"));
+
+		final List<ChatAction> reward = new LinkedList<ChatAction>();
+		reward.add(new IncreaseXPAction(100));
+		reward.add(new SetQuestAction("Fryderyk", "done"));
 
 		// A little trick to make NPC remember if it has met
 		// player before and react accordingly
 		// NPC_name quest doesn't exist anywhere else neither is
 		// used for any other purpose
-		npc.add(ConversationStates.IDLE, 
+		npc.add(ConversationStates.IDLE,
 				ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(
 						new GreetingMatchesNameCondition(npc.getName()),
-						new QuestNotCompletedCondition("Fryderyk")),  
-				ConversationStates.INFORMATION_1, 
+						new QuestNotCompletedCondition("Fryderyk")),
+				ConversationStates.INFORMATION_1,
 				"Witaj nieznajomy! Nie bądź zbyt onieśmielony, gdy ludzie siedzą cicho lub są zajęci... " +
 				"strach przed zbójami i ich hersztem padł na całe Zakopane. Jesteśmy " +
 				"trochę zaniepokojeni. Mogę dać Tobie trochę rad odnośnie zawierania przyjaźni. Chciałbyś je usłyszeć?",
-				new SetQuestAction("Fryderyk", "done"));
+				new MultipleActions(reward));
 
 		npc.add(
 			ConversationStates.ATTENDING,
@@ -99,7 +101,7 @@ public class MeetFryderyk extends AbstractQuest {
 			null,
 			ConversationStates.IDLE,
 			"I jak chcesz wiedzieć co się dzieje? Czytając Zakopane Tribune Tutki? Hah!" +
-			" Zważaj także uwagę na znaki to może coś sie z nich dowiesz się(Małe drewniane tabliczki)... Dowidzenia!",
+			" Zważaj także uwagę na znaki to może coś sie z nich dowiesz się(Małe drewniane tabliczki)... Do widzenia!",
 			null);
 
 		final List<String> yesnotriggers = new ArrayList<String>();
@@ -136,13 +138,13 @@ public class MeetFryderyk extends AbstractQuest {
 			Arrays.asList("bank", "Bank"),
 			"Wyjdziesz z tego budynku i patrząc na wschód#(prawo #na #mapie) widzisz małą rzeczkę oraz most, przez który możesz iść. Gdy go przejdziesz będziesz koło boiska gdzie będzie chodził Herold, z którym możesz zamienić parę słów, jeżeli masz ochotę rzecz jasna. Idąc dalej na wschód#(prawo #na #mapie) zobaczysz budynek, który będzie miał z boku żółty napis #BANK. To jest budynek, o który pytałeś przed chwilą.");
 
-		npc.addReply(  
+		npc.addReply(
 			Arrays.asList("szpital", "Szpital"),
 			"Skieruj się na północ, lecz nie wchodź na most, tylko skieruj się w górę po prawej stronie mostu. Zobaczysz rzekę skieruj się wydłuż niej na północ po czasie zobaczysz, iż rzeka się kończy, lecz po prawo masz budynek z czerwonym krzyżem. Tak, właśnie tak jak już się domyśliłeś to szpital.");
 
 		npc.addReply(
 			Arrays.asList("burmistrz Zakopanego", "Burmistrz Zakopanego"),
-			"Na północ od tego budynku masz most. Nie przekraczaj go, lecz skieruj się nieco w prawo i do góry. Twym oczom ukarze się spora rzeka. Kieruj się na wschód aż ujrzysz budynek z dziwnym znaczkiem nad górnym oknem. Gdy do niego wejdziesz i pójdziesz wprost ujrzysz postać zwaną: Gazda Wojtek. To jest właśnie burmistrz Zakopanego.");
+			"Gazdę Wojtka znajdziesz nad boiskiem w zakopanem:)");
 
 		npc.addReply(
 			Arrays.asList("dom gier", "Dom gier"),
@@ -186,21 +188,27 @@ public class MeetFryderyk extends AbstractQuest {
 	}
 
 	@Override
-	public String getName() {
-		return "MeetFryderyk";
-	}
-
-	@Override
 	public List<String> getHistory(final Player player) {
 			final List<String> res = new ArrayList<String>();
 			if (!player.hasQuest("Fryderyk")) {
 				return res;
 			}
 			if (isCompleted(player)) {
-				res.add("Rozmawiałem z Fryderykiem i on zaproponował mi mapę. Zawsze mogę spytać się jego o mapę i ją dostanę.");
-			} 
+				res.add(Grammar.genderVerb(player.getGender(), "Rozmawiałem") + " z Fryderykiem i on zaproponował mi mapę. Zawsze mogę spytać się jego o mapę i ją dostanę.");
+			}
 			return res;
 	}
+
+	@Override
+	public String getSlotName() {
+		return "meetFryderyk";
+	}
+
+	@Override
+	public String getName() {
+		return "Spotkanie Fryderyka";
+	}
+
 	@Override
 	public String getNPCName() {
 		return "Fryderyk";

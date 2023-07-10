@@ -1,4 +1,4 @@
-/* $Id: Level.java,v 1.31 2008/07/12 21:30:05 astridemma Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -23,7 +23,7 @@ public class Level {
 
 	// Max Level is LEVELS - 1.
 	// xp formula overflows for level = 599.
-	private static final int LEVELS = 598;
+	public static final int LEVELS = 598;
 
 	private static int[] xp;
 
@@ -70,6 +70,11 @@ public class Level {
 		}
 	}
 
+	/**
+	 * prints the level table
+	 *
+	 * @param args ignored
+	 */
 	public static void main(final String[] args) {
 		for (int i = 0; i < LEVELS; i++) {
 			System.out.println("<tr><td>" + i + "</td><td>" + xp[i]
@@ -77,13 +82,18 @@ public class Level {
 		}
 	}
 
+	/**
+	 * gets the highest level
+	 *
+	 * @return highest level
+	 */
 	public static int maxLevel() {
 		return LEVELS - 1;
 	}
 
 	/**
 	 * calculates the level according to the experience.
-	 * 
+	 *
 	 * @param exp
 	 *            experience needed
 	 * @return level
@@ -111,8 +121,8 @@ public class Level {
 
 	/**
 	 * Calculates the experienced needed for a level.
-	 * 
-	 * @param level
+	 *
+	 * @param level level
 	 * @return experience needed
 	 */
 	public static int getXP(final int level) {
@@ -125,7 +135,7 @@ public class Level {
 	/**
 	 * Calculates how many levels to add when a certain amount of experience is
 	 * added.
-	 * 
+	 *
 	 * @param exp
 	 *            the current Experience
 	 * @param added
@@ -152,10 +162,10 @@ public class Level {
 	/**
 	 * Get an entity's wisdom factor based on their level. As no one really has
 	 * 100% (i.e. 1.0) wisdom, it should be scaled as needed.
-	 * 
+	 *
 	 * @param level
 	 *            A player level.
-	 * 
+	 *
 	 * @return A value between <code>0.0</code> (inclusive) and
 	 *         <code>1.0</code> (exclusive).
 	 */

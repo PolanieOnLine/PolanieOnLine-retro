@@ -1,7 +1,7 @@
 /*
  * @(#) src/games/stendhal/server/config/ZoneGroupsXMLLoader.java
  *
- * $Id: ZoneGroupsXMLLoader.java,v 1.9 2011/02/16 22:16:26 nhnb Exp $
+ * $Id$
  */
 
 package games.stendhal.server.core.config;
@@ -27,7 +27,7 @@ public class ZoneGroupsXMLLoader extends DefaultHandler {
 
 	/**
 	 * Create an xml based loader of zone groups.
-	 * 
+	 *
 	 * @param uri
 	 *            The location of the configuration file.
 	 */
@@ -37,7 +37,7 @@ public class ZoneGroupsXMLLoader extends DefaultHandler {
 
 	/**
 	 * Load zones into a world.
-	 * 
+	 *
 	 * @throws SAXException
 	 *             If a SAX error occurred.
 	 * @throws IOException
@@ -49,16 +49,16 @@ public class ZoneGroupsXMLLoader extends DefaultHandler {
 
 		// Load each group
 		for (final URI tempUri : zoneGroups) {
-				LOGGER.debug("Loading zone group [" + tempUri + "]");
-	
-				final ZonesXMLLoader loader = new ZonesXMLLoader(tempUri);
-	
-				try {
-					loader.load();
-				} catch (final SAXException ex) {
-					LOGGER.error("Error loading zone group: " + tempUri, ex);
-				} catch (final IOException ex) {
-					LOGGER.error("Error loading zone group: " + tempUri, ex);
+			LOGGER.debug("Loading zone group [" + tempUri + "]");
+
+			final ZonesXMLLoader loader = new ZonesXMLLoader(tempUri);
+
+			try {
+				loader.load();
+			} catch (final SAXException ex) {
+				LOGGER.error("Error loading zone group: " + tempUri, ex);
+			} catch (final IOException ex) {
+				LOGGER.error("Error loading zone group: " + tempUri, ex);
 			}
 		}
 	}

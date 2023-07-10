@@ -1,6 +1,5 @@
-/* $Id: Unblock.java,v 1.9 2010/12/20 22:01:25 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,6 +11,11 @@
  ***************************************************************************/
 package games.stendhal.server.script;
 
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
 import games.stendhal.common.Direction;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPWorld;
@@ -21,11 +25,6 @@ import games.stendhal.server.core.events.TurnNotifier;
 import games.stendhal.server.core.scripting.ScriptImpl;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.util.Area;
-
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Moves players away that spend to much time in an restricted area
@@ -37,7 +36,7 @@ public class Unblock extends ScriptImpl implements TurnListener {
 	private static final int GRACE_PERIOD_IN_TURNS = 200;
 	private Set<PlayerPositionEntry> playerPositions = new HashSet<PlayerPositionEntry>();
 	private Set<KeepFreeArea> keepFreeAreas = new HashSet<KeepFreeArea>();
-	
+
 	/**
 	 * records a player position in a specific turn
 	 */
@@ -212,6 +211,7 @@ public class Unblock extends ScriptImpl implements TurnListener {
 	/**
 	 * checks
 	 */
+	@Override
 	public void onTurnReached(int currentTurn) {
 		TurnNotifier.get().notifyInSeconds(CHECK_INTERVAL, this);
 		cleanupList();
@@ -230,13 +230,13 @@ public class Unblock extends ScriptImpl implements TurnListener {
 				itr.remove();
 			}
 		}
-		
+
 	}
 
 
 	/**
 	 * teleports players out of the restricted area
-	 * 
+	 *
 	 * @param turn current turn
 	 */
 	private void teleportAway(int turn) {
@@ -268,7 +268,7 @@ public class Unblock extends ScriptImpl implements TurnListener {
 				}
 			}
 		}
-		
+
 	}
 
 	/**

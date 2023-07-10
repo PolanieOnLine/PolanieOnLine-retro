@@ -1,4 +1,4 @@
-/* $Id: RaidCreatureCorpse.java,v 1.5 2010/11/13 20:46:07 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -15,7 +15,7 @@ package games.stendhal.server.entity.item;
 import games.stendhal.server.entity.RPEntity;
 
 /**
- * A faster rotting corpse for raid use with time limited access 
+ * A faster rotting corpse for raid use with time limited access
  * to the contents only by the player having been last attacked by it.
  */
 public class RaidCreatureCorpse extends Corpse {
@@ -24,7 +24,7 @@ public class RaidCreatureCorpse extends Corpse {
 
 	/**
 	 * Create a corpse.
-	 * 
+	 *
 	 * @param victim
 	 *            The killed entity.
 	 * @param killerName
@@ -33,8 +33,8 @@ public class RaidCreatureCorpse extends Corpse {
 	public RaidCreatureCorpse(final RPEntity victim, final String killerName) {
 		super(victim, killerName);
 	}
-	
-	
+
+
 	@Override
 	protected int getDegradationStepTimeout() {
 		return DEGRADATION_STEP_TIMEOUT;

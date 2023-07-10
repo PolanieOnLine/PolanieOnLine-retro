@@ -1,4 +1,4 @@
-/* $Id: TradeAction.java,v 1.2 2010/09/11 20:31:06 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,12 +12,12 @@
  ***************************************************************************/
 package games.stendhal.server.actions;
 
+import org.apache.log4j.Logger;
+
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.util.EntityHelper;
 import marauroa.common.game.RPAction;
-
-import org.apache.log4j.Logger;
 
 /**
  * handles trade related actions.
@@ -36,10 +36,11 @@ public class TradeAction implements ActionListener {
 
 	/**
 	 * processes the requested action.
-	 * 
+	 *
 	 * @param player the caller of the action
 	 * @param action the action to be performed
 	 */
+	@Override
 	public void onAction(final Player player, final RPAction action) {
 		rewriteCommandLine(action);
 		String actionStr = action.get("action");

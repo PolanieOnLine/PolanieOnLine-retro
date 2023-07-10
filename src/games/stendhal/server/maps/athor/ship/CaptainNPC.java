@@ -1,4 +1,3 @@
-/* $Id: CaptainNPC.java,v 1.20 2011/05/01 19:50:06 martinfuchs Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +11,8 @@
  ***************************************************************************/
 package games.stendhal.server.maps.athor.ship;
 
+import java.util.Map;
+
 import games.stendhal.common.Direction;
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.ZoneConfigurator;
@@ -24,22 +25,17 @@ import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.athor.ship.AthorFerry.Status;
 
-import java.util.Map;
-
 /** Factory for the captain of Athor Ferry. */
-
 public class CaptainNPC implements ZoneConfigurator  {
-
 	private Status ferrystate;
 
-	public void configureZone(StendhalRPZone zone,
-			Map<String, String> attributes) {
+	@Override
+	public void configureZone(StendhalRPZone zone, Map<String, String> attributes) {
 		buildNPC(zone);
 	}
 
 	private void buildNPC(StendhalRPZone zone) {
-		final SpeakerNPC npc = new SpeakerNPC("Captain") {
-
+		final SpeakerNPC npc = new SpeakerNPC("Captain Brownbeard") {
 			@Override
 			public void createDialog() {
 				addGreeting("Ahoj szczury lądowe!");
@@ -54,23 +50,23 @@ public class CaptainNPC implements ZoneConfigurator  {
 						ConversationStates.ATTENDING,
 						null,
 						new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 						npc.say(ferrystate.toString());
 						//.getCurrentDescription());
 					}
 				});
-
 			}
 
 			@Override
 			protected void onGoodbye(final RPEntity player) {
 				// Turn back to the wheel
 				setDirection(Direction.DOWN);
-			}	
+			}
 		};
 
 		new AthorFerry.FerryListener() {
-			
+			@Override
 			public void onNewFerryState(final Status status) {
 				ferrystate = status;
 					switch (status) {
@@ -88,12 +84,13 @@ public class CaptainNPC implements ZoneConfigurator  {
 					npc.setDirection(Direction.DOWN);
 
 			}
-			};
-		
-		npc.setPosition(22, 38);
+		};
+
+		npc.setDescription ("Oto Brownbeard kapitan promu Athor. Przewizie cię z lądu na wyspę.");
 		npc.setEntityClass("piratenpc");
-		npc.setDescription ("Oto kapitan promu Athor. Przewizie cię z lądu na wyspę.");
+		npc.setGender("M");
+		npc.setPosition(23, 38);
 		npc.setDirection(Direction.DOWN);
-		zone.add(npc);	
+		zone.add(npc);
 	}
 }

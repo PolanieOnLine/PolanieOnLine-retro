@@ -1,4 +1,4 @@
-/* $Id: Chest.java,v 1.14 2011/04/02 15:44:18 kymara Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -12,20 +12,18 @@
  ***************************************************************************/
 package games.stendhal.server.entity.mapstuff.chest;
 
-import games.stendhal.common.grammar.Grammar;
+import java.util.Iterator;
+
 import games.stendhal.server.core.events.UseListener;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.PassiveEntity;
 import games.stendhal.server.entity.RPEntity;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.entity.slot.ChestSlot;
-
-import java.util.Iterator;
-
+import marauroa.common.game.Definition.Type;
 import marauroa.common.game.RPClass;
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPSlot;
-import marauroa.common.game.Definition.Type;
 
 /**
  * A chest is an unmovable container. It can be opened and closed. While it is
@@ -54,7 +52,7 @@ public class Chest extends Entity implements UseListener {
 
 	/**
 	 * Creates a new chest.
-	 * 
+	 *
 	 * @param object
 	 *            RPObject
 	 */
@@ -79,15 +77,10 @@ public class Chest extends Entity implements UseListener {
 			chest.addRPSlot("content", 36);
 		}
 	}
-	
-	
-	//
-	// Chest
-	//
 
 	@Override
-    public String getDescriptionName(final boolean definite) {
-	    return Grammar.article_noun(CHEST_RPCLASS_NAME, definite);
+    public String getDescriptionName() {
+	    return CHEST_RPCLASS_NAME;
     }
 
 	@Override
@@ -120,7 +113,7 @@ public class Chest extends Entity implements UseListener {
 
 	/**
 	 * Determine if the chest is open.
-	 * 
+	 *
 	 * @return <code>true</code> if the chest is open.
 	 */
 	public boolean isOpen() {
@@ -129,7 +122,7 @@ public class Chest extends Entity implements UseListener {
 
 	/**
 	 * Adds a passive entity (like an item) to the chest.
-	 * 
+	 *
 	 * @param entity
 	 *            entity to add
 	 */
@@ -145,7 +138,7 @@ public class Chest extends Entity implements UseListener {
 
 	/**
 	 * Returns the content.
-	 * 
+	 *
 	 * @return iterator for the content
 	 */
 	public Iterator<RPObject> getContent() {
@@ -153,10 +146,7 @@ public class Chest extends Entity implements UseListener {
 		return content.iterator();
 	}
 
-	//
-	// UseListener
-	//
-
+	@Override
 	public boolean onUsed(final RPEntity user) {
 		if (user.nextTo(this)) {
 			if (isOpen()) {
@@ -174,10 +164,6 @@ public class Chest extends Entity implements UseListener {
 		}
 		return false;
 	}
-
-	//
-	// Entity
-	//
 
 	@Override
 	public String describe() {

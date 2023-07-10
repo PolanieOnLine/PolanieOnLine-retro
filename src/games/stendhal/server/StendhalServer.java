@@ -1,4 +1,4 @@
-/* $Id: StendhalServer.java,v 1.2 2010/12/26 21:34:28 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,10 +12,13 @@
  ***************************************************************************/
 package games.stendhal.server;
 
-import games.stendhal.server.core.engine.GenerateINI;
-
 import java.io.File;
 import java.io.FileNotFoundException;
+
+import org.apache.log4j.Logger;
+
+import games.stendhal.server.core.engine.GenerateINI;
+import games.stendhal.server.core.rp.DaylightPhase;
 
 /**
  * Starts a Stendhal server
@@ -23,6 +26,7 @@ import java.io.FileNotFoundException;
  * @author hendrik
  */
 public class StendhalServer {
+	private static final Logger logger = Logger.getLogger(StendhalServer.class);
 
 	private static String serverIni = "server.ini";
 
@@ -51,7 +55,7 @@ public class StendhalServer {
 	public static void main(String[] args) throws FileNotFoundException {
 		parseCommandLine(args);
 		if (!new File(serverIni).exists()) {
-			System.out.println("Welcome to your own Stendhal Server.");
+			System.out.println("Welcome to your own PolanieOnLine Server.");
 			System.out.println("");
 			System.out.println("This seems to be the very first start because we could not find a server.ini.");
 			System.out.println("So there are some simple questions for you to create it...");
@@ -59,6 +63,20 @@ public class StendhalServer {
 			GenerateINI.main(args, serverIni);
 		}
 		marauroa.server.marauroad.main(args);
+
+		// permanently sets DaylightPhase for testing purposes
+		String testPhase = System.getProperty("testing.daylightphase");
+		if (testPhase != null) {
+			testPhase = testPhase.toLowerCase();
+			for (DaylightPhase phase: DaylightPhase.values()) {
+				if (phase.toString().toLowerCase().equals(testPhase)) {
+					logger.info("Setting testing DaylightPhase: " + phase);
+
+					DaylightPhase.setTestingPhase(phase);
+					break;
+				}
+			}
+		}
 	}
 
 }

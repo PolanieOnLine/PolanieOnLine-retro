@@ -1,4 +1,4 @@
-/* $Id: Effect.java,v 1.3 2010/09/19 02:26:14 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -16,14 +16,14 @@ import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.player.Player;
 /**
  * Interface for effects that can be applied between a player and any entity
- *  
+ *
  * @author madmetzger
  */
 public interface Effect {
-	
+
 	/**
 	 * applies the effect
-	 * 
+	 *
 	 * @param caster
 	 * @param target
 	 */

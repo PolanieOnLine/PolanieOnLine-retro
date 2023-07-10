@@ -1,6 +1,5 @@
-/* $Id: MeetIo.java,v 1.38 2011/11/13 17:14:15 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2011 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,6 +11,11 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
+import games.stendhal.common.grammar.Grammar;
 import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
@@ -24,46 +28,22 @@ import games.stendhal.server.entity.npc.condition.QuestCompletedCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotCompletedCondition;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.Region;
-
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import games.stendhal.server.maps.semos.temple.TelepathNPC;
+import games.stendhal.server.util.ResetSpeakerNPC;
 
 /**
  * QUEST: Speak with Io PARTICIPANTS: - Io
  * 
  * STEPS: - Talk to Io to activate the quest and keep speaking with Io.
  * 
- * REWARD: - 10 XP - 5 gold coins
+ * REWARD: - 250 XP - 50 gold coins
  * 
  * REPETITIONS: - As much as wanted, but you only get the reward once.
  */
 public class MeetIo extends AbstractQuest {
-
 	private static final String QUEST_SLOT = "meet_io";
 
-
-
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
-	
-	@Override
-	public List<String> getHistory(final Player player) {
-		final List<String> res = new ArrayList<String>();
-		if (!player.hasQuest(QUEST_SLOT)) {
-			return res;
-		}
-		res.add("Spotkałem telepatkę Io Flotto w świątyni Semos.");
-		if (isCompleted(player)) {
-			res.add("Io nauczyła mnie sześciu podstawowych zasad telepatii i przyrzekła przypomnieć mi jeżeli będę musiał odświeżyć moją wiedzę.");
-		}
-		return res;
-	}
-
 	private void prepareIO() {
-
 		final SpeakerNPC npc = npcs.get("Io Flotto");
 
 		npc.add(ConversationStates.ATTENDING,
@@ -85,7 +65,7 @@ public class MeetIo extends AbstractQuest {
 			ConversationPhrases.YES_MESSAGES,
 			null,
 			ConversationStates.INFORMATION_1,
-			"Wpisz #/who aby ustalić nazwy wojowników, którzy w danym momencie grają w PolskaOnLine. Czy chcesz się nauczyć drugiego elementu telepatii?",
+			"Wpisz #/who aby ustalić nazwy wojowników, którzy w danym momencie grają w PolanieOnLine. Czy chcesz się nauczyć drugiego elementu telepatii?",
 			null);
 
 		npc.add(
@@ -93,7 +73,7 @@ public class MeetIo extends AbstractQuest {
 			ConversationPhrases.YES_MESSAGES,
 			null,
 			ConversationStates.INFORMATION_2,
-			"Wpisz #/where #nazwawojownika aby dowiedzieć się gdzie dana osoba znajduje się w PolskaOnLine. Możesz też użyć #/where #owca aby śledzić własną owcę. Powinieneś porozmawawiać z #Zynn aby zrozumieć system używany do sprawdzania pozycji w Polska On Line. On wie więcej o nim niż ja. Gotowy na trzecią lekcję?",
+			"Wpisz #/where #nazwawojownika aby dowiedzieć się gdzie dana osoba znajduje się w PolanieOnLine. Możesz też użyć #/where #owca aby śledzić własną owcę. Powinieneś porozmawawiać z #Zynn aby zrozumieć system używany do sprawdzania pozycji w Polska On Line. On wie więcej o nim niż ja. Gotowy na trzecią lekcję?",
 			null);
 
 		npc.add(
@@ -146,8 +126,8 @@ public class MeetIo extends AbstractQuest {
 			null);
 
 		final List<ChatAction> reward = new LinkedList<ChatAction>();
-		reward.add(new EquipItemAction("money", 10));
-		reward.add(new IncreaseXPAction(10));
+		reward.add(new EquipItemAction("money", 50));
+		reward.add(new IncreaseXPAction(250));
 		reward.add(new SetQuestAction(QUEST_SLOT, "done"));		
 
 		npc.add(ConversationStates.INFORMATION_6,
@@ -168,7 +148,6 @@ public class MeetIo extends AbstractQuest {
 
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
 				"Spotkanie Io",
 				"Io Flotto może nauczyć jak komunikować się.",
@@ -177,10 +156,33 @@ public class MeetIo extends AbstractQuest {
 	}
 
 	@Override
-	public String getName() {
-		return "MeetIo";
+	public boolean removeFromWorld() {
+		return ResetSpeakerNPC.reload(new TelepathNPC(), getNPCName());
 	}
 	
+	@Override
+	public List<String> getHistory(final Player player) {
+		final List<String> res = new ArrayList<String>();
+		if (!player.hasQuest(QUEST_SLOT)) {
+			return res;
+		}
+		res.add(Grammar.genderVerb(player.getGender(), "Spotkałem") + " telepatkę Io Flotto w świątyni Semos.");
+		if (isCompleted(player)) {
+			res.add("Io nauczyła mnie sześciu podstawowych zasad telepatii i przyrzekła przypomnieć mi jeżeli będę musiał odświeżyć moją wiedzę.");
+		}
+		return res;
+	}
+
+	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
+	}
+
+	@Override
+	public String getName() {
+		return "Spotkanie Io";
+	}
+
 	@Override
 	public String getRegion() {
 		return Region.SEMOS_CITY;

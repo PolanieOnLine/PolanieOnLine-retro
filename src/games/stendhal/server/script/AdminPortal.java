@@ -1,6 +1,5 @@
-/* $Id: AdminPortal.java,v 1.7 2011/01/06 11:15:23 martinfuchs Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2011 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,16 +11,16 @@
  ***************************************************************************/
 package games.stendhal.server.script;
 
+import java.util.List;
+
 import games.stendhal.server.core.scripting.ScriptImpl;
 import games.stendhal.server.entity.mapstuff.portal.LevelCheckingPortal;
 import games.stendhal.server.entity.mapstuff.portal.Portal;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.List;
-
 /**
  * Enables admins to create portals.
- * 
+ *
  * @author hendrik
  */
 public class AdminPortal extends ScriptImpl {
@@ -38,9 +37,9 @@ public class AdminPortal extends ScriptImpl {
 			// syntax error, print help text
 			sandbox.privateText(
 					admin,
-					"Ten skrypt tworzy portale:\n" + 
-					"/script AdminPortal.class <obszar-docelowy> <cel-powrotny>\n" + 
-					"/script AdminPortal.class <nazwa> <obszar-docelowy> <cel-powrotny>\n" + 
+					"Ten skrypt tworzy portale:\n" +
+					"/script AdminPortal.class <obszar-docelowy> <cel-powrotny>\n" +
+					"/script AdminPortal.class <nazwa> <obszar-docelowy> <cel-powrotny>\n" +
 					"/script AdminPortal.class <nazwa> <obszar-docelowy> <cel-powrotny> level <min-poziom> <maks-poziom> [<wiadomość-wykluczająca>]");
 		}
 	}

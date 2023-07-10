@@ -1,32 +1,26 @@
-/* $Id: Bileter.java,v 1.16 2008/01/22 22:25:12 astridemma Exp $ */
 package games.stendhal.server.script;
-
-import games.stendhal.common.parser.Sentence;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.core.scripting.ScriptImpl;
-import games.stendhal.server.core.scripting.ScriptingNPC;
-import games.stendhal.server.core.scripting.ScriptingSandbox;
-import games.stendhal.server.entity.item.Item;
-import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.player.Player;
 
 import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.core.scripting.ScriptImpl;
+import games.stendhal.server.core.scripting.ScriptingNPC;
+import games.stendhal.server.core.scripting.ScriptingSandbox;
+import games.stendhal.server.entity.player.Player;
+
 /**
  * Creates a portable NPC which sell ticket.
- * 
+ *
  * As admin use /script Bileter.class to summon him right next to you. Please put
  * him back in int_admin_playground after use.
  */
 public class Bileter extends ScriptImpl {
-
 	private static Logger logger = Logger.getLogger(Bileter.class);
 
 	@Override
 	public void load(Player admin, List<String> args, ScriptingSandbox sandbox) {
-
 		// Create NPC
 		ScriptingNPC npc = new ScriptingNPC("Bileter");
 		npc.setEntityClass("npckibic");
@@ -55,13 +49,13 @@ public class Bileter extends ScriptImpl {
 				"Jestem bileterem. Sprzedaję #'bilety na mecz' oraz #piłki.");
 		npc.behave("bilety na mecz",
 //			"I have a #coupon for a free beer in Semos' tavern. "+
-			"Mecz odbędzie się na stadionie PolskaOnLine.");
+			"Mecz odbędzie się na stadionie PolanieOnLine.");
 		npc.behave("help",
-				"Mogę  zaoferować ( #offer ) bilet na mecz.");
+				"Mogę zaoferować ( #offer ) bilet na mecz.");
 		npc.behave("bye",
-				"Dowidzenia. Podziwiaj mecz.");
+				"Do widzenia. Podziwiaj mecz.");
 		try {
-			npc.behave("sell", SingletonRepository.getShopList().get("mecz"));
+			npc.behave("sell", SingletonRepository.getShopsList().get("mecz"));
 		} catch (NoSuchMethodException e) {
 			logger.error(e, e);
 		}

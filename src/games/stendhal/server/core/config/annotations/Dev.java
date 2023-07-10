@@ -1,3 +1,14 @@
+/***************************************************************************
+ *                   (C) Copyright 2003-2022 - Arianne                     *
+ ***************************************************************************
+ ***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
 package games.stendhal.server.core.config.annotations;
 
 import java.lang.annotation.Documented;
@@ -59,6 +70,8 @@ public @interface Dev {
 		ITEMS_OWNED,
 		/** item producer */
 		ITEMS_PRODUCER,
+		/** item upgrades */
+		ITEMS_UPGRADES,
 		/** stats of the player, e. g. level, karma */
 		STATS,
 		/** kills of creatures */

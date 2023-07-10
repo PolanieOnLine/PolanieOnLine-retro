@@ -1,10 +1,13 @@
 /*
  * @(#) src/games/stendhal/server/entity/EntityFactoryHelper.java
  *
- * $Id: EntityFactoryHelper.java,v 1.18 2010/06/15 18:16:33 nhnb Exp $
+ * $Id$
  */
 
 package games.stendhal.server.entity;
+
+import java.util.Map;
+import java.util.Map.Entry;
 
 //
 //
@@ -13,9 +16,6 @@ import games.stendhal.server.core.config.factory.ConfigurableFactory;
 import games.stendhal.server.core.config.factory.ConfigurableFactoryContext;
 import games.stendhal.server.core.config.factory.ConfigurableFactoryHelper;
 
-import java.util.Map;
-import java.util.Map.Entry;
-
 /**
  * A utility class for creating entities using ConfigurableFactory.
  */
@@ -23,22 +23,22 @@ public class EntityFactoryHelper {
 	/**
 	 * Create an entity using a [logical] class name, and apply optional
 	 * attribute values.
-	 * 
+	 *
 	 * @param className
 	 *            A base class name to load.
 	 * @param parameters
 	 *            A collection of factory parameters.
 	 * @param attributes
 	 *            A collection of entity attributes, or <code>null</code>.
-	 * 
+	 *
 	 * @return A new entity, or <code>null</code> if allowed by the factory
 	 *         type.
-	 * 
+	 *
 	 * @throws IllegalArgumentException
 	 *             If there is a problem with the attributes. The exception
 	 *             message should be a value suitable for meaningful user
 	 *             interpretation.
-	 * 
+	 *
 	 * @see ConfigurableFactory
 	 */
 	public static Entity create(final String className,

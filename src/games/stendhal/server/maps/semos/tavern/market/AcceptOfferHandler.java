@@ -1,4 +1,3 @@
-/* $Id: AcceptOfferHandler.java,v 1.16 2011/05/01 19:50:07 martinfuchs Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -16,10 +15,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import marauroa.server.db.command.DBCommandQueue;
-
 import org.apache.log4j.Logger;
 
+import games.stendhal.common.constants.SoundID;
+import games.stendhal.common.constants.SoundLayer;
 import games.stendhal.common.grammar.Grammar;
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.engine.dbcommand.StoreMessageCommand;
@@ -31,33 +30,36 @@ import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.entity.trade.Market;
 import games.stendhal.server.entity.trade.Offer;
+import games.stendhal.server.events.SoundEvent;
+import marauroa.server.db.command.DBCommandQueue;
 
 public class AcceptOfferHandler extends OfferHandler {
 	/** the logger instance. */
 	private static final Logger logger = Logger.getLogger(AcceptOfferChatAction.class);
-	private static final List<String> TRIGGERS = Arrays.asList("buy", "accept", "kupię", "akceptuję"); 
-	
+	private static final List<String> TRIGGERS = Arrays.asList("buy", "accept", "kupię", "akceptuję");
+
 	@Override
 	public void add(SpeakerNPC npc) {
-		npc.add(ConversationStates.ATTENDING, TRIGGERS, null, ConversationStates.ATTENDING, null, 
+		npc.add(ConversationStates.ATTENDING, TRIGGERS, null, ConversationStates.ATTENDING, null,
 				new AcceptOfferChatAction());
-		npc.add(ConversationStates.BUY_PRICE_OFFERED, ConversationPhrases.YES_MESSAGES, 
+		npc.add(ConversationStates.BUY_PRICE_OFFERED, ConversationPhrases.YES_MESSAGES,
 				ConversationStates.ATTENDING, null, new ConfirmAcceptOfferChatAction());
-		npc.add(ConversationStates.BUY_PRICE_OFFERED, ConversationPhrases.NO_MESSAGES, null, 
+		npc.add(ConversationStates.BUY_PRICE_OFFERED, ConversationPhrases.NO_MESSAGES, null,
 				ConversationStates.ATTENDING, "Dobrze. W czym jeszcze mogę ci pomóc?", null);
 	}
-	
+
 	class AcceptOfferChatAction extends KnownOffersChatAction {
+		@Override
 		public void fire(Player player, Sentence sentence, EventRaiser npc) {
 			if (sentence.hasError()) {
 				npc.say("Przepraszam, ale nie rozumiem Ciebie. "
 						+ sentence.getErrorString());
 			} else {
-				handleSentence(player,sentence,npc);
+				handleSentence(sentence, npc);
 			}
 		}
 
-		private void handleSentence(Player player, Sentence sentence, EventRaiser npc) {
+		private void handleSentence(Sentence sentence, EventRaiser npc) {
 			MarketManagerNPC manager = (MarketManagerNPC) npc.getEntity();
 			try {
 				String offerNumber = getOfferNumberFromSentence(sentence).toString();
@@ -71,7 +73,7 @@ public class AcceptOfferHandler extends OfferHandler {
 					if (o.hasItem()) {
 						setOffer(o);
 						int quantity = getQuantity(o.getItem());
-						npc.say("Czy chcesz kupić " + Grammar.quantityplnoun(quantity, o.getItem().getName(), "a") + " za " + o.getPrice() + " money?");
+						npc.say("Czy chcesz kupić " + Grammar.quantityplnoun(quantity, o.getItem().getName()) + " za " + o.getPrice() + " money?");
 						npc.setCurrentState(ConversationStates.BUY_PRICE_OFFERED);
 						return;
 					}
@@ -84,6 +86,7 @@ public class AcceptOfferHandler extends OfferHandler {
 	}
 
 	class ConfirmAcceptOfferChatAction implements ChatAction {
+		@Override
 		public void fire (Player player, Sentence sentence, EventRaiser npc) {
 			Offer offer = getOffer();
 			Market m = TradeCenterZoneConfigurator.getShopFromZone(player.getZone());
@@ -91,22 +94,29 @@ public class AcceptOfferHandler extends OfferHandler {
 			if (m.acceptOffer(offer,player)) {
 				// Successful trade. Tell the offerer
 				StringBuilder earningToFetchMessage = new StringBuilder();
-				earningToFetchMessage.append("Twój ");
+				earningToFetchMessage.append(Grammar.genderNouns(itemname, "Twój") + " ");
 				earningToFetchMessage.append(itemname);
-				earningToFetchMessage.append(" został sprzedany. Możesz przyjść do mnie po należne ci pieniądze.");
+				earningToFetchMessage.append(" " + Grammar.genderNouns(itemname, "został") + " " + Grammar.genderNouns(itemname, "sprzedany") + ". Możesz przyjść do mnie po należne ci pieniądze.");
+
+				final MarketManagerNPC manager = (MarketManagerNPC) npc.getEntity();
+				final String managerName = manager.getName();
 
 				logger.debug("wysłanie zawiadomienia do '" + offer.getOfferer() + "': " + earningToFetchMessage.toString());
-				DBCommandQueue.get().enqueue(new StoreMessageCommand("Harold", offer.getOfferer(), earningToFetchMessage.toString(), "N"));
+				DBCommandQueue.get().enqueue(new StoreMessageCommand(managerName, offer.getOfferer(), earningToFetchMessage.toString(), "N"));
 
+				// DISABLED: players can buy their own things from Harold
+				//player.incCommerceTransaction(managerName, offer.getPrice().intValue(), false);
+				npc.addEvent(new SoundEvent(SoundID.COMMERCE, SoundLayer.CREATURE_NOISE));
 				npc.say("Dziękuję.");
+
 				// Obsolete the offers, since the list has changed
-				((MarketManagerNPC) npc.getEntity()).getOfferMap().clear();
-				} else {
+				manager.getOfferMap().clear();
+			} else {
 				// Trade failed for some reason. Check why, and inform the player
 				if (!m.contains(offer)) {
 					int quantity = getQuantity(offer.getItem());
 					npc.say("Przykro mi, ale " + Grammar.thatthose(quantity) + " "
-							+ Grammar.quantityplnoun(quantity, offer.getItem().getName(), "Ten")
+							+ Grammar.quantityplnoun(quantity, offer.getItem().getName())
 							+ " " + Grammar.isare(quantity)
 							+ " nie jest już na sprzedaż.");
 				} else {

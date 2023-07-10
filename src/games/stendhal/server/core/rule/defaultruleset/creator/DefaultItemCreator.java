@@ -1,4 +1,4 @@
-/* $Id: DefaultItemCreator.java,v 1.3 2010/09/19 02:22:48 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,11 +12,11 @@
  ***************************************************************************/
 package games.stendhal.server.core.rule.defaultruleset.creator;
 
-import games.stendhal.server.core.rule.defaultruleset.DefaultItem;
-import games.stendhal.server.entity.item.Item;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+
+import games.stendhal.server.core.rule.defaultruleset.DefaultItem;
+import games.stendhal.server.entity.item.Item;
 
 /**
  * Create an item class via the default constructor.

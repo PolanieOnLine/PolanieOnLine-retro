@@ -11,15 +11,15 @@
  ***************************************************************************/
 package games.stendhal.server.maps.nalwor.city;
 
+import java.util.Arrays;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-import java.util.Arrays;
-
-import java.util.Map;
 
 /**
  * QUEST: The Guessing Game
@@ -49,13 +49,13 @@ import java.util.Map;
  * </ul>
  */
 public class GuessKillsNPC implements ZoneConfigurator {
-
     /**
      * Configure a zone.
      *
      * @param	zone		The zone to be configured.
      * @param	attributes	Configuration attributes.
      */
+    @Override
     public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
         buildNPC(zone, attributes);
     }
@@ -68,7 +68,6 @@ public class GuessKillsNPC implements ZoneConfigurator {
      */
     private void buildNPC(final StendhalRPZone zone, final Map<String, String> attributes) {
         final SpeakerNPC npc = new SpeakerNPC("Crearid") {
-
             @Override
             protected void createPath() {
                 setPath(new FixedPath(Arrays.asList(
@@ -86,23 +85,21 @@ public class GuessKillsNPC implements ZoneConfigurator {
 
             @Override
             protected void createDialog() {
-                addGreeting("Pozdrawiam");
+                addGreeting("Pozdrawiam.");
                 addJob("Jestem tylko starą kobietą obserwującą wszystkich podczas spaceru.");
                 addHelp("Nie wiem jak tobie pomóc. Od paru dni lubię #grać w #gry.");
                 addOffer("Obawiam się, że nie mam nic do zaoferowania.");
                 addReply(ConversationPhrases.QUEST_MESSAGES, "Na razie nic nie potrzebuję, ale okazjonalnie lubię #grać w #gry.");
 
                 //play and games reply is in the quest class: GuessKills
-
-                addGoodbye("Dowidzenia słonko.");
+                addGoodbye("Do widzenia słonko.");
             }
         };
 
+        npc.setDescription("Oto Crearid, bardzo spostrzegawcza starsza pani.");
         npc.setEntityClass("granmanpc");
-        npc.setDescription("Oto Crearid bardzo spostrzegawcza starsza pani.");
+        npc.setGender("F");
         npc.setPosition(30, 83);
-        npc.initHP(100);
-
         zone.add(npc);
     }
 }

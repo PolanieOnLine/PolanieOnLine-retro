@@ -34,8 +34,8 @@ import marauroa.common.game.SlotOwner;
 public class ReorderAction implements ActionListener {
 	private static Logger logger = Logger.getLogger(ReorderAction.class);
 	private static final List<String> reorderableSlots = Arrays.asList("bag",
-			"content", "keyring", "spells");
-	
+			"content", "keyring", "magicbag", "portfolio", "spells");
+
 	/**
 	 * registers "equip" action processor.
 	 */
@@ -43,16 +43,17 @@ public class ReorderAction implements ActionListener {
 		CommandCenter.register("reorder", new ReorderAction());
 	}
 
+	@Override
 	public void onAction(Player player, RPAction action) {
 		Entity entity = EntityHelper.getEntityFromPath(player, action.getList(EquipActionConsts.SOURCE_PATH));
 		if (mayAccess(player, entity, action)) {
 			reorder(entity, MathHelper.parseInt(action.get("new_position")));
 		}
 	}
-	
+
 	/**
 	 * Move an entity to new position.
-	 * 
+	 *
 	 * @param entity
 	 * @param newPosition desired new location in the slot
 	 */
@@ -76,15 +77,15 @@ public class ReorderAction implements ActionListener {
 		for (RPObject obj : objectsCopy) {
 			slot.addPreservingId(obj);
 		}
-		SlotOwner parent = entity.getContainerOwner();
+		SlotOwner parent = entity.getContainerBaseOwner();
 		if (parent instanceof Entity) {
 			((Entity) parent).notifyWorldAboutChanges();
 		}
 	}
-	
+
 	/**
 	 * Check if a player may access an entity for reordering.
-	 * 
+	 *
 	 * @param player accessing player
 	 * @param entity entity to be reordered
 	 * @param action reordering action
@@ -114,7 +115,7 @@ public class ReorderAction implements ActionListener {
 			 * prevents messing slots that must not be accessed directly by the
 			 * player.
 			 */
-			 return false;
+			return false;
 		}
 		do {
 			if (object instanceof Player) {
@@ -124,25 +125,25 @@ public class ReorderAction implements ActionListener {
 				}
 			}
 			slot = object.getContainerSlot();
-			if ((slot != null) && isReachableSlot(player, slot)) {
+			if ((slot != null) && !isReachableSlot(player, slot)) {
 				return false;
 			}
-			
+
 			if (object instanceof Corpse) {
 				// Disable reordering corpse contents. It causes problems for
 				// the automatically closing inspector windows in the client.
 				return false;
 			}
-			
+
 			object = object.getContainer();
 		} while (object != null);
-		
+
 		return true;
 	}
-	
+
 	/**
 	 * Check the reachability of a slot.
-	 * 
+	 *
 	 * @param player
 	 * @param baseSlot
 	 * @return <code>true</code> if the slot is reachable, <code>false</code>

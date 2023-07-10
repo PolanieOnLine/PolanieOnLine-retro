@@ -1,4 +1,4 @@
-/* $Id: WhereActionTest.java,v 1.1 2010/12/04 20:28:33 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -15,8 +15,12 @@ package games.stendhal.server.actions.query;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+
+import org.junit.After;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import games.stendhal.common.constants.Actions;
-import games.stendhal.server.actions.query.WhereAction;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.entity.creature.Cat;
 import games.stendhal.server.entity.creature.Pet;
@@ -25,11 +29,6 @@ import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.MockStendhalRPRuleProcessor;
 import games.stendhal.server.maps.MockStendlRPWorld;
 import marauroa.common.game.RPAction;
-
-import org.junit.After;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import utilities.PlayerTestHelper;
 import utilities.RPClass.CatTestHelper;
 import utilities.RPClass.PetTestHelper;
@@ -77,7 +76,7 @@ public class WhereActionTest {
 		MockStendhalRPRuleProcessor.get().addPlayer(player);
 
 		pq.onAction(player, action);
-		assertThat(player.events().get(0).get("text"), equalTo("No player or pet named \"NotThere\" is currently logged in."));
+		assertThat(player.events().get(0).get("text"), equalTo("Nie ma wojownika lub zwierzątka zwanego \"NotThere\" lub nie jest teraz zalogowany."));
 	}
 
 	/**
@@ -95,30 +94,30 @@ public class WhereActionTest {
 		zone.add(player);
 		MockStendhalRPRuleProcessor.get().addPlayer(player);
 		pq.onAction(player, action);
-		assertThat(player.events().get(0).get("text"), equalTo("You are in zone at (0,0)"));
+		assertThat(player.events().get(0).get("text"), equalTo("Jesteś w zone na (0,0)"));
 		player.clearEvents();
-		
+
 		// test that you can still /where yourself as a ghost
 		player.setGhost(true);
 		pq.onAction(player, action);
-		assertThat(player.events().get(0).get("text"), equalTo("You are in zone at (0,0)"));
+		assertThat(player.events().get(0).get("text"), equalTo("Jesteś w zone na (0,0)"));
 		player.clearEvents();
-		
+
 		// test the player before he becomes ghostmode
 		final Player ghosted = PlayerTestHelper.createPlayer("ghosted");
 		zone.add(ghosted);
 		MockStendhalRPRuleProcessor.get().addPlayer(ghosted);
 		action.put(Actions.TARGET, ghosted.getName());
 		pq.onAction(player, action);
-		assertThat(player.events().get(0).get("text"), equalTo("ghosted is in zone at (0,0)"));
+		assertThat(player.events().get(0).get("text"), equalTo("ghosted jest w zone na (0,0)"));
 		player.clearEvents();
-		
+
 		// test the player after he becomes ghostmode
 		ghosted.setGhost(true);
 		pq.onAction(player, action);
-		
-		assertThat(player.events().get(0).get("text"), equalTo("No player or pet named \"ghosted\" is currently logged in."));
-		
+
+		assertThat(player.events().get(0).get("text"), equalTo("Nie znaleziono wojownika lub zwierzątka zwanego \"ghosted\" lub nie jest teraz zalogowany."));
+
 	}
 
 	/**
@@ -133,9 +132,9 @@ public class WhereActionTest {
 
 		final Player player = PlayerTestHelper.createPlayer("player");
 		MockStendhalRPRuleProcessor.get().addPlayer(player);
-		
+
 		pq.onAction(player, action);
-		assertThat(player.events().get(0).get("text"), equalTo("No player or pet named \"sheep\" is currently logged in."));
+		assertThat(player.events().get(0).get("text"), equalTo("Nie ma wojownika lub zwierzątka zwanego \"sheep\" lub nie jest teraz zalogowany."));
 	}
 
 	/**
@@ -154,25 +153,25 @@ public class WhereActionTest {
 		Player player = PlayerTestHelper.createPlayer("player");
 
 		pq.onAction(player, action);
-		assertThat(player.events().get(0).get("text"), equalTo("No player or pet named \"pet\" is currently logged in."));
-	
-		
+		assertThat(player.events().get(0).get("text"), equalTo("Nie ma wojownika lub zwierzątka zwanego \"pet\" lub nie jest teraz zalogowany."));
+
+
 		final Pet testPet = new Cat();
-		
+
 		final Sheep testSheep = new Sheep();
 
 		player = PlayerTestHelper.createPlayer("player");
-		
+
 		StendhalRPZone stendhalRPZone = new StendhalRPZone("zone");
 		MockStendlRPWorld.get().addRPZone(stendhalRPZone);
 		stendhalRPZone.add(player);
-		
+
 		stendhalRPZone.add(testSheep);
 		stendhalRPZone.add(testPet);
 		player.setPet(testPet);
-		
+
 		pq.onAction(player, action);
-		assertThat(player.events().get(0).get("text"), equalTo("Your cat is at (0,0)"));
+		assertThat(player.events().get(0).get("text"), equalTo("Twój cat jest na (0,0)"));
 		player.clearEvents();
 
 		player.setSheep(testSheep);
@@ -180,7 +179,7 @@ public class WhereActionTest {
 		action.put(Actions.TARGET, "sheep");
 
 		pq.onAction(player, action);
-		assertThat(player.events().get(0).get("text"), equalTo("Your sheep is at (0,0)"));
+		assertThat(player.events().get(0).get("text"), equalTo("Twój sheep jest na (0,0)"));
 	}
 
 }

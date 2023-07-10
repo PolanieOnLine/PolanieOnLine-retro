@@ -1,6 +1,5 @@
-/* $Id: BuyerNPC.java,v 1.11 2012/08/23 20:05:45 yoriy Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,19 +11,15 @@
  ***************************************************************************/
 package games.stendhal.server.maps.nalwor.weaponshop;
 
-import games.stendhal.server.core.config.ZoneConfigurator;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.core.pathfinder.FixedPath;
-import games.stendhal.server.core.pathfinder.Node;
-import games.stendhal.server.entity.npc.ShopList;
-import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.behaviour.adder.BuyerAdder;
-import games.stendhal.server.entity.npc.behaviour.impl.BuyerBehaviour;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import games.stendhal.server.core.config.ZoneConfigurator;
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.core.pathfinder.FixedPath;
+import games.stendhal.server.core.pathfinder.Node;
+import games.stendhal.server.entity.npc.SpeakerNPC;
 
 /**
  * Builds an NPC to buy previously un bought weapons.
@@ -32,21 +27,19 @@ import java.util.Map;
  * @author kymara
  */
 public class BuyerNPC implements ZoneConfigurator {
-	private final ShopList shops = SingletonRepository.getShopList();
-
 	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildNPC(zone);
 	}
 
 	private void buildNPC(final StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Elodrin") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -66,15 +59,14 @@ public class BuyerNPC implements ZoneConfigurator {
 				addHelp("#Handluję rzadką bronią.");
 				addOffer("Spójrz na tablicę na ścianie, aby zobaczyć co kupuję.");
 				addQuest("Myślisz, że mógłbym zaufać człowiekowi w ważnej sprawie? Mylisz się!");
-				new BuyerAdder().addBuyer(this, new BuyerBehaviour(shops.get("elfbuyrare")), false);
-				addGoodbye("Dowidzenia. Bądź ostrożny i za bardzo nie denerwuj innych elfów.");
+				addGoodbye("Do widzenia. Bądź ostrożny i za bardzo nie denerwuj innych elfów.");
 			}
 		};
 
-		npc.setDescription("Oto Elodrin skromnie wyglądający elf.");
+		npc.setDescription("Oto Elodrin. Skromnie wyglądający elf.");
 		npc.setEntityClass("elfbuyernpc");
+		npc.setGender("M");
 		npc.setPosition(4, 5);
-		npc.initHP(100);
 		zone.add(npc);
 	}
 }

@@ -1,6 +1,5 @@
-/* $Id: InfoAction.java,v 1.1 2010/12/04 20:28:35 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,26 +11,26 @@
  ***************************************************************************/
 package games.stendhal.server.actions.query;
 
-import games.stendhal.common.Debug;
-import games.stendhal.server.actions.ActionListener;
-import games.stendhal.server.entity.player.Player;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import games.stendhal.common.Debug;
+import games.stendhal.server.actions.ActionListener;
+import games.stendhal.server.entity.player.Player;
 import marauroa.common.game.RPAction;
 
 /**
  * Answers with the server time and if this is the test server with the version information.
- * 
+ *
  * @author hendrik
  */
 public class InfoAction implements ActionListener {
 
 	private static final String DATE_FORMAT_NOW = "dd-MMMM-yyyy HH:mm:ss";
 
+	@Override
 	public void onAction(final Player player, final RPAction action) {
-		player.sendPrivateText("Czas na serwerze " + getGametime());
+		player.sendPrivateText("Czas na serwerze: " + getGametime() + ".");
 		if (Debug.PRE_RELEASE_VERSION != null) {
 			player.sendPrivateText("Wersja serwera testowego " + Debug.VERSION + " - " + Debug.PRE_RELEASE_VERSION);
 		}

@@ -1,4 +1,4 @@
-/* $Id: SeedSellerBehaviour.java,v 1.10 2011/03/19 16:14:35 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,12 +12,13 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.behaviour.impl;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.item.Item;
 import games.stendhal.server.entity.item.StackableItem;
-
-import java.util.HashMap;
-import java.util.Map;
+import games.stendhal.server.entity.player.Player;
 
 public class SeedSellerBehaviour extends SellerBehaviour {
 
@@ -31,7 +32,7 @@ public class SeedSellerBehaviour extends SellerBehaviour {
 		pricelist.put("bielikrasa bulwa", 15);
 		pricelist.put("bratek nasionka", 10);
 	}
-	
+
 	public SeedSellerBehaviour() {
 		this(pricelist);
 	}
@@ -41,7 +42,7 @@ public class SeedSellerBehaviour extends SellerBehaviour {
 	}
 
 	@Override
-	public Item getAskedItem(final String askedItem) {
+	public Item getAskedItem(final String askedItem, final Player player) {
 		final String[] tokens = askedItem.split(" ");
 		final StackableItem item = (StackableItem) SingletonRepository.getEntityManager().getItem(tokens[1]);
 		item.setInfoString(tokens[0]);

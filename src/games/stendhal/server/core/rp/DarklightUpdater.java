@@ -3,19 +3,21 @@ package games.stendhal.server.core.rp;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.ZoneAttributes;
 import games.stendhal.server.core.events.TurnListener;
-import games.stendhal.server.entity.player.Player;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Manager for darklight colored zones.
+ * Manager for dark light colored zones.
+ * 
+ * @author ??? but thank you!
  */
 public class DarklightUpdater implements TurnListener {
+	/** The singleton instance. */
+	private static DarklightUpdater instance;
 	/** Time between checking if the color should be changed. Seconds. */
 	private static final int CHECK_INTERVAL = 61;
-	/** Singleton instance. */
-	private static final DarklightUpdater instance = new DarklightUpdater();
+
 	/** Color corresponding to the current time. */
 	Integer currentColor;
 
@@ -23,19 +25,25 @@ public class DarklightUpdater implements TurnListener {
 	private final List<ZoneAttributes> zones = new ArrayList<ZoneAttributes>();
 
 	/**
-	 * Create a new Darklight instance. Do not use this.
-	 */
-	private DarklightUpdater() {
-		onTurnReached(0);
-	}
-
-	/**
 	 * Get the Darklight instance.
 	 *
 	 * @return singleton instance
 	 */
 	public static DarklightUpdater get() {
+		if (instance == null) {
+			instance = new DarklightUpdater();
+		}
+
 		return instance;
+	}
+
+	/**
+	 * Hidden singleton constructor.
+	 *
+	 * Create a new Daylight instance. Do not use this.
+	 */
+	private DarklightUpdater() {
+		onTurnReached(0);
 	}
 
 	/**
@@ -50,6 +58,7 @@ public class DarklightUpdater implements TurnListener {
 		setZoneColor(attr, currentColor);
 	}
 
+	@Override
 	public void onTurnReached(int currentTurn) {
 		updateDarktimeColor();
 		SingletonRepository.getTurnNotifier().notifyInSeconds(CHECK_INTERVAL, this);
@@ -100,13 +109,7 @@ public class DarklightUpdater implements TurnListener {
 			attr.put("blend_method", "bleach");
 		}
 		// Notify resident players about the changed color
-		for (Player player : attr.getZone().getPlayers()) {
-			// Old clients do not understand content transfer that just
-			// update the old map, and end up with no entities on the screen
-			if (player.isClientNewerThan("0.30")) {
-				StendhalRPAction.transferContent(player);
-			}
-		}
+		attr.getZone().notifyOnlinePlayers();
 	}
 }
 

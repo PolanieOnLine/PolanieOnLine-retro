@@ -7,7 +7,7 @@ import games.stendhal.server.entity.player.Player;
 
 /**
  * Boost an entity's def
- * 
+ *
  * @author madmetzger
  */
 public class ModifyDefEffect extends AbstractEffect {
@@ -17,6 +17,7 @@ public class ModifyDefEffect extends AbstractEffect {
 		super(nature, amount, atk, def, lifesteal, rate, regen, modifier);
 	}
 
+	@Override
 	public void act(final Player caster, final Entity target) {
 		actInternal(caster, (RPEntity) target);
 	}

@@ -1,4 +1,4 @@
-/* $Id: ScriptImpl.java,v 1.5 2010/09/19 02:22:53 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,13 +12,13 @@
  ***************************************************************************/
 package games.stendhal.server.core.scripting;
 
-import games.stendhal.server.entity.player.Player;
-
 import java.util.List;
+
+import games.stendhal.server.entity.player.Player;
 
 /**
  * Default implementation of the Script interface.
- * 
+ *
  * @author hendrik
  */
 public class ScriptImpl implements Script {
@@ -26,14 +26,17 @@ public class ScriptImpl implements Script {
 	/** all modifications must be done using this object to be undoable on unload. */
 	protected ScriptingSandbox sandbox;
 
+	@Override
 	public void execute(final Player admin, final List<String> args) {
 		// do nothing
 	}
 
+	@Override
 	public void load(final Player admin, final List<String> args, final ScriptingSandbox sandbox) {
 		this.sandbox = sandbox;
 	}
 
+	@Override
 	public void unload(final Player admin, final List<String> args) {
 		// do nothing
 	}

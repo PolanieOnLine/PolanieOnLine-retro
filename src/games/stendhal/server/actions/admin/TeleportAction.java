@@ -1,6 +1,5 @@
-/* $Id: TeleportAction.java,v 1.11 2010/09/19 02:21:43 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -17,26 +16,23 @@ import static games.stendhal.common.constants.Actions.TELEPORT;
 import static games.stendhal.common.constants.Actions.X;
 import static games.stendhal.common.constants.Actions.Y;
 import static games.stendhal.common.constants.Actions.ZONE;
-import games.stendhal.server.actions.CommandCenter;
-import games.stendhal.server.core.engine.GameEvent;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.entity.player.Player;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import games.stendhal.server.actions.CommandCenter;
+import games.stendhal.server.core.engine.GameEvent;
+import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.entity.player.Player;
 import marauroa.common.game.IRPZone;
 import marauroa.common.game.RPAction;
 
 public class TeleportAction extends AdministrationAction {
-
-
 	public static void register() {
 		CommandCenter.register(TELEPORT, new TeleportAction(), 8);
-
 	}
 
 	@Override
@@ -47,7 +43,7 @@ public class TeleportAction extends AdministrationAction {
 			final Player teleported = SingletonRepository.getRuleProcessor().getPlayer(name);
 
 			if (teleported == null) {
-				final String text = "Wojownik \"" + name + "\" nie został znaleziony";
+				final String text = "Wojownik \"" + name + "\" nie został znaleziony.";
 				player.sendPrivateText(text);
 				logger.debug(text);
 				return;
@@ -59,9 +55,9 @@ public class TeleportAction extends AdministrationAction {
 				final String text = "Obszar \"" + zoneid + "\" nie został znaleziony.";
 				logger.debug(text);
 				final String[] zoneparts = action.get(ZONE).split("_");
-			    List<String> zonematches = new ArrayList<String>();
+				List<String> zonematches = new ArrayList<String>();
 				for (String zonepart : zoneparts) {
-					if(zonepart.length()>2 && !zonepart.equals("int")) {
+					if((zonepart.length()>2) && !zonepart.equals("int")) {
 						if(zonepart.endsWith("s")) {
 							zonematches.add(zonepart.substring(0,zonepart.length() -1));
 						} else {
@@ -74,14 +70,14 @@ public class TeleportAction extends AdministrationAction {
 				for (final IRPZone irpZone : SingletonRepository.getRPWorld()) {
 					final StendhalRPZone zone = (StendhalRPZone) irpZone;
 					for (String zonematch : zonematches) {
-						 if (zone.getName().indexOf(zonematch) != -1) { 
+						if (zone.getName().indexOf(zonematch) != -1) {
 							zoneNames.add(zone.getName());
 							// just one match is enough
 							break;
 						}
 					}
 				}
-				player.sendPrivateText(text + " Dostępne obszary: " + zoneNames);
+				player.sendPrivateText(text + " Podobne nazwy stref: " + zoneNames);
 				return;
 			}
 
@@ -91,7 +87,7 @@ public class TeleportAction extends AdministrationAction {
 			final int y = action.getInt(Y);
 			new GameEvent(player.getName(), TELEPORT, action.get(TARGET), zone.getName(), Integer.toString(x), Integer.toString(y)).raise();
 			teleported.teleport(zone, x, y, null, player);
-			
+
 			SingletonRepository.getJail().grantParoleIfPlayerWasAPrisoner(teleported);
 		}
 	}

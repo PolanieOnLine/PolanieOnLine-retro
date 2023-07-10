@@ -1,4 +1,3 @@
-/* $Id: HealerNPC.java,v 1.22 2011/05/01 19:50:08 martinfuchs Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -11,6 +10,9 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.maps.kirdneh.inn;
+
+import java.util.Arrays;
+import java.util.Map;
 
 import games.stendhal.common.Direction;
 import games.stendhal.common.grammar.ItemParserResult;
@@ -29,17 +31,13 @@ import games.stendhal.server.entity.npc.condition.TriggerIsProducedItemOfClassCo
 import games.stendhal.server.entity.npc.fsm.Engine;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.Arrays;
-import java.util.Map;
-
 /**
- * Builds a Healer NPC for kirdneh. 
+ * Builds a Healer NPC for kirdneh.
  * She likes a drink
  *
  * @author kymara
  */
 public class HealerNPC implements ZoneConfigurator {
-
 	/**
 	 * Behaviour parse result in the current conversation.
 	 * Remark: There is only one conversation between a player and the NPC at any time.
@@ -52,30 +50,24 @@ public class HealerNPC implements ZoneConfigurator {
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildNPC(zone);
 	}
 
 	private void buildNPC(final StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Katerina") {
-
-			@Override
-			protected void createPath() {
-			    // sits still on stool
-				setPath(null);
-			}
-
 			@Override
 			protected void createDialog() {
 			    addGreeting("Hik #całusik!");
-                addReply("picie", null, new ListProducedItemsOfClassAction("drink","Lubię [#items]. *hic*"));  
+                addReply("picie", null, new ListProducedItemsOfClassAction("drink","Lubię [#items]. *hic*"));
 				add(
 					ConversationStates.ATTENDING,
 					"",
 					new TriggerIsProducedItemOfClassCondition("drink"),
 					ConversationStates.ATTENDING,
 					null,
-					new ListProducedItemDetailAction()				
+					new ListProducedItemDetailAction()
 				);
                 addReply(Arrays.asList("kiss", "całusik"), "łee kiepski");
                 addReply(":*", "*:");
@@ -83,15 +75,15 @@ public class HealerNPC implements ZoneConfigurator {
 				addHealer(this, 1200);
 				addHelp("Daj mi pieniądze na #picie, a uleczę. Hik kaska.");
 				addQuest("Ba.");
-				addGoodbye("pffff dowidzenia");
+				addGoodbye("Pffff... Do widzenia.");
 			}
 		};
 
-		npc.setDescription("Widzisz kobietę, która niegdyś uważana byłą za piękną, lecz teraz podupadła nieco, o czym świadczy jej strój...");
+		npc.setDescription("Oto Katerina, kobieta, która niegdyś uważana byłą za piękną, lecz teraz podupadła nieco, o czym świadczy jej strój...");
 		npc.setEntityClass("womanonstoolnpc");
+		npc.setGender("F");
 		npc.setPosition(25, 9);
 		npc.setDirection(Direction.UP);
-		npc.initHP(100);
 		zone.add(npc);
 	}
 
@@ -100,19 +92,20 @@ public class HealerNPC implements ZoneConfigurator {
 	    final HealerBehaviour healerBehaviour = new HealerBehaviour(cost);
 		final Engine engine = npc.getEngine();
 
-		engine.add(ConversationStates.ATTENDING, 
-				ConversationPhrases.OFFER_MESSAGES, 
-				null, 
-				false, 
-				ConversationStates.ATTENDING, 
+		engine.add(ConversationStates.ATTENDING,
+				ConversationPhrases.OFFER_MESSAGES,
+				null,
+				false,
+				ConversationStates.ATTENDING,
 				"Daj mi pieniądze na picie, a uleczę. Hik kasa.", null);
 
-		engine.add(ConversationStates.ATTENDING, 
-				Arrays.asList("heal", "ulecz"), 
-				null, 
-				false, 
-				ConversationStates.HEAL_OFFERED, 
+		engine.add(ConversationStates.ATTENDING,
+				Arrays.asList("heal", "ulecz"),
+				null,
+				false,
+				ConversationStates.HEAL_OFFERED,
 		        null, new ChatAction() {
+			        @Override
 			        public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 			        	currentBehavRes = new ItemParserResult(true, "heal", 1, null);
                         String badboymsg = "";
@@ -122,19 +115,20 @@ public class HealerNPC implements ZoneConfigurator {
 			        		badboymsg = " Dla takich jak ty jest drożej.";
 			        		currentBehavRes.setAmount(2);
 			        	}
-			        	
+
 						if (cost != 0) {
 	                    	raiser.say("To kosztuje " + cost + " money, ok?" + badboymsg);
 	                    }
 			        }
 		        });
 
-		engine.add(ConversationStates.HEAL_OFFERED, 
-				ConversationPhrases.YES_MESSAGES, 
+		engine.add(ConversationStates.HEAL_OFFERED,
+				ConversationPhrases.YES_MESSAGES,
 				null,
-		        false, 
+		        false,
 		        ConversationStates.IDLE,
 		        null, new ChatAction() {
+			        @Override
 			        public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 				        if (player.drop("money", healerBehaviour.getCharge(currentBehavRes, player))) {
 					        healerBehaviour.heal(player);
@@ -147,12 +141,11 @@ public class HealerNPC implements ZoneConfigurator {
 			        }
 		        });
 
-		engine.add(ConversationStates.HEAL_OFFERED, 
-				ConversationPhrases.NO_MESSAGES, 
+		engine.add(ConversationStates.HEAL_OFFERED,
+				ConversationPhrases.NO_MESSAGES,
 				null,
-		        false, 
-		        ConversationStates.ATTENDING, 
+		        false,
+		        ConversationStates.ATTENDING,
 		        "Czego chcesz?", null);
 	}
-
 }

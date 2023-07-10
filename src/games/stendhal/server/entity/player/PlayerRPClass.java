@@ -1,4 +1,3 @@
-/* $Id: PlayerRPClass.java,v 1.178 2011/09/25 17:24:49 nhnb Exp $ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -11,6 +10,10 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.entity.player;
+
+import static games.stendhal.common.constants.Actions.AUTOWALK;
+import static games.stendhal.common.constants.Actions.MOVE_CONTINUOUS;
+import static games.stendhal.server.entity.player.PlayerLootedItemsHandler.LOOTED_ITEMS;
 
 import games.stendhal.common.constants.Events;
 import marauroa.common.game.Definition;
@@ -27,9 +30,9 @@ public class PlayerRPClass {
 	 */
 	static void generateRPClass() {
 		final RPClass player = new RPClass("player");
-		player.isA("rpentity");
+		player.isA("dressed_entity");
 
-		// Note: text and private_text need to be kept because volatile 
+		// Note: text and private_text need to be kept because volatile
 		//       attributes have been stored to the database in the past.
 		//       And old characters, who logged out in the same turn as a
 		//       private_text was set, cannot be loaded without this definition.
@@ -41,20 +44,19 @@ public class PlayerRPClass {
 		player.addRPEvent(Events.PLAYER_LOGGED_OUT, Definition.PRIVATE);
 		player.addRPEvent(Events.TRADE_STATE_CHANGE, Definition.PRIVATE);
 		player.addRPEvent(Events.REACHED_ACHIEVEMENT, Definition.PRIVATE);
+		player.addRPEvent(Events.BESTIARY, Definition.PRIVATE);
+		player.addRPEvent(Events.DROPPEDLIST, Definition.PRIVATE);
 
-		player.addAttribute("poisoned", Type.SHORT, Definition.VOLATILE);
-		player.addAttribute("eating", Type.SHORT, Definition.VOLATILE);
-		player.addAttribute("choking", Type.SHORT, Definition.VOLATILE);
+		player.addRPEvent(Events.ACHIEVEMENT_LOG, Definition.PRIVATE);
 
 		player.addAttribute("dead", Type.FLAG, Definition.PRIVATE);
 
-		player.addAttribute("outfit", Type.INT);
-		player.addAttribute("outfit_org", Type.INT, Definition.HIDDEN);
-		player.addAttribute("outfit_colors", Type.MAP);
-		player.addAttribute("outfit_expire_age", Type.INT, Definition.HIDDEN);
-
 		player.addAttribute("away", Type.LONG_STRING, Definition.VOLATILE);
 		player.addAttribute("grumpy", Type.LONG_STRING, Definition.VOLATILE);
+
+		/* Player movement. */
+		player.addAttribute(AUTOWALK, Type.FLAG, Definition.VOLATILE);
+		player.addAttribute(MOVE_CONTINUOUS, Type.FLAG, Definition.VOLATILE);
 
 		// Use this for admin menus and usage.
 		player.addAttribute("admin", Type.FLAG);
@@ -70,6 +72,9 @@ public class PlayerRPClass {
 		// Store sheep at DB
 		player.addRPSlot("#flock", 1, Definition.HIDDEN);
 		player.addAttribute("sheep", Type.INT);
+		// Store goat at DB
+		player.addRPSlot("#goat", 1, Definition.HIDDEN);
+		player.addAttribute("goat", Type.INT);
 
 		// Store pets at DB
 		player.addRPSlot("#pets", 1, Definition.HIDDEN);
@@ -78,27 +83,32 @@ public class PlayerRPClass {
 		player.addAttribute("owczarek", Type.INT);
 		player.addAttribute("owczarek_podhalanski", Type.INT);
 		player.addAttribute("baby_dragon", Type.INT);
+		player.addAttribute("purple_dragon", Type.INT);
 
 		// Bank system
 		player.addRPSlot("bank", 36, Definition.HIDDEN);
 		player.addRPSlot("bank_ados", 36, Definition.HIDDEN);
-		player.addRPSlot("zaras_chest_ados", 36, Definition.HIDDEN);
+		player.addRPSlot("bank_deniran", 36, Definition.HIDDEN);
 		player.addRPSlot("bank_fado", 36, Definition.HIDDEN);
 		player.addRPSlot("bank_nalwor", 36, Definition.HIDDEN);
-		player.addRPSlot("bank_tsoh", 36, Definition.HIDDEN);
+		player.addRPSlot("bank_gdansk", 36, Definition.HIDDEN);
+		player.addRPSlot("bank_krakow", 36, Definition.HIDDEN);
 		player.addRPSlot("bank_zakopane", 36, Definition.HIDDEN);
+		player.addRPSlot("zaras_chest_ados", 36, Definition.HIDDEN);
+		// Private vault
+		player.addRPSlot("vault", 36, Definition.HIDDEN);
 
 		// Kills recorder - needed for quest
 		player.addRPSlot("!kills", 1, Definition.HIDDEN);
 
 		// Count looted items
-		player.addAttribute("looted_items", Type.MAP, Definition.HIDDEN);
+		player.addAttribute(LOOTED_ITEMS, Type.MAP, Definition.HIDDEN);
 
 		// We use this for the buddy system
 		player.addRPSlot("!buddy", 1, Definition.PRIVATE);
 		// using additionally a proof of concept for buddies here
 		player.addAttribute("buddies", Type.MAP, Definition.PRIVATE);
-		
+
 		player.addRPSlot("!ignore", 1, Definition.PRIVATE);
 		player.addAttribute("online", Type.LONG_STRING,
 				(byte) (Definition.PRIVATE | Definition.VOLATILE));
@@ -126,6 +136,9 @@ public class PlayerRPClass {
 
 		player.addRPSlot("trade", 4);
 
+		// special slot to carry money
+		player.addRPSlot("pouch", 1, Definition.PRIVATE);
+
 		// The guild name
 		player.addAttribute("guild", Type.STRING);
 
@@ -137,20 +150,25 @@ public class PlayerRPClass {
 		// Last time this player attacked another player
 		player.addAttribute("last_pvp_action_time", Type.FLOAT, Definition.HIDDEN);
 		player.addAttribute("last_player_kill_time", Type.FLOAT, Definition.STANDARD);
-		
+
 		player.addRPEvent("transition_graph", Definition.PRIVATE);
 		player.addRPEvent("examine", Definition.PRIVATE);
 		player.addRPEvent("show_item_list", Definition.PRIVATE);
+		player.addRPEvent(Events.OUTFIT_LIST, Definition.PRIVATE);
 		player.addRPEvent(Events.VIEW_CHANGE, Definition.PRIVATE);
 		player.addRPEvent(Events.GROUP_CHANGE, Definition.PRIVATE);
 		player.addRPEvent(Events.GROUP_INVITE, Definition.PRIVATE);
 		player.addRPEvent(Events.PROGRESS_STATUS_CHANGE, Definition.PRIVATE);
+		player.addRPEvent(Events.GLOBAL_VISUAL, Definition.PRIVATE);
 
 		// Maps
 		player.addAttribute("source_usage", Type.MAP, Definition.HIDDEN);
 
 		// client menu override
 		player.addAttribute("menu", Type.STRING, Definition.VOLATILE);
-	}
 
+		// commerce
+		player.addAttribute("npc_purchases", Type.MAP, Definition.PRIVATE);
+		player.addAttribute("npc_sales", Type.MAP, Definition.PRIVATE);
+	}
 }

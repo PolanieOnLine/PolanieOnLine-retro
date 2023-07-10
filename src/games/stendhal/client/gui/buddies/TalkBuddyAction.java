@@ -1,4 +1,4 @@
-/* $Id: TalkBuddyAction.java,v 1.6 2010/09/19 02:18:29 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,10 +12,10 @@
  ***************************************************************************/
 package games.stendhal.client.gui.buddies;
 
-import games.stendhal.client.gui.j2DClient;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
+import games.stendhal.client.gui.j2DClient;
 
 class TalkBuddyAction implements ActionListener {
 	private final String buddyName;
@@ -26,12 +26,11 @@ class TalkBuddyAction implements ActionListener {
 			this.buddyName = buddyName;
 		}
 
-		
+
 	}
 
+	@Override
 	public void actionPerformed(final ActionEvent e) {
 		j2DClient.get().setChatLine("/tell " + buddyName + " ");
-
 	}
-
 }

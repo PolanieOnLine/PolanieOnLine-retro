@@ -1,6 +1,5 @@
-/* $Id: ReverseArrow.java,v 1.101 2012/04/20 17:38:11 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,8 +11,19 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
 
+import static games.stendhal.common.constants.Actions.MOVE_CONTINUOUS;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.common.Direction;
 import games.stendhal.common.grammar.Grammar;
+import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.events.LoginListener;
@@ -24,26 +34,19 @@ import games.stendhal.server.entity.item.token.Token;
 import games.stendhal.server.entity.mapstuff.portal.OnePlayerRoomDoor;
 import games.stendhal.server.entity.mapstuff.portal.Portal;
 import games.stendhal.server.entity.mapstuff.sign.Sign;
+import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
+import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.action.SayTextWithPlayerNameAction;
+import games.stendhal.server.entity.npc.action.SayTextAction;
 import games.stendhal.server.entity.npc.condition.AndCondition;
+import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
 import games.stendhal.server.entity.npc.condition.QuestCompletedCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotCompletedCondition;
-import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.Region;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
-
 import marauroa.common.game.IRPZone;
-
-import org.apache.log4j.Logger;
 
 /**
  * A quest where the player has to invert an arrow build out of stones by moving
@@ -52,14 +55,10 @@ import org.apache.log4j.Logger;
  * @author hendrik
  */
 
-public class ReverseArrow extends AbstractQuest implements
-		Token.TokenMoveListener<Token>, LoginListener {
-
+public class ReverseArrow extends AbstractQuest implements Token.TokenMoveListener<Token>, LoginListener {
 	private static final Logger LOGGER = Logger.getLogger(ReverseArrow.class);
 
-	// constants
 	private static final String QUEST_SLOT = "reverse_arrow";
-
 	private static final String ZONE_NAME = "int_ados_reverse_arrow";
 
 	/** Time (in Seconds) to solve the puzzle. */
@@ -69,10 +68,9 @@ public class ReverseArrow extends AbstractQuest implements
 	private static final int MAX_MOVES = 3;
 
 	/** Horizontal position of the upper left token at the beginning. */
-	private static final int OFFSET_X = 15;
-
+	private static final int OFFSET_X = 8;
 	/** Vertical position of the upper left token at the beginning. */
-	private static final int OFFSET_Y = 10;
+	private static final int OFFSET_Y = 9;
 
 	// "static" data
 	protected StendhalRPZone zone;
@@ -96,7 +94,6 @@ public class ReverseArrow extends AbstractQuest implements
 	 * Checks the result.
 	 */
 	protected class ReverseArrowCheck implements TurnListener {
-
 		/**
 		 * Is the task solved?
 		 *
@@ -118,6 +115,7 @@ public class ReverseArrow extends AbstractQuest implements
 
 			// sort the tokens according to their position
 			Collections.sort(tokens, new Comparator<Token>() {
+				@Override
 				public int compare(final Token t1, final Token t2) {
 					int d = t1.getY() - t2.getY();
 					if (d == 0) {
@@ -137,8 +135,8 @@ public class ReverseArrow extends AbstractQuest implements
 			// check first row
 			for (int i = 1; i <= 3; i++) {
 				final Token token = tokens.get(i);
-				if ((token.getX() != topX - 1 + (i - 1))
-						|| (token.getY() != topY + 1)) {
+				if (token.getX() != topX - 1 + i - 1
+						|| token.getY() != topY + 1) {
 					return false;
 				}
 			}
@@ -146,8 +144,8 @@ public class ReverseArrow extends AbstractQuest implements
 			// check second row
 			for (int i = 4; i <= 8; i++) {
 				final Token token = tokens.get(i);
-				if ((token.getX() != topX - 2 + (i - 4))
-						|| (token.getY() != topY + 2)) {
+				if (token.getX() != topX - 2 + i - 4
+						|| token.getY() != topY + 2) {
 					return false;
 				}
 			}
@@ -159,8 +157,9 @@ public class ReverseArrow extends AbstractQuest implements
 		 * invoked shortly after the player did his/her third move.
 		 * @param currentTurn on which it is invoked
 		 */
+		@Override
 		public void onTurnReached(final int currentTurn) {
-			if (checkBoard() && (moveCount <= MAX_MOVES)) {
+			if (checkBoard() && moveCount <= MAX_MOVES) {
 				if (player.isQuestCompleted(QUEST_SLOT)) {
 					npc.say("Gratulacje znowu rozwiązałeś zadanie, ale nie mam dla ciebie nagrody.");
 				} else {
@@ -202,6 +201,7 @@ public class ReverseArrow extends AbstractQuest implements
 		 * invoked shortly after the player did his job.
 		 * @param currentTurn on which it is invoked
 		 */
+		@Override
 		public void onTurnReached(final int currentTurn) {
 			finish(reset, finishPlayer);
 		}
@@ -226,13 +226,14 @@ public class ReverseArrow extends AbstractQuest implements
 
 		private int counter = TIME;
 
+		@Override
 		public void onTurnReached(final int currentTurn) {
 			// check that the player is still in game and stop the timer
 			// in case the player is not playing anymore.
 			// Note that "player" always refers to the current player
 			// in order not to teleport the next player out too early,
 			// we have to compare it to the player who started this timer
-			if ((player == timerPlayer) && (player != null)) {
+			if (player == timerPlayer && player != null) {
 				final IRPZone playerZone = player.getZone();
 
 				if (playerZone.equals(zone)) {
@@ -275,8 +276,8 @@ public class ReverseArrow extends AbstractQuest implements
 		}
 
 		@Override
-		public void onUsedBackwards(final RPEntity user) {
-			super.onUsedBackwards(user);
+		public void onUsedBackwards(final RPEntity user, final boolean hadPath) {
+			super.onUsedBackwards(user, hadPath);
 
 			if (user instanceof Player) {
 				finish(true, (Player) user);
@@ -284,16 +285,6 @@ public class ReverseArrow extends AbstractQuest implements
 				LOGGER.error("user is no instance of Player but: " + user, new Throwable());
 			}
 		}
-	}
-
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
-
-	@Override
-	public String getName() {
-		return "ReverseArrow";
 	}
 
 	/**
@@ -353,15 +344,24 @@ public class ReverseArrow extends AbstractQuest implements
 		npc = new GamblosSpeakerNPC("Gamblos");
 
 		npc.setEntityClass("oldwizardnpc"); 
-		npc.setPosition(20, 8);
+		npc.setPosition(13, 7);
 		npc.setDirection(Direction.DOWN);
 		npc.initHP(100);
 		zone.add(npc);
 	}
 
-	private static final class GamblosSpeakerNPC extends SpeakerNPC {
+	private final class GamblosSpeakerNPC extends SpeakerNPC {
 		private GamblosSpeakerNPC(String name) {
 			super(name);
+			setPlayerChatTimeout(TIME);
+			setPerceptionRange(12);
+
+			addInitChatMessage(null, new ChatAction() {
+				@Override
+				public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
+					listenTo(player, ConversationPhrases.GREETING_MESSAGES.get(0));
+				}
+			});
 		}
 
 		@Override
@@ -378,7 +378,7 @@ public class ReverseArrow extends AbstractQuest implements
 							new QuestCompletedCondition(QUEST_SLOT)), 
 					ConversationStates.ATTENDING, 
 					null,
-					new SayTextWithPlayerNameAction("Witaj ponownie [name]. Pamiętam, że rozwiązałeś już ten problem. Oczywiście możesz to zrobić ponownie."));
+					new SayTextAction("Witaj ponownie [name]. Pamiętam, że rozwiązałeś już ten problem. Oczywiście możesz to zrobić ponownie."));
 			
 			add(ConversationStates.IDLE, 
 					ConversationPhrases.GREETING_MESSAGES,
@@ -394,6 +394,13 @@ public class ReverseArrow extends AbstractQuest implements
 			addQuest("Twoim zadaniem w tej grze jest odwrócenie kierunku strzałki przesuwając tylko 3 krążki w "
 					+ TIME + " sekundę.");
 		}
+
+		@Override
+		protected void onGoodbye(RPEntity player) {
+			super.onGoodbye(player);
+			SingletonRepository.getTurnNotifier().notifyInTurns(1,
+					new FinishNotifier(true, (Player) player));
+		}
 	}
 
 	private void step1CreateDoors() {
@@ -402,24 +409,27 @@ public class ReverseArrow extends AbstractQuest implements
 		entranceZone = SingletonRepository.getRPWorld().getZone(entranceZoneName);
 		door = new NotifyingDoor("housedoor");
 		door.setPosition(95, 101);
-		door.setIdentifier(Integer.valueOf((0)));
+		door.setIdentifier(Integer.valueOf(0));
 		door.setDestination(ZONE_NAME, Integer.valueOf(0));
+		door.put(MOVE_CONTINUOUS, "");
 		entranceZone.add(door);
 
 		door.open();
 
 		final Portal exit = new Portal();
-		exit.setPosition(17, 20);
+		exit.setPosition(10, 17);
 		exit.setIdentifier(Integer.valueOf(0));
 		exit.setDestination(entranceZoneName, Integer.valueOf(0));
+		exit.put(MOVE_CONTINUOUS, "");
 		zone.add(exit);
 
 		final Sign sign = new Sign();
-		sign.setPosition(96, 102);
+		sign.setPosition(97, 102);
 		sign.setText("Jeżeli drzwi są zamknięte to będziesz musiał chwilę poczekać dopóki ostatni gracz nie skończy swojego zadania.");
 		entranceZone.add(sign);
 	}
 
+	@Override
 	public void onLoggedIn(final Player player) {
 		// need to do this on the next turn
 		SingletonRepository.getTurnNotifier().notifyInTurns(1, new FinishNotifier(false, player));
@@ -431,6 +441,7 @@ public class ReverseArrow extends AbstractQuest implements
 	 * @param player Player
 	 * @param token Token
 	 */
+	@Override
 	public void onTokenMoved(final Player player, Token token) {
 		//TODO only count if the token really changed its position
 		moveCount++;
@@ -499,12 +510,10 @@ public class ReverseArrow extends AbstractQuest implements
 
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
-				"Odwrócona Strzała",
-				"Sądzisz, że możesz rozwiązać tą małą zagadkę? Pośpiesz się masz kilka sekund.",
+				"Odwróć Strzałkę",
+				"Sądzisz, że możesz rozwiązać tą małą zagadkę? Pośpiesz się, masz na to tylko kilka sekund.",
 				false);
-
 		SingletonRepository.getLoginNotifier().addListener(this);
 
 		step_1();
@@ -525,6 +534,16 @@ public class ReverseArrow extends AbstractQuest implements
 				res.add("Ułożyłem puzle poprawnie.");
 			}
 			return res;
+	}
+
+	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
+	}
+
+	@Override
+	public String getName() {
+		return "Odwróć Strzałkę";
 	}
 
 	@Override

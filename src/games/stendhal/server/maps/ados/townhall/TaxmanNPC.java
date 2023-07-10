@@ -1,4 +1,3 @@
-/* $Id: TaxmanNPC.java,v 1.6 2010/09/19 02:27:58 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,39 +11,38 @@
  ***************************************************************************/
 package games.stendhal.server.maps.ados.townhall;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 /**
  * Builds an NPC to keep track of all the traders in Faiumoni
- * This means players can come find prices of all items. 
+ * This means players can come find prices of all items.
  * The shop signs now have to be coded in XML not java because the implementation got moved over :(
  * So if you want to read them see data/conf/zones/ados.xml
  * @author kymara
  */
 public class TaxmanNPC implements ZoneConfigurator {
-
 	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildNPC(zone);
 	}
 
 	private void buildNPC(final StendhalRPZone zone) {
 		// Please change the NPCOwned Chest name if you change this NPC name.
-		final SpeakerNPC npc = new SpeakerNPC("Mr Taxman") {
-
+		final SpeakerNPC npc = new SpeakerNPC("Mr. Taxman") {
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -64,15 +62,14 @@ public class TaxmanNPC implements ZoneConfigurator {
 				addHelp("Domyślam się, że zastanawiasz się co ten chaos tutaj robi. Cóż, każda księga, którą widzisz dotyczy różnych sklepów lub handlarzy. Zapisuje w niej jaki podatek musi zapłacić właściciel sklepu. Nie wsadzaj nosa do nich to jest prywatny interes!");
 				addOffer("Ja? Handluję? Musiałeś się pomylić! Jestem poborcą podatkowym. Moim zadaniem jest kontrolowanie handlarzy w tym kraju. Dlatego mam tyle otwartych ksiąg. Muszę wiedzieć co dany sprzedawca robi.");
 				addQuest("Zapytaj piętro wyżej Mayor Chalmersa o potrzeby Ados.");
-				addGoodbye("Dowidzenia - i nie myśl nawet o próbie zaglądnięcia w księgi!");
+				addGoodbye("Do widzenia - i nie myśl nawet o próbie zaglądnięcia w księgi!");
 			}
 		};
-		npc.setDescription("Oto siejący postrach, bezwzględny Poborca Podatkowy.");
+
+		npc.setDescription("Oto siejący postrach Mr. Taxman, bezwzględny Poborca Podatkowy.");
 		npc.setEntityClass("taxmannpc");
+		npc.setGender("M");
 		npc.setPosition(2, 14);
-		npc.initHP(100);
 		zone.add(npc);
-
-
 	}
 }

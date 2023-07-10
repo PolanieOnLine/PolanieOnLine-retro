@@ -1,4 +1,4 @@
-/* $Id: PasswordDiffersFromUsernameValidator.java,v 1.4 2010/09/19 02:22:40 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,13 +12,13 @@
  ***************************************************************************/
 package games.stendhal.server.core.account;
 
-import marauroa.common.game.Result;
-
 import org.apache.log4j.Logger;
+
+import marauroa.common.game.Result;
 
 /**
  * checks that the password is not closly related to the username.
- * 
+ *
  * @author timothyb89
  */
 public class PasswordDiffersFromUsernameValidator implements
@@ -30,7 +30,7 @@ public class PasswordDiffersFromUsernameValidator implements
 
 	/**
 	 * Creates a new PasswordDiffersFromUsernameValidator validator.
-	 * 
+	 *
 	 * @param username
 	 *            name of user
 	 * @param password
@@ -41,6 +41,7 @@ public class PasswordDiffersFromUsernameValidator implements
 		this.password = password;
 	}
 
+	@Override
 	public Result validate() {
 		// check for username
 		boolean hasUsername = false;

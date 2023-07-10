@@ -1,4 +1,4 @@
-/* $Id: ItemTest.java,v 1.55 2011/08/23 21:04:46 sjtsp2008 Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -22,21 +22,25 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import games.stendhal.common.constants.Nature;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.maps.MockStendlRPWorld;
+import static org.junit.Assert.fail;
 
 import java.awt.geom.Rectangle2D;
+import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
-import marauroa.common.Log4J;
-import marauroa.common.game.RPObject;
-
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.common.constants.Nature;
+import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.core.rule.EntityManager;
+import games.stendhal.server.core.rule.defaultruleset.DefaultEntityManager;
+import games.stendhal.server.maps.MockStendlRPWorld;
+import marauroa.common.Log4J;
+import marauroa.common.game.RPObject;
 import utilities.PlayerTestHelper;
 import utilities.RPClass.ItemTestHelper;
 
@@ -85,7 +89,7 @@ public class ItemTest {
 	 * Tests for clone.
 	 */
 	@Test
-	public void testClone() throws Exception {
+	public void testClone() {
 		Map<String, String> attribs = new HashMap<String, String>();
 		attribs.put("att_1", "val_1");
 		attribs.put("att_2", "val_2");
@@ -118,7 +122,7 @@ public class ItemTest {
 	public void testDescribe() {
 		final Item item = new Item("name1", "class", "subclass",
 				new HashMap<String, String>());
-		assertThat(item.describe(), equalTo("You see a name1."));
+		assertThat(item.describe(), equalTo("Oto §'name1'."));
 
 		item.setDescription("Description.");
 		item.setBoundTo("hero");
@@ -130,10 +134,10 @@ public class ItemTest {
 		item.put("range", 6);
 		item.put("lifesteal", 7);
 
-		assertThat(item.describe(), equalTo("Description. It is a special quest reward for hero, and cannot be used by others. Stats are (ATK: 2 DEF: 3 RATE: 4 HP: 5 RANGE: 6 LIFESTEAL: 7 MIN-LEVEL: 1)."));
+		assertThat(item.describe(), equalTo("Description. Oto specjalna nagroda dla hero, która nie może być wykorzystana przez innych. Parametry (ATK: 2 OBR: 3 WAGA: 4 PZ: 5 ZASIĘG: 6 LIFESTEAL: 7 MIN-POZIOM: 1)."));
 
 		item.setDamageType(Nature.FIRE);
-		assertThat(item.describe(), equalTo("Description. It is a special quest reward for hero, and cannot be used by others. Stats are (ATK: 2 [FIRE] DEF: 3 RATE: 4 HP: 5 RANGE: 6 LIFESTEAL: 7 MIN-LEVEL: 1)."));
+		assertThat(item.describe(), equalTo("Description. Oto specjalna nagroda dla hero, która nie może być wykorzystana przez innych. Parametry (ATK: 2 [FIRE] OBR: 3 WAGA: 4 PZ: 5 ZASIĘG: 6 LIFESTEAL: 7 MIN-POZIOM: 1)."));
 	}
 
 
@@ -474,4 +478,33 @@ public class ItemTest {
 		assertThat(mo.getBoundTo(), not(is("bob")));
 	}
 
+	/**
+	 * Test that all items that are storable to "content" have a copy
+	 * constructor. Bank chests need those, and the items may otherwise seem to
+	 * work correctly, but putting to them to bank fails.
+	 */
+	@Test
+	public void testCopyConstructors() {
+		EntityManager manager = SingletonRepository.getEntityManager();
+		if (manager instanceof DefaultEntityManager) {
+			for (String itemName : ((DefaultEntityManager) manager).getConfiguredItems()) {
+				Item item = manager.getItem(itemName);
+				// Only items that can be placed in chests need to be checked
+				if (item.canBeEquippedIn("content")) {
+					Object clone = null;
+					try {
+						Class<?> clazz = item.getClass();
+						Constructor<?> ctor = clazz.getConstructor(clazz);
+						clone = ctor.newInstance(item);
+					} catch (Exception e) {
+						fail("copying " + item.getName() + " failed: " + e.toString());
+					}
+					assertEquals(item, clone);
+					assertFalse(item == clone);
+				}
+			}
+		} else {
+			fail("Unable to test copy constructors");
+		}
+	}
 }

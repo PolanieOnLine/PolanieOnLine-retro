@@ -1,5 +1,5 @@
 /***************************************************************************
- *                    (C) Copyright 2003-2009 - Stendhal                   *
+ *                    (C) Copyright 2003-2023 - Stendhal                   *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -11,20 +11,17 @@
  ***************************************************************************/
 package games.stendhal.server.core.engine.db;
 
-import games.stendhal.common.parser.Expression;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.entity.npc.ConversationStates;
-import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.fsm.Transition;
-
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
-
-import marauroa.server.db.DBTransaction;
-import marauroa.server.db.TransactionPool;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
+
+import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.entity.npc.SpeakerNPC;
+import marauroa.server.db.DBTransaction;
 
 /**
  * database base access for the NPC dump used on the website
@@ -34,49 +31,37 @@ import org.apache.log4j.Logger;
 public class StendhalNPCDAO {
 	private static Logger logger = Logger.getLogger(StendhalNPCDAO.class);
 
-
 	/**
-	 * dumps the properties of the specified SpeakerNPC into the prepared statement as an operation in a batch.
-	 * 
-	 * @param stmt PreparedStatement in batch mode
-	 * @param npc  SpeakerNPC
-	 * @throws SQLException in case a database error is thrown.
+	 * Dumps the properties of the specified SpeakerNPC into the prepared statement as an operation in
+	 * a batch.
+	 *
+	 * @param stmt
+	 *   PreparedStatement in batch mode.
+	 * @param npc
+	 *   SpeakerNPC.
+	 * @param shopsInfo
+	 *   What the NPC buys & sells.
+	 * @throws
+	 *   SQLException in case a database error is thrown.
 	 */
 	private void dumpNPC(PreparedStatement stmt, SpeakerNPC npc) throws SQLException {
-		stmt.setString(1, npc.getName());
-		stmt.setString(2, npc.getTitle());
-		stmt.setString(3, npc.get("class"));
-		stmt.setString(4, getOutfit(npc));
-		stmt.setInt(5, npc.getHP());
-		stmt.setInt(6, npc.getBaseHP());
-		stmt.setString(7, npc.getZone().getName());
-		stmt.setInt(8, npc.getX());
-		stmt.setInt(9, npc.getY());
-		stmt.setInt(10, npc.getLevel());
-		stmt.setString(11, npc.getDescription());
-		stmt.setString(12, getJob(npc));
-		stmt.setString(13, npc.getAlternativeImage());
+		stmt.setInt(1, 1);
+		stmt.setString(2, npc.getName());
+		stmt.setString(3, npc.getTitle());
+		stmt.setString(4, npc.get("class"));
+		stmt.setString(5, getOutfit(npc));
+		stmt.setString(6, getOutfitLayer(npc));
+		stmt.setInt(7, npc.getHP());
+		stmt.setInt(8, npc.getBaseHP());
+		stmt.setString(9, npc.getZone().getName());
+		stmt.setInt(10, npc.getX());
+		stmt.setInt(11, npc.getY());
+		stmt.setInt(12, npc.getLevel());
+		stmt.setString(13, npc.getDescription());
+		stmt.setString(14, npc.getJob());
+		stmt.setString(15, npc.getAlternativeImage());
+		stmt.setString(16, npc.get("cloned"));
 		stmt.addBatch();
-	}
-
-	/**
-	 * gets the answer to the "job" question in ATTENDING state.
-	 *
-	 * @param npc SpeakerNPC object
-	 * @return the answer to the job question or null in case there is no job specified
-	 */
-	private String getJob(SpeakerNPC npc) {
-		List<Transition> transitions = npc.getEngine().getTransitions();
-		for (Transition transition : transitions) {
-			if (transition.getState() == ConversationStates.ATTENDING) {
-				for(Expression triggerExpr : transition.getTriggers()) {
-					if (triggerExpr.getOriginal().equals("job")) {
-						return transition.getReply();
-					}
-				}
-			}
-		}
-		return null;
 	}
 
 	/**
@@ -94,6 +79,20 @@ public class StendhalNPCDAO {
 	}
 
 	/**
+	 * gets the outfit code as string
+	 *
+	 * @param npc SpeakerNPC object
+	 * @return outfit code as string or null incase there is not outfit specified
+	 */
+	private String getOutfitLayer(SpeakerNPC npc) {
+		String outfit = null;
+		if (npc.getOutfit() != null) {
+			outfit = (npc.getOutfit().getData(npc.getOutfitColors()));
+		}
+		return outfit;
+	}
+
+	/**
 	 * dumps all NPCs
 	 *
 	 * @param transaction DBTransaction
@@ -101,29 +100,39 @@ public class StendhalNPCDAO {
 	 */
 	public void dumpNPCs(DBTransaction transaction) throws SQLException {
 		long start = System.currentTimeMillis();
-		transaction.execute("DELETE FROM npcs", null);
-		PreparedStatement stmt = transaction.prepareStatement("INSERT INTO npcs " +
-			"(name, title, class, outfit, hp, base_hp, zone, x, y, level, description, job, image)" +
-			" VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", null);
-
+		transaction.execute("UPDATE npcs SET active=0", null);
+		PreparedStatement stmt = transaction.prepareStatement("UPDATE npcs SET "
+				+ "active=?, name=?, title=?, class=?, outfit=?, outfit_layers=?, hp=?, base_hp=?, zone=?, x=?, y=?, "
+				+ "level=?, description=?, job=?, image=?, cloned=? "
+				+ "WHERE name=?", null);
+		Map<String, SpeakerNPC> unknown = new HashMap<>();
 		for (SpeakerNPC npc : SingletonRepository.getNPCList()) {
+			unknown.put(npc.getName().trim(), npc);
+			stmt.setString(17, npc.getName());
+			dumpNPC(stmt, npc);
+		}
+		stmt.executeBatch();
+
+
+		// add new
+		ResultSet resultSet = transaction.query("SELECT name FROM npcs", null);
+		while (resultSet.next()) {
+			unknown.remove(resultSet.getString(1));
+		}
+
+		stmt = transaction.prepareStatement("INSERT INTO npcs " +
+			"(active, name, title, class, outfit, outfit_layers, hp, base_hp, zone, x, y, " +
+			"level, description, job, image, cloned) " +
+			"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", null);
+
+		for (SpeakerNPC npc : unknown.values()) {
 			dumpNPC(stmt, npc);
 		}
 		stmt.executeBatch();
 		logger.debug("Completed dumping of NPCs in " + (System.currentTimeMillis() - start) + " milliseconds.");
 	}
 
-	/**
-	 * dumps all NPCs
-	 */
-	public void dumpNPCs() {
-		DBTransaction transaction = TransactionPool.get().beginWork();
-		try {
-			dumpNPCs(transaction);
-			TransactionPool.get().commit(transaction);
-		} catch (SQLException e) {
-			logger.error(e, e);
-			TransactionPool.get().rollback(transaction);
-		}
+	public Map<String, Integer> getIdMap(DBTransaction transaction) throws SQLException {
+		return transaction.queryAsMap("SELECT name, id FROM npcs", null);
 	}
 }

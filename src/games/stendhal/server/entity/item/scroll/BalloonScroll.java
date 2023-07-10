@@ -1,4 +1,3 @@
-/* $Id: BalloonScroll.java,v 1.11 2010/11/25 20:58:54 kiheru Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,24 +11,23 @@
  ***************************************************************************/
 package games.stendhal.server.entity.item.scroll;
 
+import java.util.Map;
+
 import games.stendhal.common.MathHelper;
 import games.stendhal.server.core.events.DelayedPlayerTextSender;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.Map;
 
 /**
  * Represents the balloon that takes the player to 7 kikareukin clouds,
  * after which it will teleport player to a random location in 6 kikareukin islands.
  */
 public class BalloonScroll extends TimedTeleportScroll {
-
 	private static final long DELAY = 6 * MathHelper.MILLISECONDS_IN_ONE_HOUR;
 	private static final int NEWTIME = 540;
-	
+
 	/**
 	 * Creates a new timed marked BalloonScroll scroll.
-	 * 
+	 *
 	 * @param name
 	 * @param clazz
 	 * @param subclass
@@ -42,7 +40,7 @@ public class BalloonScroll extends TimedTeleportScroll {
 
 	/**
 	 * Copy constructor.
-	 * 
+	 *
 	 * @param item
 	 *            item to copy
 	 */
@@ -52,7 +50,7 @@ public class BalloonScroll extends TimedTeleportScroll {
 
 	@Override
 	protected String getBeforeReturnMessage() {
-		return "Czujesz jakby chmury już nie mogły wytrzymać pod Twoim ciężarem ... ";
+		return "Czujesz jakby chmury już nie mogły wytrzymać pod Twoim ciężarem... ";
 	}
 
 	@Override
@@ -71,19 +69,19 @@ public class BalloonScroll extends TimedTeleportScroll {
 				player.sendPrivateText("Balon próbował unieść cię wyżej, ale wysokość była zbyt niska, aby podnieść Ciebie. " 
 									  + "Spróbuj przejść gdzieś, gdzie jest wyżej.");
 			}
-			return false; 
-		} 
+			return false;
+		}
 		long lastuse = -1;
 		if (player.hasQuest("balloon")) {
-			lastuse = Long.parseLong(player.getQuest("balloon"));		
+			lastuse = Long.parseLong(player.getQuest("balloon"));
 		}
-		
+
 		player.setQuest("balloon", Long.toString(System.currentTimeMillis()));
-		
+
 		final long timeRemaining = (lastuse + DELAY) - System.currentTimeMillis();
 		if (timeRemaining > 0) {
 			// player used the balloon within the last DELAY hours
-			// so this use of balloon is going to be shortened 
+			// so this use of balloon is going to be shortened
 			// (the clouds can't take so much weight on them)
 			// delay message for 1 turn for technical reasons
 			new DelayedPlayerTextSender(player, "Chmury osłabły od ostatniego razu i nie utrzymają Ciebie zbyt długo.", 1);

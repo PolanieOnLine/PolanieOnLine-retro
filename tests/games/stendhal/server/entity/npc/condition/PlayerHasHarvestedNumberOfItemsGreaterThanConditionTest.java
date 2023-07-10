@@ -2,14 +2,14 @@ package games.stendhal.server.entity.npc.condition;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.*;
-import games.stendhal.server.entity.player.Player;
-import games.stendhal.server.maps.MockStendlRPWorld;
+import static org.junit.Assert.assertThat;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.maps.MockStendlRPWorld;
 import utilities.PlayerTestHelper;
 
 public class PlayerHasHarvestedNumberOfItemsGreaterThanConditionTest {
@@ -26,25 +26,25 @@ public class PlayerHasHarvestedNumberOfItemsGreaterThanConditionTest {
 
 	@Test
 	public void testEqualsHashCode() {
-		PlayerHasHarvestedNumberOfItemsCondition actual = new PlayerHasHarvestedNumberOfItemsCondition(1, "axe");
-		assertThat(actual.toString(), is("player has harvested <1 of [axe]>"));
+		PlayerHasHarvestedNumberOfItemsCondition actual = new PlayerHasHarvestedNumberOfItemsCondition(1, "topór");
+		assertThat(actual.toString(), is("player has harvested <1 of [topór]>"));
 		assertThat(actual, is(actual));
 		assertThat(actual.hashCode(), is(actual.hashCode()));
-		assertThat(actual, is(new PlayerHasHarvestedNumberOfItemsCondition(1, "axe")));
-		assertThat(actual.hashCode(), is(new PlayerHasHarvestedNumberOfItemsCondition(1, "axe").hashCode()));
-		assertThat(actual, not(is(new PlayerHasHarvestedNumberOfItemsCondition(1, "dagger"))));
+		assertThat(actual, is(new PlayerHasHarvestedNumberOfItemsCondition(1, "topór")));
+		assertThat(actual.hashCode(), is(new PlayerHasHarvestedNumberOfItemsCondition(1, "topór").hashCode()));
+		assertThat(actual, not(is(new PlayerHasHarvestedNumberOfItemsCondition(1, "sztylecik"))));
 	}
-	
+
 	@Test
 	public void testFire() {
-		PlayerHasHarvestedNumberOfItemsCondition condition = new PlayerHasHarvestedNumberOfItemsCondition(5, "axe");
+		PlayerHasHarvestedNumberOfItemsCondition condition = new PlayerHasHarvestedNumberOfItemsCondition(5, "topór");
 		Player player = PlayerTestHelper.createPlayer("looter");
 		assertThat(condition.fire(player, null, null), is(false));
-		player.incHarvestedForItem("dagger", 12);
+		player.incHarvestedForItem("sztylecik", 12);
 		assertThat(condition.fire(player, null, null), is(false));
-		player.incHarvestedForItem("axe", 4);
+		player.incHarvestedForItem("topór", 4);
 		assertThat(condition.fire(player, null, null), is(false));
-		player.incHarvestedForItem("axe", 2);
+		player.incHarvestedForItem("topór", 2);
 		assertThat(condition.fire(player, null, null), is(true));
 	}
 

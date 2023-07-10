@@ -1,4 +1,4 @@
-/* $Id: GrowingPassiveEntityRespawnPointTestHelper.java,v 1.2 2010/09/19 01:28:49 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -28,7 +28,7 @@ public class GrowingPassiveEntityRespawnPointTestHelper {
 			GrowingPassiveEntityRespawnPoint.generateRPClass();
 		}
 	}
-	
+
 	@Test
 	public void testname() throws Exception {
 		generateRPClasses();

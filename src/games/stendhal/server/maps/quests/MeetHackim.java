@@ -1,6 +1,5 @@
-/* $Id: MeetHackim.java,v 1.43 2011/11/13 17:14:15 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2011 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,6 +11,13 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
+import games.stendhal.common.grammar.Grammar;
+import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
@@ -24,11 +30,8 @@ import games.stendhal.server.entity.npc.condition.QuestCompletedCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotCompletedCondition;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.Region;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import games.stendhal.server.maps.semos.blacksmith.BlacksmithAssistantNPC;
+import games.stendhal.server.util.ResetSpeakerNPC;
 
 /**
  * QUEST: Speak with Hackim
@@ -37,36 +40,15 @@ import java.util.List;
  *
  * STEPS: - Talk to Hackim to activate the quest and keep speaking with Hackim.
  *
- * REWARD: - 10 XP - 5 gold coins
+ * REWARD: - 350 XP - 75 gold coins
  *
  * REPETITIONS: - As much as wanted, but you only get the reward once.
  */
 public class MeetHackim extends AbstractQuest {
-
 	private static final String QUEST_SLOT = "meet_hackim";
 	List<String> yesTrigger;
 
-
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
-	
-	@Override
-	public List<String> getHistory(final Player player) {
-		final List<String> res = new ArrayList<String>();
-		if (!player.hasQuest(QUEST_SLOT)) {
-			return res;
-		}
-		res.add("Rozmawiałem z Hackim, bardzo miły pomocnik kowala Semos.");
-		if (isCompleted(player)) {
-			res.add("Wysłuchałem jego przydatnych informacji na temat Xin Blanca, faceta z tawerny Semos.");
-		}
-		return res;
-	}
-
 	private void prepareHackim() {
-
 		final SpeakerNPC npc = npcs.get("Hackim Easso");
 
 		npc.add(
@@ -84,33 +66,33 @@ public class MeetHackim extends AbstractQuest {
 			ConversationStates.INFORMATION_2,
 			"*szept* Idź do oberży i porozmawiaj z człowiekiem zwącym się #Xin #Blanca... kupuje i sprzedaje ekwipunek, który mógłby Cię zainteresować. Chcesz usłyszeć więcej?",
 			null);
-		
+
 		npc.add(
 			ConversationStates.INFORMATION_2,
 			yesTrigger,
 			null,
 			ConversationStates.INFORMATION_3,
-			"Zapytaj go co ma do #zaoferowania i zobacz co możesz #kupić i #sprzedać. Na przykład jeżeli masz studded shield, którego nie chcesz to możesz sprzedać mówiąc#'sell studded shield'.",
+			"Zapytaj go co ma do #zaoferowania i zobacz co możesz #kupić i #sprzedać. Na przykład jeżeli masz studded shield, którego nie chcesz to możesz sprzedać mówiąc #'sprzedam tarcza ćwiekowa'.",
 			null);
 
 		final String answer = "Zgadnij kto zaopatruje Xin Blanca w broń, którą sprzedaje? Cóż to ja! Ponieważ muszę unikać wzbudzania podejrzeń przemycam tylko małe bronie. Jeżeli potrzebujesz czegoś mocniejszego to musisz zejść do podziemi i zabić jakiegoś potwora.\n";
 
 		final List<ChatAction> reward = new LinkedList<ChatAction>();
-		reward.add(new EquipItemAction("money", 5));
-		reward.add(new IncreaseXPAction(10));
+		reward.add(new EquipItemAction("money", 75));
+		reward.add(new IncreaseXPAction(350));
 		reward.add(new SetQuestAction(QUEST_SLOT, "done"));
-		
+
 		npc.add(ConversationStates.INFORMATION_3,
-				Arrays.asList("buy", "sell", "offer", "sell studded shield"),
+				Arrays.asList("buy", "sell", "offer", "sell studded shield", "kupię", "sprzedam", "oferta", "sprzedam tarcza ćwiekowa"),
 				new QuestNotCompletedCondition(QUEST_SLOT),
-				ConversationStates.IDLE, 
+				ConversationStates.IDLE,
 				answer + "Jeżeli ktoś Cię zapyta to nie znasz mnie!",
 				new MultipleActions(reward));
 
 		npc.add(ConversationStates.INFORMATION_3,
-				Arrays.asList("buy", "sell", "offer", "sell studded shield"),
+				Arrays.asList("buy", "sell", "offer", "sell studded shield", "kupię", "sprzedam", "oferta", "sprzedam tarcza ćwiekowa"),
 				new QuestCompletedCondition(QUEST_SLOT),
-				ConversationStates.IDLE, 
+				ConversationStates.IDLE,
 				answer + "Gdzie dostałeś tę broń? W sklepie z zabawkami?",
 				null);
 
@@ -120,21 +102,20 @@ public class MeetHackim extends AbstractQuest {
 					ConversationStates.INFORMATION_2,
 					ConversationStates.INFORMATION_3 },
 				ConversationPhrases.NO_MESSAGES,
-    			null,
-    			ConversationStates.ATTENDING,
-    			"Pamiętaj wszystkie bronie są policzone i lepiej je zostawić w spokoju.",
-    			null);
+				null,
+				ConversationStates.ATTENDING,
+				"Pamiętaj wszystkie bronie są policzone i lepiej je zostawić w spokoju.",
+				null);
 
 	}
 
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
 				"Spotkanie Hackima Easso",
 				"Asystent kowala Hackim Easso posiada pewne użyteczne informacje.",
 				false);
- 	  yesTrigger = new LinkedList<String>(ConversationPhrases.YES_MESSAGES);
+		yesTrigger = new LinkedList<String>(ConversationPhrases.YES_MESSAGES);
 		yesTrigger.add("Xin Blanca");
 		yesTrigger.add("Blanca");
 		yesTrigger.add("Xin");
@@ -142,10 +123,36 @@ public class MeetHackim extends AbstractQuest {
 	}
 
 	@Override
-	public String getName() {
-		return "MeetHackim";
+	public boolean removeFromWorld() {
+		final boolean res = ResetSpeakerNPC.reload(new BlacksmithAssistantNPC(), getNPCName());
+		// reload other quests associated with Hackim
+		SingletonRepository.getStendhalQuestSystem().reloadQuestSlots("news_hackim", "mrsyeti");
+		return res;
 	}
-	
+
+	@Override
+	public List<String> getHistory(final Player player) {
+		final List<String> res = new ArrayList<String>();
+		if (!player.hasQuest(QUEST_SLOT)) {
+			return res;
+		}
+		res.add(Grammar.genderVerb(player.getGender(), "Rozmawiałem") + " z Hackim, bardzo miły pomocnik kowala Semos.");
+		if (isCompleted(player)) {
+			res.add(Grammar.genderVerb(player.getGender(), "Wysłuchałem") + " jego przydatnych informacji na temat Xin Blanca, faceta z tawerny Semos.");
+		}
+		return res;
+	}
+
+	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
+	}
+
+	@Override
+	public String getName() {
+		return "Spotkanie Hackima Easso";
+	}
+
 	@Override
 	public String getRegion() {
 		return Region.SEMOS_CITY;

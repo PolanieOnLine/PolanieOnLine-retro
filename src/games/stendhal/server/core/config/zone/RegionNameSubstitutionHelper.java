@@ -1,4 +1,4 @@
-/* $Id: RegionNameSubstitutionHelper.java,v 1.4 2010/09/19 02:22:42 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -17,15 +17,28 @@ import java.util.Map;
 /**
  * Helper class to substitute region names
  * i.e. it should name "magic" to "magic city"
- *  
+ *
  * @author madmetzger
  */
 public class RegionNameSubstitutionHelper {
-	
+	/** The singleton instance. */
 	private static RegionNameSubstitutionHelper instance;
-	
+
 	private final Map<String, String> replacements = new HashMap<String, String>();
-	
+
+	/**
+	 * Singleton access method
+	 *
+	 * @return the singleton instance
+	 */
+	public static RegionNameSubstitutionHelper get() {
+		if(instance == null) {
+			instance = new RegionNameSubstitutionHelper();
+		}
+
+		return instance;
+	}
+
 	private RegionNameSubstitutionHelper() {
 		replacements.put("magic", "magic city");
 		replacements.put("wofol", "wofol city");
@@ -39,10 +52,10 @@ public class RegionNameSubstitutionHelper {
 		replacements.put("pillar", "semos");
 		replacements.put("plain", "semos");
 	}
-	
+
 	/**
 	 * Replaces the given zone name if configured. If no replacement is defined the original name is returned
-	 * 
+	 *
 	 * @param name
 	 * @return the replaced name
 	 */
@@ -52,24 +65,11 @@ public class RegionNameSubstitutionHelper {
 		}
 		return name;
 	}
-	
+
 	/**
 	 * @return the name of the default region
 	 */
 	public String getDefaultRegion() {
 		return "no_region";
 	}
-
-	/**
-	 * Singleton access method
-	 * 
-	 * @return the singleton instance
-	 */
-	public static RegionNameSubstitutionHelper get() {
-		if(instance == null) {
-			instance = new RegionNameSubstitutionHelper(); 
-		}
-		return instance;
-	}
-
 }

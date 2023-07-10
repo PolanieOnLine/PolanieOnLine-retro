@@ -1,6 +1,5 @@
-/* $Id: KillEnemyArmy.java,v 1.32 2012/10/15 00:23:59 yoriy Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -11,6 +10,13 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
 
 import games.stendhal.common.MathHelper;
 import games.stendhal.common.Rand;
@@ -32,6 +38,7 @@ import games.stendhal.server.entity.npc.action.SetQuestToTimeStampAction;
 import games.stendhal.server.entity.npc.action.StartRecordingKillsAction;
 import games.stendhal.server.entity.npc.condition.AndCondition;
 import games.stendhal.server.entity.npc.condition.KilledInSumForQuestCondition;
+import games.stendhal.server.entity.npc.condition.KillsQuestSlotNeedUpdateCondition;
 import games.stendhal.server.entity.npc.condition.NotCondition;
 import games.stendhal.server.entity.npc.condition.OrCondition;
 import games.stendhal.server.entity.npc.condition.QuestCompletedCondition;
@@ -41,14 +48,7 @@ import games.stendhal.server.entity.npc.condition.QuestNotStartedCondition;
 import games.stendhal.server.entity.npc.condition.TimePassedCondition;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.Region;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-
 import marauroa.common.Pair;
-
 
 /**
  * QUEST: KillEnemyArmy
@@ -67,24 +67,19 @@ import marauroa.common.Pair;
  * REWARD:<ul>
  * <li> 100k of XP, or 300 karma.
  * <li> random moneys - from 10k to 60k, step 10k.
- * <li> 5 karma for killing 100% creatures
- * <li> 5 karma for killing every 50% next creatures
+ * <li> 100 karma for killing 100% creatures
+ * <li> 50 karma for killing every 50% next creatures
  * </ul>
  *
  * REPETITIONS: <ul><li> once a week.</ul>
  */
-
- public class KillEnemyArmy extends AbstractQuest {
-
+public class KillEnemyArmy extends AbstractQuest {
 	private static final String QUEST_NPC = "Despot Halb Errvl";
 	private static final String QUEST_SLOT = "kill_enemy_army";
 	private static final int delay = MathHelper.MINUTES_IN_ONE_WEEK;
-	
+
 	protected HashMap<String, Pair<Integer, String>> enemyForces = new HashMap<String, Pair<Integer,String>>();
 	protected HashMap<String, List<String>> enemys = new HashMap<String, List<String>>();
-
-
-
 
 	public KillEnemyArmy() {
 		super();
@@ -108,7 +103,6 @@ import marauroa.common.Pair;
 		enemyForces.put("oni",
 				new Pair<Integer, String>(200,"Bardzo dziwny naród, żyjący w swoim zamku w lesie Fado. Istnieją pogłoski, że wchodzą w sojusz z czarodziejami z magicznego miasta."));
 
-
 		/*
 		 * those are not interesting
 		enemyForces.put("dwarf",
@@ -124,11 +118,15 @@ import marauroa.common.Pair;
 		/*
 		 *  fill creatures map
 		 */
-
 		enemys.put("blordrough",
 				Arrays.asList("blordrough kwatermistrz",
 							  "uzbrojony lider",
-							  "superczłowiek"));
+							  "superczłowiek",
+							  "żołnierz blordrough",
+							  "elitarny żołnierz",
+							  "piechota blordrough",
+							  "kapitan blordrough",
+							  "generał blordrough"));
 		enemys.put("mroczne elfy",
 				Arrays.asList("elf mikrus",
 							  "elf ciemności łucznik",
@@ -142,7 +140,7 @@ import marauroa.common.Pair;
 							  "elf ciemności czarnoksiężnik",
 							  "elf ciemności admirał",
 							  "elf ciemności mistrz",
-						"elf ciemności matrona"));
+							  "elf ciemności matrona"));
 		enemys.put("chaosy",
 				Arrays.asList("żołnierz chaosu",
 							  "wojownik chaosu",
@@ -241,7 +239,7 @@ import marauroa.common.Pair;
 		final List<String> enemyList = new LinkedList<String>(enemyForces.keySet());
 		final int enemySize = enemyList.size();
 		final int position  = Rand.rand(enemySize);
-		return(enemyList.get(position));
+		return enemyList.get(position);
 	}
 
 	/**
@@ -291,15 +289,15 @@ import marauroa.common.Pair;
 
 			count = count + solo - recsolo + shared - recshared;
 		}
-		return(count);
+		return count;
 	}
-
 
 	class GiveQuestAction implements ChatAction {
 		/**
 		 * function will update player quest slot.
 		 * @param player - player for which we will record quest.
 		 */
+		@Override
 		public void fire(final Player player, final Sentence sentence, final EventRaiser speakerNPC) {
 			final String monstersType = chooseRandomEnemys();
 			speakerNPC.say("Potrzebuję pomocy, aby pokonać #wrogą  " + monstersType +
@@ -322,11 +320,12 @@ import marauroa.common.Pair;
 		 * function will complete quest and reward player.
 		 * @param player - player to be rewarded.
 		 */
+		@Override
 		public void fire(final Player player, final Sentence sentence, final EventRaiser speakerNPC) {
 			final String monsters = player.getQuest(QUEST_SLOT, 1);
 			int killed=getKilledCreaturesNumber(player);
 			int killsnumber = enemyForces.get(monsters).first();
-			int moneyreward = 10000*Rand.roll1D6();
+			int moneyreward = 10000*(5*killed/killsnumber-1);
 			if(killed == killsnumber) {
 				// player killed no more no less then needed soldiers
 				speakerNPC.say("Dobra robota! Oto zapłata. Gdy będziesz potrzebował znów pracy jako najemnik, wróć za tydzień. Moi zwiadowcy doniosą mi, gdy znowu ktoś odważy się nas zaatakować.");
@@ -335,24 +334,23 @@ import marauroa.common.Pair;
 				speakerNPC.say("Bardzo dobrze! Zabiłeś "+(killed-killsnumber)+" extra "+
 						Grammar.plnoun(killed-killsnumber, "soldier")+"! Weź te monety, i pamiętaj, życzę abyś za tydzień wrócił tu spowrotem!");
 			}
-			int karmabonus = 5*(2*killed/(killsnumber)-1);
+			int karmabonus = 50*(2*killed/killsnumber-1);
 			final StackableItem money = (StackableItem)
 					SingletonRepository.getEntityManager().getItem("money");
 			money.setQuantity(moneyreward);
 
 			player.equipOrPutOnGround(money);
 			player.addKarma(karmabonus);
-		
+
 		}
 	}
-
-
 
 	/**
 	 * class for quest talking.
 	 */
 	class ExplainAction implements ChatAction {
 
+		@Override
 		public void fire(Player player, Sentence sentence, EventRaiser npc) {
 				final String monsters = player.getQuest(QUEST_SLOT, 1);
 				int killed=getKilledCreaturesNumber(player);
@@ -369,7 +367,25 @@ import marauroa.common.Pair;
 							". Musisz zabić co najmniej "+killsnumber+" "+Grammar.plnoun(killed, player.getQuest(QUEST_SLOT, 1)));
 					return;
 				}
+		}
+	}
 
+	/**
+	 * class for quest talking.
+	 */
+	class FixAction implements ChatAction {
+
+		@Override
+		public void fire(Player player, Sentence sentence, EventRaiser npc) {
+				//final String monsters = player.getQuest(QUEST_SLOT, 1);
+			    Logger.getLogger(KillEnemyArmy.class).warn("Fixing malformed quest string of player <"+
+				                                            player.getName()+
+				                                            ">: ("+
+				                                            player.getQuest(QUEST_SLOT)+
+				                                            ")");
+				npc.say("Przepraszam, ale nie zwracałem uwagi. " +
+						"Co teraz potrzebuję:");
+				new GiveQuestAction().fire(player, sentence, npc);
 		}
 	}
 
@@ -377,7 +393,6 @@ import marauroa.common.Pair;
 	 * add quest state to npc's fsm.
 	 */
 	private void step_1() {
-		
 		SpeakerNPC npc = npcs.get(QUEST_NPC);
 
 		// quest can be given
@@ -410,6 +425,7 @@ import marauroa.common.Pair;
 				ConversationStates.ATTENDING,
 				null,
 				new ChatAction() {
+						@Override
 						public void fire(Player player, Sentence sentence, EventRaiser npc) {
 							npc.say(enemyForces.get(player.getQuest(QUEST_SLOT, 1)).second());
 						}
@@ -422,6 +438,16 @@ import marauroa.common.Pair;
 				ConversationStates.ATTENDING,
 				"Tak, moi wrogowie są wszędzie, chcą mnie zabić! Myślę, że jesteś jednym z nich. Trzymaj się z dala ode mnie!",
 				null);
+
+		// update player's quest slot or blank it if failed...
+		npc.add(ConversationStates.ATTENDING,
+				ConversationPhrases.QUEST_MESSAGES,
+				new AndCondition(
+						new QuestInStateCondition(QUEST_SLOT, 0, "start"),
+						new KillsQuestSlotNeedUpdateCondition(QUEST_SLOT, 1, enemys, true)),
+				ConversationStates.ATTENDING,
+				null,
+				new FixAction());
 
 		// checking for kills
 		final List<String> creatures = new LinkedList<String>(enemyForces.keySet());
@@ -455,7 +481,6 @@ import marauroa.common.Pair;
 		    		  ConversationStates.ATTENDING,
 		    		  null,
 		    		  new ExplainAction());
-
 		}
 	}
 
@@ -464,51 +489,29 @@ import marauroa.common.Pair;
 	 */
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
-				"Zabij Wrogą Armię",
+				"Zgładzenie Wrogiej Armii",
 				"Despot Halb Errvl poprosił mnie o zabicie kilku jego wrogów.",
 				true);
 		step_1();
 	}
 
-	/**
-	 * return name of quest slot.
-	 */
-	public String getSlotName() {
-		return(QUEST_SLOT);
-	}
-
-	/**
-	 * return name of quest.
-	 */
-	public String getName() {
-		return("KillEnemyArmy");
-	}
-	
 	@Override
-	public int getMinLevel() {
-		return 80;
-	}	
-	
-	@Override
-	public boolean isRepeatable(final Player player) {
-		return	new AndCondition(new QuestCompletedCondition(QUEST_SLOT),
-						 new TimePassedCondition(QUEST_SLOT,1,delay)).fire(player, null, null);
-	}
-	
- 	@Override
  	public List<String> getHistory(final Player player) {
  		LinkedList<String> history = new LinkedList<String>();
 		if (!player.hasQuest(QUEST_SLOT)) {
 			return history;
 		}
-		
+
 		if(player.getQuest(QUEST_SLOT, 0).equals("start")) {
 	        final String givenEnemies = player.getQuest(QUEST_SLOT, 1);
-	        final int givenNumber = enemyForces.get(givenEnemies).first(); 
+	        final int givenNumber = enemyForces.get(givenEnemies).first();
+	        // updating firstly
+			if(new KillsQuestSlotNeedUpdateCondition(QUEST_SLOT, 2, enemys.get(givenEnemies), true).fire(player, null, null)) {
+				// still need update??
+			}
 	        final int killedNumber = getKilledCreaturesNumber(player);
-	        
+
 			history.add("Despot Halb Errvl poprosił mnie o zabicie "+
 					givenNumber+" "+
 					Grammar.plnoun(givenNumber, givenEnemies));
@@ -516,39 +519,60 @@ import marauroa.common.Pair;
 			if(killedNumber == 0) {
 				kn="no";
 			}
-			history.add("Aktualnie zabiłem "+
+			history.add("Aktualnie " + Grammar.genderVerb(player.getGender(), "zabiłem") + " "+
 					kn+" "+
 					Grammar.plnoun(killedNumber, givenEnemies));
 			if(new KilledInSumForQuestCondition(QUEST_SLOT, 2, givenNumber).fire(player, null, null)) {
-				history.add("Zabiłem wystaczająco dużo potworów, aby dostać moją nagrodę.");
+				history.add(Grammar.genderVerb(player.getGender(), "Zabiłem") + " wystaczająco dużo potworów, aby dostać moją nagrodę.");
 			} else {
-				history.add("Zostało "+(givenNumber-killedNumber)+" "+
-						Grammar.plnoun(givenNumber-killedNumber, givenEnemies)+" do zabicia.");	
+				int enemyleft = givenNumber - killedNumber;
+				history.add("Zostało "+enemyleft+" "+
+						Grammar.plnoun(enemyleft, givenEnemies)+" do zabicia.");
 			}
 		}
-		
+
 		if(isCompleted(player)) {
-			history.add("Ukończyłem zadanie Despot's Halb Errvl i otrzymałem moja nagrodę!");
-		}	
+			history.add("Ukończyłem zadanie Despot's Halb Errvl i " + Grammar.genderVerb(player.getGender(), "otrzymałem") + " moja nagrodę!");
+		}
 		if (isRepeatable(player)) {
 			history.add("Despot Halb Errvl dostaje znowu paranoi o swoim bezpieczeństwie. Mogę teraz zaoferować swoje usługi.");
-		} 
+		}
 		int repetitions = player.getNumberOfRepetitions(getSlotName(), 3);
 		if (repetitions > 0) {
 			history.add("Rozgromiłem "
 					+ Grammar.quantityplnoun(repetitions, "całą armię") + " dla Despot Halb Errvl.");
 		}
-		return history; 
+		return history;
  	}
+
+	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
+	}
+
+	@Override
+	public String getName() {
+		return "Zgładzenie Wrogiej Armii";
+	}
+
+	@Override
+	public int getMinLevel() {
+		return 80;
+	}
 
 	@Override
 	public String getNPCName() {
 		return "Despot Halb Errvl";
 	}
-	
+
 	@Override
 	public String getRegion() {
 		return Region.SEMOS_SURROUNDS;
 	}
-}
 
+	@Override
+	public boolean isRepeatable(final Player player) {
+		return	new AndCondition(new QuestCompletedCondition(QUEST_SLOT),
+						 new TimePassedCondition(QUEST_SLOT,1,delay)).fire(player, null, null);
+	}
+}

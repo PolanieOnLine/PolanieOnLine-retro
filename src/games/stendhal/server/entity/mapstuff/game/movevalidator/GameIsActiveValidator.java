@@ -1,4 +1,4 @@
-/* $Id: GameIsActiveValidator.java,v 1.5 2010/09/19 02:24:37 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -23,6 +23,7 @@ import games.stendhal.server.entity.player.Player;
  */
 public class GameIsActiveValidator implements MoveValidator {
 
+	@Override
 	public boolean validate(GameBoard board, Player player, BoardToken token, int xIndex, int yIndex) {
 		if (!board.isGameActive()) {
 			player.sendPrivateText("Rozpocznij grę mówiąc " + board.getNPCName() + ".");

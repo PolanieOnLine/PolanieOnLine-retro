@@ -1,4 +1,4 @@
-/* $Id: BackgroundMusicSource.java,v 1.3 2010/09/19 02:24:30 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -23,6 +23,10 @@ public class BackgroundMusicSource extends LoopedSoundSource  {
 
 	/**
 	 * Create an ambient sound area.
+	 *
+	 * @param sound sound name
+	 * @param radius
+	 * @param volume
 	 */
 	public BackgroundMusicSource(String sound, int radius, int volume) {
 		super(sound, radius, volume, SoundLayer.BACKGROUND_MUSIC);

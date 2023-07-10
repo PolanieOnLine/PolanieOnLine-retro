@@ -1,6 +1,5 @@
-/* $Id: DestroyAction.java,v 1.22 2010/11/26 18:41:55 martinfuchs Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -14,6 +13,7 @@ package games.stendhal.server.actions.admin;
 
 import static games.stendhal.common.constants.Actions.NAME;
 import static games.stendhal.common.constants.Actions.TARGET;
+
 import games.stendhal.server.actions.CommandCenter;
 import games.stendhal.server.core.engine.GameEvent;
 import games.stendhal.server.core.engine.ItemLogger;
@@ -26,9 +26,10 @@ import games.stendhal.server.entity.RPEntity;
 import games.stendhal.server.entity.creature.Creature;
 import games.stendhal.server.entity.item.Corpse;
 import games.stendhal.server.entity.item.Item;
+import games.stendhal.server.entity.item.SlotActivatedItem;
 import games.stendhal.server.entity.mapstuff.portal.Portal;
 import games.stendhal.server.entity.mapstuff.spawner.FlowerGrower;
-import games.stendhal.server.entity.npc.SpeakerNPC;
+import games.stendhal.server.entity.npc.PassiveNPC;
 import games.stendhal.server.entity.player.Player;
 import marauroa.common.game.RPAction;
 import marauroa.common.game.RPObject;
@@ -45,34 +46,39 @@ class DestroyAction extends AdministrationAction {
 		final Entity inspected = getTarget(player, action);
 
 		if (inspected == null) {
-			final String text = "Jednostka nie została znaleziona";
+			final String text = "Jednostka nie została znaleziona.";
 
 			player.sendPrivateText(text);
 			return;
 		}
-		
+
 		String clazz = inspected.getRPClass().getName();
 		String name = "";
-		 
+
 		if (inspected.has(NAME)) {
-                      name = inspected.get(NAME);
-		} 
-		
+			name = inspected.get(NAME);
+		}
+
 		if (inspected.isContained()) {
 			RPObject slot = inspected.getContainer();
 
 			new GameEvent(player.getName(), "removed", name + " " + clazz, slot.getID().toString(), Integer.toString(inspected.getX()), Integer.toString(inspected.getY())).raise();
 			// items should be added to itemlog as well, to help tracing problems
 			if (inspected instanceof Item) {
-//				String slotName = null;
-//				if (inspected.getContainerSlot() != null) {
-//					slotName = inspected.getContainerSlot().getName();
-//				}
-//				String quantity = inspected.get("quantity");
-//				if (quantity == null) {
-//					quantity = "1";
-//				}
+				//				String slotName = null;
+				//				if (inspected.getContainerSlot() != null) {
+				//					slotName = inspected.getContainerSlot().getName();
+				//				}
+				//				String quantity = inspected.get("quantity");
+				//				if (quantity == null) {
+				//					quantity = "1";
+				//				}
 				new ItemLogger().destroy(player, inspected.getContainerSlot(), inspected, "admin");
+			}
+
+			// disable effects of slot activated items
+			if (inspected instanceof SlotActivatedItem) {
+				((SlotActivatedItem) inspected).onUnequipped();
 			}
 
 			String slotname = inspected.getContainerSlot().getName();
@@ -81,19 +87,24 @@ class DestroyAction extends AdministrationAction {
 				if (slot instanceof Entity) {
 					((Entity) slot).notifyWorldAboutChanges();
 				}
-				player.sendPrivateText("Usunięto zawartość " + clazz + " " + name + " o ID " + objectID + " ze slota " + slotname);
+				player.sendPrivateText("Usunięto przedmiot #'" + name + "' o ID #" + objectID + " ze slota #" + slotname + ".");
 			} else {
-				player.sendPrivateText("Nie można było usunąć zawartości " + clazz + " " + inspected + " o ID " + objectID + " ze slota " + slotname);
+				player.sendPrivateText("Nie można było usunąć zawartości #'" + inspected + "' o ID #" + objectID + " ze slota #" + slotname + ".");
+
+				// re-enable effects of slot activated item in case removal failed
+				if (inspected instanceof SlotActivatedItem) {
+					((SlotActivatedItem) inspected).onEquipped(player, slotname);
+				}
 			}
 		} else {
 			if (inspected instanceof Player) {
-				final String text = "Nie możesz usuwać wojowników";
+				final String text = "Nie możesz usuwać wojowników.";
 				player.sendPrivateText(text);
 				return;
 			}
 
-			if (inspected instanceof SpeakerNPC) {
-				final String text = "Nie możesz usuwać SpeakerNPCów";
+			if (inspected instanceof PassiveNPC) {
+				final String text = "Nie możesz usuwać PassiveNPCów.";
 				player.sendPrivateText(text);
 				return;
 			}
@@ -110,7 +121,7 @@ class DestroyAction extends AdministrationAction {
 				if (inspected instanceof Creature) {
 					// *destroyed creatures should not drop items
 					((Creature) inspected).clearDropItemList();
-				} 
+				}
 				((RPEntity) inspected).onDead(player);
 			} else if ((inspected instanceof Item) || (inspected instanceof FlowerGrower) || (inspected instanceof Blood) || (inspected instanceof Corpse)) {
 				// items should be added to itemlog as well, to help tracing problems
@@ -123,7 +134,7 @@ class DestroyAction extends AdministrationAction {
 				}
 				zone.remove(inspected);
 			} else {
-				player.sendPrivateText("Nie możesz usuwać tego typu jednostek");
+				player.sendPrivateText("Nie możesz usuwać tego typu jednostek.");
 				return;
 			}
 
@@ -132,9 +143,9 @@ class DestroyAction extends AdministrationAction {
 				TurnNotifier.get().dontNotify(listener);
 			}
 
-			new GameEvent(player.getName(), "removed",  name + " " + clazz, zone.getName(), Integer.toString(inspected.getX()), Integer.toString(inspected.getY())).raise();
+			new GameEvent(player.getName(), "removed", name + " " + clazz, zone.getName(), Integer.toString(inspected.getX()), Integer.toString(inspected.getY())).raise();
 
-			player.sendPrivateText("Usunięto " + clazz + " " + name + " o ID " + action.get(TARGET));
+			player.sendPrivateText("Usunięto #'" + name + "' o ID " + action.get(TARGET) + ".");
 		}
 	}
 }

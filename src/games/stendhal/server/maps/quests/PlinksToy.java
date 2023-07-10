@@ -1,6 +1,5 @@
-/* $Id: PlinksToy.java,v 1.58 2012/04/19 18:26:42 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,6 +11,12 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
+import games.stendhal.common.grammar.Grammar;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.entity.mapstuff.spawner.PassiveEntityRespawnPoint;
@@ -25,20 +30,15 @@ import games.stendhal.server.entity.npc.action.IncreaseXPAction;
 import games.stendhal.server.entity.npc.action.MultipleActions;
 import games.stendhal.server.entity.npc.action.SetQuestAction;
 import games.stendhal.server.entity.npc.condition.AndCondition;
+import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
 import games.stendhal.server.entity.npc.condition.NotCondition;
 import games.stendhal.server.entity.npc.condition.OrCondition;
 import games.stendhal.server.entity.npc.condition.PlayerHasItemWithHimCondition;
 import games.stendhal.server.entity.npc.condition.QuestCompletedCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotCompletedCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotStartedCondition;
-import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.Region;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * QUEST: Plink's Toy
@@ -49,83 +49,50 @@ import java.util.List;
  * dropping his teddy. <li> Find the teddy in the Park Of Wolves <li> Bring it back to
  * Plink </ul>
  * 
- * REWARD: <ul><li> a smile <li> 20 XP <li> 10 Karma </ul>
+ * REWARD: <ul><li> a smile <li> 200 XP <li> 10 Karma </ul>
  * 
  * REPETITIONS: <ul><li> None. </ul>
  */
 public class PlinksToy extends AbstractQuest {
-
 	private static final String QUEST_SLOT = "plinks_toy";
-
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
-	
-	@Override
-	public List<String> getHistory(final Player player) {
-		final List<String> res = new ArrayList<String>();
-		if (!player.hasQuest(QUEST_SLOT)) {
-			if (player.isEquipped("pluszowy miś")) {
-				res.add("Plink opowiedział o misiu, którego mam ze sobą");
-			}
-			return res;
-		}
-		res.add("Spotkałem Plinka");
-		final String questState = player.getQuest(QUEST_SLOT);
-		if (questState.equals("rejected")) {
-			res.add("Nie chcę szukać pluszowego misia Plinka");
-			return res;
-		}
-		res.add("Nie chcę pomóc Plink w szukaniu jego misia");
-		if ((player.isEquipped("pluszowy miś")) || isCompleted(player)) {
-			res.add("Znalazłem pluszowego misia Plinka");
-		}
-		if (isCompleted(player)) {
-			res.add("Dałem Plinkowi jego misia.");
-		}
-		return res;
-	}
+	private final SpeakerNPC npc = npcs.get("Plink");
 
 	private void step_1() {
-		final SpeakerNPC npc = npcs.get("Plink");
-
-		npc.add(
-			ConversationStates.IDLE,
+		npc.add(ConversationStates.IDLE,
 			ConversationPhrases.GREETING_MESSAGES,
 			new AndCondition(new GreetingMatchesNameCondition(npc.getName()),
 					new QuestNotCompletedCondition(QUEST_SLOT),
 					new NotCondition(new PlayerHasItemWithHimCondition("pluszowy miś"))),
 			ConversationStates.QUEST_OFFERED,
-			"*płacz* Wilki są w #parku! *płacz* Uciekłem, ale upuściłem mojego #misia! Proszę przyniesiesz go dla mnie? *pociągniecie nosem* Proszę?",
+			"*płacz* Wilki są w #parku! *płacz* Uciekłem, ale upuściłem mojego #misia! Proszę przyniesiesz go dla mnie? *siąknięcie* Proszę?",
 			null);
 
 		npc.add(ConversationStates.QUEST_OFFERED,
 			ConversationPhrases.YES_MESSAGES, null,
-			ConversationStates.IDLE, "*pociągnięcie nosem* Dziękuję bardzo! *uśmiech*",
+			ConversationStates.IDLE, "*siąknięcie* Dziękuję bardzo! *uśmiech*",
 			new SetQuestAction(QUEST_SLOT, "start"));
 
 		npc.add(ConversationStates.QUEST_OFFERED, ConversationPhrases.NO_MESSAGES, null,
 			ConversationStates.QUEST_OFFERED,
 			"*pociągnięcie nosem* Ale... ale... PROSZĘ! *płacz*", null);
 
-		npc.add(
-			ConversationStates.QUEST_OFFERED,
+		npc.add(ConversationStates.QUEST_OFFERED,
 			Arrays.asList("wolf", "wolves", "wilków"),
 			null,
 			ConversationStates.QUEST_OFFERED,
 			"Przyszły od równiny, a teraz chodzą po #parku, który jest na wschód stąd. Nie powinienem się do nich zbliżać, one są niebezpieczne.",
 			null);
 
-		npc.add(
-			ConversationStates.QUEST_OFFERED,
+		npc.add(ConversationStates.QUEST_OFFERED,
 			Arrays.asList("park", "parku"),
 			null,
 			ConversationStates.QUEST_OFFERED,
 			"Moi rodzice mówili mi żebym sam nie chodził do parku, ale się zgubiłem podczas zabawy... Proszę nie mów moim rodzicom! Czy możesz mi przynieść misia #teddy z powrotem?",
 			null);
 
-		npc.add(ConversationStates.QUEST_OFFERED, "pluszowy miś", null,
+		npc.add(ConversationStates.QUEST_OFFERED,
+			Arrays.asList("teddy bear", "pluszowy miś"),
+			null,
 			ConversationStates.QUEST_OFFERED,
 			"Miś jest moją ulubioną zabawką! Przyniesiesz mi ją?",
 			null);
@@ -142,11 +109,9 @@ public class PlinksToy extends AbstractQuest {
 	}
 
 	private void step_3() {
-		final SpeakerNPC npc = npcs.get("Plink");
-
 		final List<ChatAction> reward = new LinkedList<ChatAction>();
 		reward.add(new DropItemAction("pluszowy miś"));
-		reward.add(new IncreaseXPAction(20));
+		reward.add(new IncreaseXPAction(200));
 		reward.add(new SetQuestAction(QUEST_SLOT, "done"));
 		reward.add(new IncreaseKarmaAction(10));
 		
@@ -160,8 +125,7 @@ public class PlinksToy extends AbstractQuest {
 			"Znalazłeś go! *przytula misia* Dziękuję, dziękuję! *uśmiech*",
 			new MultipleActions(reward));
 
-		npc.add(
-			ConversationStates.ATTENDING,
+		npc.add(ConversationStates.ATTENDING,
 			Arrays.asList("pluszowy miś","miś"),
 			new AndCondition(new QuestNotCompletedCondition(QUEST_SLOT), new NotCondition(new PlayerHasItemWithHimCondition("pluszowy miś"))),
 			ConversationStates.ATTENDING,
@@ -178,7 +142,6 @@ public class PlinksToy extends AbstractQuest {
 
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
 				"Zabawka Plinka",
 				"Plink chce, abym znalazł jego misia.",
@@ -189,18 +152,47 @@ public class PlinksToy extends AbstractQuest {
 	}
 
 	@Override
+	public List<String> getHistory(final Player player) {
+		final List<String> res = new ArrayList<String>();
+		if (!player.hasQuest(QUEST_SLOT)) {
+			if (player.isEquipped("pluszowy miś")) {
+				res.add("Plink opowiedział o misiu, którego mam ze sobą.");
+			}
+			return res;
+		}
+		res.add(Grammar.genderVerb(player.getGender(), "Spotkałem") + " Plinka.");
+		final String questState = player.getQuest(QUEST_SLOT);
+		if (questState.equals("rejected")) {
+			res.add("Nie chcę szukać pluszowego misia Plinka.");
+			return res;
+		}
+		res.add("Nie chcę pomóc Plink w szukaniu jego misia.");
+		if (player.isEquipped("pluszowy miś") || isCompleted(player)) {
+			res.add(Grammar.genderVerb(player.getGender(), "Znalazłem") + " pluszowego misia Plinka.");
+		}
+		if (isCompleted(player)) {
+			res.add(Grammar.genderVerb(player.getGender(), "Dałem") + " Plinkowi jego misia.");
+		}
+		return res;
+	}
+
+	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
+	}
+
+	@Override
 	public String getName() {
-		return "PlinksToy";
+		return "Zabawka Plinka";
 	}
 
 	@Override
 	public String getNPCName() {
-		return "Plink";
+		return npc.getName();
 	}
 
 	@Override
 	public String getRegion() {
 		return Region.SEMOS_SURROUNDS;
 	}
-	
 }

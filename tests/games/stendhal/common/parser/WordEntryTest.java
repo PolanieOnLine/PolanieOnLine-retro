@@ -1,4 +1,4 @@
-/* $Id: WordEntryTest.java,v 1.1 2011/05/01 19:41:43 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -13,14 +13,12 @@
 package games.stendhal.common.parser;
 
 import static org.junit.Assert.assertEquals;
-import games.stendhal.common.parser.ExpressionType;
-import games.stendhal.common.parser.WordEntry;
 
 import org.junit.Test;
 
 /**
  * Test the NPC conversation WordEntry class.
- * 
+ *
  * @author Martin Fuchs
  */
 public class WordEntryTest {

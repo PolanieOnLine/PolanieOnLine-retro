@@ -1,4 +1,4 @@
-/* $Id: ConversationPhrases.java,v 1.23 2012/08/04 10:26:33 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -20,7 +20,7 @@ import java.util.List;
 
 /**
  * Common phrases used by players to interact with a SpeakerNPC.
- * 
+ *
  * @author hendrik
  */
 public class ConversationPhrases {
@@ -33,11 +33,11 @@ public class ConversationPhrases {
 	public static final List<String> EMPTY = Arrays.asList(new String[0]);
 
 	public static final List<String> GREETING_MESSAGES = Arrays.asList("hi",
-			"hello", "hallo", "greetings", "hola", "witaj", "witam", "cześć", "dzień dobry",
-			"dobry wieczór", "dzien dobry", "dobry wieczor");
+			"hello", "hallo", "greetings", "hola", "witaj", "witam", "cześć", "czesc", "dzień dobry",
+			"dobry wieczór", "dzien dobry", "dobry wieczor", "siema", "siemaneczko", "elo", "eluwina");
 
-	public static final List<String> JOB_MESSAGES = Arrays.asList("job", "work",
-			"praca", "zajęcie");
+	public static final List<String> JOB_MESSAGES = Arrays.asList("job", "work", "occupation",
+			"praca", "zajęcie", "zawód");
 
 	public static final List<String> HELP_MESSAGES = Arrays.asList("help",
 			"ayuda", "pomoc", "pomocy", "pomóc", "pomagam", "pomożesz");
@@ -45,9 +45,11 @@ public class ConversationPhrases {
 	public static final List<String> QUEST_MESSAGES = Arrays.asList("task",
 			"quest", "favor", "favour", "zadanie", "misja", "zadanko", "przysługa",
 			"przysługę", "przysluga", "przyslugi", "przysluge", "zadaniem", "zadaniu", "zadania");
+
 	public static final List<String> FINISH_MESSAGES = Arrays.asList("done",
-			"finish", "complete", "zrobione", "skończone", "zakończone", "ukończone");
-	
+			"finish", "complete", "zrobione", "skończone", "zakończone", "ukończone", "załatwione");
+	public static final List<String> QUEST_FINISH_MESSAGES = combine(QUEST_MESSAGES, FINISH_MESSAGES);
+
 	public static final List<String> ABORT_MESSAGES = Arrays.asList("another", "abort", "inny", "przerwij");
 
 	public static final List<String> OFFER_MESSAGES = Arrays.asList("offer", "deal", "trade",
@@ -62,10 +64,24 @@ public class ConversationPhrases {
 			"nothing", "none", "no", "nie", "nic");
 
 	public static final List<String> GOODBYE_MESSAGES = Arrays.asList("bye", "goodbye",
-			"farewell", "cya", "adios", "dowidzenia", "żegnaj", "zegnaj", "bywaj",
+			"farewell", "cya", "adios", "do widzenia", "żegnaj", "zegnaj", "bywaj",
 			"nara", "tymczasem", "dobranoc", "na razie", "do jutra");
 
-	/** combine a string collection (list) with additional strings */
+	public static final List<String> PURCHASE_MESSAGES = Arrays.asList("buy", "purchase", "kup",
+			"kupię", "kupie", "kupno", "kupić", "kupic", "kupować", "kupowac", "zakup",
+			"zakupię", "zakupie", "zakupić", "zakupic");
+
+	public static final List<String> SALES_MESSAGES = Arrays.asList("sell", "sales", "sprzedaż",
+			"sprzedaz", "sprzedam");
+
+	/**
+	 * Combine a string collection (list) with additional strings.
+	 *
+	 * @param list first collection of strings
+	 * @param args additional strings
+	 * @return new list with the contents of the list and all the additional
+	 * 	strings
+	 */
 	public static final List<String> combine(Collection<String> list, String ...args) {
 		List<String> ret = new ArrayList<String>(list);
 
@@ -76,7 +92,14 @@ public class ConversationPhrases {
 		return ret;
 	}
 
-	/** combine a string collection with another collection */
+	/**
+	 * Combine a string collection with other collections.
+	 *
+	 * @param list1 first collection
+	 * @param lists additional collections
+	 * @return a new list with contents of all the collections
+	 */
+	@SafeVarargs
 	public static final List<String> combine(Collection<String> list1, Collection<String>... lists) {
 		List<String> ret = new LinkedList<String>(list1);
 		for (Collection<String> list : lists) {

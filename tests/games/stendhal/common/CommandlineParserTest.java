@@ -1,4 +1,4 @@
-/* $Id: CommandlineParserTest.java,v 1.5 2010/09/19 02:37:46 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -22,7 +22,7 @@ import org.junit.Test;
 
 /**
  * Test CommandlineParser.
- * 
+ *
  * @author Martin Fuchs
  */
 public class CommandlineParserTest {

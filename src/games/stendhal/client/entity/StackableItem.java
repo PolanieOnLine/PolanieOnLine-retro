@@ -1,4 +1,4 @@
-/* $Id: StackableItem.java,v 1.21 2008/03/15 13:21:38 astridemma Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -41,7 +41,7 @@ public class StackableItem extends Item {
 
 	/**
 	 * Get the item quantity.
-	 * 
+	 *
 	 * @return The number of items.
 	 */
 	public int getQuantity() {
@@ -54,7 +54,7 @@ public class StackableItem extends Item {
 
 	/**
 	 * The object added/changed attribute(s).
-	 * 
+	 *
 	 * @param object
 	 *            The base object.
 	 * @param changes

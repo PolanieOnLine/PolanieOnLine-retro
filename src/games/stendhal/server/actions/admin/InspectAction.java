@@ -1,6 +1,5 @@
-/* $Id: InspectAction.java,v 1.19 2012/09/12 18:52:36 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -13,6 +12,8 @@
 package games.stendhal.server.actions.admin;
 
 import static games.stendhal.common.constants.Actions.INSPECT;
+
+import games.stendhal.common.constants.Testing;
 import games.stendhal.server.actions.CommandCenter;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.Entity;
@@ -26,7 +27,6 @@ import marauroa.common.game.RPObject;
 import marauroa.common.game.RPSlot;
 
 public class InspectAction extends AdministrationAction {
-
 	public static void register() {
 		CommandCenter.register(INSPECT, new InspectAction(), 6);
 	}
@@ -52,54 +52,118 @@ public class InspectAction extends AdministrationAction {
 			final String type = inspected.get("type");
 			st.append("Sprawdzany jest ");
 			if (type != null) {
-				st.append(type);
+				st.append("#'"+type+"'");
 			} else {
 				st.append("entity");
 			}
-			st.append(" ");
 
 			String name = inspected.getName();
 			if (name == null) {
 				name = inspected.getTitle();
 			}
-			if (name != null) {
-				st.append("zwany \"");
+			if (name != null && !name.equals("")) {
+				st.append(" zwany \"&'");
 				st.append(name);
-				st.append("\".");
+				st.append("'\"");
 			} else {
 				st.append("nieznany");
 			}
-			st.append(" zdefiniowany jako ");
+			st.append(" zdefiniowany jako #'");
 			st.append(inspected.getClass().getName());
-			st.append(" Posiada następujące atrybuty:");
+			st.append("'. Posiada następujące atrybuty:");
 
 			// st.append(target.toString());
 			// st.append("\n===========================\n");
-			st.append("\nID: " + action.get("target") + " w " + inspected.getZone().getName() + " (" + + inspected.getX() + ", " + + inspected.getY()+")");
+			st.append("\nID: " + action.get("target") + " w &" + inspected.getZone().getName() + " (" + inspected.getX() + ", " + inspected.getY() + ")");
 			st.append("\nPłeć:  " + inspected.getGender());
+			st.append("\nPZ:     " + inspected.getHP() + " / " + inspected.getBaseHP());
 			st.append("\nATK:    " + inspected.getAtk() + "("
 					+ inspected.getAtkXP() + ")");
 			st.append("\nOBR:    " + inspected.getDef() + "("
 					+ inspected.getDefXP() + ")");
-			st.append("\nPZ:     " + inspected.getHP() + " / "
-					+ inspected.getBaseHP());
-			st.append("\nXP:     " + inspected.getXP());
+			if (Testing.COMBAT) {
+				st.append("\nSTR:    " + inspected.getRatk() + "("
+						+ inspected.getRatkXP() + ")");
+			}
+			st.append("\nGórnictwo:    " + inspected.getMining() + "("
+					+ inspected.getMiningXP() + ")");
+			st.append("\nPD:     " + inspected.getXP());
 			st.append("\nPoziom:  " + inspected.getLevel());
 			st.append("\nKarma:  " + inspected.getKarma());
 			st.append("\nMana:  " + inspected.getMana() + " / "
 					+ inspected.getBaseMana());
-			st.append("\n---------------------------");
+			if (inspected.has("age")) {
+				st.append("\nWiek: " + inspected.get("age"));
+			}
+			if (Testing.WEIGHT) {
+				st.append("\nUdźwig:  " + inspected.getCapacity() + " / "
+						+ inspected.getBaseCapacity() + "kg");
+			}
+			st.append("\nResistance:  " + inspected.getResistance());
+			st.append("\nVisibility:  " + inspected.getVisibility());
 
+			boolean outfit_temp_orig = false;
+			String outfit_str = null;
+			String outfit_str_temp = null;
+			if (inspected.has("outfit_ext")) {
+				st.append("\n\nUbiór: ");
+				outfit_str = inspected.get("outfit_ext");
+				if (inspected.has("outfit_ext_orig")) {
+					outfit_temp_orig = true;
+					outfit_str_temp = outfit_str;
+					outfit_str = inspected.get("outfit_ext_orig");
+				}
+				st.append(outfit_str);
+				if (outfit_str_temp != null) {
+					st.append("\nUbiór tymczasowy: " + outfit_str_temp);
+				}
+			} else if (inspected.has("outfit")) {
+				st.append("\n\nKod ubioru: ");
+				outfit_str = inspected.get("outfit");
+				if (inspected.has("outfit_org")) {
+					outfit_temp_orig = true;
+					outfit_str_temp = outfit_str;
+					outfit_str = inspected.get("outfit_org");
+				}
+				st.append(outfit_str);
+				if (outfit_str_temp != null) {
+					st.append("\nKod ubioru tymczasowego: " + outfit_str_temp);
+				}
+			}
+			if (inspected instanceof Player) {
+				final Player iplayer = (Player) inspected;
+				final boolean outfit_temp_expire = iplayer.has("outfit_expire_age");
+				if (outfit_temp_expire) {
+					st.append("\nOkres ważności ubioru: " + iplayer.get("outfit_expire_age"));
+				}
+				if (outfit_temp_orig != outfit_temp_expire) {
+					st.append("\nUWAGA: oryginalny strój i atrybuty wieku utraty ważności stroju nie pasują do siebie:"
+						+ " ma oryginalny ubiór=" + outfit_temp_orig + ", ma czas wygaśnięcia ubioru="
+						+ outfit_temp_expire);
+				}
+			}
+
+			if (inspected.has("class")) {
+				st.append("\nUbiór (klasa):  " + inspected.get("class"));
+			}
+			st.append("\n\nOdporności:");
+			for (final String key: target) {
+				if (key.startsWith("resist_")) {
+					st.append("\n  " + key + ": " + target.get(key));
+				}
+			}
+			st.append("\n---------------------------");
 			st.append("\nWyposażenie");
+
 			for (final RPSlot slot : inspected.slots()) {
 				// showing these is either irrelevant, private, or spams too much
 				if (slot.getName().equals("!buddy")
-					|| slot.getName().equals("!ignore") 
-					|| slot.getName().equals("!visited")
-					|| slot.getName().equals("!tutorial")
-					|| slot.getName().equals("skills")
-					|| slot.getName().equals("spells")
-					|| slot.getName().equals("!kills")) {
+						|| slot.getName().equals("!ignore")
+						|| slot.getName().equals("!visited")
+						|| slot.getName().equals("!tutorial")
+						|| slot.getName().equals("skills")
+						|| slot.getName().equals("spells")
+						|| slot.getName().equals("!kills")) {
 					continue;
 				}
 				st.append("\n---------------------------");

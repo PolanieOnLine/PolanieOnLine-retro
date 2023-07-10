@@ -1,4 +1,3 @@
-/* $Id: BlueIceSorceressNPC.java,v 1.9 2010/09/19 02:35:23 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,16 +11,16 @@
  ***************************************************************************/
 package games.stendhal.server.maps.semos.wizardstower;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Cassandra, the ice sorceress of the Wizards Tower
@@ -29,14 +28,13 @@ import java.util.Map;
  * see games.stendhal.server.maps.quests.SorceressCassandraPlainQuest
  */
 public class BlueIceSorceressNPC implements ZoneConfigurator {
-
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildCassandra(zone);
 	}
 
 	private void buildCassandra(final StendhalRPZone zone) {
 		final SpeakerNPC cassandra = new SpeakerNPC("Cassandra") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -108,8 +106,8 @@ public class BlueIceSorceressNPC implements ZoneConfigurator {
 
 		cassandra.setDescription("Oto Cassandra, piękna kobieta i silna czarodziejka.");
 		cassandra.setEntityClass("bluesorceressnpc");
+		cassandra.setGender("F");
 		cassandra.setPosition(37, 2);
-		cassandra.initHP(100);
 		zone.add(cassandra);
 	}
 }

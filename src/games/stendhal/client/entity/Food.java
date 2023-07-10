@@ -1,6 +1,6 @@
-/* $Id: Food.java,v 1.55 2010/03/23 19:15:02 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
- *                      (C) Copyright 2003 - Marauroa                      *
+ *                   (C) Copyright 2003 - 2013 Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -23,17 +23,13 @@ public abstract class Food extends AudibleEntity {
 	 * Amount property.
 	 */
 	public static final Property PROP_AMOUNT = new Property();
+	/** Amount attribute string. */
+	private static final String AMOUNT = "amount";
 
 	/**
 	 * The current amount of food.
 	 */
 	private int amount;
-
-	/**
-	 * Create a food entity.
-	 */
-	public Food() {
-	}
 
 	//
 	// Food
@@ -41,7 +37,7 @@ public abstract class Food extends AudibleEntity {
 
 	/**
 	 * Get the amount.
-	 * 
+	 *
 	 * @return The amount.
 	 */
 	public int getAmount() {
@@ -54,20 +50,20 @@ public abstract class Food extends AudibleEntity {
 
 	/**
 	 * Initialize this entity for an object.
-	 * 
+	 *
 	 * @param object
 	 *            The object.
-	 * 
+	 *
 	 * @see #release()
 	 */
 	@Override
 	public void initialize(final RPObject object) {
 		super.initialize(object);
 
-		addSounds(SoundLayer.CREATURE_NOISE.groupName, "food", "pop-2");
+		addSounds(SoundLayer.CREATURE_NOISE.groupName, "food", "click-1");
 
-		if (object.has("amount")) {
-			amount = object.getInt("amount");
+		if (object.has(AMOUNT)) {
+			amount = object.getInt(AMOUNT);
 		} else {
 			amount = 0;
 		}
@@ -79,7 +75,7 @@ public abstract class Food extends AudibleEntity {
 
 	/**
 	 * A slot object added/changed attribute(s).
-	 * 
+	 *
 	 * @param object
 	 *            The base slot object.
 	 * @param changes
@@ -89,12 +85,10 @@ public abstract class Food extends AudibleEntity {
 	public void onChangedAdded(final RPObject object, final RPObject changes) {
 		super.onChangedAdded(object, changes);
 
-		if (changes.has("amount")) {
+		if (changes.has(AMOUNT)) {
 			final int oldAmount = amount;
-			amount = changes.getInt("amount");
+			amount = changes.getInt(AMOUNT);
 
-			// TODO this causes problems because of unidentified content refresh
-			// events (e.g. synchronizing)
 			if (amount > oldAmount) {
 				playRandomSoundFromCategory(SoundLayer.AMBIENT_SOUND.groupName, "food");
 			}

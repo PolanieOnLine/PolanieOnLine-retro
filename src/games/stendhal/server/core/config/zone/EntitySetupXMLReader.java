@@ -1,20 +1,22 @@
-/*
- * @(#) src/games/stendhal/server/config/zone/EntitySetupXMLReader.java
- *
- * $Id: EntitySetupXMLReader.java,v 1.6 2009/02/26 15:25:19 astridemma Exp $
- */
-
+/***************************************************************************
+ *                   (C) Copyright 2007-2016 - Stendhal                    *
+ ***************************************************************************
+ ***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
 package games.stendhal.server.core.config.zone;
-
-//
-//
-
-import games.stendhal.server.core.config.XMLUtil;
 
 import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
+
+import games.stendhal.server.core.config.XMLUtil;
 
 /**
  * A generic entity setup xml reader.
@@ -31,24 +33,23 @@ public class EntitySetupXMLReader extends SetupXMLReader {
 
 	/**
 	 * Create an entity setup descriptor.
-	 * 
+	 *
 	 * @param element
 	 *            The entity setup XML element.
 	 * @param x
 	 *            The X coordinate.
 	 * @param y
 	 *            The Y coordinate.
-	 * 
+	 *
 	 * @return An entity setup descriptor.
 	 */
-	protected EntitySetupDescriptor read(final Element element, final int x,
-			final int y) {
+	protected EntitySetupDescriptor read(final Element element, final int x, final int y) {
 		return new EntitySetupDescriptor(x, y);
 	}
 
 	/**
 	 * Read attributes from an XML element.
-	 * 
+	 *
 	 * @param desc
 	 *            The descriptor to load.
 	 * @param element
@@ -60,28 +61,54 @@ public class EntitySetupXMLReader extends SetupXMLReader {
 
 		for (final Element attr : list) {
 			if (attr.hasAttribute("name")) {
-				desc.setAttribute(attr.getAttribute("name"), XMLUtil.getText(
-						attr).trim());
+				desc.setAttribute(attr.getAttribute("name"),
+						XMLUtil.getText(attr).trim());
 			} else {
 				LOGGER.error("Unnamed attribute");
+			}
+		}
+	}
+	/**
+	 * Read a connector from an XML element.
+	 *
+	 * @param desc
+	 *            The descriptor to load.
+	 * @param element
+	 *            The XML element.
+	 */
+	protected void readConnector(final EntitySetupDescriptor desc, final Element element) {
+		final List<Element> connectors = XMLUtil.getElements(element, "connector");
+		if (connectors.isEmpty()) {
+			return;
+		}
+		Element connector = connectors.get(0);
+		if (connector.hasAttribute("name")) {
+			desc.setConnectorName(connector.getAttribute("name"));
+		}
+
+		final List<Element> list = XMLUtil.getElements(connector, "port");
+		for (final Element port : list) {
+			if (port.hasAttribute("name") && port.hasAttribute("expression")) {
+				desc.addPort(port.getAttribute("name"), port.getAttribute("expression"));
+			} else {
+				LOGGER.error("<port> without name or expression");
 			}
 		}
 	}
 
 	/**
 	 * Read implementation information from an XML element.
-	 * 
+	 *
 	 * @param desc
 	 *            The descriptor to load.
 	 * @param element
 	 *            The XML element.
 	 */
-	protected void readImplementation(final EntitySetupDescriptor desc,
-			final Element element) {
+	protected void readImplementation(final EntitySetupDescriptor desc,	final Element element) {
 		if (element.hasAttribute("class-name")) {
 			desc.setImplementation(element.getAttribute("class-name"));
 		} else {
-			LOGGER.error("Implmentation without class-name");
+			LOGGER.error("Implementation without class-name");
 		}
 
 		readParameters(desc, element);
@@ -93,10 +120,10 @@ public class EntitySetupXMLReader extends SetupXMLReader {
 
 	/**
 	 * Create a setup descriptor from XML data.
-	 * 
+	 *
 	 * @param element
 	 *            The descriptor XML element.
-	 * 
+	 *
 	 * @return A setup descriptor, or <code>null</code> if invalid.
 	 */
 	@Override
@@ -145,6 +172,7 @@ public class EntitySetupXMLReader extends SetupXMLReader {
 		}
 
 		readAttributes(desc, element);
+		readConnector(desc, element);
 
 		return desc;
 	}

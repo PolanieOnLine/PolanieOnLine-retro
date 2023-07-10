@@ -1,4 +1,3 @@
-/* $Id: NPCOwnedChest.java,v 1.6 2010/12/05 13:10:09 martinfuchs Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -21,18 +20,17 @@ import games.stendhal.server.entity.player.Player;
 /**
  * A chest that is for decoration purpose only. The player cannot open it. If he
  * tries, the nearby NPC will tell him to get away.
- * 
+ *
  * @author hendrik
  */
 public class NPCOwnedChest extends Chest {
-
 	private static Logger logger = Logger.getLogger(NPCOwnedChest.class);
 
 	private final SpeakerNPC npc;
 
 	/**
 	 * Creates a new NPCOwnedChest.
-	 * 
+	 *
 	 * @param npc
 	 *            SpeakerNPC
 	 */
@@ -43,12 +41,19 @@ public class NPCOwnedChest extends Chest {
 	@Override
 	public boolean onUsed(final RPEntity user) {
 		if (user instanceof Player) {
-		final Player player = (Player) user;
+			final Player player = (Player) user;
 
-		if (player.nextTo(this)) {
-			npc.say("Hej " + user.getTitle() + " to moja skrzynia.");
-			return true;
+			if (player.nextTo(this) && player.isEquipped("wytrychy")) {
+				if (isOpen()) {
+					close();
+				} else {
+					open();
+				}
+
+				notifyWorldAboutChanges();
+				return true;
 			} else {
+				npc.say("Hej " + user.getTitle() + ", to moja skrzynia!");
 				return false;
 			}
 		} else {

@@ -1,5 +1,5 @@
 /***************************************************************************
- *                   (C) Copyright 2003-2011 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -23,7 +23,11 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.AccessController;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivilegedAction;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -33,7 +37,7 @@ import javax.swing.JOptionPane;
 
 /**
  * Starts a program after doing some classpath magic.
- * 
+ *
  * @author hendrik
  */
 public class Bootstrap {
@@ -44,9 +48,9 @@ public class Bootstrap {
 
 	/**
 	 * saves modified boot properties to disk.
-	 * 
+	 *
 	 * @throws IOException
-	 *             if an IO-error occurs
+	 *			 if an IO-error occurs
 	 */
 	public void saveBootProp() throws IOException {
 		// only try to save it, if it was changed (so that we do not have to
@@ -56,7 +60,7 @@ public class Bootstrap {
 			final String propFile = jarFolder + "jar.properties";
 			final OutputStream os = new FileOutputStream(propFile);
 			try {
-				bootProp.store(os, "PolskaOnLine Boot Configuration");
+				bootProp.store(os, "PolanieOnLine Boot Configuration");
 			} finally {
 				os.close();
 			}
@@ -94,12 +98,12 @@ public class Bootstrap {
 
 	/**
 	 * Sets a dynamic classpath up and returns a Class reference loaded from it.
-	 * 
+	 *
 	 * @param includeUpdates should updates from jar.properties be included
 	 * @param firstPhase true, if this is the first phase before the updater is executed
 	 * @return ClassLoader object
 	 * @throws Exception
-	 *             if an unexpected error occurs
+	 *			 if an unexpected error occurs
 	 */
 	ClassLoader createClassloader(boolean includeUpdates, boolean firstPhase) throws Exception {
 		final List<URL> jarFiles = new LinkedList<URL>();
@@ -117,7 +121,7 @@ public class Bootstrap {
 				bootPropOrg = (Properties) bootProp.clone();
 
 				// get list of .jar-files
-				final String jarNameString = bootProp.getProperty("load-0.28.4", "");
+				final String jarNameString = bootProp.getProperty("load-1.16", "");
 				final StringTokenizer st = new StringTokenizer(jarNameString, ",");
 				while (st.hasMoreTokens()) {
 					final String filename = st.nextToken();
@@ -141,8 +145,8 @@ public class Bootstrap {
 		// add the files in the download distribution at the end of the classpath
 		ClassLoader orgClassloader = Bootstrap.class.getClassLoader();
 		String[] includedJarFiles = new String[] { "lib/log4j.jar", "lib/marauroa.jar", "lib/jorbis.jar",
-				"lib/polskaonline.jar", "lib/polskaonline-data.jar", "lib/polskaonline-sound-data.jar",
-				"lib/polskaonline-music-data.jar"};
+				"lib/polanieonline.jar", "lib/polanieonline-data.jar", "lib/polanieonline-sound-data.jar",
+				"lib/polanieonline-music-data.jar"};
 		for (String includedJarFile : includedJarFiles) {
 			URL url = orgClassloader.getResource(includedJarFile);
 			if (url != null) {
@@ -160,7 +164,7 @@ public class Bootstrap {
 
 	/**
 	 * Do the whole start up process in a privileged block.
-	 * @param <T> 
+	 * @param <T>
 	 */
 	private class PrivilegedBoot<T> implements PrivilegedAction<T> {
 
@@ -170,11 +174,11 @@ public class Bootstrap {
 
 		/**
 		 * Creates a PrivilagedBoot object.
-		 * 
+		 *
 		 * @param className
-		 *            className to boot
+		 *			className to boot
 		 * @param args
-		 *            arguments for the main-method
+		 *			arguments for the main-method
 		 */
 		public PrivilegedBoot(final String className, final String[] args) {
 			this.className = className;
@@ -210,7 +214,7 @@ public class Bootstrap {
 				// start update handling
 				final Class< ? > clazz = classLoader.loadClass("games.stendhal.client.update.UpdateManager");
 				final Method method = clazz.getMethod("process", String.class, Properties.class, Boolean.class, ClassLoader.class);
-				method.invoke(clazz.newInstance(), jarFolder, bootProp, initialDownload, classLoader);
+				method.invoke(clazz.getDeclaredConstructor().newInstance(), jarFolder, bootProp, initialDownload, classLoader);
 			} catch (final SecurityException e) {
 				throw e;
 			} catch (final Exception e) {
@@ -225,9 +229,7 @@ public class Bootstrap {
 			try {
 				saveBootProp();
 			} catch (final IOException e) {
-				JOptionPane.showMessageDialog(
-					null,
-					new SelectableLabel("Wystąpił błąd podczas pobierania aktualizacji. Nie można zapisać bootProperties"));
+				LoneOptionDialog.showMessageDialog("Przepraszamy, ale wystąpił błąd podczas pobierania aktualizacji. Nie można zapisać bootProperties");
 			}
 		}
 
@@ -249,6 +251,7 @@ public class Bootstrap {
 
 		}
 
+		@Override
 		public T run() {
 			init();
 			handleUpdate();
@@ -261,23 +264,82 @@ public class Bootstrap {
 	/**
 	 * Is this package signed? Note it does not validate the signature, just
 	 * looks for the presence of one.
-	 * 
+	 *
 	 * @return true, if there is some kind of signature; false otherwise
 	 */
 	private boolean isSigned() {
-		final URL url = Bootstrap.class.getClassLoader().getResource(
-				ClientGameConfiguration.get("UPDATE_SIGNER_FILE_NAME"));
-		return url != null;
+		try {
+			Object[] objects = this.getClass().getSigners();
+			if (objects == null || objects.length == 0) {
+				System.err.println("Unsigned self built client.");
+				return false;
+			}
+			if (! (objects instanceof Certificate[])) {
+				System.err.println("Unknown signer class");
+				return false;
+			}
+
+			Certificate[] certs = (Certificate[]) objects;
+			for (Certificate cert : certs) {
+				byte[] key = cert.getPublicKey().getEncoded();
+				String keyStr = toHexString(hash(key));
+				if (keyStr.equals(ClientGameConfiguration.get("UPDATE_SIGNER_KEY"))) {
+					return true;
+				}
+				System.err.println("Skipping unknown signature: " + keyStr + " from " + cert);
+				if (cert instanceof X509Certificate) {
+					System.err.println("   " + ((X509Certificate) cert).getSubjectX500Principal());
+				}
+
+			}
+			return false;
+
+			// Throwable: both errors and exceptions
+		} catch (Throwable e) {
+			e.printStackTrace();
+		}
+		return false;
 	}
+
+	/**
+	 * Return the hash of an array of bytes.
+	 * This method is thread safe.
+	 *
+	 * @param value an array of bytes.
+	 * @return the hash of an array of bytes.
+	 * @throws NoSuchAlgorithmException
+	 */
+	private static final byte[] hash(final byte[] value) throws NoSuchAlgorithmException {
+		MessageDigest md = MessageDigest.getInstance("MD5");
+		md.reset();
+		md.update(value);
+		return md.digest();
+	}
+
+	/**
+	 * Convert and array of bytes to a Hex string.
+	 * @param bs array of bytes
+	 * @return a string representing a hexadecimal number.
+	 */
+	private static final String toHexString(final byte[] bs) {
+		String hex = "0123456789ABCDEF";
+		StringBuilder res = new StringBuilder();
+		for (byte b : bs) {
+			res.append(hex.charAt(((b >>> 4) & 0xF)));
+			res.append(hex.charAt((b & 0xF)));
+		}
+		return res.toString();
+	}
+
 
 	/**
 	 * Starts the main-method of specified class after dynamically building the
 	 * classpath.
-	 * 
+	 *
 	 * @param className
-	 *            name of class with "main"-method
+	 *			name of class with "main"-method
 	 * @param args
-	 *            command line arguments
+	 *			command line arguments
 	 */
 	public void boot(final String className, final String[] args) {
 		try {
@@ -298,11 +360,10 @@ public class Bootstrap {
 				// partly update
 				e.printStackTrace();
 
-				final int res = JOptionPane.showConfirmDialog(
-						null,
-						new SelectableLabel("Sorry an error occurred because of inconsistent code signing.\r\n"
-						+ "Delete update files so that they are downloaded again after you restart " + ClientGameConfiguration.get("GAME_NAME") + "?\r\n"
-						+ "Note: This exception can occur if you include signed jars into a self build client."),
+				int res = LoneOptionDialog.showConfirmDialog("Przepraszamy, ale wystąpił błąd z powodu niezgodności podpisu kodu.\\r\\n"
+						+ "Usunąć pliki aktualizacji "+ ClientGameConfiguration.get("GAME_NAME") + ", aby po ponownym uruchomieniu mogły być pobrane ponownie"
+						+ "?\r\n"
+						+ "Uwaga: Ten wyjątek może się pojawić w przypadku jeśli do podpisanych plików jar dodasz samodzielnie zbudowanego klienta.",
 						ClientGameConfiguration.get("GAME_NAME"), JOptionPane.YES_NO_OPTION,
 						JOptionPane.QUESTION_MESSAGE);
 				if (res == JOptionPane.YES_OPTION) {
@@ -323,16 +384,15 @@ public class Bootstrap {
 				method.invoke(null, (Object) args);
 			} catch (final Exception err) {
 				err.printStackTrace(System.err);
-				JOptionPane.showMessageDialog(null,
-						new SelectableLabel("Something nasty happened while trying to start your self build client: "
-								+ err));
+				LoneOptionDialog.showMessageDialog("Coś się stało podczas próby uruchomienia samodzielnie zbudowanego klienta: "
+								+ err);
 			}
 		}
 	}
 
 	/**
 	 * Handles exceptions during program invocation.
-	 * 
+	 *
 	 * @param message error message
 	 * @param t exception
 	 */
@@ -346,13 +406,12 @@ public class Bootstrap {
 		e.printStackTrace();
 
 		if (e instanceof OutOfMemoryError) {
-			JOptionPane.showMessageDialog(null,
-					"Brak pamięci. Uruchom ponownie " + ClientGameConfiguration.get("GAME_NAME") + ".");
+			LoneOptionDialog.showMessageDialog("Przepraszamy, ale wystąpił brak pamięci. Proszę uruchom ponownie "
+					+ ClientGameConfiguration.get("GAME_NAME") + ".");
 		} else if (e instanceof LinkageError || e instanceof SecurityException || e instanceof ClassNotFoundException) {
-			final int res = JOptionPane.showConfirmDialog(
-					null,
-					new SelectableLabel(message
-					+ " Wystąpił błąd z powodu niewłaściwego stanu aktualizacji. Usunąłeś pliki aktualizacji i pobrałeś je ponownie po zrestartowaniu " + ClientGameConfiguration.get("GAME_NAME") +"?"),
+			int res = LoneOptionDialog.showConfirmDialog(message
+					+ " Przepraszamy wystąpił błąd z powodu niewłaściwego stanu aktualizacji.\r\nUsunąć pliki aktualizacji " + ClientGameConfiguration.get("GAME_NAME") + " i pobrać je ponownie po ponownym uruchomieniu"
+					+ "?",
 					ClientGameConfiguration.get("GAME_NAME"), JOptionPane.YES_NO_OPTION,
 					JOptionPane.QUESTION_MESSAGE);
 			if (res == JOptionPane.YES_OPTION) {
@@ -360,29 +419,25 @@ public class Bootstrap {
 			}
 		} else {
 			String errorMessage = stacktraceToString(e);
-			JOptionPane.showMessageDialog(
-					null,
-					new SelectableLabel(
-					message + "Wystąpił niespodziewany błąd.\r\nPrzejdź do formularza kontaktowego na http://www.gra.polskaonline.org/kontakt-gmgags i napisz wiadomość o błędzie:\r\n"
-							+ errorMessage));
+			LoneOptionDialog.showMessageDialog(message
+					+ "Wystąpił niespodziewany błąd.\r\nPrzejdź do formularza kontaktowego na https://s1.polanieonline.eu/kontakt-gmgags.html i napisz wiadomość o błędzie:\r\n"
+					+ errorMessage);
 		}
 		System.exit(1);
 	}
 
 	private void clearUpdateFiles() {
 		bootProp.remove("load");
-		bootProp.remove("load-0.17");
-		bootProp.remove("load-0.25.2");
-		bootProp.remove("load-0.28.4");
+		bootProp.remove("load-1.16");
 		try {
 			saveBootProp();
 		} catch (final IOException e1) {
-			JOptionPane.showMessageDialog(null, new SelectableLabel("Could not write jar.properties"));
+			LoneOptionDialog.showMessageDialog("Nie można zapisać jar.properties");
 		}
 	}
 
 	/**
-	 * converts a Throwable into a string representation 
+	 * converts a Throwable into a string representation
 	 * @param e throwable
 	 * @return string
 	 */

@@ -1,16 +1,14 @@
-/* $Id: DumpOpenDBTransactions.java,v 1.2 2009/09/29 20:21:53 nhnb Exp $ */
 package games.stendhal.server.script;
-
-import games.stendhal.server.core.scripting.ScriptImpl;
-import games.stendhal.server.entity.player.Player;
 
 import java.util.List;
 
+import games.stendhal.server.core.scripting.ScriptImpl;
+import games.stendhal.server.entity.player.Player;
 import marauroa.server.db.TransactionPool;
 
 /**
  * Dumps the currently open database transactiosn to the log file.
- * 
+ *
  * @author hendrik
  */
 public class DumpOpenDBTransactions extends ScriptImpl {

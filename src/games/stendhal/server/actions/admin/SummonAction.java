@@ -1,6 +1,5 @@
-/* $Id: SummonAction.java,v 1.29 2012/05/27 19:16:47 madmetzger Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -16,6 +15,7 @@ import static games.stendhal.common.constants.Actions.CREATURE;
 import static games.stendhal.common.constants.Actions.SUMMON;
 import static games.stendhal.common.constants.Actions.X;
 import static games.stendhal.common.constants.Actions.Y;
+
 import games.stendhal.common.grammar.Grammar;
 import games.stendhal.server.actions.CommandCenter;
 import games.stendhal.server.core.config.annotations.ServerModeUtil;
@@ -27,11 +27,15 @@ import games.stendhal.server.core.rule.EntityManager;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.creature.BabyDragon;
 import games.stendhal.server.entity.creature.Cat;
+import games.stendhal.server.entity.creature.Creature;
+import games.stendhal.server.entity.creature.Goat;
 import games.stendhal.server.entity.creature.Owczarek;
 import games.stendhal.server.entity.creature.OwczarekPodhalanski;
-import games.stendhal.server.entity.creature.Creature;
+import games.stendhal.server.entity.creature.PurpleDragon;
 import games.stendhal.server.entity.creature.RaidCreature;
 import games.stendhal.server.entity.creature.Sheep;
+import games.stendhal.server.entity.item.StackableItem;
+import games.stendhal.server.entity.mapstuff.block.Block;
 import games.stendhal.server.entity.mapstuff.portal.Gate;
 import games.stendhal.server.entity.player.Player;
 import marauroa.common.game.RPAction;
@@ -41,7 +45,7 @@ public class SummonAction extends AdministrationAction {
 
 
 	public static void register() {
-		CommandCenter.register(SUMMON, new SummonAction(), 14);
+		CommandCenter.register(SUMMON, new SummonAction(), 35);
 	}
 
 	/**
@@ -57,22 +61,22 @@ public class SummonAction extends AdministrationAction {
 			this.player = player;
 		}
 
-        boolean isSearching() {
-	        return searching;
-        }
+		boolean isSearching() {
+			return searching;
+		}
 
 		abstract void found(String type, Entity entity);
 		abstract void error(String message);
 
 		/**
 		 * Create the named entity (creature, pet or sheep) of type 'type'.
-		 * 
+		 *
 		 * @param type
 		 */
 		private void createEntity(final String type) {
-		    final Entity entity = manager.getEntity(type);
+			final Entity entity = manager.getEntity(type);
 
-		    if (entity != null) {
+			if (entity != null) {
 				found(type, entity);
 			} else if ("cat".equals(type)) {
 				if (player.hasPet()) {
@@ -102,12 +106,26 @@ public class SummonAction extends AdministrationAction {
 					final BabyDragon dragon = new BabyDragon(player);
 					found(type, dragon);
 				}
+			} else if ("purple dragon".equals(type)) {
+				if (player.hasPet()) {
+					error("Już masz własne zwierzątko!");
+				} else {
+					final PurpleDragon dragon = new PurpleDragon(player);
+					found(type, dragon);
+				}
 			} else if ("sheep".equals(type)) {
 				if (player.hasSheep()) {
 					error("Już masz własną owcę!");
 				} else {
 					final Sheep sheep = new Sheep(player);
 					found(type, sheep);
+				}
+			} else if ("goat".equals(type)) {
+				if (player.hasGoat()) {
+					error("Już masz własną kozę!");
+				} else {
+					final Goat goat = new Goat(player);
+					found(type, goat);
 				}
 			} 
 	    }
@@ -122,28 +140,41 @@ public class SummonAction extends AdministrationAction {
 			return;
 		}
 
+        if ("block".equals(action.get(CREATURE))) {
+		    final Block block = new Block(true);
+		    block.setPosition(action.getInt(X), action.getInt(Y));
+		    player.getZone().add(block);
+		}
+
 		try {
 			if (action.has(CREATURE) && action.has(X) && action.has(Y)) {
 				final StendhalRPZone zone = player.getZone();
 				final int x = action.getInt(X);
 				final int y = action.getInt(Y);
-				
+
 				if (!zone.collides(player, x, y)) {
 					final EntityFactory factory = new EntityFactory(player) {
 						@Override
 						void found(final String type, final Entity entity) {
-							 final Entity entityToBePlaced;
+							final Entity entityToBePlaced;
 							if (manager.isCreature(type)) {
 								entityToBePlaced = new RaidCreature((Creature) entity);
-								/*if (((Creature) entity).isRare() && !ServerModeUtil.isTestServer()) {
+								if (((Creature) entity).isRare() && !ServerModeUtil.isTestServer()) {
 									// Rare creatures should not be summoned even in raids
 									// Require parameter -Dstendhal.testserver=junk
-									error("Potwory oznaczone jako rare mogą być przywoływane.");
+									error("Rzadkie stworzenia nie mogą być wzywane.");
 									return;
-								}*/
+								}
 							} else {
 								entityToBePlaced = entity;
 							}
+
+							if (entityToBePlaced instanceof StackableItem) {
+								if (action.has("quantity")) {
+									((StackableItem) entityToBePlaced).setQuantity(action.getInt("quantity"));
+								}
+							}
+
 							StendhalRPAction.placeat(zone, entityToBePlaced, x, y);
 							new GameEvent(player.getName(), SUMMON, type).raise();
 							// We found what we are searching for.
@@ -161,23 +192,23 @@ public class SummonAction extends AdministrationAction {
 
 					final String typeName = action.get(CREATURE);
 					String type = typeName;
-					
+
 					factory.createEntity(type);
 
 					if (factory.isSearching()) {
-    					// see it the name was in plural
+						// see it the name was in plural
 						type = Grammar.singular(typeName);
 						factory.createEntity(type);
 
 						if (factory.isSearching()) {
-	    					// see it the name was in singular but the registered type is in plural
+							// see it the name was in singular but the registered type is in plural
 							type = Grammar.plural(typeName);
 							factory.createEntity(type);
 
 							// Did we still not find any matching class?
 							if (factory.isSearching()) {
-	    						logger.info("onSummon: Entity \"" + typeName + "\" not found.");
 	    						factory.error("onSummon: Nie znaleziono \"" + typeName + "\".");
+								logger.info("onSummon: Entity \"" + typeName + "\" not found.");
 							}
 						}
 					}

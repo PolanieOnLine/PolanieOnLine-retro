@@ -1,4 +1,4 @@
-/* $Id: ItemTransformer.java,v 1.4 2012/07/16 20:24:39 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -16,6 +16,7 @@ import org.apache.log4j.Logger;
 
 import games.stendhal.server.entity.item.Item;
 import games.stendhal.server.entity.item.StackableItem;
+import games.stendhal.server.entity.item.scroll.MarkedScroll;
 import games.stendhal.server.entity.player.UpdateConverter;
 import marauroa.common.game.RPClass;
 import marauroa.common.game.RPObject;
@@ -23,17 +24,17 @@ import marauroa.common.game.RPSlot;
 
 public class ItemTransformer {
 	private static Logger logger = Logger.getLogger(ItemTransformer.class);
-	
+
 	/**
 	 * Transform an <code>RPObject</code> to an item
-	 * 
+	 *
 	 * @param rpobject	the object to be transformed
 	 * @return	Item corresponding to the <code>RPObject</code>
 	 */
 	public Item transform(RPObject rpobject) {
 		// We simply ignore corpses...
 		if (rpobject.get("type").equals("item")) {
-		
+
 			final String name = UpdateConverter.updateItemName(rpobject.get("name"));
 			final Item item = UpdateConverter.updateItem(name);
 
@@ -41,7 +42,7 @@ public class ItemTransformer {
 				// no such item in the game anymore
 				return null;
 			}
-			
+
 			item.setID(rpobject.getID());
 
 			boolean autobind = item.has("autobind");
@@ -85,17 +86,22 @@ public class ItemTransformer {
 			// make sure saved individual information is
 			// restored
 			final String[] individualAttributes = { "infostring",
-					"description", "bound", "undroppableondeath" };
+					"description", "bound", "undroppableondeath",
+					"uses", "improve", "logid"};
 			for (final String attribute : individualAttributes) {
 				if (rpobject.has(attribute)) {
 					item.put(attribute, rpobject.get(attribute));
 				}
 			}
+			UpdateConverter.updateItemAttributes(item);
 
-			if (rpobject.has("logid")) {
-				item.put("logid", rpobject.get("logid"));
+			// update visible destination info on marked scrolls
+			if (item instanceof MarkedScroll) {
+				((MarkedScroll) item).applyDestInfo();
 			}
-			
+
+			UpdateConverter.updateImproveItemAttr(item);
+
 			// Contents, if the item has slot(s)
 			for (RPSlot slot : rpobject.slots()) {
 				RPSlot itemSlot = item.getSlot(slot.getName());
@@ -104,7 +110,7 @@ public class ItemTransformer {
 					itemSlot.add(transform(obj));
 				}
 			}
-			
+
 			return item;
 		} else {
 			logger.warn("Non-item object found: " + rpobject);

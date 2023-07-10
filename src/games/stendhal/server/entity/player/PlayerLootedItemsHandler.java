@@ -5,33 +5,28 @@ import java.util.Map;
 
 /**
  * Handling for counting looted items of a player
- * 
+ *
  * @author madmetzger
  */
 public class PlayerLootedItemsHandler {
-	
 	/** name of the map where the items and the corresponding numbers are stored */
-	private static final String LOOTED_ITEMS = "looted_items";
-	
+	public static final String LOOTED_ITEMS = "looted_items";
+
 	private final Player player;
-	
+
 	private final Map<String, Integer> looted;
-	
 	private final Map<String, Integer> produced;
-	
 	private final Map<String, Integer> obtained;
-	
 	private final Map<String, Integer> mined;
-	
+	private final Map<String, Integer> sown;
 	private final Map<String, Integer> harvested;
-	
 	private final Map<String, Integer> bought;
-	
 	private final Map<String, Integer> sold;
-	
+	private final Map<String, Integer> improved;
+
 	/**
 	 * Create a new PlayerLootedItemsHandler for a player
-	 * 
+	 *
 	 * @param player
 	 */
 	public PlayerLootedItemsHandler(Player player) {
@@ -40,9 +35,11 @@ public class PlayerLootedItemsHandler {
 		produced = new HashMap<String, Integer>();
 		obtained = new HashMap<String, Integer>();
 		mined = new HashMap<String, Integer>();
+		sown = new HashMap<String, Integer>();
 		harvested = new HashMap<String, Integer>();
 		bought = new HashMap<String, Integer>();
 		sold = new HashMap<String, Integer>();
+		improved = new HashMap<String, Integer>();
 		if(player.hasMap(LOOTED_ITEMS)) {
 			for(String item : player.getMap(LOOTED_ITEMS).keySet()) {
 				if(item.contains("produced.")) {
@@ -61,18 +58,23 @@ public class PlayerLootedItemsHandler {
 					bought.put(item.replace("bought.", ""), player.getInt(LOOTED_ITEMS, item));
 				}
 				if(item.contains("sold.")) {
-					bought.put(item.replace("sold.", ""), player.getInt(LOOTED_ITEMS, item));
+					sold.put(item.replace("sold.", ""), player.getInt(LOOTED_ITEMS, item));
 				}
-				if(!item.contains("produced.") && !item.contains("obtained.") && !item.contains("mined.") 
-						&& !item.contains("harvested.") && !item.contains("bought.") && !item.contains("sold.")) {
+				if(item.contains("improved.")) {
+					improved.put(item.replace("improved.", ""), player.getInt(LOOTED_ITEMS, item));
+				}
+				if(!item.contains("produced.") && !item.contains("obtained.") && !item.contains("mined.")
+						&& !item.contains("harvested.") && !item.contains("bought.") && !item.contains("sold.")
+						&& !item.contains("improved.")) {
 					looted.put(item, player.getInt(LOOTED_ITEMS, item));
 				}
 			}
 		}
 	}
-	
+
 	/**
 	 * Gets the how often this PlayerLootedItemsHandler's player has looted the given item
+	 *
 	 * @param item the item name
 	 * @return the number of loots from corpses
 	 */
@@ -83,10 +85,18 @@ public class PlayerLootedItemsHandler {
 		}
 		return 0;
 	}
-	
+
+	public int getNumberOfImprovedForItem(String item) {
+		Integer improvedNumber = improved.get(item);
+		if(improvedNumber != null) {
+			return improvedNumber.intValue();
+		}
+		return 0;
+	}
+
 	/**
 	 * Retrieve the amount of much an item was produced by a player
-	 * 
+	 *
 	 * @param item
 	 * @return the produced quantity
 	 */
@@ -96,10 +106,25 @@ public class PlayerLootedItemsHandler {
 		}
 		return 0;
 	}
-	
+
+	/**
+	 * Retrieve the amount of items sown by player.
+	 *
+	 * @param item
+	 *   Item Name.
+	 * @return
+	 *   Integer sown quanity.
+	 */
+	public int getQuantityOfSownItems(String item) {
+		if (sown.containsKey(item)) {
+			return sown.get(item);
+		}
+		return 0;
+	}
+
 	/**
 	 * Retrieve the amount of much an item was harvested by a player
-	 * 
+	 *
 	 * @param item
 	 * @return the harvested quantity
 	 */
@@ -109,23 +134,36 @@ public class PlayerLootedItemsHandler {
 		}
 		return 0;
 	}
-	
+
 	/**
 	 * Retrieve the amount of much an item was bought by a player
-	 * 
+	 *
 	 * @param item
-	 * @return the harvested quantity
+	 * @return the bought quantity
 	 */
-	public int getQuantityOfBoughtItems(String item) {
-		if(bought.containsKey(item)) {
+	public int getQuantityOfBoughtItems(final String item) {
+		if (bought.containsKey(item)) {
 			return bought.get(item);
 		}
 		return 0;
 	}
-	
+
+	/**
+	 * Retrieve the amount of much an item was sold by a player
+	 *
+	 * @param item
+	 * @return the sold quantity
+	 */
+	public int getQuantityOfSoldItems(final String item) {
+		if (sold.containsKey(item)) {
+			return sold.get(item);
+		}
+		return 0;
+	}
+
 	/**
 	 * Retrieve the amount of much an item was mined by a player
-	 * 
+	 *
 	 * @param item
 	 * @return the mined quantity
 	 */
@@ -135,9 +173,23 @@ public class PlayerLootedItemsHandler {
 		}
 		return 0;
 	}
-	
+
+	/**
+	 * Retrieve the amount of much an item was improved by a player
+	 *
+	 * @param item
+	 * @return the improves quantity
+	 */
+	public int getQuantityOfImprovedItems(final String entity) {
+		if (improved.containsKey(entity)) {
+			return improved.get(entity);
+		}
+		return 0;
+	}
+
 	/**
 	 * Increases the count of loots for the given item for this PlayerLootedItemsHandler's player
+	 *
 	 * @param item the item name
 	 * @param count the amount to increase
 	 */
@@ -147,7 +199,7 @@ public class PlayerLootedItemsHandler {
 
 	/**
 	 * Increases the count of producing for the given item for this PlayerLootedItemsHandler's player
-	 * 
+	 *
 	 * @param item the item name
 	 * @param count the amount to increase
 	 */
@@ -157,47 +209,59 @@ public class PlayerLootedItemsHandler {
 
 	/**
 	 * Increases the count of obtains for the given item for this PlayerLootedItemsHandler's player
-	 * 
+	 *
 	 * @param item the item name
 	 * @param count the amount to increase
 	 */
 	public void incObtainedForItem(String item, int count) {
 		handlePrefixedCounting(item, count, "obtained.", obtained);
 	}
-	
+
 	/**
 	 * Increases the quantity an item was mined from a source like gold, coal
-	 * 
+	 *
 	 * @param item
 	 * @param count
 	 */
 	public void incMinedForItem(String item, int count) {
 		handlePrefixedCounting(item, count, "mined.", mined);
 	}
-	
+
+	/**
+	 * Increses the quanity an item was sown.
+	 *
+	 * @param item
+	 *   Item name.
+	 * @param count
+	 *   Increment amount.
+	 */
+	public void incSownForItem(String item, int count) {
+		handlePrefixedCounting(item, count, "sown", sown);
+	}
+
 	/**
 	 * Increases the quantity an item was harvested
-	 * 
+	 *
 	 * @param item
 	 * @param count
 	 */
 	public void incHarvestedForItem(String item, int count) {
 		handlePrefixedCounting(item, count, "harvested.", harvested);
-		}
-	
+	}
+
 	/**
 	 * Increases the quantity an item was bought
-	 * 
+	 *
 	 * @param item
 	 * @param count
 	 */
 	public void incBoughtForItem(String item, int count) {
 		handlePrefixedCounting(item, count, "bought.", bought);
-		}
-	
+	}
+
 	/**
 	 * Increases the quantity an item was sold
-	 * 
+	 *
 	 * @param item
 	 * @param count
 	 */
@@ -206,8 +270,18 @@ public class PlayerLootedItemsHandler {
 	}
 
 	/**
+	 * Increases the quantity and item was improved by player
+	 *
+	 * @param item
+	 * @param count
+	 */
+	public void incImprovedForItem(String item, int count) {
+		handlePrefixedCounting(item, count, "improved.", improved);
+	}
+
+	/**
 	 * handles redundant storage of counted items in player object and a separate map
-	 * 
+	 *
 	 * @param item the item to count
 	 * @param count how much to increment
 	 * @param prefix the prefix to use for the map withing the player object
@@ -238,5 +312,4 @@ public class PlayerLootedItemsHandler {
 		}
 		return sum;
 	}
-
 }

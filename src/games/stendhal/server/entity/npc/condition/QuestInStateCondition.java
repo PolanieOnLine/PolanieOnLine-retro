@@ -1,4 +1,4 @@
-/* $Id: QuestInStateCondition.java,v 1.18 2012/09/09 12:33:24 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,15 +12,15 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.condition;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
 import games.stendhal.server.core.config.annotations.Dev.Category;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.npc.ChatCondition;
+import games.stendhal.server.entity.npc.ConditionBuilder;
 import games.stendhal.server.entity.player.Player;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Is this quest in this state?
@@ -41,9 +41,9 @@ public class QuestInStateCondition implements ChatCondition {
 	 *            state
 	 */
 	public QuestInStateCondition(final String questname, final String state) {
-		this.questname = questname;
+		this.questname = checkNotNull(questname);
 		this.index = -1;
-		this.state = state;
+		this.state = checkNotNull(state);
 	}
 
 
@@ -59,11 +59,12 @@ public class QuestInStateCondition implements ChatCondition {
 	 */
 	@Dev
 	public QuestInStateCondition(final String questname, @Dev(defaultValue="0") final int index, final String state) {
-		this.questname = questname;
+		this.questname = checkNotNull(questname);
 		this.index = index;
-		this.state = state;
+		this.state = checkNotNull(state);
 	}
 
+	@Override
 	public boolean fire(final Player player, final Sentence sentence, final Entity entity) {
 		if (!player.hasQuest(questname)) {
 			return false;
@@ -82,12 +83,21 @@ public class QuestInStateCondition implements ChatCondition {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 45817 * questname.hashCode() + 45821 * index + state.hashCode();
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				QuestInStateCondition.class);
+		if (!(obj instanceof QuestInStateCondition)) {
+			return false;
+		}
+		QuestInStateCondition other = (QuestInStateCondition) obj;
+		return (index == other.index)
+			&& questname.equals(other.questname)
+			&& state.equals(other.state);
+	}
+
+	public static ConditionBuilder questInState(String questName, String state) {
+		return new ConditionBuilder(new QuestInStateCondition(questName, state));
 	}
 }

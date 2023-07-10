@@ -1,6 +1,5 @@
-/* $Id: AwayActionTest.java,v 1.6 2010/09/19 02:39:04 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2015 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -13,11 +12,11 @@
 package games.stendhal.server.actions.chat;
 
 import static org.junit.Assert.assertEquals;
-import games.stendhal.server.entity.player.Player;
-import marauroa.common.game.RPAction;
 
 import org.junit.Test;
 
+import games.stendhal.server.entity.player.Player;
+import marauroa.common.game.RPAction;
 import utilities.PlayerTestHelper;
 
 public class AwayActionTest {
@@ -46,7 +45,7 @@ public class AwayActionTest {
 		assertEquals(null, bob.getAwayMessage());
 		action.put("message", "bla");
 		aa.onAction(bob, action);
-		assertEquals("bla", bob.getAwayMessage());
+		assertEquals("\"bla\"", bob.getAwayMessage());
 	}
 
 	/**

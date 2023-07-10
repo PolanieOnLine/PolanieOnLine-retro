@@ -1,4 +1,3 @@
-/* $Id: AdventureIsland.java,v 1.10 2012/08/21 20:35:37 kiheru Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,7 +11,12 @@
  ***************************************************************************/
 package games.stendhal.server.maps.magic.house1;
 
+import java.awt.geom.Rectangle2D;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.common.Rand;
+import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.Spot;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.events.MovementListener;
@@ -25,15 +29,8 @@ import games.stendhal.server.entity.mapstuff.portal.Teleporter;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.deathmatch.CreatureSpawner;
 
-import java.awt.geom.Rectangle2D;
-
-import org.apache.log4j.Logger;
-
-
 public class AdventureIsland extends StendhalRPZone {
-
 	private static final Logger logger = Logger.getLogger(AdventureIsland.class);
-
 
 	/** how many creatures will be spawned.*/
 	protected static final int NUMBER_OF_CREATURES = 5;
@@ -52,13 +49,9 @@ public class AdventureIsland extends StendhalRPZone {
 
 	private int numCreatures;
 
-
-	public AdventureIsland(final String name, final StendhalRPZone zone,
-			final Player player) {
+	public AdventureIsland(final String name, final StendhalRPZone zone, final Player player) {
 		super(name, zone);
-
 		init(player);
-
 	}
 
 	private void init(final Player player) {
@@ -67,22 +60,45 @@ public class AdventureIsland extends StendhalRPZone {
 		add(portal);
 		numCreatures = 0;
 		int count = 0;
+
+		// check state of daily monster quest
+		Creature daily = null;
+		if (player.hasQuest("daily")) {
+			final String[] dailyInfo = player.getQuest("daily", 0).split(",");
+			if (dailyInfo.length > 0 && !dailyInfo[0].equals("done")) {
+				daily = SingletonRepository.getEntityManager().getCreature(dailyInfo[0]);
+			}
+		}
+
 		// max ALLOWED_FAILS fails to place all creatures before we give up
 		while (numCreatures < NUMBER_OF_CREATURES && count < ALLOWED_FAILS) {
-			int level = Rand.randUniform((int) (player.getLevel() * LEVEL_RATIO), player.getLevel()); 
-			CreatureSpawner creatureSpawner = new CreatureSpawner();
-			Creature creature = new Creature(creatureSpawner.calculateNextCreature(level));
-				if (StendhalRPAction.placeat(this, creature, Rand.randUniform(MIN_X, MAX_X), Rand.randUniform(MIN_Y, MAX_Y))) {
-					numCreatures++;
-				} else {
-					logger.info(" could not add a creature to adventure island: " + creature);
-					count++;	
+			// ensure daily monster is spawned if quest is active
+			Creature creature = daily;
+
+			if (creature == null) {
+				final int level = Rand.randUniform((int) (player.getLevel() * LEVEL_RATIO), player.getLevel());
+				final CreatureSpawner creatureSpawner = new CreatureSpawner();
+				creature = new Creature(creatureSpawner.calculateNextCreature(level));
+			}
+
+			if (StendhalRPAction.placeat(this, creature, Rand.randUniform(MIN_X, MAX_X),
+					Rand.randUniform(MIN_Y, MAX_Y))) {
+				numCreatures++;
+
+				if (daily != null) {
+					// daily monster was spawned
+					daily = null;
 				}
+			} else {
+				logger.info(" could not add a creature to adventure island: " + creature);
+				count++;
+			}
 		}
+
 		disallowIn();
 		this.addMovementListener(new ChallengeMovementListener(player.getX(), player.getY()));
 	}
-	
+
 	/**
 	 * Get the number of monsters originally created on the zone
 	 * @return number of creatures
@@ -94,10 +110,10 @@ public class AdventureIsland extends StendhalRPZone {
 	private static final class ChallengeMovementListener implements MovementListener {
 		private static final Rectangle2D area = new Rectangle2D.Double(0, 0, 100, 100);
 		final int returnX, returnY;
-		
+
 		/**
 		 * Create a new ChallengeMovementListener.
-		 * 
+		 *
 		 * @param x x coordinate of the player return position from the zone
 		 * @param y y coordinate of the player return position from the zone
 		 */
@@ -106,24 +122,25 @@ public class AdventureIsland extends StendhalRPZone {
 			returnY = y;
 		}
 
+		@Override
 		public Rectangle2D getArea() {
 			return area;
 		}
-		
-			public void onEntered(final ActiveEntity entity, final StendhalRPZone zone, final int newX,
-								  final int newY) {
-				// ignore
-			}
-		
-		public void onExited(final ActiveEntity entity, final StendhalRPZone zone, final int oldX,
-							 final int oldY) {
+
+		@Override
+		public void onEntered(final ActiveEntity entity, final StendhalRPZone zone, final int newX, final int newY) {
+			// ignore
+		}
+
+		@Override
+		public void onExited(final ActiveEntity entity, final StendhalRPZone zone, final int oldX, final int oldY) {
 			if (!(entity instanceof Player)) {
 				return;
 			}
 			if (zone.getPlayers().size() == 1) {
-				// since we are about to destroy the arena, change the player zoneid to house1 so that 
-				// if they are relogging, 
-				// they can enter back to the bank (not the default zone of PlayerRPClass). 
+				// since we are about to destroy the arena, change the player zoneid to house1 so that
+				// if they are relogging,
+				// they can enter back to the bank (not the default zone of PlayerRPClass).
 				// If they are scrolling out or walking out the portal it works as before.
 			    	entity.put("zoneid", "int_magic_house1");
 			    // Use the correct position from the portal, so that the client
@@ -132,16 +149,19 @@ public class AdventureIsland extends StendhalRPZone {
 				entity.put("x", returnX);
 				entity.put("y", returnY);
 
-					// start a turn notifier counting down to shut down the zone in 15 minutes
-					TurnNotifier.get().notifyInSeconds(15*60, new AdventureIslandRemover(zone));
+				// start a turn notifier counting down to shut down the zone in 15 minutes
+				TurnNotifier.get().notifyInSeconds(15*60, new AdventureIslandRemover(zone));
 			}
 		}
-		
-		public void onMoved(final ActiveEntity entity, final StendhalRPZone zone, final int oldX,
-							final int oldY, final int newX, final int newY) {
-			
+
+		@Override
+		public void onMoved(final ActiveEntity entity, final StendhalRPZone zone, final int oldX, final int oldY, final int newX, final int newY) {
 			// ignore
 		}
-		
+
+		@Override
+		public void beforeMove(ActiveEntity entity, StendhalRPZone zone, int oldX, int oldY, int newX, int newY) {
+			// does nothing, but is specified in the implemented interface
+		}
 	}
 }

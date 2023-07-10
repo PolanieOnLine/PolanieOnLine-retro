@@ -1,4 +1,4 @@
-/* $Id: GagManager.java,v 1.16 2012/05/30 18:50:04 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +12,8 @@
  ***************************************************************************/
 package games.stendhal.server.entity.player;
 
+import org.apache.log4j.Logger;
+
 import games.stendhal.common.MathHelper;
 import games.stendhal.common.NotificationType;
 import games.stendhal.server.core.engine.SingletonRepository;
@@ -19,32 +21,30 @@ import games.stendhal.server.core.events.LoginListener;
 import games.stendhal.server.core.events.TurnListener;
 import games.stendhal.server.util.TimeUtil;
 
-import org.apache.log4j.Logger;
-
 /**
  * Manages gags.
  */
 public class GagManager implements LoginListener {
-	
-
 	private static final Logger logger = Logger.getLogger(GagManager.class);
-
 	/** The Singleton instance. */
 	private static GagManager instance;
 
 	/**
 	 * returns the GagManager object (Singleton Pattern).
-	 * 
+	 *
 	 * @return GagManager
 	 */
 	public static GagManager get() {
 		if (instance == null) {
 			instance = new GagManager();
 		}
+
 		return instance;
 	}
 
-	// singleton
+	/**
+	 * Hidden singleton constructor.
+	 */
 	private GagManager() {
 		SingletonRepository.getLoginNotifier().addListener(this);
 	}
@@ -101,7 +101,7 @@ public class GagManager implements LoginListener {
 
 	/**
 	 * Removes a gag.
-	 * 
+	 *
 	 * @param inmate
 	 *            player who should be released
 	 */
@@ -115,7 +115,7 @@ public class GagManager implements LoginListener {
 
 	/**
 	 * Is player gagged?
-	 * 
+	 *
 	 * @param player player to check
 	 * @return true, if it is gagged, false otherwise.
 	 */
@@ -128,7 +128,7 @@ public class GagManager implements LoginListener {
 
 	/**
 	 * Like isGagged(player) but informs the player in case it is gagged.
-	 * 
+	 *
 	 * @param player player to check
 	 * @return true, if it is gagged, false otherwise.
 	 */
@@ -142,10 +142,10 @@ public class GagManager implements LoginListener {
 
 		return res;
 	}
-	
+
 	/**
 	 * If the players' gag has expired, remove it.
-	 * 
+	 *
 	 * @param player
 	 *            player to check
 	 * @return true, if the gag expired and was removed or was already removed.
@@ -165,6 +165,7 @@ public class GagManager implements LoginListener {
 		return false;
 	}
 
+	@Override
 	public void onLoggedIn(final Player player) {
 		if (!isGagged(player)) {
 			return;
@@ -183,6 +184,7 @@ public class GagManager implements LoginListener {
 		// serving his sentence. We're using the TurnNotifier; we use
 		SingletonRepository.getTurnNotifier().notifyInSeconds(
 				(int) (getTimeRemaining(criminal) / 1000), new TurnListener() {
+					@Override
 					public void onTurnReached(final int currentTurn) {
 
 						final Player criminal2 = SingletonRepository.getRuleProcessor().getPlayer(
@@ -201,7 +203,7 @@ public class GagManager implements LoginListener {
 
 	/**
 	 * Gets time remaining in milliseconds.
-	 * 
+	 *
 	 * @param criminal
 	 *            player to check
 	 * @return time remaining in milliseconds

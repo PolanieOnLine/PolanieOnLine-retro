@@ -1,4 +1,3 @@
-/* $Id: MadScientist1NPC.java,v 1.6 2010/09/19 02:30:42 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,37 +11,31 @@
  ***************************************************************************/
 package games.stendhal.server.maps.kalavan.castle;
 
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 
-import java.util.Map;
-
 /**
- * Builds a mad scientist NPC who takes your silk glands makes thread, then gives them to another NPC. 
+ * Builds a mad scientist NPC who takes your silk glands makes thread, then gives them to another NPC.
  *
  * @author kymara with modifications by tigertoes
  */
 public class MadScientist1NPC implements ZoneConfigurator {
-
 	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildNPC(zone);
 	}
 
 	private void buildNPC(final StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Vincento Price") {
-
-			@Override
-			protected void createPath() {
-				setPath(null);
-			}
-
 			@Override
 			    protected void createDialog() {
 				addHelp("Ha ha ha ha!");
@@ -52,13 +45,12 @@ public class MadScientist1NPC implements ZoneConfigurator {
 				addGoodbye("Ta ta!");
 				// remaining behaviour defined in maps.quests.MithrilCloak
 	 	     }
-		    
 		};
 
-		npc.setDescription("Oto nieco dziwna osoba. Może nie powinieneś zawracać jej głowy?");
+		npc.setDescription("Oto Vincento Price, nieco dziwna osoba. Może nie powinieneś zawracać jego głowy?");
 		npc.setEntityClass("madscientistnpc");
+		npc.setGender("M");
 		npc.setPosition(18, 84);
-		npc.initHP(100);
 		zone.add(npc);
 	}
 }

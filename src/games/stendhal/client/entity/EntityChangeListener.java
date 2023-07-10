@@ -1,4 +1,4 @@
-/* $Id: EntityChangeListener.java,v 1.9 2012/04/06 14:41:18 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -15,13 +15,13 @@ package games.stendhal.client.entity;
 
 /**
  * An entity change listener.
- * 
- * @param <T> entity type 
+ *
+ * @param <T> entity type
  */
 public interface EntityChangeListener<T extends IEntity> {
 	/**
 	 * An entity was changed.
-	 * 
+	 *
 	 * @param entity
 	 *            The entity that was changed.
 	 * @param property

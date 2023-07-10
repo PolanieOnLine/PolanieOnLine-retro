@@ -1,4 +1,4 @@
-/* $Id: StartRecordingKillsAction.java,v 1.18 2012/09/09 12:19:56 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +12,11 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.action;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
 import games.stendhal.server.core.config.annotations.Dev.Category;
@@ -19,14 +24,7 @@ import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.util.RequiredKillsInfo;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import marauroa.common.Pair;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Starts the recording of kills.
@@ -40,8 +38,8 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
 public class StartRecordingKillsAction implements ChatAction {
 	// first number in pair is required solo kills, second is required shared kills
 	private final Map<String, Pair<Integer, Integer>> toKill;
-	private final String QUEST_SLOT;
-	private final int KILLS_INDEX;
+	private final String questname;
+	private final int index;
 
 	/**
 	 * Creates a new StartRecordingKillsAction.
@@ -52,9 +50,9 @@ public class StartRecordingKillsAction implements ChatAction {
 	 */
 	public StartRecordingKillsAction(final String questSlot, @Dev(defaultValue="1") final int index,
 			final Map<String, Pair<Integer, Integer>> toKill) {
-		this.toKill = toKill;
-		this.QUEST_SLOT = questSlot;
-		this.KILLS_INDEX = index;
+		this.toKill = checkNotNull(toKill);
+		this.questname = checkNotNull(questSlot);
+		this.index = index;
 	}
 
 	/**
@@ -71,8 +69,8 @@ public class StartRecordingKillsAction implements ChatAction {
 		for (RequiredKillsInfo info : requiredKills) {
 			toKill.put(info.getName(), new Pair<Integer, Integer>(info.getRequiredSolo(), info.getRequiredMaybeShared()));
 		}
-		this.QUEST_SLOT = questSlot;
-		this.KILLS_INDEX = index;
+		this.questname = checkNotNull(questSlot);
+		this.index = index;
 	}
 
 	/**
@@ -88,10 +86,11 @@ public class StartRecordingKillsAction implements ChatAction {
 			int requiredSolo, int requiredShared) {
 		this.toKill = new HashMap<String, Pair<Integer, Integer>>();
 		toKill.put(creature, new Pair<Integer, Integer>(requiredSolo, requiredShared));
-		this.QUEST_SLOT = questSlot;
-		this.KILLS_INDEX = index;
+		this.questname = checkNotNull(questSlot);
+		this.index = index;
 	}
 
+	@Override
 	public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 		final StringBuilder sb = new StringBuilder("");
 		for (final String creature : toKill.keySet()) {
@@ -103,7 +102,7 @@ public class StartRecordingKillsAction implements ChatAction {
 					+ sharedKills + ",");
 		}
 		final String result = sb.toString().substring(0, sb.toString().length() - 1);
-		player.setQuest(QUEST_SLOT, KILLS_INDEX, result);
+		player.setQuest(questname, index, result);
 	}
 
 	@Override
@@ -112,13 +111,18 @@ public class StartRecordingKillsAction implements ChatAction {
 	}
 
 	@Override
-	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false, StartRecordingKillsAction.class);
+	public int hashCode() {
+		return 5573 * (questname.hashCode() + 5581 * (index + 5591 * toKill.hashCode()));
 	}
 
 	@Override
-	public int hashCode() {
-		return new HashCodeBuilder().append(toKill).toHashCode();
+	public boolean equals(final Object obj) {
+		if (!(obj instanceof StartRecordingKillsAction)) {
+			return false;
+		}
+		StartRecordingKillsAction other = (StartRecordingKillsAction) obj;
+		return (index == other.index)
+			&& questname.equals(other.questname)
+			&& toKill.equals(other.toKill);
 	}
-
 }

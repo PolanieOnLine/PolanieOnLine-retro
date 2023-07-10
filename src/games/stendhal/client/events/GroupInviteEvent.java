@@ -1,4 +1,4 @@
-/* $Id: GroupInviteEvent.java,v 1.1 2011/02/13 23:21:28 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -20,8 +20,7 @@ import games.stendhal.client.gui.group.GroupPanelController;
  *
  * @author hendrik
  */
-public class GroupInviteEvent extends Event<RPEntity> {
-
+class GroupInviteEvent extends Event<RPEntity> {
 	/**
 	 * executes the event
 	 */
@@ -33,5 +32,4 @@ public class GroupInviteEvent extends Event<RPEntity> {
 			GroupPanelController.get().receiveInvite(event.get("leader"));
 		}
 	}
-
 }

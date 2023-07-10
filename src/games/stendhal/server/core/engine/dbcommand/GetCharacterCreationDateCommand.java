@@ -24,7 +24,7 @@ import marauroa.server.game.db.DAORegister;
  *
  * @author kymara
  */
-public class GetCharacterCreationDateCommand extends AbstractDBCommand { 
+public class GetCharacterCreationDateCommand extends AbstractDBCommand {
 	private final String charname;
 	private Date date = null;
 

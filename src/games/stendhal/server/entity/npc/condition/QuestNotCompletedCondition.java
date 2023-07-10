@@ -1,4 +1,4 @@
-/* $Id: QuestNotCompletedCondition.java,v 1.17 2012/09/09 12:33:24 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,15 +12,14 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.condition;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
 import games.stendhal.server.core.config.annotations.Dev.Category;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.player.Player;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Is this quest not completed?
@@ -37,9 +36,10 @@ public class QuestNotCompletedCondition implements ChatCondition {
 	 *            name of quest-slot
 	 */
 	public QuestNotCompletedCondition(final String questname) {
-		this.questname = questname;
+		this.questname = checkNotNull(questname);
 	}
 
+	@Override
 	public boolean fire(final Player player, final Sentence sentence, final Entity entity) {
 		return (!player.isQuestCompleted(questname));
 	}
@@ -51,12 +51,15 @@ public class QuestNotCompletedCondition implements ChatCondition {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 45827 * questname.hashCode();
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				QuestNotCompletedCondition.class);
+		if (!(obj instanceof QuestNotCompletedCondition)) {
+			return false;
+		}
+		QuestNotCompletedCondition other = (QuestNotCompletedCondition) obj;
+		return questname.equals(other.questname);
 	}
 }

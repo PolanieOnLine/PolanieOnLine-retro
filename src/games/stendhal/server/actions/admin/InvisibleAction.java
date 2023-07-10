@@ -1,6 +1,5 @@
-/* $Id: InvisibleAction.java,v 1.10 2010/09/19 02:21:43 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -13,6 +12,7 @@
 package games.stendhal.server.actions.admin;
 
 import static games.stendhal.common.constants.Actions.INVISIBLE;
+
 import games.stendhal.server.actions.CommandCenter;
 import games.stendhal.server.core.engine.GameEvent;
 import games.stendhal.server.entity.player.Player;
@@ -30,7 +30,7 @@ public class InvisibleAction extends AdministrationAction {
 		String state;
 		if (player.isInvisibleToCreatures()) {
 			player.setInvisible(false);
-			
+
 			state = "off";
 		} else {
 			player.setInvisible(true);

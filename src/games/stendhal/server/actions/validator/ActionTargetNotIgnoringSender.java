@@ -1,4 +1,4 @@
-/* $Id: ActionTargetNotIgnoringSender.java,v 1.3 2012/09/13 20:46:30 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -12,7 +12,6 @@
  ***************************************************************************/
 package games.stendhal.server.actions.validator;
 
-import games.stendhal.common.grammar.Grammar;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.player.Player;
 import marauroa.common.game.RPAction;
@@ -42,6 +41,7 @@ public class ActionTargetNotIgnoringSender implements ActionValidator {
 	 * @param data   data about this action
 	 * @return <code>null</code> if the action is valid; an error message otherwise
 	 */
+	@Override
 	public String validate(Player player, RPAction action, ActionData data) {
 		String playerName = action.get(targetAttribute);
 		Player targetPlayer = SingletonRepository.getRuleProcessor().getPlayer(playerName);
@@ -54,9 +54,9 @@ public class ActionTargetNotIgnoringSender implements ActionValidator {
 
 		// sender is on ignore list
 		if (reply.length() == 0) {
-			return "Umysł " +Grammar.suffix_s(playerName) + " nie jest dostosowany do twojego i nie możesz się z nim skontaktować.";
+			return "Umysł " + playerName + " nie jest dostosowany do twojego i nie możesz się z nim skontaktować.";
 		} else {
-			return targetPlayer + " ignoruje Ciebie: " + reply;
+			return playerName + " ignoruje Ciebie: " + reply;
 		}
 	}
 }

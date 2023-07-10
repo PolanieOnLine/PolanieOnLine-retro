@@ -1,10 +1,15 @@
 /*
  * @(#) src/games/stendhal/server/entity/area/OccupantArea.java
  *
- * $Id: OccupantArea.java,v 1.9 2008/07/12 14:43:56 astridemma Exp $
+ * $Id$
  */
 
 package games.stendhal.server.entity.mapstuff.area;
+
+import java.awt.geom.Rectangle2D;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
@@ -13,12 +18,6 @@ import games.stendhal.server.core.events.TurnListener;
 import games.stendhal.server.entity.ActiveEntity;
 import games.stendhal.server.entity.RPEntity;
 import games.stendhal.server.entity.player.Player;
-
-import java.awt.geom.Rectangle2D;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-
 import marauroa.common.game.IRPZone;
 
 /**
@@ -45,7 +44,7 @@ public class OccupantArea extends AreaEntity implements MovementListener,
 
 	/**
 	 * Create an occupant area.
-	 * 
+	 *
 	 * @param width
 	 *            Width of this area
 	 * @param height
@@ -68,7 +67,7 @@ public class OccupantArea extends AreaEntity implements MovementListener,
 
 	/**
 	 * Add an entity to the target list.
-	 * 
+	 *
 	 * @param entity
 	 *            The RPEntity to add.
 	 */
@@ -84,8 +83,8 @@ public class OccupantArea extends AreaEntity implements MovementListener,
 	 * Check if an entity is an [acknowledged] occupant of this area.
 	 * @param entity to be tested
 	 * @return true if is occupant
-	 * 
-	 * 
+	 *
+	 *
 	 */
 	public boolean isOccupant(final RPEntity entity) {
 		return targets.contains(entity.getID());
@@ -94,10 +93,10 @@ public class OccupantArea extends AreaEntity implements MovementListener,
 	/**
 	 * An entity has entered the area. This should not apply any actions that
 	 * <code>handleMovement()</code> does.
-	 * 
+	 *
 	 * @param entity
 	 *            The RPEntity that was added.
-	 * 
+	 *
 	 * @return <code>false</code> if this entity should not be processed,
 	 *         <code>true</code> otherwise.
 	 */
@@ -107,10 +106,10 @@ public class OccupantArea extends AreaEntity implements MovementListener,
 
 	/**
 	 * Apply actions done at regular intervals.
-	 * 
+	 *
 	 * @param entity
 	 *            The RPEntity occupant.
-	 * 
+	 *
 	 * @return <code>false</code> if this entity should be removed from
 	 *         further processing, <code>true</code> otherwise.
 	 */
@@ -120,10 +119,10 @@ public class OccupantArea extends AreaEntity implements MovementListener,
 
 	/**
 	 * Apply actions done while moving.
-	 * 
+	 *
 	 * @param entity
 	 *            The RPEntity that moved.
-	 * 
+	 *
 	 * @return <code>false</code> if this entity should be removed from
 	 *         further processing, <code>true</code> otherwise.
 	 */
@@ -134,7 +133,7 @@ public class OccupantArea extends AreaEntity implements MovementListener,
 	/**
 	 * An entity has left the area. This should not apply any actions that
 	 * <code>handleMovement()</code> does.
-	 * 
+	 *
 	 * @param entity
 	 *            The RPEntity that was added.
 	 */
@@ -144,7 +143,7 @@ public class OccupantArea extends AreaEntity implements MovementListener,
 
 	/**
 	 * Remove an entity from the target list.
-	 * 
+	 *
 	 * @param entity
 	 *            The RPEntity to remove.
 	 */
@@ -158,7 +157,7 @@ public class OccupantArea extends AreaEntity implements MovementListener,
 
 	/**
 	 * Set whether only players get affected.
-	 * 
+	 *
 	 * @param playersOnly
 	 *            Whether to only affect players.
 	 */
@@ -172,7 +171,7 @@ public class OccupantArea extends AreaEntity implements MovementListener,
 
 	/**
 	 * Called when this object is added to a zone.
-	 * 
+	 *
 	 * @param zone
 	 *            The zone this was added to.
 	 */
@@ -184,7 +183,7 @@ public class OccupantArea extends AreaEntity implements MovementListener,
 
 	/**
 	 * Called when this object is being removed from a zone.
-	 * 
+	 *
 	 * @param zone
 	 *            The zone this will be removed from.
 	 */
@@ -223,7 +222,7 @@ public class OccupantArea extends AreaEntity implements MovementListener,
 
 	/**
 	 * Invoked when an entity enters the object area.
-	 * 
+	 *
 	 * @param entity
 	 *            The entity that moved.
 	 * @param zone
@@ -233,6 +232,7 @@ public class OccupantArea extends AreaEntity implements MovementListener,
 	 * @param newY
 	 *            The new Y coordinate.
 	 */
+	@Override
 	public void onEntered(final ActiveEntity entity, final StendhalRPZone zone, final int newX,
 			final int newY) {
 		/*
@@ -259,7 +259,7 @@ public class OccupantArea extends AreaEntity implements MovementListener,
 
 	/**
 	 * Invoked when an entity leaves the object area.
-	 * 
+	 *
 	 * @param entity
 	 *            The entity that entered.
 	 * @param zone
@@ -268,8 +268,9 @@ public class OccupantArea extends AreaEntity implements MovementListener,
 	 *            The old X coordinate.
 	 * @param oldY
 	 *            The old Y coordinate.
-	 * 
+	 *
 	 */
+	@Override
 	public void onExited(final ActiveEntity entity, final StendhalRPZone zone, final int oldX,
 			final int oldY) {
 		/*
@@ -297,7 +298,7 @@ public class OccupantArea extends AreaEntity implements MovementListener,
 
 	/**
 	 * Invoked when an entity moves while over the object area.
-	 * 
+	 *
 	 * @param entity
 	 *            The entity that left.
 	 * @param zone
@@ -311,6 +312,7 @@ public class OccupantArea extends AreaEntity implements MovementListener,
 	 * @param newY
 	 *            The new Y coordinate.
 	 */
+	@Override
 	public void onMoved(final ActiveEntity entity, final StendhalRPZone zone, final int oldX,
 			final int oldY, final int newX, final int newY) {
 		/*
@@ -333,10 +335,11 @@ public class OccupantArea extends AreaEntity implements MovementListener,
 
 	/**
 	 * This method is called when the turn number is reached.
-	 * 
+	 *
 	 * @param currentTurn
 	 *            Current turn number.
 	 */
+	@Override
 	public void onTurnReached(final int currentTurn) {
 		IRPZone zone;
 		Rectangle2D area;
@@ -373,5 +376,11 @@ public class OccupantArea extends AreaEntity implements MovementListener,
 		if (!targets.isEmpty()) {
 			SingletonRepository.getTurnNotifier().notifyInTurns(interval, this);
 		}
+	}
+
+	@Override
+	public void beforeMove(ActiveEntity entity, StendhalRPZone zone, int oldX,
+			int oldY, int newX, int newY) {
+		// nothing to do before a move
 	}
 }

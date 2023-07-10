@@ -1,4 +1,3 @@
-/* $Id: DiscipleAssassinCreature.java,v 1.3 2010/09/19 02:31:43 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +11,8 @@
  ***************************************************************************/
 package games.stendhal.server.maps.nalwor.tunnel;
 
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
@@ -20,28 +21,22 @@ import games.stendhal.server.entity.creature.Creature;
 import games.stendhal.server.entity.creature.ItemGuardCreature;
 import games.stendhal.server.entity.mapstuff.spawner.CreatureRespawnPoint;
 
-import java.util.Map;
-
 public class DiscipleAssassinCreature implements ZoneConfigurator {
-
 	/**
 	 * Configure a zone.
-	 * 
+	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
-
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
-		buildAssassinIdGuy(zone, attributes);
+		buildAssassinIdGuy(zone);
 	}
 
-	private void buildAssassinIdGuy(final StendhalRPZone zone, final Map<String, String> attributes) {
+	private void buildAssassinIdGuy(final StendhalRPZone zone) {
 		final EntityManager manager = SingletonRepository.getEntityManager();
-
 		final Creature creature = new ItemGuardCreature(manager.getCreature("uczeń mordercy"), "licencja na zabijanie");
-
 		final CreatureRespawnPoint point = new CreatureRespawnPoint(zone, 242, 41, creature, 1);
-
 		zone.add(point);
 	}
 }

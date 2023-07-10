@@ -1,4 +1,4 @@
-/* $Id: AgeGreaterThanCondition.java,v 1.6 2012/09/09 12:33:24 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -18,9 +18,6 @@ import games.stendhal.server.core.config.annotations.Dev.Category;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.player.Player;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Is the player's age greater than the specified age?
@@ -43,6 +40,7 @@ public class AgeGreaterThanCondition implements ChatCondition {
 	/**
 	 * @return true if players age greater than age in condition
 	 */
+	@Override
 	public boolean fire(final Player player, final Sentence sentence, final Entity entity) {
 		return (player.getAge() > age);
 	}
@@ -54,13 +52,15 @@ public class AgeGreaterThanCondition implements ChatCondition {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 43591 * age;
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				AgeGreaterThanCondition.class);
+		if (!(obj instanceof AgeGreaterThanCondition)) {
+			return false;
+		}
+		return age == ((AgeGreaterThanCondition) obj).age;
 	}
 
 }

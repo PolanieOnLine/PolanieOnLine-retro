@@ -1,6 +1,5 @@
-/* $Id: EquipAction.java,v 1.15 2012/07/16 20:19:58 kiheru Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,32 +11,30 @@
  ***************************************************************************/
 package games.stendhal.server.actions.equip;
 
-import games.stendhal.common.Constants;
 import games.stendhal.common.EquipActionConsts;
+import games.stendhal.common.constants.Testing;
 import games.stendhal.common.grammar.Grammar;
-import games.stendhal.server.actions.admin.AdministrationAction;
 import games.stendhal.server.actions.CommandCenter;
 import games.stendhal.server.core.engine.GameEvent;
-import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.Entity;
+import games.stendhal.server.entity.equip.AutoEquipItems;
 import games.stendhal.server.entity.item.Item;
 import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.entity.slot.Slots;
 import marauroa.common.game.RPAction;
 
-import org.apache.commons.lang.ArrayUtils;
-
 public class EquipAction extends EquipmentAction {
-
 	/**
-	 * registers "equip" action processor.
+	 * Registers "equip" action processor.
 	 */
 	public static void register() {
 		CommandCenter.register("equip", new EquipAction());
 	}
+
 	@Override
 	protected void execute(final Player player, final RPAction action, final SourceObject source) {
 		// get source and check it
-	
+
 		logger.debug("Getting entity name");
 		// is the entity unbound or bound to the right player?
 		final Entity entity = source.getEntity();
@@ -46,15 +43,19 @@ public class EquipAction extends EquipmentAction {
 		logger.debug("Checking if entity is bound");
 		if (entity instanceof Item) {
 			final Item item = (Item) entity;
-			if (item.isBound() && !player.isBoundTo(item) && player.getAdminLevel() < 7) {
+			if (item.isBound() && !player.isBoundTo(item)) {
 				player.sendPrivateText("Oto " + itemName
 						+ " jest specjalną nagrodą dla " + item.getBoundTo()
 						+ ". Nie zasługujesz na to, aby jej używać.");
 				return;
-			} else if (player.getAdminLevel() > 6) {
 			}
-			
+
+			if (Testing.WEIGHT) {
+				player.addCapacity(item.getWeight() * item.getQuantity());
+			}
 		}
+
+		new AutoEquipItems(player, action, source);
 
 		logger.debug("Checking destination");
 		// get destination and check it
@@ -65,31 +66,28 @@ public class EquipAction extends EquipmentAction {
 			return;
 		}
 
-		// List of slots which require minimum level
-		if (dest.slot.equals("neck") || dest.slot.equals("head")
-				|| dest.slot.equals("cloak") || dest.slot.equals("lhand")
-				|| dest.slot.equals("armor") || dest.slot.equals("rhand")
-				|| dest.slot.equals("finger") || dest.slot.equals("legs")
-				|| dest.slot.equals("fingerb") || dest.slot.equals("feet")
-				|| dest.slot.equals("glove")) {
+		// List of slots which require minimum level to use
+		if (Slots.CARRYING.getNames().contains(dest.slot)
+				&& !"bag".equals(dest.slot)) {
 			logger.debug("Checking required level for items");
 			// check required level for item in character's window
-			if (entity.has("minlevel")
-					&& player.getLevel() < entity.getInt("minlevel")) {
-				player.sendPrivateText("Nie jesteś wystarczająco doświadczony, aby używać "
-						+ itemName + ". Wymagany jest poziom " + entity.getInt("minlevel"));
+			int minUse = ((Item) entity).getMinUse();
+			if (minUse > player.getLevel()) {
+				player.sendPrivateText("Nie jesteś jeszcze wystarczająco doświadczony, aby używać "
+						+ itemName + ". Wymagany jest " + minUse + " poziom.");
 				return;
 			}
 		}
+
 		logger.debug("Equip action agreed");
-	
+
 		// looks good
 		if (source.moveTo(dest, player)) {
 			int amount = source.getQuantity();
 
 			// Warn about min level
 			if (player.equals(dest.parent)
-					&& ArrayUtils.contains(Constants.CARRYING_SLOTS, dest.slot)
+					&& Slots.CARRYING.getNames().contains(dest.slot)
 					&& !"bag".equals(dest.slot)) {
 				if(entity instanceof Item) {
 					int minLevel = ((Item) entity).getMinLevel();
@@ -99,27 +97,27 @@ public class EquipAction extends EquipmentAction {
 				}
 			}
 
-			// players sometimes accidentally drop items into corpses, so inform about all drops into a corpse 
+			// players sometimes accidentally drop items into corpses, so inform about all drops into a corpse
 			// which aren't just a movement from one corpse to another.
 			// we could of course specifically preclude dropping into corpses, but that is undesirable.
 			if (dest.isContainerCorpse() && !source.isContainerCorpse()) {
-					player.sendPrivateText("Dla Twojej wiadomości. Właśnie wyrzuciłeś " 
-							+ Grammar.quantityplnounWithHash(amount,entity.getTitle()) + " do zwłok, nad którymi właśnie stoisz.");
+				player.sendPrivateText("Dla Twojej wiadomości. Właśnie wyrzuciłeś "
+						+ Grammar.quantityplnounWithMarker(amount,entity.getTitle(), '§')
+						+ " do zwłok, nad którymi właśnie stoisz.");
 			}
-			
+
 			if(source.isLootingRewardable()) {
 				if(entity instanceof Item) {
 					((Item) entity).setFromCorpse(false);
 				}
 				player.incLootForItem(entity.getTitle(), amount);
-				SingletonRepository.getAchievementNotifier().onItemLoot(player);
 			}
 			if (entity instanceof Item) {
 				((Item) entity).autobind(player.getName());
 			}
 
 			new GameEvent(player.getName(), "equip", itemName, source.getSlot(), dest.getSlot(), Integer.toString(amount)).raise();
-	
+
 			player.updateItemAtkDef();
 		}
 	}

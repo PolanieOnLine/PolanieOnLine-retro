@@ -1,4 +1,4 @@
-/* $Id: FlowerGrowerTest.java,v 1.18 2011/11/12 11:37:09 kymara Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -16,17 +16,16 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.mapstuff.area.Allotment;
 import games.stendhal.server.entity.mapstuff.area.AreaEntity;
 import games.stendhal.server.maps.MockStendlRPWorld;
-
 import marauroa.common.game.RPClass;
-
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import utilities.RPClass.GrowingPassiveEntityRespawnPointTestHelper;
 
 public class FlowerGrowerTest {
@@ -71,22 +70,22 @@ public class FlowerGrowerTest {
 		final FlowerGrower fl = new FlowerGrower();
 		fl.setRipeness(0);
 		assertThat(fl.describe(),
-				is("You see something which has just been planted."));
+				is("Widzisz nasiona, które przed chwilą zostały zasadzone."));
 		fl.setRipeness(1);
-		assertThat(fl.describe(), is("Something is sprouting from the ground."));
+		assertThat(fl.describe(), is("Coś zaczyna kiełkować spod ziemi."));
 		fl.setRipeness(2);
 		assertThat(fl.describe(),
-				is("A plant is growing here, and you can already see foliage."));
+				is("Tutaj rośnie roślina i jak widzisz ma już liście."));
 		fl.setRipeness(3);
 		assertThat(
 				fl.describe(),
-				is("You see a plant growing a lilia, it is nearly at full maturity."));
+				is("Tutaj rośnie lilia i jest już prawie dojrzała."));
 		fl.setRipeness(4);
 		assertThat(
 				fl.describe(),
-				is("You see a fully grown lilia, ready to pull from the ground."));
+				is("Widzisz wyrośniętą lilia gotowa, aby wyciągnąć ją z ziemi."));
 		fl.setRipeness(5);
-		assertThat(fl.describe(), is("You see an unripe lilia."));
+		assertThat(fl.describe(), is("Oto niezebrane lilia."));
 	}
 
 	/**
@@ -97,29 +96,29 @@ public class FlowerGrowerTest {
 		final FlowerGrower fl = new FlowerGrower("someotherItem");
 		fl.setRipeness(0);
 		assertThat(fl.describe(),
-				is("You see something which has just been planted."));
+				is("Widzisz nasiona, które przed chwilą zostały zasadzone."));
 		fl.setRipeness(1);
-		assertThat(fl.describe(), is("Something is sprouting from the ground."));
+		assertThat(fl.describe(), is("Coś zaczyna kiełkować spod ziemi."));
 		fl.setRipeness(2);
 		assertThat(fl.describe(),
-				is("A plant is growing here, and you can already see foliage."));
+				is("Tutaj rośnie roślina i jak widzisz ma już liście."));
 		fl.setRipeness(3);
 		assertThat(
 				fl.describe(),
-				is("You see a plant growing a someotheritem, it is nearly at full maturity."));
+				is("Tutaj rośnie someotheritem i jest już prawie dojrzała."));
 		fl.setRipeness(4);
 		assertThat(
 				fl.describe(),
-				is("You see a fully grown someotheritem, ready to pull from the ground."));
+				is("Widzisz wyrośniętą someotheritem gotowa, aby wyciągnąć ją z ziemi."));
 		fl.setRipeness(5);
-		assertThat(fl.describe(), is("You see an unripe someotheritem."));
+		assertThat(fl.describe(), is("Oto niezebrane someotherItem."));
 	}
 
 	/**
 	 * Tests for growOnFertileGround.
 	 */
 	@Test
-	public void testGrowOnFertileGround() throws Exception {
+	public void testGrowOnFertileGround() {
 		final FlowerGrower fl = new FlowerGrower();
 		fl.setRipeness(0);
 		final StendhalRPZone zone = new StendhalRPZone("zone");
@@ -137,7 +136,7 @@ public class FlowerGrowerTest {
 	 * Tests for growOnFertileGround2.
 	 */
 	@Test
-	public void testGrowOnFertileGround2() throws Exception {
+	public void testGrowOnFertileGround2() {
 		final FlowerGrower fl = new FlowerGrower();
 		fl.setRipeness(0);
 		final StendhalRPZone zone = new StendhalRPZone("zone");
@@ -155,7 +154,7 @@ public class FlowerGrowerTest {
 	 * Tests for growFertileGroundElsewhere.
 	 */
 	@Test
-	public void testGrowFertileGroundElsewhere() throws Exception {
+	public void testGrowFertileGroundElsewhere() {
 		final FlowerGrower fl = new FlowerGrower();
 		fl.setRipeness(0);
 		final StendhalRPZone zone = new StendhalRPZone("zone");
@@ -164,7 +163,7 @@ public class FlowerGrowerTest {
 		zone.add(fl);
 		zone.add(entity);
 		assertFalse(fl.isOnFreeFertileGround());
-		
+
 		// check it withers when grown
 		fl.growNewFruit();
 		assertThat(fl.getRipeness(), is(0));
@@ -175,7 +174,7 @@ public class FlowerGrowerTest {
 	 * Tests for growOnInFertileGround.
 	 */
 	@Test
-	public void testGrowOnInFertileGround() throws Exception {
+	public void testGrowOnInFertileGround() {
 
 		final FlowerGrower fl = new FlowerGrower();
 		fl.setRipeness(0);
@@ -184,12 +183,12 @@ public class FlowerGrowerTest {
 		fl.growNewFruit();
 		assertThat(fl.getRipeness(), is(0));
 	}
-	
+
 	/**
 	 * Check that growing on top of another FlowerGrower fails
 	 */
 	@Test
-	public void testGrowOnFreeFertileGroundReserved() throws Exception {
+	public void testGrowOnFreeFertileGroundReserved() {
 		final FlowerGrower fl = new FlowerGrower();
 		final FlowerGrower fl2 = new FlowerGrower();
 		fl.setRipeness(0);
@@ -202,7 +201,7 @@ public class FlowerGrowerTest {
 		assertFalse(fl.isOnFreeFertileGround());
 		fl.growNewFruit();
 		assertThat(fl.getRipeness(), is(0));
-		
+
 		// check that the right one got removed
 		assertTrue(zone.getPlantGrowers().contains(fl2));
 		assertFalse(zone.getPlantGrowers().contains(fl));

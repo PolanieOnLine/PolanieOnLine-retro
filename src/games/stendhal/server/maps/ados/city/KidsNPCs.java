@@ -1,4 +1,3 @@
-/* $Id: KidsNPCs.java,v 1.17 2010/12/29 15:01:58 martinfuchs Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,19 +11,20 @@
  ***************************************************************************/
 package games.stendhal.server.maps.ados.city;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.common.Direction;
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
+import games.stendhal.server.entity.CollisionAction;
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Creates the NPCs and portals in Ados City.
@@ -38,6 +38,7 @@ public class KidsNPCs implements ZoneConfigurator {
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildKids(zone);
 	}
@@ -45,13 +46,18 @@ public class KidsNPCs implements ZoneConfigurator {
 	private void buildKids(final StendhalRPZone zone) {
 		final String[] names = { "Jens", "George", "Anna" };
 		final String[] classes = { "kid3npc", "kid4npc", "kid5npc" };
-		final String[] descriptions = {"Oto Jens. Wydaje się być nieco znudzony.", "Oto George. Jest małym chłopcem, który uwielbia się bawić!", "Widzisz Annę. Jest uroczą dziewczynką, która szuka zabawek."};
-		final Node[] start = new Node[] { new Node(40, 29), new Node(40, 41), new Node(45, 29) };
+		final String[] descriptions = {"Oto Jens. Wydaje się być nieco znudzony.", "Oto George, który uwielbia się bawić!", "Oto Anna. Jest uroczą dziewczynką, która szuka zabawek."};
+		final String[] genders = { "M", "M", "F" };
+		final Node[] start = new Node[] {new Node(45, 31), new Node(46, 34), new Node(46, 37)};
+
 		for (int i = 0; i < 3; i++) {
 			final SpeakerNPC npc = new SpeakerNPC(names[i]) {
 				@Override
 				protected void createPath() {
 					final List<Node> nodes = new LinkedList<Node>();
+					nodes.add(new Node(46, 30));
+					nodes.add(new Node(45, 30));
+					nodes.add(new Node(45, 29));
 					nodes.add(new Node(40, 29));
 					nodes.add(new Node(40, 32));
 					nodes.add(new Node(34, 32));
@@ -65,9 +71,6 @@ public class KidsNPCs implements ZoneConfigurator {
 					nodes.add(new Node(51, 43));
 					nodes.add(new Node(51, 37));
 					nodes.add(new Node(46, 37));
-					nodes.add(new Node(46, 30));
-					nodes.add(new Node(45, 30));
-					nodes.add(new Node(45, 29));
 					setPath(new FixedPath(nodes, true));
 				}
 
@@ -79,19 +82,20 @@ public class KidsNPCs implements ZoneConfigurator {
 						        ConversationPhrases.GREETING_MESSAGES,
 					        new GreetingMatchesNameCondition(getName()), true,
 						        ConversationStates.IDLE,
-						        "Mamusia powiedziała, że nie powinniśmy rozmawiać z nieznajomymi! Dowidzenia.",
+						        "Mamusia powiedziała, że nie powinniśmy rozmawiać z nieznajomymi! Do widzenia.",
 						        null);
 					}
 
-					addGoodbye("Dowidzenia, dowidzenia!");
+					addGoodbye("Do widzenia, do widzenia!");
 				}
 			};
 
-			npc.setEntityClass(classes[i]);
-			npc.setPosition(start[i].getX(), start[i].getY());
 			npc.setDescription(descriptions[i]);
+			npc.setEntityClass(classes[i]);
+			npc.setGender(genders[i]);
+			npc.setPosition(start[i].getX(), start[i].getY());
 			npc.setDirection(Direction.DOWN);
-			npc.initHP(100);
+			npc.setCollisionAction(CollisionAction.STOP);
 			zone.add(npc);
 		}
 	}

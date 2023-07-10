@@ -1,4 +1,4 @@
-/* $Id: QuestStateStartsWithCondition.java,v 1.14 2012/09/09 12:33:24 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,15 +12,15 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.condition;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
 import games.stendhal.server.core.config.annotations.Dev.Category;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.npc.ChatCondition;
+import games.stendhal.server.entity.npc.ConditionBuilder;
 import games.stendhal.server.entity.player.Player;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Does the quest state start with the specified String?
@@ -40,13 +40,13 @@ public class QuestStateStartsWithCondition implements ChatCondition {
 	 *            start of state-string
 	 */
 	public QuestStateStartsWithCondition(final String questname, final String state) {
-		this.questname = questname;
-		this.state = state;
+		this.questname = checkNotNull(questname);
+		this.state = checkNotNull(state);
 	}
 
+	@Override
 	public boolean fire(final Player player, final Sentence sentence, final Entity entity) {
-		return (player.hasQuest(questname) && player.getQuest(questname).startsWith(
-				state));
+		return (player.hasQuest(questname) && player.getQuest(questname).startsWith(state));
 	}
 
 	@Override
@@ -56,12 +56,20 @@ public class QuestStateStartsWithCondition implements ChatCondition {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 47123 * questname.hashCode() + state.hashCode();
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				QuestStateStartsWithCondition.class);
+		if (!(obj instanceof QuestStateStartsWithCondition)) {
+			return false;
+		}
+		QuestStateStartsWithCondition other = (QuestStateStartsWithCondition) obj;
+		return state.equals(other.state)
+			&& questname.equals(other.questname);
+	}
+
+	public static ConditionBuilder questStateStartsWith(String questName, String state) {
+		return new ConditionBuilder(new QuestStateStartsWithCondition(questName, state));
 	}
 }

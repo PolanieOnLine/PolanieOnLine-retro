@@ -1,4 +1,3 @@
-/* $Id: DeathmatchEngine.java,v 1.43 2011/03/15 23:12:30 kymara Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +11,10 @@
  ***************************************************************************/
 package games.stendhal.server.maps.deathmatch;
 
+import java.util.Date;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.events.TurnListener;
 import games.stendhal.server.entity.creature.DeathMatchCreature;
@@ -20,36 +23,32 @@ import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.Date;
-
-import org.apache.log4j.Logger;
-
 /**
  * this is the internal class which handles an active deathmatch session.
  */
 class DeathmatchEngine implements TurnListener {
 	/** The amount of milliseconds to wait before bail takes effect. */
-	private static final long BAIL_DELAY = 600; 
+	private static final long BAIL_DELAY = 600;
 
 	private static Logger logger = Logger.getLogger(DeathmatchEngine.class);
 
 	private final Player player;
 	private final EventRaiser raiser;
-	
+
 	private final DeathmatchInfo dmInfo;
 
 	private CreatureSpawner spawner;
 
 	private boolean keepRunning = true;
 
-
 	/**
 	 * Creates a new ScriptAction to handle the deathmatch logic.
-	 * 
+	 *
 	 * @param player
 	 *            Player for whom this match is created
 	 * @param deathmatchInfo
 	 *            Information about the place of the deathmatch
+	 * @param raiser
 	 */
 	public DeathmatchEngine(final Player player, final DeathmatchInfo deathmatchInfo, final EventRaiser raiser) {
 		this.dmInfo = deathmatchInfo;
@@ -78,6 +77,7 @@ class DeathmatchEngine implements TurnListener {
 		}
 	}
 
+	@Override
 	public void onTurnReached(final int currentTurn) {
 		if (condition()) {
 			action();
@@ -88,30 +88,27 @@ class DeathmatchEngine implements TurnListener {
 	}
 
 	private void action() {
-
 		final DeathmatchState deathmatchState = DeathmatchState.createFromQuestString(player.getQuest("deathmatch"));
 
 		switch (deathmatchState.getLifecycleState()) {
+			case BAIL:
+				if (((new Date()).getTime() - deathmatchState.getStateTime() > BAIL_DELAY)) {
+					handleBail();
+	
+					keepRunning = false;
+					return;
+				}
+				break;
 
-		case BAIL:
-			if (((new Date()).getTime() - deathmatchState.getStateTime() > BAIL_DELAY)) {
-				handleBail();
-
+			case CANCEL:
+				spawner.removePlayersMonsters();
+	
+				// and finally remove this ScriptAction
 				keepRunning = false;
 				return;
-			}
-			break;
 
-		case CANCEL:
-			spawner.removePlayersMonsters();
-
-			// and finally remove this ScriptAction
-			keepRunning = false;
-			return;
-			
-		default: 
-			//cannot happen we switch on a enum
-
+			default:
+				//cannot happen we switch on a enum
 		}
 
 		// check whether the deathmatch was completed
@@ -129,12 +126,12 @@ class DeathmatchEngine implements TurnListener {
 				raiser.say(player.getName() + " ukończyłeś ten deathmatch i z dumą możesz powiedzieć #zwycięstwo.");
 			    raiser.setCurrentState(ConversationStates.ATTENDING);
 				raiser.setAttending(player);
-				
+
 				// remove this ScriptAction since we're done
 				keepRunning = false;
 			}
 			// all creature are there
-			return; 
+			return;
 		}
 
 		int numberPlayers = dmInfo.getArena().getPlayers().size();
@@ -188,5 +185,4 @@ class DeathmatchEngine implements TurnListener {
 
 		spawner.removePlayersMonsters();
 	}
-
 }

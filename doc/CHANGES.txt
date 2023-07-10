@@ -1,6 +1,705 @@
 Changelog
 ---------
+
+1.28
+*client*
+- sprites & tiles replaced with images suffixed with "-noblood" when blood disabled
+- double direction key press is used instead of holding Alt. key to intitiate auto-walk
+- players can set continuous movement to continue walking after map change or teleport without releasing direction key
+
+
+1.27
+*world*
+- many new NPC and enemy sprite images
+- separate sprites for mountain orcs: chief, hunter, warrior
+- moved vulcanus, tomi, & zekiel animated tilesets to tileset/character directory
+- NPCs will now change direction after collision with another entity by default.
+- Extra player outfits added.
+
+*client*
+- players can change skin color
+- sprite "dead_ent" renamed to "old_ent" to match enemy name
+
+*controls*
+- auto-walk
+
+The Arianne project would like to give special thanks to Cabbit
+who created the base template sprites that are used throughout
+this release, & diamonddmgirl for her additions to the set:
+
+- Svetlana Kushnariova (Cabbit)  https://opengameart.org/users/cabbit
+- diamonddmgirl                  https://opengameart.org/users/diamonddmgirl
+
+We would like to thank OpenGameArt.org & the rest of its community,
+specifically the following authors. Many of which may not have
+contributed directly to Stendhal, but whose works helped make this
+release:
+
+- amaranthia                     https://opengameart.org/users/amaranthia
+- Andrew Kelley (superjoe)       https://opengameart.org/users/superjoe
+- Angry Amish                    https://opengameart.org/users/angry-amish
+- artisticdude                   https://opengameart.org/users/artisticdude
+- bagzie                         https://opengameart.org/users/bagzie
+- Barbara Rivera
+- Bertram                        https://opengameart.org/users/bertram
+- bluecarrot16                   https://opengameart.org/users/bluecarrot16
+- Calciumtrice                   https://opengameart.org/users/calciumtrice
+- Casper Nilsson                 https://opengameart.org/users/cnilsson
+- Charles Gabriel (Antifarea)    https://opengameart.org/users/charlesgabriel
+- Cobra Hubbard (BlueVortexGames)
+                                 https://opengameart.org/users/bluevortexgames
+- Crisisworks                    https://opengameart.org/users/crisisworks
+- Curt                           https://opengameart.org/users/curt
+- Dan Štefka (sufan02)           https://opengameart.org/users/sufan02
+- Daniel Eddeland (daneeklu)     https://opengameart.org/users/daneeklu
+- danielmahon                    https://opengameart.org/users/danielmahon
+- DkuCook                        https://opengameart.org/users/dkucook
+- Dominik Gmiterko (ienze)       https://opengameart.org/users/ienze
+- Fabzy                          https://opengameart.org/users/fabzy
+- GrumpyDiamond                  https://opengameart.org/users/grumpydiamond
+- Hyptosis                       https://opengameart.org/users/hyptosis
+- isaiah658                      https://opengameart.org/users/isaiah658
+- Jetrel                         https://opengameart.org/users/jetrel
+- Johann C                       https://opengameart.org/users/johann-c
+- Kemono                         https://opengameart.org/users/kemono
+- Kevin Smith (TKZ Productions)  https://opengameart.org/users/tkz-productions
+- Lanea Zimmerman (Sharm)        https://opengameart.org/users/sharm
+- lawnjelly                      https://opengameart.org/users/lawnjelly
+- Leonard Pabin                  https://opengameart.org/users/leonard-pabin
+- LordNeo                        https://opengameart.org/users/lordneo
+- Lori Angela Nagel (Jastiv)     https://opengameart.org/users/jastiv
+- Michael Williams (BizmasterStudios)
+                                 https://opengameart.org/users/bizmasterstudios
+- Michele Bucelli (Buch)         https://opengameart.org/users/buch
+- mold                           https://opengameart.org/users/mold
+- Nila122                        https://opengameart.org/users/nila122
+- NoLogoGames                    https://opengameart.org/users/nologogames
+- One Man Army                   https://opengameart.org/users/one-man-army
+- Onno Timmerman (Enquest)       https://opengameart.org/users/enquest
+- patvanmackelberg               https://opengameart.org/users/patvanmackelberg
+- Rayane Félix (RayaneFLX)       https://opengameart.org/users/rayaneflx
+- RedVoxel                       https://opengameart.org/users/redvoxel
+- Shepardskin                    https://opengameart.org/users/shepardskin
+- Spring                         https://opengameart.org/users/spring
+- Sollision                      https://opengameart.org/users/sollision
+- Stephen Challener (Redshrike)  https://opengameart.org/users/redshrike
+- Tracy                          https://opengameart.org/users/tracy
+- Tuomo Untinen (Reemax)         https://opengameart.org/users/reemax
+- William Thompson               https://opengameart.org/users/williamthompsonj
+- Wolfgang Wozniak (Ouren)       https://opengameart.org/users/ouren
+- Wolthera van Hövell tot Westerflier (TheraHedwig)
+                                 https://opengameart.org/users/therahedwig
+- wulax                          https://opengameart.org/users/wulax
+- Xenodora                       https://opengameart.org/users/xenodora
+- Yamilian                       https://opengameart.org/users/yamilian
+- Yar                            https://opengameart.org/users/yar
+- yolkati                        https://opengameart.org/users/yolkati
+- Zachariah Husiar (Zabin)       https://opengameart.org/users/zabin
+- ZaPaper                        https://opengameart.org/users/zapaper
+- ztn                            https://opengameart.org/users/ztn
+
+We would also like to thank these authors from other communities:
+
+- Daniel Cook       http://www.lostgarden.com/
+- Firkin            https://openclipart.org/user-detail/Firkin
+- Guido Bos         http://www.neorice.com/
+- johnny_automatic  https://openclipart.org/user-detail/johnny_automatic
+- leangoro          https://openclipart.org/user-detail/leangoro
+- liftarn           https://openclipart.org/user-detail/liftarn
+
+And finally, thank you to the Stendhal project members Kimmo Rundelin (kiheru),
+olonu, & Jordan Irwin (AntumDeluge) who put in extra hours of work to take on
+the huge task of creating & replacing sprite & tileset images.
+
+
+1.26
+*world*
+- made new image for Gashadokuro
+- made new image for Stone Golem
+- made new image for Chicken
+- made new image for mithrilforgernpc
+- limited time in Hell due to the heat
+- improved dialogues of some NPCs near Ados
+
+*experimental webclient*
+- removed outdated text and admin clients
+- added popup windows
+- added group management commands
+- implemented stacked item management
+- display zone name
+- implemented gate, walk blocker and PassiveNPC
+ 
+*bugfixes*
+- fixed a double login bug resulting in item duplication (thanks to pepsz for the report)
+- fixed a NullPointerException on quit dialog
+
+
+1.25
+
+*world*
+- made new images for rams and lions 
+- made new images for pine, locust trees and new old ents
+- made new ship tiles
+- added soldiers to Ados wall
+- added city wall gate to Ados south
+- added a fisher hut south of ados city
+- widened pathways in hell
+
+*experimental webclient*
+- use "ant compilejs" to invoke closure compiler
+- zone change by clicking near the zone border
+- performance optimisations
+- added growing spawner (grain, carrots, etc...)
+- right click popup menu
+- highlight npc triggers and item names in chatlog
+- removed dependency on polymer
+
+
+
+1.24
+
+*world*
+- Mermaids linger around near the outer edge of grotto 
+- New images for farm animals: cow and bull
+- New images for dragons: green and red as well as green and red dragon riders
+- New images for ghost, death, black death and golden death
+- New images for brown, green and black slimes 
+
+*client*
+- none
+
+*changes to the experimental webclient*
+- fixed crash on missing images
+- updated polymer and webcomponentsjs, but MS Edge is still broken :-/
+- improved drag and drop of items from corpse and chest
+- added dragable PopupWindow (e. g. for corpse inventory, menus and dialogs)
+
+
+
+1.23
+
+*world*
+- Mizuno sells ice, fire, and light arrows. 
+- Because of a bad curse, many creatures, animals and people have lost their appearance
+- Please join us at https://stendhalgame.org/chat/ if you want to help with creating new graphics 
+
+
+1.22
+
+*world*
+- Winter has started and the weather shows it
+- Semos is decorated for Christmas
+- New Christmas song: "O how joyfully"  
+- KillMonks quest history shows tally marks
+
+*client*
+- fixed "under the ocean" layer on clients without support for full alpha.
+
+
+1.21
+
+*world*
+- Pets can drink 'medicine' even when they aren't hungry. Making them easier to maintain in battle.
+- New trader NPC (Mizuno) travels around remote parts of Ados selling ice arrows for black pearls.
+- Rebalancing vampire, chaos swords.
+- Photo booth at Mine Town Revival festival
+- Small improvements to maps
+- Small improvements to item and monster descriptions
+
+*client*
+- Default action of chest changed to open/inspect instead of look
+
+*fixes*
+- Help For the Harvest quest works again.
+
+*code*
+- In TeleporterBehaviour, zoneName.startsWith() 
+  now checks a variable so teleporting NPCs can be a little more customizable.
+- TeleporterBehaviour can now be passed an array of zones to choose from or leave null for the default list.
+
+*future changes* 
+- preparation for testing pet leveling and growing
+- Fighting pets will attack things along side their owners. Instead of just in self-defense.
+
+
+
+1.20
+
+*world*
+- Humans lose conscious when scuba gear is take off under water
+- Improved thunderstorms
+- Archer combat is now visible
+- Harold understands "prolong all" now
+
+*code*
+- Support Postgres databases in addition to H2 (recommended) and MySQL
+- Setup Travis for continuous integration tests and fixed some order dependent tests 
+- Migrated test coverage analysis from Cobertura to Jacoco 
+- Git repository is mirrored instantaneously between Github and Sourceforge in both directions
+- Yearly special event quests now pick up the current year as part of their quest slot automatically
+- Backend for puzzles
+
+*fixes*
+- Christmas quest "Goodies for Rudolph" is now repeatable next year
+- Fixed maximization state being sometimes saved incorrectly.
+- Database index are now created automatically
+
+
+
+
+1.19
+
+*world*
+- new interesting under water zone
+- new quest for a scuba diving license
+- new Kraken creature
+- Zekiel can make enhanced lion shields
+- Cats can drink milk now
+- map improvements
+
+*code*
+- fixed compiler warnings and code cleanup
+
+*client*
+- added cancel buttons on all dialog boxes (for window managers which do not add an X to the title bar)
+
+
+
+
+1.18
+18th August 2015
+
+*world*
+- a half elf girl and an distillery customer share their stories at Ados market
+- Improving dialogue of Lil Johnnny
+- Saskia sells umbrellas
+
+
+*website*
+- zone names labels on world map
+- http://arianne.sourceforge.net is moving to https://arianne-project.org
+
+*fixes*
+- fixed status resistance items being forgetting their status value
+- fixed turning left and right of character on character creation web page
+- fixed map in Orril Dungeon -3
+- fixed kill enemy quests getting stuck
+
+
+*code*
+- Webstart starter will be able to check both arianne-project.org and arianne.sourceforge.net for additional files.
+  So if SourceForge goes down again for a week, webstart will still be able to download Stendhal
+- code quality improvements
+
+
+1.17
+20th april 2015
+
+*world*
+- A new fish swimming along the coast in Ados City
+- Different "elf" head for players and NPCs
+- New corpse for bone dragon
+- Added to Daily Item Quest list:
+-- 5 olives, 2 marbles
+- Varying weather at outside zones
+- Drunken player speech is now more confusing and depends on the state of drunkenness
+- New item medicinal ring: Slightly protects against poisoning
+- Alternative ATK XP training with "testing.combat" defined defined for server
+- Optional ranged attack (RATK) stat with "testing.combat" defined for server
+  and client
+- Mainio boots reward instead of steel boots from Kanmararn Soldiers quest
+- Corpse descriptions state the creature name, instead of just the creature class
+
+*client*
+- Emote character map available by passing -Dtesting.chat to VM
+- Can restore window width, height, and maximized state
+- Drawing weather can be disabled in settings
+- More visible new chat message indication
+- Links to stendhalgame.org in the chat log can be opened with a mouse click
+- The client can draw a weapon sprite with the attack swipes, if one is available
+- Expiremental auto-walk feature toggled on/off with "/walk" command and off
+  with "/stopwalk"
+
+*code*
+- Alias "zucchini" for "courgette"
+- Alias "armour" for "armor"
+- Alias "color" for "colour"
+- Alias "extend" for "prolong"
+- Organized outfit parts into subdirectories
+- Changed "player_base" outfit type to "body"
+- Entities can now pass through collision tiles with "setIgnoresCollision()"
+- Items can be given status resistance with StatusResistantItem implementation
+- New SlotActivatedItem enables an item's attributes when equipped to specified
+  slots
+- A new script for replacing maps on a running server
+- Player entity stops walking on non-object collision
+
+*chat*
+- Alias "/status" for command "/sentence"
+- "sentence" is now displayed in player description when using "Look"
+
+*visuals*
+- Active entities reset animated sprite index to 1 to appear standing when stopped
+- Zombie status is indicated by making the player green
+- Animated flame tiles replaced in int_semos_wizards_tower_1
+
+*fixes*
+- Fix player cannot move after zombie status wears off
+  - zombie status removed for release
+- Karma reward for quests: Kill Dhohr Nuggetcutter, Coal for Haunchy
+- Refactored tiled/tileset/plant/cactus_2.png
+- Refactored tiled/tileset/object/row_boat.png
+- Reporting killers on an entity death no longer lists all attackers at the time
+  of death
+- The server no longer sends perceptions for deleted entities
+- Fix client chat box never loses focus so key release events are not lost
+- Fix mouse wheel walking bug where character walks endlessly
+
+
+
+1.16
+15th December 2014
+
+*world*
+- Semos city is decorated for Christmas
+- Falling snow
+- Leaderhosen outfit 
+
+
+*code*
+- weather layer
+
+
+
+1.15.1
+26th October 2014
+
+- fixed a bug which caused poisoned summon creates to die multiple times
+
+
+
+1.15
+5th October 2014
+
+*world*
+- Mine Town Revival Weeks are celebrated again!
+- new quest: Finn Farmer has an important message
+- better fitting curves to limit player stats
+
+*client*
+- repeatable quests are marked in progress log
+- added support for translucency sprites on systems which are fast enough
+
+*website*
+- updated world map
+
+*admins*
+- admins can summon public chests
+- admins can remove sentences
+
+*code*
+- small bug fixes
+- code cleanup, fixed compiler warnings
+
+
+
+1.14
+2nd June 2014
+
+*world*
+- new park in Fado city, south of church
+- Easter map for Fado city
+
+*website*
+- unified search: creatures, items, quests, achievements, players, world guide, player's guide
+- integration of wiki pages
+- detail pages for quests, regions and dungeons
+- links from NPC, items and creatures to related quests
+- new, cleaner layout with drop down menus
+- breadcrumbs for easier navigation
+- gallery for screenshots
+- website now works on small devices
+
+
+*fixes*
+- length of text messages limited and line breaks fixed on Java 7/8
+- wedding ring supports double click
+- message on shocked
+- code cleanup and documentation improvements
+- excessly high atk and def level are capped for fighters with little experience 
+  (average players should not notice much of a difference)
+
+
+
+1.13
+10th February 2014
+
+*world*
+- nice zone names
+- dragon slayer achievement
+- Xeno helmet added to NPC purchasing shops
+- improvements to maps
+- rats are so hungry that they are not scared by weak people anymore
+
+*fixes*
+- fixed webstart on Oracle Java
+- postman messages are now filtered by the ignore list
+- fixed item description for canned tuna (item name underlining)
+
+*website*
+- removed myopenid as it is going to be discontinued
+
+
+*developer's note*
+- If you developed a game based on stendhal and use the automatic updater, 
+  you will need to edit game.properties and add UPDATE_SIGNER_KEY. 
+  The required value will printed in the webstart console.
+
+
+1.12.1
+
+*fixes*
+- disabled reference to an empty item file which broke the website
+- fixed a karma exploit on accepting accpeted quests
+- fixed PVP defense against weaker players 
+
+
+1.12
+12th December 2013
+
+*world*
+- New Christmas maps for bank, townhall, storage (Eonnas house, all Semos)
+- Meet Santa and Rudolph
+- Dragon now notice small players right in front
+- Reworked normal storage interior
+- More creature descriptions
+- New stocking items, deleting coal
+- New sounds and images
+
+*fixes*
+- Fixing tiles on several maps
+- Sometimes xp reward for killing creatures was too low, if the player logged out during the fight
+- On expire of a special outift, a message was displayed, even when the outfit has been removed beforehand
+
+*website*
+- Display name of ip-address on login history
+
+*developer*
+- Replaced commons-lang.jar with guava.jar (needs to be changed in Eclise: Project | Properties | Build Path | Libraries)
+
+
+
+1.11
+15th October 2013
+
+*world*
+- Mine Town Weeks are celebrated
+  - New Paper chase quest
+  - New Sokoban game
+  - all the games from last years festival are back
+- Margaret accepts coupons
+- New look for Semos plains
+- More creature descriptions
+- Added fairy cakes to daily item quest
+- Icons to indicate healer and merchant NPCs
+- Pebbles sprite replaced by rocks in some collision areas on maps
+- New achievement: Fisherman
+
+*client*
+- Notifies player of last login attempt
+- Subwindows on the right side panel can be arranged by the user
+
+*fixes*
+- Screen flashing during zone colouring change has been fixed
+- Resizing karma bar no longer causes it to flash
+- Font setting changes opening travel log window has been fixed
+
+*code*
+- Status icon positions are automatically arranged
+- Poisoning and new status effects handled with new system
+
+
+
+1.10
+9th September 2013
+
+*world*
+- More creature descriptions
+- Added 3rd frame to cyclops and cave troll for smoother walking effect
+- Animated sprite for diamond
+- Touched up sprites for some creatures
+- NPC Seremela has a new sprite
+- Touched up elf ears for some NPCs
+- Added reversible path on collision to Eheneumniranin
+- Added achievement "A Bit Xenophobic"
+- Reworked area around ghost in Ados city_n
+
+*client*
+- Now handles images for multiple status effect icons/animations
+- On multi-screen systems updater windows open on the screen with the mouse pointer
+- Shop signs can have animated item images
+- Game opens in the initial window
+
+*fixes*
+- Fixing table entities in Kalavan houses
+- Exchanging white round tables in fado city
+- Clicking the menu button when the menu is open, closes it
+
+*code*
+- NPC sound effects are handled by server
+- Sheep sounds are generated server side
+- Domestic animals and NPCs use the same idea handling code in the client
+
+1.09
+25th July 2013
+
+*world*
+- New quest: Traps for Klaas
+- New quest: Help with the Harvest
+- New achievement: A Bit Xenophobic
+- New item: xeno helmet dropped by xenocium
+- Captain of Athor Ferry named Captain Brownbeard now
+- Sprite fixes:
+  - Ogre soldier's front & back facing helmet fixed to match side view
+  - All dark elves now have elf ears, Elf ears on many elves made more visible and cleaned up
+  - Re-drew/touched up many creature sprites including Grobble monster and Winged blurble
+- Added new harmless corpses to the following creatures:
+    ice giant, elder giant, lord durin, cave troll, imperial general giant, master giant,
+    black giant, amazoness giant, kasarkutominubat
+- Sound effect played when player dies
+- Added to list of maps where Rose Leigh will not teleport
+- Most blue items moved from Daily Item Quest to Weekly
+- Added dwarvish legs to Femme Fatale's shop
+- Sound effects for fishing source and water spring source
+
+*client*
+- Karma indicator bar flashes for karma change
+- Movement prediction when using keyboard adapts to network latency
+
+*fixes*
+- Alice Farmer answers to "crepes suzette"
+- TeleporterBehaviour badZones table updated
+- Replaced tilesets:
+    table_white_round tileset with table_white, bench_white, orb_table, skull_post
+- Marked apothecary's lab and cabin as inaccessible
+- Player's head no longer shows when walking in minecart tunnels in -2_semos_mine_n_e2
+- Item names in shop lists are now properly underlined
+- Spurious double click usages on items not meant to be usable removed
+
+*code*
+- PassiveNPCs using random paths can be set to have a maximum movement radius
+- NPCs can be set to reverse their path on collision
+- QuestCheckingPortal can now check quest state
+
+
+
+1.08
+5th June 2013
+
+*world*
+- New NPC and quest in Nalwor Flower Shop: Restock Flower Shop
+- New achievements: Nalwor's Bane and Feeling Blue
+- New puppy NPC in Semos City
+- Rodent trap added to Daily Item Quest
+- Some new creature sound effects
+- Some new creature corpses
+- New NPC type: PassiveNPC
+- Warning messages for dangerous areas now show up in client display
+- Sound plays when player/creature blocks an attack
+- Item names have a new highlighting mode
+- Twin swords have a bit of DEF again
+- Teddies can be hugged
+- Food and drinks have "Eat" and "Drink" menu items, instead of "Use"
+- House keys are no longer dropped on death
+- Bufferflies added to Semos Plains North
+- Rabbits added to Fado City
+- Fish added to fountain in Ados City
+- 3 kitten added to Felina's house
+
+
+*client*
+- Option to turn off creature speech bubbles
+- Fixed accidental looting on drag by deactivating ctrl-click as looting command
+- Immediate response when starting to move with arrow keys
+- Attack sprites are scaled according to attacker size
+- Player now faces attack target if not doing so on each turn
+
+
+*fixes*
+- quest log of EmotionCrystals fixed
+- Removed background noise from many sound effects
+- Pressing an arrow key always tries to move one tile
+- Producers don't ask to come back in the past under certain conditions anymore
+- Hayunn won't give more than one task at a time
+- Stone style for client fixed
+
+*code*
+- @Override added where applicable
+- Reduced visibility of several classes, methods and fields
+- Unused old code removed
+
+
+
+1.07
+18th April 2013
+
+*world*
+- Mayor Chalmers and Hazel heard of new items they could need
+- Katinka wants just the best for her animals with more food
+- Adventurers have discovered a pit full of snakes beneath Ados caves
+- New dropped items: elvish hat
+- New quest items: stone legs
+- More light on Ados market, around Athor island and more light effects 
+- New look for mountain orc 
+- Dwarves rebuilt rails in Semos Mine
+- Introducing Mimics, cobra, king cobra, and lamia to the world
+- More sounds and descriptions for creatures
+- Some creatures went up to the mountains
+- Pdiddi warns first customers about the risk of his pills
+- Someone fixed the pianos and clocks in Faiumoni
+- Home owners now have running water
+- Athor's ferry has begun "creaking". Probably due to old age.
+- Jef feels better but still wants to hear from his mom
+- Pushable stone blocks have been spotted
+- Background music in hell underlines atmosphere
+- Growing cherry trees spotted on Orril Mountain
+
+*client*
+- A lot of redrawn tilesets
+- style changeable from settings menu
+
+*fixes*
+- Special character in offline messages (postman messages) work now
+- Fixed imperial defender sprite
+- Map fixes (e.g. collision errors and layers)
+- Slightly increasing drop rates for blue items
+
+
+1.06
+12th February 2013
+
+*world*
+- more light in Ados city
+- some creatures drop blue items now
+- more creature descriptions added
+- new sprite shown when blood and corpses setting is turned off
+- new sound effects for multiple creatures
+- Leander explains his task better 
+- new corpses for slimes, ents and stone golems
+- dwarvish legs now available
+
+*client*
+
+*fixes*
+- Alice Farmer understands players better
+- Vincento Price can count correctly
+- Collision touchups around trees on many maps
+- Elementals in hell can't collide any longer
+- "Far South" achievement reachable now
+
+
 1.05
+15th December 2012
 
 *world*
 - added Rudolph and a quest for goodies
@@ -21,6 +720,7 @@ Changelog
 - several small fixes to entity views sometimes missing changes
 
 1.04
+22th October 2012
 
 *world*
 - Mine Town Revival Weeks!
@@ -48,6 +748,7 @@ Changelog
 
 
 1.03
+12th September 2012
 
 *world*
 - Ados Botanical Gardens
@@ -76,6 +777,7 @@ Changelog
 
 
 1.02
+7th August 2012
 
 *world*
 - clocks around the world show the server time
@@ -118,10 +820,14 @@ Changelog
 
 
 1.01.1
+5th July 2012
+
 *fixes*
 - fixed slow processing of sound data causing lag on zone change and on spawning of sound aware creatures
 
 1.01
+1st July 2012
+
 *world*
 - Venethiel teaches players about Haizen's maze
 - Will warns players leaving Semos city 
@@ -156,6 +862,7 @@ Changelog
 
 
 1.00
+17th May 2012
 
 * lots of testing
 * nice descriptions for many NPCs
@@ -165,6 +872,7 @@ Changelog
 
 
 0.99
+5th February 2012
 
 *world*
 
@@ -194,6 +902,7 @@ Changelog
 
 
 0.98
+2nd December 2011
 
 *client*
 
@@ -226,9 +935,8 @@ Changelog
 - Fixed descriptions for items that can be picked 
 
 
-
-
 0.97
+12th October 2011
 
 * Revival Weeks*
 - Faiumoni's inhabitants are excited for the Mine Town Revival Weeks already and decorated Semos City and the Mine Town area
@@ -274,8 +982,8 @@ Changelog
 - table itemid was replaced with table item.
 
 
-
 0.96
+25th August 2011
 
 *world*
 - Barbarus moved his work place a bit closer to the Mines entrance and reduced the pick price to 400 money each
@@ -305,18 +1013,17 @@ Changelog
 - harold now understands plural words properly
 
 
-
 0.95
 14th July 2011
 
 **** IMPORTANT****
 If you package Stendhal or have forked your own game based on it
-read http://stendhalgame.org/wiki/Automatic_Software_Updater
+read https://stendhalgame.org/wiki/Automatic_Software_Updater
 ******************
 
 - rewrote the updater so that it will not break onces a year anymore because the certificate expires
 - on Unix/Linux the home folder now defaults to $HOME/.config/stendhal for new installs
-- improved the best player score for low level players: http://stendhalgame.org/wiki/Fixing_RP_Score_2011
+- improved the best player score for low level players: https://stendhalgame.org/wiki/Fixing_RP_Score_2011
 
 * Marauroa*
 - updated to Marauroa 3.8.7 which greatly improves server side performance
@@ -722,7 +1429,7 @@ read http://stendhalgame.org/wiki/Automatic_Software_Updater
 - Tab completion for online nick names works now without /who called before
 - orc spearman creature
 - /atlas /faq and /manual commands to open useful pages in browser
-- Harold tweets trades, the official stendhal server uses http://twitter.com/stendhaltrade
+- Harold tweets trades, the official stendhal server uses https://twitter.com/stendhaltrade
 - magical damage types of weapons (fire, ice ...)
 - resistance/vulnerability of creatures to magical weapons (fire, ice, ...)
 - attack sweeps look different depending on the attack type
@@ -816,7 +1523,7 @@ your error log files and pleace continue to do so.
 
 0.81.1
 *bug fixes*
-- fixed an issue with 0 hp created by logging out while dying (thanks to Andrzej Kofaski)
+- fixed an issue with 0 hp created by logging out while dying (thanks to Andrzej Kofański)
 - prevent client crash on empty soundNameList
 - renamed admins.list to admins.txt to simplify installation on windows with hidden file name extensions
 - fixed a server side classpath issue
@@ -894,8 +1601,8 @@ your error log files and pleace continue to do so.
 - NPC chat and creature noises using RPEvent
 *website*
 - nicer urls for subpages on the website
-- a new version of the atlas with dungeon entrances: http://stendhalgame.org/wiki/File:WorldWithMarkedDungeons091122.png
-- dedicated testing page on wiki http://stendhalgame.org/wiki/Stendhal_Testing
+- a new version of the atlas with dungeon entrances: https://stendhalgame.org/wiki/File:WorldWithMarkedDungeons091122.png
+- dedicated testing page on wiki https://stendhalgame.org/wiki/Stendhal_Testing
 - Stendhal Manual on the wiki updated with new images
 
 
@@ -995,8 +1702,8 @@ your error log files and pleace continue to do so.
 - black dragon, flying golden dragon
 - skeletons, fallens of all kinds
 * Admin
-  - support log available at http://stendhalgame.org
-  - player history available at http://stendhalgame.org/?id=content%2Fadmin%2Fplayerhistory&name=NAME&sublogin=Search
+  - support log available at https://stendhalgame.org
+  - player history available at https://stendhalgame.org
   - new command /adminnote
   - /gmhelp_script and /gmehlp_alter replaced by /gmhelp script and /gmhelp alter
 

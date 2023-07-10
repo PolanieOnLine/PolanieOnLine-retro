@@ -1,4 +1,4 @@
-/* $Id: KilledInSumForQuestCondition.java,v 1.9 2012/09/09 12:33:23 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,19 +12,19 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.condition;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
 import games.stendhal.server.core.config.annotations.Dev.Category;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.apache.log4j.Logger;
 
 /**
  * Checking sum of quest creatures kills in player's quest and kills slots..
@@ -41,7 +41,7 @@ import org.apache.log4j.Logger;
 @Dev(category=Category.IGNORE, label="Kills?")
 public class KilledInSumForQuestCondition implements ChatCondition {
 	private static Logger logger = Logger.getLogger(KilledInSumForQuestCondition.class);
-	private final String QUEST_SLOT;
+	private final String questSlot;
 	private final int questIndex;
 	private final int killsSum;
 
@@ -54,49 +54,52 @@ public class KilledInSumForQuestCondition implements ChatCondition {
 	 * @param killsSum - required sum of creatures kills
 	 */
 	public KilledInSumForQuestCondition(String quest, int index, int killsSum) {
-		this.QUEST_SLOT=quest;
-		this.questIndex=index;
-		this.killsSum=killsSum;
+		this.questSlot = checkNotNull(quest);
+		this.questIndex = index;
+		this.killsSum = killsSum;
 	}
 
 	/**
 	 * return true if player have killed proper sum of creatures.
 	 */
+	@Override
 	public boolean fire(final Player player, final Sentence sentence, final Entity npc) {
-		final String temp = player.getQuest(QUEST_SLOT, questIndex);
-		if(temp==null) {
+		final String temp = player.getQuest(questSlot, questIndex);
+		if (temp == null) {
 			return false;
 		}
 		final List<String> tokens = Arrays.asList(temp.split(","));
 		// check for size - it should be able to divide by 5 without reminder.
-		if((tokens.size() % 5)!=0) {
+		if ((tokens.size() % 5) != 0) {
 			logger.error("Wrong record in player's "+player.getName()+
-					" quest slot ("+QUEST_SLOT+
+					" quest slot ("+questSlot+
 					"), position "+questIndex+
-					" : ["+	player.getQuest(QUEST_SLOT)+
+					" : ["+	player.getQuest(questSlot)+
 					"]");
 			//npc.say("something wrong with you, i dont see how much monsters you killed.");
+			// TODO: clear player's quest slot
 			return false;
 		}
 		int sum=0;
-		for(int i=0; i<tokens.size()/5; i++) {
+		for (int i = 0; i < tokens.size() / 5; i++) {
 			final String creatureName=tokens.get(i*5);
 			int killedSolo;
 			int killedShared;
 			try {
-				killedSolo=Integer.parseInt(tokens.get(i*5+3));
-				killedShared=Integer.parseInt(tokens.get(i*5+4));
+				killedSolo=Integer.parseInt(tokens.get(i*5 + 3));
+				killedShared=Integer.parseInt(tokens.get(i*5 + 4));
 			} catch (NumberFormatException npe) {
-				logger.error("NumberFormatException while parsing numbers in quest slot "+QUEST_SLOT+
+				logger.error("NumberFormatException while parsing numbers in quest slot "+questSlot+
 						" of player "+player.getName()
 						+" , creature " + i*5);
+				// TODO: clear player's quest slot
 				return false;
 			}
 			final int diffSolo = player.getSoloKill(creatureName) - killedSolo;
 			final int diffShared = player.getSharedKill(creatureName) - killedShared;
-			sum=sum+diffSolo+diffShared;
+			sum = sum + diffSolo + diffShared;
 		}
-		if(sum<killsSum) {
+		if(sum < killsSum) {
 			return false;
 		}
 		return true;
@@ -108,14 +111,20 @@ public class KilledInSumForQuestCondition implements ChatCondition {
 	}
 
 	@Override
-	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				KilledInSumForQuestCondition.class);
+	public int hashCode() {
+		return 43691 * questSlot.hashCode() + 43711 * questIndex + killsSum;
 	}
 
 	@Override
-	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+	public boolean equals(final Object obj) {
+		if (!(obj instanceof KilledInSumForQuestCondition)) {
+			return false;
+		}
+		KilledInSumForQuestCondition other = (KilledInSumForQuestCondition) obj;
+		return (questIndex == other.questIndex)
+			&& (killsSum == other.killsSum)
+			&& questSlot.equals(other.questSlot);
 	}
+
 
 }

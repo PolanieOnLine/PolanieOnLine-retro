@@ -1,6 +1,5 @@
-/* $Id: ContMoveAndStrengthenOnlinePlayers.java,v 1.1 2011/06/28 21:16:33 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,6 +11,10 @@
  ***************************************************************************/
 package games.stendhal.server.script;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
 import games.stendhal.common.Direction;
 import games.stendhal.common.Rand;
 import games.stendhal.server.core.engine.SingletonRepository;
@@ -22,22 +25,17 @@ import games.stendhal.server.core.scripting.ScriptImpl;
 import games.stendhal.server.entity.item.Item;
 import games.stendhal.server.entity.item.StackableItem;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
 import marauroa.common.game.IRPZone;
 /**
- * Script to make all players stronger and immune to poison before randomly distributing them 
+ * Script to make all players stronger and immune to poison before randomly distributing them
  * over all zones of the running server
- *  
+ *
  * @author madmetzger
  */
 public class ContMoveAndStrengthenOnlinePlayers extends ScriptImpl {
-	
+
 	private List<StendhalRPZone> zones = new ArrayList<StendhalRPZone>();
-	
+
 	/**
 	 * Create the script and initialize the list of zones
 	 */
@@ -54,30 +52,30 @@ public class ContMoveAndStrengthenOnlinePlayers extends ScriptImpl {
 	@Override
 	public void execute(final Player admin, List<String> args) {
 		SingletonRepository.getTurnNotifier().notifyInSeconds(5, new ContMoveAndStrengthenPlayersTurnListener());
-		
+
 	}
-	
+
 	private class ContMoveAndStrengthenPlayersTurnListener implements TurnListener {
 		private StendhalRPZone zoneGuardHouse;
 		private StendhalRPZone zoneAfterlife;
-		
+
 		public ContMoveAndStrengthenPlayersTurnListener() {
 			zoneGuardHouse = StendhalRPWorld.get().getZone("int_semos_guard_house");
 			zoneAfterlife = StendhalRPWorld.get().getZone("int_afterlife");
 		}
 
+		@Override
 		public void onTurnReached(int currentTurn) {
 			List<Player> list = new LinkedList<Player>();
 			list.addAll(zoneGuardHouse.getPlayers());
 			list.addAll(zoneAfterlife.getPlayers());
-			
-			
+
+
 			for (Player player : list) {
 
 				equipPlayer(player);
 				player.setDefXP(999999999);
 				player.addXP(999999999);
-				player.setImmune();
 				StendhalRPZone zone = zones.get(Rand.rand(zones.size()));
 				int x = Rand.rand(zone.getWidth() - 4) + 2;
 				int y = Rand.rand(zone.getHeight() - 5) + 2;

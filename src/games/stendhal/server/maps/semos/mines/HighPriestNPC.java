@@ -1,4 +1,3 @@
-/* $Id: HighPriestNPC.java,v 1.23 2011/09/08 18:42:37 bluelads99 Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,7 +11,11 @@
  ***************************************************************************/
 package games.stendhal.server.maps.semos.mines;
 
+import java.util.Map;
+
 import games.stendhal.common.Direction;
+import games.stendhal.common.constants.Occasion;
+import games.stendhal.common.constants.Testing;
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
@@ -21,8 +24,6 @@ import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.Map;
 
 public class HighPriestNPC implements ZoneConfigurator {
 	/**
@@ -33,23 +34,17 @@ public class HighPriestNPC implements ZoneConfigurator {
 	 * @param attributes
 	 *            Configuration attributes.
 	 */
-	public void configureZone(final StendhalRPZone zone,
-			final Map<String, String> attributes) {
-		buildMineArea(zone, attributes);
+	@Override
+	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
+		buildMineArea(zone);
 	}
 
-	private void buildMineArea(final StendhalRPZone zone,
-			final Map<String, String> attributes) {
+	private void buildMineArea(final StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Aenihata") {
-
-			@Override
-			protected void createPath() {
-				setPath(null);
-			}
-
 			@Override
 			protected void createDialog() {
 				addGreeting(null, new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						String reply = "Utrzymuję barierę, która trzyma potwora zwanego #balrog z daleka.";
 
@@ -66,7 +61,8 @@ public class HighPriestNPC implements ZoneConfigurator {
 						"Najstraszniejszy potwór w armii Balrogów.");
 				addGoodbye();
 			}
-			
+
+			@Override
 			protected void onGoodbye(RPEntity player) {
 				setDirection(Direction.LEFT);
 			}
@@ -74,6 +70,7 @@ public class HighPriestNPC implements ZoneConfigurator {
 
 
 		npc.addInitChatMessage(null, new ChatAction() {
+			@Override
 			public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 				if (!player.hasQuest("AenihataReward")
 						&& (player.getLevel() >= 150)) {
@@ -81,23 +78,28 @@ public class HighPriestNPC implements ZoneConfigurator {
 
 					player.setAtkXP(1000000 + player.getAtkXP());
 					player.setDefXP(10000000 + player.getDefXP());
+					if (Testing.COMBAT && !Occasion.SECOND_WORLD) {
+						player.setRatkXP(500000 + player.getRatkXP());
+					}
 					player.addXP(100000);
 
 					player.incAtkXP();
 					player.incDefXP();
+					if (Testing.COMBAT && !Occasion.SECOND_WORLD) {
+						player.incRatkXP();
+					}
 				}
 
 				if (!player.hasQuest("AenihataFirstChat")) {
 					player.setQuest("AenihataFirstChat", "done");
 					((SpeakerNPC) raiser.getEntity()).listenTo(player, "hi");
 				}
-				
 			}
-			
 		});
 
+		npc.setDescription("Oto Aenihata. Jest jednym z najpotężniejszych Wysokich Kapłanów, który próbuje chronić Faiumoni swoimi umiejętnościami magicznymi.");
 		npc.setEntityClass("highpriestnpc");
-		npc.setDescription("Oto Aenihata. Jest Wysokim Kapłanem, który próbuje chronić Faiumoni swoimi umiejętnościami magicznymi.");
+		npc.setGender("M");
 		npc.setPosition(23, 44);
 		npc.setDirection(Direction.LEFT);
 		npc.initHP(85);

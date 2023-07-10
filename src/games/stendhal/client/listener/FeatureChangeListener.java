@@ -1,4 +1,4 @@
-/* $Id: FeatureChangeListener.java,v 1.2 2010/10/04 19:44:22 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -18,7 +18,7 @@ package games.stendhal.client.listener;
 public interface FeatureChangeListener {
 	/**
 	 * A feature was disabled.
-	 * 
+	 *
 	 * @param name
 	 *            The name of the feature.
 	 */
@@ -26,7 +26,7 @@ public interface FeatureChangeListener {
 
 	/**
 	 * A feature was enabled.
-	 * 
+	 *
 	 * @param name
 	 *            The name of the feature.
 	 * @param value

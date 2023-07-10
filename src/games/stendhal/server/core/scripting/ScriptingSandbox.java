@@ -1,4 +1,4 @@
-/* $Id: ScriptingSandbox.java,v 1.11 2012/09/01 12:30:50 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +12,14 @@
  ***************************************************************************/
 package games.stendhal.server.core.scripting;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.server.core.engine.GameEvent;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
@@ -24,16 +32,7 @@ import games.stendhal.server.entity.npc.NPCList;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.npc.fsm.TransitionContext;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.WeakHashMap;
-
 import marauroa.common.game.RPObject;
-
-import org.apache.log4j.Logger;
 
 public abstract class ScriptingSandbox {
 
@@ -47,7 +46,7 @@ public abstract class ScriptingSandbox {
 
 	private StendhalRPZone zone;
 
-	private final String filename;
+	protected final String filename;
 
 	private static final Logger logger = Logger.getLogger(ScriptingSandbox.class);
 
@@ -58,6 +57,18 @@ public abstract class ScriptingSandbox {
 	public StendhalRPZone getZone(final RPObject rpobject) {
 		return (StendhalRPZone) SingletonRepository.getRPWorld().getRPZone(
 				rpobject.getID());
+	}
+
+	/**
+	 * Retrieves a zone by string ID.
+	 *
+	 * @param zoneName
+	 * 		Name of zone to retrieve.
+	 * @return
+	 * 		StendhalRPZone, if exists, <code>null</code> otherwise.
+	 */
+	public StendhalRPZone getZone(final String zoneName) {
+		return SingletonRepository.getRPWorld().getZone(zoneName);
 	}
 
 	public boolean setZone(final String name) {
@@ -78,16 +89,25 @@ public abstract class ScriptingSandbox {
 		if (zone != null) {
 			zone.add(npc);
 			loadedNPCs.put(npc, null);
-			logger.info(filename + " added NPC: " + npc);
+			logger.debug(filename + " added NPC: " + npc);
+		}
+	}
+
+	public void add(final RPObject object, final Boolean expire) {
+		if (zone != null) {
+			if (expire == null) {
+				zone.add(object);
+			} else {
+				zone.add(object, expire);
+			}
+
+			loadedRPObjects.put(object, null);
+			logger.debug(filename + " added object: " + object);
 		}
 	}
 
 	public void add(final RPObject object) {
-		if (zone != null) {
-			zone.add(object);
-			loadedRPObjects.put(object, null);
-			logger.info(filename + " added object: " + object);
-		}
+		add(object, null);
 	}
 
 	public Creature[] getCreatures() {
@@ -176,7 +196,7 @@ public abstract class ScriptingSandbox {
 	/**
 	 * Unloads this script.
 	 *
-	 * @param admin
+	 * @param player
 	 *            the admin who load it or <code>null</code> on server start.
 	 * @param args
 	 *            the arguments the admin specified or <code>null</code> on
@@ -208,7 +228,6 @@ public abstract class ScriptingSandbox {
 	 *            the arguments the admin specified or <code>null</code> on
 	 *            server start.
 	 */
-	@SuppressWarnings("unused")
 	protected void preExecute(final Player player, final List<String> args) {
 		TransitionContext.set(filename);
 	}
@@ -223,7 +242,6 @@ public abstract class ScriptingSandbox {
 	 *            server start.
 	 * @param result true, if the execution was successful; false otherwise
 	 */
-	@SuppressWarnings("unused")
 	protected void postExecute(final Player player, final List<String> args, boolean result) {
 		TransitionContext.set(null);
 	}
@@ -237,6 +255,8 @@ public abstract class ScriptingSandbox {
 	 * @param args
 	 *            the arguments the admin specified or <code>null</code> on
 	 *            server start.
+	 * @return <code>true</code> at successful execution, otherwise
+	 * 	<code>false</code>
 	 */
 	public boolean execute(final Player player, final List<String> args) {
 		// do nothing

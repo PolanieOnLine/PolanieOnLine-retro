@@ -1,4 +1,3 @@
-/* $Id: SergeantNPC.java,v 1.3 2010/09/19 02:35:26 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -24,24 +23,23 @@ import games.stendhal.server.entity.npc.SpeakerNPC;
 
 /**
  * An army sergeant who lost his company.
- * 
+ *
  * @see games.stendhal.server.maps.quests.KanmararnSoldiers
  */
-
 public class SergeantNPC implements ZoneConfigurator  {
-	  /**
+	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
-		buildHideoutArea(zone, attributes);
+		buildHideoutArea(zone);
 	}
 
-	private void buildHideoutArea(final StendhalRPZone zone, final Map<String, String> attributes) {
+	private void buildHideoutArea(final StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Sergeant James") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -55,12 +53,12 @@ public class SergeantNPC implements ZoneConfigurator  {
 				addGreeting("Dzień dobry łowco przygód!");
 				addJob("Jestem sierżantem w wojsku.");
 				addGoodbye("Powodzenia i uważaj na siebie i na krasnale wokoło!");
-				// all other behaviour is defined in the quest.
-			}
+			}// all other behaviour is defined in the quest.
 		};
 
+		npc.setDescription("Oto Sergeant James, który jest sierżantem w Armii Semos. Wydaje się być nieco zagubiony...");
 		npc.setEntityClass("royalguardnpc");
-		npc.setDescription("Sergeant James jest sierżantem w Armii Semos. Wydaje się być nieco zagubiony ...");
+		npc.setGender("M");
 		npc.setPosition(66, 46);
 		npc.setBaseHP(100);
 		npc.initHP(75);

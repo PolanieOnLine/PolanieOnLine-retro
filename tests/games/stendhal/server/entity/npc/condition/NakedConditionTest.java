@@ -1,4 +1,4 @@
-/* $Id: NakedConditionTest.java,v 1.12 2010/09/19 02:39:46 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -15,14 +15,13 @@ package games.stendhal.server.entity.npc.condition;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import games.stendhal.server.entity.Outfit;
-import games.stendhal.server.entity.player.Player;
-import games.stendhal.server.maps.MockStendlRPWorld;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.maps.MockStendlRPWorld;
 import utilities.PlayerTestHelper;
 
 public class NakedConditionTest {
@@ -43,14 +42,13 @@ public class NakedConditionTest {
 	@Test
 	public final void testFire() {
 		final Player bob = PlayerTestHelper.createPlayer("player");
-		bob.setOutfit(new Outfit(0));
+		bob.setOutfit(0, 0, 0, null, 0, null, 0, null, 0);
 		assertTrue(bob.getOutfit().isNaked());
 		assertTrue(new NakedCondition().fire(bob, null, null));
-		bob.setOutfit(new Outfit(100));
+		bob.setOutfit(0, 1, 0, null, 0, null, 0, null, 100);
 		assertFalse("finally dressed", bob.getOutfit().isNaked());
 		assertFalse("should be false when dressed", new NakedCondition().fire(
 				bob, null, null));
-
 	}
 
 	/**
@@ -65,7 +63,7 @@ public class NakedConditionTest {
 	 * Tests for equals.
 	 */
 	@Test
-	public void testEquals() throws Throwable {
+	public void testEquals() {
 
 		assertFalse(new NakedCondition().equals(null));
 

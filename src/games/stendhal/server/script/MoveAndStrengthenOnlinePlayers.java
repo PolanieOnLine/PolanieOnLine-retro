@@ -1,6 +1,5 @@
-/* $Id: MoveAndStrengthenOnlinePlayers.java,v 1.11 2011/08/05 14:58:35 madmetzger Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -11,6 +10,10 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.script;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import games.stendhal.common.Direction;
 import games.stendhal.common.Rand;
@@ -24,22 +27,18 @@ import games.stendhal.server.core.scripting.ScriptImpl;
 import games.stendhal.server.entity.item.Item;
 import games.stendhal.server.entity.item.StackableItem;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import marauroa.common.game.IRPZone;
+
 /**
- * Script to make all players stronger and immune to poison before randomly distributing them 
+ * Script to make all players stronger and immune to poison before randomly distributing them
  * over all zones of the running server
- *  
+ *
  * @author madmetzger
  */
 public class MoveAndStrengthenOnlinePlayers extends ScriptImpl {
-	
+
 	private List<StendhalRPZone> zones = new ArrayList<StendhalRPZone>();
-	
+
 	/**
 	 * Create the script and initialize the list of zones
 	 */
@@ -59,36 +58,40 @@ public class MoveAndStrengthenOnlinePlayers extends ScriptImpl {
 		PlayerList pl = new PlayerList();
 		int packet = 1;
 		for (Player p : onlinePlayers) {
-			pl.add(p);
-			if(pl.getAllPlayers().size() == 5) {
-				SingletonRepository.getTurnNotifier().notifyInTurns(packet, new MoveAndStrengthenPlayersTurnListener(pl, admin));
-				pl = new PlayerList();
-				packet += 1;
+			String zoneName = p.getZone().getName();
+			if ((zoneName != null) && (zoneName.equals("int_afterlife") || zoneName.equals("int_semos_guard_house"))) {
+				pl.add(p);
+				if(pl.getAllPlayers().size() == 5) {
+					SingletonRepository.getTurnNotifier().notifyInTurns(packet, new MoveAndStrengthenPlayersTurnListener(pl, admin));
+					pl = new PlayerList();
+					packet += 1;
+				}
 			}
 		}
-		
+
 	}
-	
+
 	private class MoveAndStrengthenPlayersTurnListener implements TurnListener {
-		
+
 		private final PlayerList playersToDealWith;
-		
+
 		private final Player admin;
-		
+
 		MoveAndStrengthenPlayersTurnListener(PlayerList pl, Player executor) {
 			playersToDealWith = pl;
 			admin = executor;
 		}
 
+		@Override
 		public void onTurnReached(int currentTurn) {
 			playersToDealWith.forAllPlayersExecute(new Task<Player>() {
 
+				@Override
 				public void execute(Player player) {
 					equipPlayer(player);
 					fillBag(player);
 					player.setDefXP(999999999);
 					player.addXP(999999999);
-					player.setImmune();
 					StendhalRPZone zone = zones.get(Rand.rand(zones.size()));
 					int x = Rand.rand(zone.getWidth() - 4) + 2;
 					int y = Rand.rand(zone.getHeight() - 5) + 2;
@@ -150,7 +153,7 @@ public class MoveAndStrengthenOnlinePlayers extends ScriptImpl {
 				}
 			});
 		}
-		
+
 	}
 
 }

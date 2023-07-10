@@ -1,4 +1,4 @@
-/* $Id: Log4JAppender.java,v 1.6 2010/09/19 01:29:04 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -14,25 +14,28 @@ package utilities;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.apache.log4j.AppenderSkeleton;
 import org.apache.log4j.spi.LoggingEvent;
 
 public class Log4JAppender extends AppenderSkeleton {
-	
+
 	public static final Log4JAppender INSTANCE = new Log4JAppender();
-	
+
 	private static List<String> messages = new ArrayList<String>();
-	
+
 
 	@Override
 	protected void append(final LoggingEvent event) {
 		messages.add(event.getRenderedMessage());
 	}
 
+	@Override
 	public void close() {
 		// do nothing
 	}
 
+	@Override
 	public boolean requiresLayout() {
 		return false;
 	}

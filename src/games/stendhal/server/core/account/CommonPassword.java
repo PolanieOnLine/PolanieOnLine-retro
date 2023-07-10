@@ -1,4 +1,4 @@
-/* $Id: CommonPassword.java,v 1.4 2010/12/19 16:58:10 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -29,13 +29,18 @@ public class CommonPassword implements AccountParameterValidator {
 			"password", "password1", 
 			"passwort", "passwort1", 
 			"arianne", "marauroa",
-			"112233", "123123", "12345", "123456", "1234567", "12345678", "123456789", "1234567890",
+			"112233", "123123", "123456", "12345678", "123456789", "1234567890",
 			"jesus", "love", "game", "letmein", 
 			"qwerty", "qwertz", "monkey", "test", "master", "killer",
-			"abc123", "fuckyou", "asdfg", "fucku", "test",
+			"abc123", "fuckyou",
+			"12345", "1234567", "asdfg", "fucku", "test",
 			"kurwa", "kurwamac", "kurwa mac", "cipa", "chuj", "huj",
 			"polskaonline", "polskaonline1", "polskaonline2",
-			"pol1", "pol2", "polpol"
+			"pol1", "pol2", "polpol", "chój", "hój", "pussy",
+			"polskagra", "gra", "poiskagra", "poiska", "polska",
+			"cock", "kok", "coca", "koka", "koko", "coco", "suck",
+			"sack", "sak", "sakk", "dick", "dik", "dikk", "penis",
+			"polanieonline", "polanie", "online", "pol", "poi", "poll"
 		);
 
 	private String parameterValue;
@@ -44,11 +49,11 @@ public class CommonPassword implements AccountParameterValidator {
 		this.parameterValue = parameterValue;
 	}
 
+	@Override
 	public Result validate() {
 		if (commonPasswords.contains(parameterValue.toLowerCase(Locale.ENGLISH))) {
 			return Result.FAILED_PASSWORD_TO_WEAK;
 		}
 		return null;
 	}
-
 }

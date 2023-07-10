@@ -1,6 +1,5 @@
-/* $Id: JailReportAction.java,v 1.7 2010/09/19 02:21:43 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -13,6 +12,7 @@
 package games.stendhal.server.actions.admin;
 
 import static games.stendhal.common.constants.Actions.TARGET;
+
 import games.stendhal.server.actions.CommandCenter;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.mapstuff.office.ArrestWarrant;
@@ -25,22 +25,19 @@ public class JailReportAction extends AdministrationAction {
 
 	public static void register() {
 		CommandCenter.register(JAILREPORT, new JailReportAction(), 2);
-
 	}
 
 	@Override
 	protected void perform(final Player player, final RPAction action) {
 		final Jail jail = SingletonRepository.getJail();
 		final String playerName = action.get(TARGET);
-		
+
 		if (playerName != null) {
 			final ArrestWarrant warrant = jail.getWarrant(playerName);
-			
+
 			if (warrant != null) {
-					player.sendPrivateText( warrant.getCriminal() + " został aresztowany "
-							+ String.format("%tF", warrant.getTimestamp()) + " "
-							+ String.format("%tT", warrant.getTimestamp()) + " przez "
-							+ warrant.getPoliceOfficer() + " na "
+					player.sendPrivateText(warrant.getCriminal() + " został aresztowany przez oficera #'"
+							+ warrant.getPoliceOfficer() + "' na "
 							+ warrant.getMinutes() + " minutę." + " Powód: "
 							+ warrant.getReason());
 			} else {
@@ -49,8 +46,7 @@ public class JailReportAction extends AdministrationAction {
 		} else {
 			player.sendPrivateText(jail.listJailed());
 		}
-		
+
 		player.notifyWorldAboutChanges();
 	}
-
 }

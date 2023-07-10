@@ -1,4 +1,4 @@
-/* $Id: HealingEffect.java,v 1.13 2011/11/19 15:18:55 madmetzger Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +12,8 @@
  ***************************************************************************/
 package games.stendhal.server.entity.spell.effect;
 
+import org.apache.log4j.Logger;
+
 import games.stendhal.common.constants.Nature;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.events.TurnListener;
@@ -19,11 +21,9 @@ import games.stendhal.server.core.events.TurnListenerDecorator;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.player.Player;
 
-import org.apache.log4j.Logger;
-
 /**
  * Effect for healing a player
- * 
+ *
  * @author madmetzger
  */
 public class HealingEffect extends AbstractEffect implements TurnListener {
@@ -31,12 +31,12 @@ public class HealingEffect extends AbstractEffect implements TurnListener {
 	private static final Logger LOGGER = Logger.getLogger(HealingEffect.class);
 
 	private int restAmount;
-	
+
 	private Player playerToHeal;
-	
+
 	/**
-	 * Creates a new {@link HealingEffect}
-	 * 
+	 * Creates a new {@link HealingEffect}.
+	 *
 	 * @param nature
 	 * @param amount
 	 * @param atk
@@ -44,6 +44,7 @@ public class HealingEffect extends AbstractEffect implements TurnListener {
 	 * @param lifesteal
 	 * @param rate
 	 * @param regen
+	 * @param modifier
 	 */
 	public HealingEffect(Nature nature, int amount, int atk, int def, double lifesteal, int rate,
 			int regen, double modifier) {
@@ -51,9 +52,10 @@ public class HealingEffect extends AbstractEffect implements TurnListener {
 		this.restAmount = amount;
 	}
 
+	@Override
 	public void act(Player caster, Entity target) {
 		if (target instanceof Player) {
-		actInternal(caster, (Player) target);
+			actInternal(caster, (Player) target);
 		} else {
 			LOGGER.error("target is no instance of Player but: " + target, new Throwable());
 		}
@@ -64,6 +66,7 @@ public class HealingEffect extends AbstractEffect implements TurnListener {
 		SingletonRepository.getTurnNotifier().notifyInTurns(0, new TurnListenerDecorator(this));
 	}
 
+	@Override
 	public void onTurnReached(int currentTurn) {
 		if(restAmount > 0) {
 			int toHeal = Math.min(restAmount, getRegen());

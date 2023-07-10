@@ -1,4 +1,4 @@
-/* $Id: Fire.java,v 1.7 2010/09/01 07:26:46 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -28,7 +28,7 @@ public class Fire extends Entity implements UseListener {
 
 	/**
 	 * creates a new fire.
-	 * 
+	 *
 	 * @param width
 	 *            width in grid units
 	 * @param height
@@ -43,6 +43,7 @@ public class Fire extends Entity implements UseListener {
 		setResistance(100);
 	}
 
+	@Override
 	public boolean onUsed(final RPEntity user) {
 		user.sendPrivateText("To nie zbyt dobry pomysł!");
 		return true;

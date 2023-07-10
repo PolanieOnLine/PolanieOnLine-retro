@@ -1,4 +1,4 @@
-/* $Id: ClientScriptInterface.java,v 1.11 2010/09/19 02:19:59 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -16,7 +16,7 @@ import org.apache.log4j.Logger;
 
 /**
  * Interface used by client side scripts to interact with the game.
- * 
+ *
  * @author hendrik
  */
 public class ClientScriptInterface {
@@ -25,7 +25,7 @@ public class ClientScriptInterface {
 
 	/**
 	 * handles a string command in the same way the chat line does.
-	 * 
+	 *
 	 * @param input
 	 *            String to parse and handle
 	 */
@@ -36,7 +36,7 @@ public class ClientScriptInterface {
 
 	/**
 	 * waits the specified number of milliseconds.
-	 * 
+	 *
 	 * @param millis
 	 *            milliseconds to wait
 	 */
@@ -50,7 +50,7 @@ public class ClientScriptInterface {
 
 	/**
 	 * waits the specified number of seconds.
-	 * 
+	 *
 	 * @param seconds
 	 *            seconds to wait
 	 */
@@ -60,7 +60,7 @@ public class ClientScriptInterface {
 
 	/**
 	 * waits the specified number of turns.
-	 * 
+	 *
 	 * @param turns
 	 *            turns to wait
 	 */

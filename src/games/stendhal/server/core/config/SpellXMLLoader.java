@@ -1,4 +1,4 @@
-/* $Id: SpellXMLLoader.java,v 1.6 2011/11/19 15:18:55 madmetzger Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -11,8 +11,6 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.core.config;
-
-import games.stendhal.server.core.rule.defaultruleset.DefaultSpell;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -33,16 +31,18 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import games.stendhal.server.core.rule.defaultruleset.DefaultSpell;
+
 public final class SpellXMLLoader extends DefaultHandler {
-	
+
 	private static final Logger logger = Logger.getLogger(SpellXMLLoader.class);
-	
+
 	private String name;
-	
+
 	private String implementation;
 
 	private Map<String, String> attributeValues;
-	
+
 	private List<DefaultSpell> loadedSpells;
 
 	private boolean attributeTagFound;
@@ -64,7 +64,7 @@ public final class SpellXMLLoader extends DefaultHandler {
 						+ "' in classpath");
 			}
 			try {
-			saxParser.parse(is, this);
+				saxParser.parse(is, this);
 			} finally {
 				is.close();
 			}
@@ -76,7 +76,7 @@ public final class SpellXMLLoader extends DefaultHandler {
 		}
 		return loadedSpells;
 	}
-	
+
 	@Override
 	public void startElement(String uri, String localName, String qName,
 			Attributes attributes) throws SAXException {
@@ -143,5 +143,5 @@ public final class SpellXMLLoader extends DefaultHandler {
 			attributeTagFound = false;
 		}
 	}
-	
+
 }

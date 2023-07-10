@@ -1,4 +1,4 @@
-/* $Id: MapUpdater.java,v 1.16 2011/10/05 16:26:12 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2011 - Stendhal                    *
  ***************************************************************************
@@ -23,7 +23,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Vector;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
@@ -40,7 +39,7 @@ import tiled.io.TMXMapWriter;
 
 /**
  * Fix maps by loading and saving them.
- * 
+ *
  * @author mtotz, miguel
  */
 public class MapUpdater extends Task {
@@ -80,35 +79,27 @@ public class MapUpdater extends Task {
 
 	/**
 	 * Remove unused roof layers.
-	 * 
+	 *
 	 * @param map
 	 */
 	private void removeUnusedLayers(final Map map) {
-		boolean modified = true;
-		while (modified) {
-			modified = false;
-			Vector<MapLayer> layers = map.getLayers();
-			for (int i = 0; i < layers.size(); i++) {
-				MapLayer layer = layers.get(i);
-				if (layer.isEmpty()) {
-					// Client merges floor layers, and removing anything there
-					// prevents it doing that. Removing unused roof layers, however
-					// saves drawing effort.
-					if ("3_roof".equals(layer.getName()) 
-							|| "4_roof_add".equals(layer.getName())) {
-						map.removeLayer(i);
-						// Removing a layer can mess up the indices. Restart
-						// checking.
-						modified = true;
-						break;
-					}
+		Iterator<MapLayer> iter = map.iterator();
+		while (iter.hasNext()) {
+			MapLayer layer = iter.next();
+			if (layer.isEmpty()) {
+				// Client merges floor layers, and removing anything there
+				// prevents it doing that. Removing unused roof layers, however
+				// saves drawing effort.
+				if ("3_roof".equals(layer.getName())
+						|| "4_roof_add".equals(layer.getName())) {
+					iter.remove();
 				}
 			}
 		}
 	}
 
-	/** Converts the map files. 
-	 * @param tmxFile 
+	/** Converts the map files.
+	 * @param tmxFile
 	 * @throws Exception */
 	public void convert(final String tmxFile) throws Exception {
 		final File file = new File(tmxFile);
@@ -122,7 +113,7 @@ public class MapUpdater extends Task {
 
 	/**
 	 * Adds a set of files to copy.
-	 * 
+	 *
 	 * @param set
 	 *            a set of files to copy
 	 */

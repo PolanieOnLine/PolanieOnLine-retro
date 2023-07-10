@@ -1,4 +1,4 @@
-/* $Id: LayerDefinitionTest.java,v 1.1 2012/07/13 06:05:22 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -16,19 +16,16 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import games.stendhal.common.tiled.LayerDefinition;
-import games.stendhal.common.tiled.StendhalMapStructure;
-import games.stendhal.common.tiled.TileSetDefinition;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-import marauroa.common.net.InputSerializer;
-import marauroa.common.net.OutputSerializer;
-
 import org.junit.Before;
 import org.junit.Test;
+
+import marauroa.common.net.InputSerializer;
+import marauroa.common.net.OutputSerializer;
 
 public class LayerDefinitionTest {
 	private StendhalMapStructure map;
@@ -37,20 +34,16 @@ public class LayerDefinitionTest {
 	public void setUp() {
 		map = new StendhalMapStructure(64, 64);
 
-		TileSetDefinition set = new TileSetDefinition("name1", 1);
-		set.setSource("source1");
+		TileSetDefinition set = new TileSetDefinition("name1", "source1", 1);
 		map.addTileset(set);
 
-		set = new TileSetDefinition("name2", 10);
-		set.setSource("source2");
+		set = new TileSetDefinition("name2", "source2", 10);
 		map.addTileset(set);
 
-		set = new TileSetDefinition("name3", 55);
-		set.setSource("source3");
+		set = new TileSetDefinition("name3", "source3", 55);
 		map.addTileset(set);
 
-		set = new TileSetDefinition("name4", 100);
-		set.setSource("source4");
+		set = new TileSetDefinition("name4", "source4", 100);
 		map.addTileset(set);
 
 		final LayerDefinition layer = new LayerDefinition(64, 64);
@@ -90,6 +83,8 @@ public class LayerDefinitionTest {
 
 	/**
 	 * Tests for serialization.
+	 *
+	 * @throws IOException
 	 */
 	@Test
 	public void testSerialization() throws IOException { //, ClassNotFoundException

@@ -1,4 +1,4 @@
-/* $Id: MockStendhalClient.java,v 1.6 2010/12/28 14:00:00 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -15,7 +15,7 @@ package games.stendhal.client;
 public class MockStendhalClient extends StendhalClient {
 
 	protected MockStendhalClient() {
-		super(new UserContext(), new PerceptionDispatcher());
+		super(UserContext.get(), new PerceptionDispatcher());
 		client = this;
 	}
 

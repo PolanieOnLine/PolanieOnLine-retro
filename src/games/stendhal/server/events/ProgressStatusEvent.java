@@ -1,4 +1,4 @@
-/* $Id: ProgressStatusEvent.java,v 1.4 2011/08/16 19:10:47 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,10 +12,9 @@
  ***************************************************************************/
 package games.stendhal.server.events;
 
-import games.stendhal.common.constants.Events;
-
 import java.util.List;
 
+import games.stendhal.common.constants.Events;
 import marauroa.common.game.Definition.DefinitionClass;
 import marauroa.common.game.Definition.Type;
 import marauroa.common.game.RPClass;

@@ -1,4 +1,4 @@
-/* $Id: DropActionTest.java,v 1.14 2011/05/15 21:08:17 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -16,6 +16,9 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
+
 import games.stendhal.client.MockClientUI;
 import games.stendhal.client.MockStendhalClient;
 import games.stendhal.client.entity.User;
@@ -23,8 +26,6 @@ import games.stendhal.common.Constants;
 import marauroa.common.game.RPAction;
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPObject.ID;
-
-import org.junit.Test;
 
 /**
  * Test the DropAction class.
@@ -80,7 +81,7 @@ public class DropActionTest {
 
 		// issue "/drop money"
 		assertTrue(action.execute(new String[]{"money"}, ""));
-		assertEquals("You don't have any money", clientUI.getEventBuffer());
+		assertEquals("Nie posiadasz money", clientUI.getEventBuffer());
 	}
 
 	/**
@@ -95,7 +96,7 @@ public class DropActionTest {
 
 		// issue "/drop 85x money"
 		assertTrue(action.execute(new String[]{"85x"}, "money"));
-		assertEquals("Invalid quantity: 85x", clientUI.getEventBuffer());
+		assertEquals("Nieprawidłowa ilość: 85x", clientUI.getEventBuffer());
 	}
 
 	/**

@@ -1,4 +1,4 @@
-/* $Id: PeriodicAmbientSoundSource.java,v 1.7 2010/09/19 02:24:30 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -33,7 +33,7 @@ public class PeriodicAmbientSoundSource extends PassiveEntity implements TurnLis
 
 	/**
 	 * Create an ambient sound area.
-	 * 
+	 *
 	 * @param sound   name of sound (or sounds) to play
 	 * @param radius  hearing radius
 	 * @param volume  volume
@@ -53,7 +53,7 @@ public class PeriodicAmbientSoundSource extends PassiveEntity implements TurnLis
 	}
 
 	/**
-	 * sets the turn notifier up to notify us at a random point in the 
+	 * sets the turn notifier up to notify us at a random point in the
 	 * future between minInterval and maxInterval
 	 */
 	private void setupNotifier() {
@@ -65,6 +65,7 @@ public class PeriodicAmbientSoundSource extends PassiveEntity implements TurnLis
 	 * randomly picks a sound, sends a SoundEvent to the client
 	 * and sets the notifier up for the next sound.
 	 */
+	@Override
 	public void onTurnReached(int currentTurn) {
 		String sound = sounds[(int) (Math.random() * sounds.length)];
 		RPEvent event = new SoundEvent(sound, radius, volume, SoundLayer.AMBIENT_SOUND);

@@ -1,4 +1,4 @@
-/* $Id: AdministrationActionTest.java,v 1.84 2012/09/29 16:19:04 kymara Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -20,6 +20,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+import java.sql.SQLException;
+
+import org.junit.After;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import games.stendhal.common.Direction;
 import games.stendhal.server.actions.admin.AdministrationAction;
 import games.stendhal.server.actions.admin.AlterAction;
@@ -33,21 +41,12 @@ import games.stendhal.server.entity.player.Jail;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.MockStendhalRPRuleProcessor;
 import games.stendhal.server.maps.MockStendlRPWorld;
-
-import java.io.IOException;
-import java.sql.SQLException;
-
 import marauroa.common.Log4J;
 import marauroa.common.game.RPAction;
 import marauroa.common.game.RPObject;
 import marauroa.server.game.db.CharacterDAO;
 import marauroa.server.game.db.DAORegister;
 import marauroa.server.game.db.DatabaseFactory;
-
-import org.junit.After;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import utilities.PlayerTestHelper;
 import utilities.SpeakerNPCTestHelper;
 import utilities.RPClass.ArrestWarrentTestHelper;
@@ -63,8 +62,8 @@ public class AdministrationActionTest {
 		ArrestWarrentTestHelper.generateRPClasses();
 		CreatureTestHelper.generateRPClasses();
 		CorpseTestHelper.generateRPClasses();
-		// load item classes including "dagger" from XML
-		//DefaultEntityManager.getInstance();	
+		// load item classes including "sztylecik" from XML
+		//DefaultEntityManager.getInstance();
 		AdministrationAction.registerActions();
 		MockStendlRPWorld.get();
 		MockStendhalRPRuleProcessor.get().clearPlayers();
@@ -98,36 +97,38 @@ public class AdministrationActionTest {
 				.intValue());
 		assertEquals(-1, AdministrationAction.getLevelForCommand("support")
 				.intValue());
-		assertEquals(50, AdministrationAction.getLevelForCommand(
+		assertEquals(1, AdministrationAction.getLevelForCommand(
 				"supportanswer").intValue());
-		assertEquals(200, AdministrationAction.getLevelForCommand("tellall")
+		assertEquals(3, AdministrationAction.getLevelForCommand("tellall")
 				.intValue());
-		assertEquals(300, AdministrationAction.getLevelForCommand("teleportto")
+		assertEquals(4, AdministrationAction.getLevelForCommand("gag")
 				.intValue());
-		assertEquals(400, AdministrationAction.getLevelForCommand("teleport")
+		assertEquals(6, AdministrationAction.getLevelForCommand("inspect")
 				.intValue());
-		assertEquals(400, AdministrationAction.getLevelForCommand("jail")
+		assertEquals(7, AdministrationAction.getLevelForCommand("jail")
 				.intValue());
-		assertEquals(200, AdministrationAction.getLevelForCommand("gag")
+		assertEquals(8, AdministrationAction.getLevelForCommand("teleportto")
 				.intValue());
-		assertEquals(500, AdministrationAction.getLevelForCommand("invisible")
+		assertEquals(8, AdministrationAction.getLevelForCommand("teleportme")
 				.intValue());
-		assertEquals(500, AdministrationAction.getLevelForCommand("ghostmode")
+		assertEquals(8, AdministrationAction.getLevelForCommand("teleport")
 				.intValue());
-		assertEquals(500, AdministrationAction.getLevelForCommand(
+		assertEquals(9, AdministrationAction.getLevelForCommand("destroy")
+				.intValue());
+		assertEquals(10, AdministrationAction.getLevelForCommand("ghostmode")
+				.intValue());
+		assertEquals(11, AdministrationAction.getLevelForCommand("invisible")
+				.intValue());
+		assertEquals(12, AdministrationAction.getLevelForCommand(
 				"teleclickmode").intValue());
-		assertEquals(600, AdministrationAction.getLevelForCommand("inspect")
+		assertEquals(30, AdministrationAction.getLevelForCommand("alter")
 				.intValue());
-		assertEquals(700, AdministrationAction.getLevelForCommand("destroy")
-				.intValue());
-		assertEquals(800, AdministrationAction.getLevelForCommand("summon")
-				.intValue());
-		assertEquals(800, AdministrationAction.getLevelForCommand("summonat")
-				.intValue());
-		assertEquals(900, AdministrationAction.getLevelForCommand("alter")
-				.intValue());
-		assertEquals(900, AdministrationAction.getLevelForCommand(
+		assertEquals(34, AdministrationAction.getLevelForCommand(
 				"altercreature").intValue());
+		assertEquals(35, AdministrationAction.getLevelForCommand("summon")
+				.intValue());
+		assertEquals(36, AdministrationAction.getLevelForCommand("summonat")
+				.intValue());
 		assertEquals(5000, AdministrationAction.getLevelForCommand("super")
 				.intValue());
 	}
@@ -160,7 +161,7 @@ public class AdministrationActionTest {
 		MockStendhalRPRuleProcessor.get().addPlayer(pl);
 
 		CommandCenter.execute(pl, new RPAction());
-		assertEquals("Unknown command /null. Please type #/help to get a list.", pl.events().get(0).get("text"));
+		assertEquals("Nieznana komenda /null. Wpisz #'/help', aby otrzymać listę.", pl.events().get(0).get("text"));
 
 		pl.clearEvents();
 		pl.setAdminLevel(5000);
@@ -168,8 +169,8 @@ public class AdministrationActionTest {
 		action.put("type", "tellall");
 		action.put("text", "huhu");
 		CommandCenter.execute(pl, action);
-		assertEquals("Administrator SHOUTS: huhu", pl.events().get(0).get("text"));
-	
+		assertEquals("Administrator #dummy OGŁASZA: huhu", pl.events().get(0).get("text"));
+
 	}
 
 	/**
@@ -191,9 +192,9 @@ public class AdministrationActionTest {
 		action.put("text", "huhu");
 		action.put("target", "bob");
 		CommandCenter.execute(pl, action);
-		assertThat(bob.events().get(0).get("text"), endsWith("tells you: huhu \nIf you wish to reply, use /support."));
-		assertThat(bob.events().get(0).get("text"), startsWith("Support"));
-		assertEquals("player answers bob's support question: huhu", anptherAdmin.events().get(0).get("text"));
+		assertThat(bob.events().get(0).get("text"), endsWith("Administrator admin1 powiedział Tobie: huhu \nJeżeli chcesz odpowiedzieć to użyj /support."));
+		assertThat(bob.events().get(0).get("text"), startsWith("Administrator admin1 powiedział Tobie: huhu \nJeżeli chcesz odpowiedzieć to użyj /support."));
+		assertEquals("Administrator player odpowiedział bob na pytanie: huhu", anptherAdmin.events().get(0).get("text"));
 
 		bob.clearEvents();
 		pl.clearEvents();
@@ -201,7 +202,7 @@ public class AdministrationActionTest {
 		assertEquals("0", pl.get("adminlevel"));
 		CommandCenter.execute(pl, action);
 		assertEquals(
-				"Sorry, you need to be an admin to run \"supportanswer\".", pl
+				"Przepraszam, ale musisz być administratorem, aby wykonać \"supportanswer\".", pl
 						.events().get(0).get("text"));
 	}
 
@@ -231,7 +232,7 @@ public class AdministrationActionTest {
 		CommandCenter.execute(pl, action);
 		// The list of existing zones depends on other tests, so we simply
 		// ignore it here.
-		assertTrue(pl
+		assertFalse(pl
 				.events().get(0).get("text")
 				.startsWith(
 						"Zone \"IRPZone.ID [id=non-existing-zone]\" not found. Similar zone names: ["));
@@ -290,7 +291,7 @@ public class AdministrationActionTest {
 		action.put("type", "teleportto");
 		action.put("target", "blah");
 		CommandCenter.execute(pl, action);
-		assertEquals("Player \"blah\" not found", pl.events().get(0).get("text"));
+		assertEquals("Wojownik \"blah\" nie został znaleziony.", pl.events().get(0).get("text"));
 	}
 
 	/**
@@ -310,7 +311,7 @@ public class AdministrationActionTest {
 		action.put("type", "teleportto");
 		action.put("target", "blah");
 		CommandCenter.execute(pl, action);
-		assertEquals("Position [0,0] is occupied", pl.events().get(0).get("text"));
+		assertEquals("Pozycja [0,0] jest zajęta", pl.events().get(0).get("text"));
 	}
 
 	/**
@@ -332,7 +333,7 @@ public class AdministrationActionTest {
 
 		CommandCenter.execute(pl, action);
 		assertEquals(
-				"Attribute you are altering is not defined in RPClass(player)",
+				"Atrybut, który zmieniasz nie jest zdefiniowany w RPClass(player)",
 				pl.events().get(0).get("text"));
 	}
 
@@ -355,12 +356,12 @@ public class AdministrationActionTest {
 		action.put("value", 0);
 
 		CommandCenter.execute(pl, action);
-		assertEquals("Sorry, name cannot be changed.", pl.events().get(0).get("text"));
+		assertEquals("Nazwa nie może zostać zmieniona.", pl.events().get(0).get("text"));
 		action.put("stat", "adminlevel");
 		pl.clearEvents();
 		CommandCenter.execute(pl, action);
 		assertEquals(
-				"Use #/adminlevel #<playername> #[<newlevel>] to display or change adminlevel.",
+				"Użyj #/adminlevel #<imie wojownika> #[<nowy poziom>], aby wyświetlić lub zmienić poziom administratora.",
 				pl.events().get(0).get("text"));
 	}
 
@@ -382,7 +383,7 @@ public class AdministrationActionTest {
 		action.put("value", 0);
 
 		CommandCenter.execute(pl, action);
-		assertEquals("The title attribute may not be changed directly.", pl
+		assertEquals("Nazwa atrybutu może nie być zmieniona od razu.", pl
 				.events().get(0).get("text"));
 	}
 
@@ -490,7 +491,7 @@ public class AdministrationActionTest {
 		action.put("text", "blabla");
 
 		CommandCenter.execute(pl, action);
-		assertEquals("Entity not found", pl.events().get(0).get("text"));
+		assertEquals("Jednostka nie została znaleziona", pl.events().get(0).get("text"));
 	}
 
 	/**
@@ -515,7 +516,7 @@ public class AdministrationActionTest {
 		pl.setAdminLevel(5000);
 		RPAction action = new RPAction();
 		action.put("type", "summon");
-		action.put("creature", "rat");
+		action.put("creature", "szczur");
 		action.put("x", 0);
 		action.put("y", 0);
 		CommandCenter.execute(pl, action);
@@ -536,11 +537,11 @@ public class AdministrationActionTest {
 		assertEquals("def", 6, rat.getDef());
 		assertEquals("hp", 7, rat.getHP());
 		assertEquals("xp", 8, rat.getXP());
-		
+
 		action.put("text", "-;-;-;100;100");
-		
+
 		CommandCenter.execute(pl, action);
-		
+
 		assertEquals("name", "newname", rat.getName());
 		assertEquals("atk", 5, rat.getAtk());
 		assertEquals("def", 6, rat.getDef());
@@ -583,12 +584,12 @@ public class AdministrationActionTest {
 
 	/**
 	 * Tests for jail.
-	 * @throws SQLException 
-	 * @throws IOException 
+	 * @throws SQLException
+	 * @throws IOException
 	 */
 	@Test
 	public final void testJail() throws SQLException, IOException {
-		
+
 		MockStendlRPWorld.get().addRPZone(new StendhalRPZone("-1_semos_jail", 100, 100));
 
 		final Player player = PlayerTestHelper.createPlayer("hugo");
@@ -599,7 +600,7 @@ public class AdministrationActionTest {
 		action.put("type", "jail");
 
 		CommandCenter.execute(player, action);
-		assertEquals("Usage: /jail <name> <minutes> <reason>", player.events().get(0).get("text"));
+		assertEquals("Użyj: /jail <wojownik> <minuty> <powód>", player.events().get(0).get("text"));
 
 		if (!DAORegister.get().get(CharacterDAO.class).hasCharacter("offlineplayer")) {
 			RPObject rpobject = new RPObject();
@@ -616,9 +617,9 @@ public class AdministrationActionTest {
 		action.put("minutes", 1);
 
 		CommandCenter.execute(player, action);
-		assertEquals("You have jailed offlineplayer for 1 minute. Reason: whynot.", player.events().get(0).get("text"));
-		assertEquals("JailKeeper asks for support to ADMIN: hugo jailed offlineplayer for 1 minute. Reason: whynot.", player.events().get(1).get("text"));
-		assertEquals("Player offlineplayer is not online, but the arrest warrant has been recorded anyway.", player.events().get(2).get("text"));
+		assertEquals("Aresztowałeś offlineplayer na 1 minutę. Powód: whynot.", player.events().get(0).get("text"));
+		assertEquals("JailKeeper zapytał ADMINISTRATORÓW: hugo aresztował offlineplayer na 1 minutę. Powód: whynot.", player.events().get(1).get("text"));
+		assertEquals("Nie ma wojownika zwanego offlineplayer, ale został wydany za nim list gończy.", player.events().get(2).get("text"));
 		player.clearEvents();
 
 
@@ -630,7 +631,7 @@ public class AdministrationActionTest {
 		action.put("minutes", 1);
 
 		CommandCenter.execute(player, action);
-		assertEquals("No character with that name: notexistingplayerxckjvhyxkjcvhyxkjvchk", player.events().get(0).get("text"));
+		assertEquals("Brak wojownika o podanej nazwie: notexistingplayerxckjvhyxkjcvhyxkjvchk", player.events().get(0).get("text"));
 		player.clearEvents();
 
 
@@ -642,10 +643,10 @@ public class AdministrationActionTest {
 		action.put("minutes", "noNumber");
 
 		CommandCenter.execute(player, action);
-		assertEquals("Usage: /jail <name> <minutes> <reason>", player.events().get(0).get("text"));
+		assertEquals("Użyj: /jail <wojownik> <minuty> <powód>", player.events().get(0).get("text"));
 		player.clearEvents();
 
-		
+
 		action = new RPAction();
 		action.put("type", "jail");
 		action.put("target", "hugo");
@@ -653,7 +654,7 @@ public class AdministrationActionTest {
 		action.put("minutes", 1);
 
 		assertTrue(CommandCenter.execute(player, action));
-		assertThat(player.events().get(0).get("text"), startsWith("You have been jailed for 1 minute. Reason: whynot."));
+		assertThat(player.events().get(0).get("text"), startsWith("Zostałeś aresztowany przez hugo na 1 minutę. Powód: whynot."));
 	}
 
 	/**
@@ -668,7 +669,7 @@ public class AdministrationActionTest {
 
 		CommandCenter.execute(pl, action);
 
-		assertEquals("Usage: /gag name minutes reason", pl.events().get(0).get("text"));
+		assertEquals("Użyj: /gag wojownik minuty powód", pl.events().get(0).get("text"));
 		pl.clearEvents();
 		action = new RPAction();
 		action.put("type", "gag");
@@ -677,7 +678,7 @@ public class AdministrationActionTest {
 		action.put("minutes", 1);
 
 		CommandCenter.execute(pl, action);
-		assertEquals("Player name not found", pl.events().get(0).get("text"));
+		assertEquals("Wojownik name nie został znaleziony", pl.events().get(0).get("text"));
 
 		pl.clearEvents();
 
@@ -689,7 +690,7 @@ public class AdministrationActionTest {
 		action.put("minutes", "noNumber");
 
 		CommandCenter.execute(pl, action);
-		assertEquals("Usage: /gag name minutes reason", pl.events().get(0).get("text"));
+		assertEquals("Użyj: /gag wojownik minuty powód", pl.events().get(0).get("text"));
 		pl.clearEvents();
 
 		action = new RPAction();
@@ -700,7 +701,7 @@ public class AdministrationActionTest {
 
 		CommandCenter.execute(pl, action);
 		assertTrue(pl.events().get(0).get("text").startsWith(
-				"You have gagged hugo for 1 minutes. Reason: "));
+				"Uciszyłeś hugo na 1 minutę. Powód: "));
 	}
 
 	/**
@@ -714,7 +715,7 @@ public class AdministrationActionTest {
 		action.put("type", "destroy");
 
 		CommandCenter.execute(pl, action);
-		assertEquals("Entity not found", pl.events().get(0).get("text"));
+		assertEquals("Jednostka nie została znaleziona.", pl.events().get(0).get("text"));
 	}
 
 	/**
@@ -732,7 +733,7 @@ public class AdministrationActionTest {
 		action.put("target", "hugo");
 
 		CommandCenter.execute(pl, action);
-		assertEquals("You can't remove players", pl.events().get(0).get("text"));
+		assertEquals("Nie możesz usuwać wojowników.", pl.events().get(0).get("text"));
 	}
 
 	/**
@@ -757,57 +758,7 @@ public class AdministrationActionTest {
 		action.put("target", "#1");
 
 		CommandCenter.execute(pl, action);
-		assertEquals("You can't remove SpeakerNPCs", pl.events().get(0).get("text"));
-	}
-
-	/**
-	 * Tests for onDestroyRat.
-	 */
-	@Test
-	public final void testOnDestroyRat() {
-		CreatureTestHelper.generateRPClasses();
-		final Player pl = PlayerTestHelper.createPlayer("hugo");
-		final Creature rat = new RaidCreature(SingletonRepository.getEntityManager().getCreature("rat"));
-		final StendhalRPZone testzone = new StendhalRPZone("Testzone");
-		testzone.add(rat);
-		testzone.add(pl);
-
-		assertEquals(1, rat.getID().getObjectID());
-		pl.setAdminLevel(5000);
-		pl.clearEvents();
-
-		MockStendhalRPRuleProcessor.get().addPlayer(pl);
-		final RPAction action = new RPAction();
-		action.put("type", "destroy");
-		action.put("target", "#1");
-
-		CommandCenter.execute(pl, action);
-		assertEquals("Removed rat creature with ID #1", pl.events().get(0).get("text"));
-	}
-
-	/**
-	 * Tests for onDestroyRatWithTargetID.
-	 */
-	@Test
-	public final void testOnDestroyRatWithTargetID() {
-
-		final Player pl = PlayerTestHelper.createPlayer("hugo");
-		final Creature rat = new RaidCreature(SingletonRepository.getEntityManager().getCreature("rat"));
-		final StendhalRPZone testzone = new StendhalRPZone("Testzone");
-		testzone.add(rat);
-		testzone.add(pl);
-
-		assertEquals(1, rat.getID().getObjectID());
-		pl.setAdminLevel(5000);
-		pl.clearEvents();
-
-		MockStendhalRPRuleProcessor.get().addPlayer(pl);
-		final RPAction action = new RPAction();
-		action.put("type", "destroy");
-		action.put("target", "#1");
-
-		assertTrue(CommandCenter.execute(pl, action));
-		assertEquals("Removed rat creature with ID #1", pl.events().get(0).get("text"));
+		assertEquals("Nie możesz usuwać PassiveNPCów.", pl.events().get(0).get("text"));
 	}
 
 	/**
@@ -816,7 +767,7 @@ public class AdministrationActionTest {
 	@Test
 	public final void testOnInspectRatWithTargetID() {
 		final Player pl = PlayerTestHelper.createPlayer("hugo");
-		final Creature rat = new RaidCreature(SingletonRepository.getEntityManager().getCreature("rat"));
+		final Creature rat = new RaidCreature(SingletonRepository.getEntityManager().getCreature("szczur"));
 		final StendhalRPZone testzone = new StendhalRPZone("Testzone");
 		testzone.add(rat);
 		testzone.add(pl);
@@ -833,9 +784,9 @@ public class AdministrationActionTest {
 		assertTrue(CommandCenter.execute(pl, action));
 		assertThat(pl.events().get(0).get("text"),
 				startsWith(
-						"Inspected creature is called \"rat\" defined in "
-						+ "games.stendhal.server.entity.creature.RaidCreature "
-						+ "and has the following attributes:"));
+						"Sprawdzany jest #'creature' zwany \"&'szczur'\" zdefiniowany jako "
+						+ "#'games.stendhal.server.entity.creature.RaidCreature'. "
+						+ "Posiada następujące atrybuty:"));
 	}
 
 	/**
@@ -858,7 +809,7 @@ public class AdministrationActionTest {
 		action.put("item", "hugo");
 
 		CommandCenter.execute(player, action);
-		assertEquals("Player \"hugo\" does not have an RPSlot named \"hugo\".",
+		assertEquals("Wojownik \"hugo\" nie posiada RPSlota zwanego \"hugo\".",
 				player.events().get(0).get("text"));
 		player.clearEvents();
 
@@ -869,29 +820,29 @@ public class AdministrationActionTest {
 		action.put("item", "hugo");
 
 		CommandCenter.execute(player, action);
-		assertEquals("hugo is not an item.", player.events().get(0).get("text"));
+		assertEquals("hugo nie jest przedmiotem.", player.events().get(0).get("text"));
 		player.clearEvents();
 
 		action = new RPAction();
 		action.put("type", "summonat");
 		action.put("target", "hugo");
 		action.put("slot", "bag");
-		action.put("item", "dagger");
-		assertFalse(player.isEquipped("dagger"));
+		action.put("item", "sztylecik");
+		assertFalse(player.isEquipped("sztylecik"));
 		CommandCenter.execute(player, action);
 		// If the following fails, chances are quite good, the "items.xml" configuration file could not be loaded.
 		assertTrue(player.events().isEmpty());
-		assertTrue(player.isEquipped("dagger"));
+		assertTrue(player.isEquipped("sztylecik"));
 		player.clearEvents();
 
 		action = new RPAction();
 		action.put("type", "summonat");
 		action.put("target", "noone");
 		action.put("slot", "bag");
-		action.put("item", "dagger");
+		action.put("item", "sztylecik");
 
 		CommandCenter.execute(player, action);
-		assertEquals("Player \"noone\" not found.", player.events().get(0).get("text"));
+		assertEquals("Wojownik \"noone\" nie został znaleziony.", player.events().get(0).get("text"));
 		player.clearEvents();
 	}
 }

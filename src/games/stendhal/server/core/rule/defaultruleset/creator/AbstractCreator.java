@@ -1,4 +1,4 @@
-/* $Id: AbstractCreator.java,v 1.6 2010/09/19 02:22:48 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -18,15 +18,18 @@ import java.lang.reflect.InvocationTargetException;
 import org.apache.log4j.Logger;
 
 public abstract class AbstractCreator<T> {
-	
+
 	private static final Logger logger = Logger.getLogger(AbstractCreator.class);
 
 	protected final Constructor< ? > construct;
-	
+
 	private final String creatorFor;
 
 	/**
+	 * Create a new AbstracCreator.
+	 *
 	 * @param construct
+	 * @param creatorFor
 	 */
 	public AbstractCreator(Constructor<?> construct, String creatorFor) {
 		super();
@@ -52,7 +55,7 @@ public abstract class AbstractCreator<T> {
 			 */
 			logger.error("Implementation for is no an subclass of "+creatorFor );
 		}
-	
+
 		return null;
 	}
 

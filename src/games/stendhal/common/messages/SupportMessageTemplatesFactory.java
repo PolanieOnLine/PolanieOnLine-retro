@@ -1,4 +1,4 @@
-/* $Id: SupportMessageTemplatesFactory.java,v 1.19 2012/08/06 18:34:25 kymara Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -39,16 +39,16 @@ public class SupportMessageTemplatesFactory {
 	private void registerTemplates() {
 		addTemplate("$atlas", "Witaj %s. Zdarza się, że od czasu do czasu ktoś się zgubi. Możesz skorzystać z mapy Faiumoni wywołując ją komendą #/atlas");
 		addTemplate("$banprivate", "Witaj %s przykro mi, ale nie mogę podać powodu zablokowania inny graczy ze względu na poufność.");
-		addTemplate("$bugstracker","Cześć %s. Wygląda na to, że znalazłeś nowy błąd. Gdybyś mógł zostawić wiadomośc ze szczegółowym opisem jak do tego doszło na #http://www.pol.polskaonline.org/bugzilla to byłbym wdzięczny - bardzo dziękuję.");
-		addTemplate("$faq", "Cześć. Odpowiedź na swoje pytanie znajdziesz w FAQ, który jest bardzo pomocny więc przeczytaj go uważnie! #http://www.gra.polskaonline.org/faq. Dziękujemy, że jesteś z nami!");
-		addTemplate("$faqpvp","Witaj %s i przykro słyszeć o tym. Przeczytaj uważnie regulamin dostępny na http://www.gra.polskaonline.org/regulamin-gry-polskaonline-mmorpg - powodzenia w przyszłości.");
+		addTemplate("$bugstracker","Cześć %s. Wygląda na to, że znalazłeś nowy błąd. Gdybyś mógł zostawić wiadomośc ze szczegółowym opisem jak do tego doszło na #https://s1.polanieonline.eu/bugzilla.html to byłbym wdzięczny - bardzo dziękuję.");
+		addTemplate("$faq", "Cześć. Odpowiedź na swoje pytanie znajdziesz w FAQ, który jest bardzo pomocny więc przeczytaj go uważnie! #https://s1.polanieonline.eu/faq.html. Dziękujemy, że jesteś z nami!");
+		addTemplate("$faqpvp","Witaj %s i przykro słyszeć o tym. Przeczytaj uważnie regulamin dostępny na https://s1.polanieonline.eu/regulamin/regulamin-gry-polanieonline - powodzenia w przyszłości.");
 		addTemplate("$faqsocial", "Hi %s, sorry to hear about that. Please read #http://stendhalgame.org/wiki/StendhalFAQ#Player_social_problems which covers some common problems.");
 		addTemplate("$firewallserver", "Hi %s, I am sorry but we cannot help you with the configuration of your router or firewall. It is rather dangerous to modify those settings without knowing exactly what you are doing. So this should only be done by an experienced network administrator who will find instructions in the manual that came with the hardware router or operating system.");
 		addTemplate("$ignore","Cześć %s. Przykro nam, że masz nie przyjemności ze strony innego wojownika. Spróbuj go zignorować używając #/ignore #wojownik, aby zablokować jego wiadomości pochodzące od niego.");
 		addTemplate("$knownbug","Cześć %s. Dziękuję, że powiedziałeś nam o tym bugu. Jest już zgłoszony i pracujemy nad jego usunięciem. Dziękuję!");
-		addTemplate("$notsupport","Cześć %s. Nie możemy pomóc Tobie w tym problemie. Skorzystaj z #http://www.pol.polskaonline.org/bugzilla.");
-		addTemplate("$password","Witaj %s możesz zmienić hasło wysyłając e-mail z adresu podanego przy rejestracji konta na adres edi18028@mati.com.pl w tytule wpisując Zmiana hasła, a w treści podając nazwę postaci oraz nowe hasło.");
-		addTemplate("$rules","Cześć %s. Przeczytaj uważnie Regulamin PolskaOnLine wpisując komendę #/rules - dziękuję.");
+		addTemplate("$notsupport","Cześć %s. Nie możemy pomóc Tobie w tym problemie. Skorzystaj z #https://s1.polanieonline.eu/bugzilla.html.");
+		addTemplate("$password","Witaj %s możesz zmienić hasło wysyłając e-mail z adresu podanego przy rejestracji konta na adres haslo@polanieonline.eu w tytule wpisując Zmiana hasła, a w treści podając nazwę postaci oraz nowe hasło.");
+		addTemplate("$rules","Cześć %s. Przeczytaj uważnie Regulamin PolanieOnLine wpisując komendę #/rules - dziękuję.");
 		addTemplate("$spam","Witaj %s. Powtarzanie tych samych słów w kółko i w kółko jest uznane jako spamowanie i jest to sprzeczne z zasadami gry. Nie spamuj i przeczytaj regulamin wpisując komendę #'/rules'. Dziękuję.");
 		addTemplate("$thief","Witaj %s. Zapytaj Dagobert o #handel, aby dowiedzieć się jak bezpiecznie handlować. Wsparcie nie może odzyskać utraconych przedmiotów z wyniku nieuwagi.");
 	}

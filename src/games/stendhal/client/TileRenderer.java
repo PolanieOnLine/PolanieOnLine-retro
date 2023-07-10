@@ -1,4 +1,4 @@
-/* $Id: TileRenderer.java,v 1.78 2012/07/13 06:05:22 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -12,28 +12,28 @@
  ***************************************************************************/
 package games.stendhal.client;
 
-import games.stendhal.client.sprite.Sprite;
-import games.stendhal.client.sprite.Tileset;
-import games.stendhal.common.tiled.LayerDefinition;
-
 import java.awt.Graphics;
 import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.log4j.Logger;
 
+import games.stendhal.client.sprite.Sprite;
+import games.stendhal.client.sprite.Tileset;
+import games.stendhal.common.tiled.LayerDefinition;
+
 /**
  * This is a helper class to render coherent tiles based on the tileset. This
  * should be replaced by independent tiles as soon as possible .
  */
-public class TileRenderer extends LayerRenderer {
+class TileRenderer extends LayerRenderer {
 	/** the logger instance. */
 	private static final Logger logger = Logger.getLogger(TileRenderer.class);
 	/** Tileset used for the map data */
 	protected Tileset tileset;
 	/** Raw map data. Indices of tiles in the tileset. */
 	protected int[] map;
-	/** The map data converted to tile references */ 
+	/** The map data converted to tile references */
 	protected Sprite[] spriteMap;
 
 	public TileRenderer() {
@@ -44,8 +44,8 @@ public class TileRenderer extends LayerRenderer {
 	/**
 	 * Sets the data that will be rendered.
 	 * @param in the stream to read from
-	 * @throws IOException 
-	 * 
+	 * @throws IOException
+	 *
 	 * @throws ClassNotFoundException
 	 */
 	public void setMapData(final InputStream in) throws IOException,
@@ -61,7 +61,7 @@ public class TileRenderer extends LayerRenderer {
 
 	/**
 	 * Set the tileset.
-	 * 
+	 *
 	 * @param tileset
 	 *            The tileset.
 	 */
@@ -69,10 +69,10 @@ public class TileRenderer extends LayerRenderer {
 	public void setTileset(final Tileset tileset) {
 		this.tileset = tileset;
 	}
-	
+
 	/**
 	 * Initialize the sprite map from the tileset and the map data.
-	 * 
+	 *
 	 * @return true if the map is ready to be used, false otherwise.
 	 */
 	private boolean initSpriteMap() {
@@ -94,7 +94,7 @@ public class TileRenderer extends LayerRenderer {
 		}
 		return true;
 	}
-	
+
 	@Override
 	public void draw(Graphics g, int x, int y, final int w, final int h) {
 		if (!initSpriteMap()) {
@@ -108,7 +108,7 @@ public class TileRenderer extends LayerRenderer {
 		for (int j = y; j < endY; j++) {
 			int mapidx = (j * width) + x;
 			int sx = x * IGameScreen.SIZE_UNIT_PIXELS;
-			
+
 			for (int i = x; i < endX; i++) {
 				spriteMap[mapidx].draw(g, sx, sy);
 				mapidx++;

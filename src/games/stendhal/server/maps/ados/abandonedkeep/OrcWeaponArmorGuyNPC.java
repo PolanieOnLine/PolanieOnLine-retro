@@ -1,6 +1,5 @@
-/* $Id: OrcWeaponArmorGuyNPC.java,v 1.8 2010/09/19 02:28:01 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,32 +11,27 @@
  ***************************************************************************/
 package games.stendhal.server.maps.ados.abandonedkeep;
 
-import games.stendhal.server.core.config.ZoneConfigurator;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.core.pathfinder.FixedPath;
-import games.stendhal.server.core.pathfinder.Node;
-import games.stendhal.server.entity.npc.ShopList;
-import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.behaviour.adder.SellerAdder;
-import games.stendhal.server.entity.npc.behaviour.impl.SellerBehaviour;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import games.stendhal.server.core.config.ZoneConfigurator;
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.core.pathfinder.FixedPath;
+import games.stendhal.server.core.pathfinder.Node;
+import games.stendhal.server.entity.npc.SpeakerNPC;
 
 /**
  * Inside Ados Abandoned Keep - level -1 .
  */
 public class OrcWeaponArmorGuyNPC implements ZoneConfigurator {
-    private final ShopList shops = SingletonRepository.getShopList();
-
 	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildHagnurk(zone);
 	}
@@ -57,25 +51,23 @@ public class OrcWeaponArmorGuyNPC implements ZoneConfigurator {
 				nodes.add(new Node(109, 13));
 				nodes.add(new Node(104, 13));
 				setPath(new FixedPath(nodes, true));
-
 			}
 
 			@Override
 			protected void createDialog() {
 				addGreeting();
-				addJob("Jestem sprzedawcą. Kim jesteś?");
-				addHelp("Sprzedaję przedmioty spójrz na tablicę na ścianie.");
-				new SellerAdder().addSeller(this, new SellerBehaviour(shops.get("sellbetterstuff1")), false);
+				addJob("Jestem handlarzem, a Ty kim jesteś?");
+				addHelp("Sprzedaję przedmioty, spójrz na tablicę na ścianie.");
 				addOffer("Spójrz na tablicę na ścianie, aby zapoznać się z moją ofertą.");
 				addQuest("Jestem szczęśliwy. Nie potrzebuję niczego.");
 				addGoodbye();
 			}
 		};
 
+		hagnurk.setDescription("Oto Hagnurk. Zajmuje się handlem u orków.");
 		hagnurk.setEntityClass("orcsalesmannpc");
+		hagnurk.setGender("M");
 		hagnurk.setPosition(106, 5);
-		hagnurk.initHP(100);
-		hagnurk.setDescription("Oto Hagnurk. Jest sprzedawcą u orków.");
 		zone.add(hagnurk);
 	}
 }

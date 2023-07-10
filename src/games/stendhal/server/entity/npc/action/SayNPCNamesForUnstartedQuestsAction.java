@@ -11,6 +11,10 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.action;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
 import games.stendhal.common.grammar.Grammar;
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
@@ -19,13 +23,6 @@ import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Says the list of the NPC names for unstarted quests in a specified region in the form npc1, npc2, and npc3 all need your help.
@@ -50,9 +47,10 @@ public class SayNPCNamesForUnstartedQuestsAction implements ChatAction {
 	 * @param regions regions of NPC
 	 */
 	public SayNPCNamesForUnstartedQuestsAction(List<String> regions) {
-		this.regions = regions;
+		this.regions = new LinkedList<String>(regions);
 	}
 
+	@Override
 	public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 		// to build up the message the npc will say
 		StringBuilder sb = new StringBuilder();
@@ -64,7 +62,7 @@ public class SayNPCNamesForUnstartedQuestsAction implements ChatAction {
 			List<String> npcs = SingletonRepository.getStendhalQuestSystem().getNPCNamesForUnstartedQuestsInRegionForLevel(player, region);
 			String verb = "potrzebują";
 	        if (npcs.size()==1) {
-	        	verb = "potrzebuje";  
+	        	verb = "potrzebuje";
 	        }
 			if (npcs.size()>0) {
 	        	sb.append("W " + region + " ");
@@ -87,15 +85,17 @@ public class SayNPCNamesForUnstartedQuestsAction implements ChatAction {
 		return "SayNPCNamesForUnstartedQuestsAction in region <" + regions.toString() +  ">";
 	}
 
-
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 5393 * regions.hashCode();
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				SayNPCNamesForUnstartedQuestsAction.class);
+		if (!(obj instanceof SayNPCNamesForUnstartedQuestsAction)) {
+			return false;
+		}
+		SayNPCNamesForUnstartedQuestsAction other = (SayNPCNamesForUnstartedQuestsAction) obj;
+		return regions.equals(other.regions);
 	}
 }

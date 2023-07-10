@@ -1,4 +1,4 @@
-/* $Id: CommandCenter.java,v 1.65 2012/09/13 11:56:40 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -11,6 +11,12 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.actions;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.apache.log4j.Logger;
 
 import games.stendhal.common.constants.Actions;
 import games.stendhal.common.parser.SimilarExprMatcher;
@@ -26,8 +32,11 @@ import games.stendhal.server.actions.equip.DisplaceAction;
 import games.stendhal.server.actions.equip.DropAction;
 import games.stendhal.server.actions.equip.EquipAction;
 import games.stendhal.server.actions.equip.ReorderAction;
+import games.stendhal.server.actions.move.AutoWalkAction;
+import games.stendhal.server.actions.move.ConditionalStopAction;
 import games.stendhal.server.actions.move.FaceAction;
 import games.stendhal.server.actions.move.MoveAction;
+import games.stendhal.server.actions.move.MoveContinuousAction;
 import games.stendhal.server.actions.move.MoveToAction;
 import games.stendhal.server.actions.move.PushAction;
 import games.stendhal.server.actions.pet.ForsakeAction;
@@ -44,18 +53,11 @@ import games.stendhal.server.actions.query.WhoAction;
 import games.stendhal.server.actions.spell.CastSpellAction;
 import games.stendhal.server.core.engine.Translate;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-
 import marauroa.common.game.RPAction;
 import marauroa.common.game.RPObject;
 
-import org.apache.log4j.Logger;
-
 /**
- * Handles actions sent by the client. They are dispatched to the 
+ * Handles actions sent by the client. They are dispatched to the
  * specialized action classes in which they are processed.
  */
 public class CommandCenter {
@@ -91,12 +93,15 @@ public class CommandCenter {
 
 	private static void registerActions() {
 		AdministrationAction.registerActions();
+		AchievementLogAction.register();
 		AttackAction.register();
 		AwayAction.register();
 		BanAction.register();
 		BuddyAction.register();
 		CastSpellAction.register();
+		ChallengePlayerAction.register();
 		ChatAction.register();
+		ConditionalStopAction.register();
 		CStatusAction.register();
 		DisplaceAction.register();
 		DropAction.register();
@@ -109,6 +114,7 @@ public class CommandCenter {
 		ListProducersAction.register();
 		LookAction.register();
 		MoveAction.register();
+		MoveContinuousAction.register();
 		MoveToAction.register();
 		NameAction.register();
 		OutfitAction.register();
@@ -116,12 +122,14 @@ public class CommandCenter {
 		ProgressStatusQueryAction.register();
 		PushAction.register();
 		QuestListAction.register();
+		RemoveDetailAction.register();
 		ReorderAction.register();
 		SentenceAction.register();
 		StoreMessageAction.register();
 		StopAction.register();
 		TradeAction.register();
 		UseAction.register();
+		AutoWalkAction.register();
 		WhereAction.register();
 		WhoAction.register();
 		register("info", new InfoAction());
@@ -150,7 +158,7 @@ public class CommandCenter {
 				return true;
 			} else {
 				logger.error("caster is no Player; cannot execute action " + action +
-					" send by " + caster, new Throwable());
+						" send by " + caster, new Throwable());
 				return false;
 			}
 		} catch (final Exception e) {

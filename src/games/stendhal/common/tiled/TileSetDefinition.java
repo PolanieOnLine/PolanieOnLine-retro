@@ -1,4 +1,4 @@
-/* $Id: TileSetDefinition.java,v 1.1 2012/07/13 06:05:22 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -22,9 +22,9 @@ import marauroa.common.net.Serializable;
 /**
  * Stores a definition of a tileset. Mainly its name, the source image used and
  * the starting global id.
- * 
+ *
  * @author miguel
- * 
+ *
  */
 public class TileSetDefinition implements Serializable {
 	/** The name of the tileset. Useless */
@@ -38,20 +38,23 @@ public class TileSetDefinition implements Serializable {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param name
 	 *            the *useless* name of the tileset.
+	 * @param source
+	 *            the image filename
 	 * @param firstGid
 	 *            the id where this tileset begins to number tiles.
 	 */
-	public TileSetDefinition(final String name, final int firstGid) {
+	public TileSetDefinition(final String name, String source, final int firstGid) {
 		this.name = name;
+		this.source = source;
 		this.gid = firstGid;
 	}
 
 	/**
 	 * Returns the id where this tileset begins to number tiles.
-	 * 
+	 *
 	 * @return the id where this tileset begins to number tiles
 	 */
 	public int getFirstGid() {
@@ -60,7 +63,7 @@ public class TileSetDefinition implements Serializable {
 
 	/**
 	 * Set the filename of the source image of the tileset.
-	 * 
+	 *
 	 * @param attributeValue
 	 *            the filename
 	 */
@@ -70,7 +73,7 @@ public class TileSetDefinition implements Serializable {
 
 	/**
 	 * Returns the filename of the source image of the tileset.
-	 * 
+	 *
 	 * @return the filename of the source image of the tileset.
 	 */
 	public String getSource() {
@@ -86,12 +89,14 @@ public class TileSetDefinition implements Serializable {
 		return array.toByteArray();
 	}
 
+	@Override
 	public void readObject(final InputSerializer in) throws IOException {
 		name = in.readString();
 		source = in.readString();
 		gid = in.readInt();
 	}
 
+	@Override
 	public void writeObject(final OutputSerializer out) throws IOException {
 		out.write(name);
 		out.write(source);

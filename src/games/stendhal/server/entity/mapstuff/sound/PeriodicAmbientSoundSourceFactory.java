@@ -1,7 +1,7 @@
 /*
  * @(#) src/games/stendhal/server/entity/area/CreatureProtectionAreaFactory.java
  *
- * $Id: PeriodicAmbientSoundSourceFactory.java,v 1.3 2010/02/07 00:25:06 nhnb Exp $
+ * $Id$
  */
 
 package games.stendhal.server.entity.mapstuff.sound;
@@ -12,9 +12,6 @@ import games.stendhal.server.core.config.factory.ConfigurableFactoryContext;
  * A factory for PeriodicAmbientSoundSource.
  */
 public class PeriodicAmbientSoundSourceFactory extends SoundSourceFactory {
-
-
-
 	/**
 	 * gets the minimum interval, defaulting to one minute
 	 *
@@ -39,16 +36,17 @@ public class PeriodicAmbientSoundSourceFactory extends SoundSourceFactory {
 
 	/**
 	 * Create an PeriodicAmbientSoundSource.
-	 * 
+	 *
 	 * @param ctx
 	 *            Configuration context.
-	 * 
+	 *
 	 * @return An AmbientSoundSource.
-	 * 
+	 *
 	 * @throws IllegalArgumentException
 	 *             If there is a problem with the attributes.
 	 * @see LoopedAmbientSoundSource
 	 */
+	@Override
 	public PeriodicAmbientSoundSource create(final ConfigurableFactoryContext ctx) {
 		PeriodicAmbientSoundSource source;
 
@@ -56,5 +54,4 @@ public class PeriodicAmbientSoundSourceFactory extends SoundSourceFactory {
 
 		return source;
 	}
-
 }

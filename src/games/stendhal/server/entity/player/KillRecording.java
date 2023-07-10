@@ -1,4 +1,4 @@
-/* $Id: KillRecording.java,v 1.13 2011/04/09 12:47:22 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -95,6 +95,38 @@ class KillRecording {
 	 */
 	public void setSharedKill(final String name) {
 		setKill(name, "shared");
+	}
+
+	/**
+	 * Changes kill count to specified value.
+	 *
+	 * @param name name of killed entity
+	 * @param mode 'solo' or 'shared'
+	 * @param count value to set
+	 */
+	public void setKillCount(final String name, final String mode, final int count) {
+		final String key = mode + "." + name;
+		player.setKeyedSlot(KILL_SLOT_NAME, key, Integer.toString(count));
+	}
+
+	/**
+	 * Changes solo kill count to specified value.
+	 *
+	 * @param name name of killed entity
+	 * @param count value to set
+	 */
+	public void setSoloKillCount(final String name, final int count) {
+		setKillCount(name, "solo", count);
+	}
+
+	/**
+	 * Changes shared kill count to specified value.
+	 *
+	 * @param name of killed entity
+	 * @param count value to set
+	 */
+	public void setSharedKillCount(final String name, final int count) {
+		setKillCount(name, "shared", count);
 	}
 
 	/**

@@ -1,4 +1,4 @@
-/* $Id: BringListOfItemsQuestLogic.java,v 1.41 2011/05/01 19:50:10 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -19,7 +19,7 @@ import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.npc.action.DecreaseKarmaAction;
-import games.stendhal.server.entity.npc.action.SetQuestAndModifyKarmaAction;
+import games.stendhal.server.entity.npc.action.SetQuestAction;
 import games.stendhal.server.entity.npc.condition.AndCondition;
 import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
 import games.stendhal.server.entity.npc.condition.NotCondition;
@@ -65,7 +65,7 @@ public class BringListOfItemsQuestLogic {
 		}
 		return res;
 	}
-	
+
 	/**
 	 * Returns a list of the names of all items that the given player still
 	 * has to bring to fulfil the quest.
@@ -121,7 +121,7 @@ public class BringListOfItemsQuestLogic {
 		concreteQuest.getNPC().add(ConversationStates.ATTENDING,
 			questTrigger,
 			new QuestNotStartedCondition(concreteQuest.getSlotName()),
-			ConversationStates.QUEST_OFFERED, 
+			ConversationStates.QUEST_OFFERED,
 			concreteQuest.respondToQuest(),	null);
 	}
 
@@ -132,7 +132,7 @@ public class BringListOfItemsQuestLogic {
 		concreteQuest.getNPC().add(ConversationStates.QUEST_OFFERED,
 			ConversationPhrases.YES_MESSAGES, null,
 			ConversationStates.IDLE, concreteQuest.respondToQuestAcception(),
-			new SetQuestAndModifyKarmaAction(concreteQuest.getSlotName(), "", concreteQuest.getKarmaDiffForQuestResponse()));
+			new SetQuestAction(concreteQuest.getSlotName(), ""));
 	}
 
 	/**
@@ -141,7 +141,7 @@ public class BringListOfItemsQuestLogic {
 	protected void rejectQuest() {
 		concreteQuest.getNPC().add(ConversationStates.QUEST_OFFERED, ConversationPhrases.NO_MESSAGES, null,
 			ConversationStates.IDLE,
-			concreteQuest.respondToQuestRefusal(), 
+			concreteQuest.respondToQuestRefusal(),
 			new DecreaseKarmaAction(concreteQuest.getKarmaDiffForQuestResponse()));
 	}
 
@@ -154,6 +154,7 @@ public class BringListOfItemsQuestLogic {
 				concreteQuest.getTriggerPhraseToEnumerateMissingItems(),
 				null, ConversationStates.QUEST_OFFERED, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						final List<String> missingItems = getListOfStillMissingItems(player, false);
 						raiser.say(concreteQuest.firstAskForMissingItems(missingItems));
@@ -187,6 +188,7 @@ public class BringListOfItemsQuestLogic {
 			new QuestActiveCondition(concreteQuest.getSlotName()),
 			ConversationStates.QUESTION_1, null,
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 					final List<String> missingItems = getListOfStillMissingItems(player, true);
 					raiser.say(concreteQuest.askForMissingItems(missingItems));
@@ -206,6 +208,7 @@ public class BringListOfItemsQuestLogic {
 	    final ConversationStates[] states = new ConversationStates[] {ConversationStates.ATTENDING, ConversationStates.QUESTION_1};
 		concreteQuest.getNPC().add(states, ConversationPhrases.NO_MESSAGES, null,
 			ConversationStates.IDLE, null, new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 					final List<String> missingItems = getListOfStillMissingItems(player, false);
 					raiser.say(concreteQuest.respondToPlayerSayingHeHasNoItems(missingItems));
@@ -224,7 +227,7 @@ public class BringListOfItemsQuestLogic {
 	protected void playerWantsToGiveItems() {
 		final ConversationStates[] states = new ConversationStates[] {ConversationStates.ATTENDING, ConversationStates.QUESTION_1};
 		concreteQuest.getNPC().add(states,
-			ConversationPhrases.YES_MESSAGES, 
+			ConversationPhrases.YES_MESSAGES,
 			new QuestActiveCondition(concreteQuest.getSlotName()),
 			ConversationStates.QUESTION_1, concreteQuest.askForItemsAfterPlayerSaidHeHasItems(),
 			null);
@@ -238,6 +241,7 @@ public class BringListOfItemsQuestLogic {
 			concreteQuest.getNPC().add(ConversationStates.QUESTION_1, itemName, null,
 				ConversationStates.QUESTION_1, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						List<String> missing = getListOfStillMissingItems(player, false);
 
@@ -278,10 +282,10 @@ public class BringListOfItemsQuestLogic {
 	}
 
     /**
-     * player tries to offer an unwanted item 
+     * player tries to offer an unwanted item
     */
     protected void offerNotNeededItem() {
-	concreteQuest.getNPC().add(ConversationStates.QUESTION_1, "", 	
+	concreteQuest.getNPC().add(ConversationStates.QUESTION_1, "",
 				   new NotCondition(new TriggerInListCondition(concreteQuest.getNeededItems())),
 				   ConversationStates.QUESTION_1,
 				   concreteQuest.respondToOfferOfNotNeededItem(),
@@ -294,9 +298,9 @@ public class BringListOfItemsQuestLogic {
 		// allow to say goodbye while listening for items
     protected void sayByeWhileInQuestion1() {
 	concreteQuest.getNPC().add(ConversationStates.QUESTION_1, ConversationPhrases.GOODBYE_MESSAGES, null,
-		ConversationStates.IDLE, "Dowidzenia.", null);
+		ConversationStates.IDLE, "Do widzenia.", null);
     }
-	
+
     /**
 	 * Player returns while quest is still active.
 	 */

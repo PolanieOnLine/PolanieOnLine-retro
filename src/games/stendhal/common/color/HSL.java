@@ -14,6 +14,7 @@ package games.stendhal.common.color;
 import static games.stendhal.common.color.ARGB.BLUE;
 import static games.stendhal.common.color.ARGB.GREEN;
 import static games.stendhal.common.color.ARGB.RED;
+
 import games.stendhal.common.math.Algebra;
 
 /**
@@ -24,9 +25,9 @@ public class HSL {
 	/**
 	 * Transform ARGB color vector to HSL space. Transparency is dropped.
 	 * All returned components are in range [0, 1].
-	 *  
-	 * @param rgb
-	 * @param hsl
+	 *
+	 * @param rgb red, green, blue value
+	 * @param hsl hue, saturation, lightness
 	 */
 	public static void rgb2hsl(int[] rgb, float[] hsl) {
 		float h, s, l;
@@ -89,9 +90,9 @@ public class HSL {
 	/**
 	 * Transform HSL color vector to ARGB space. Alpha is kept at 0 for
 	 * everything. All HSL should be scaled to range [0, 1].
-	 * 
-	 * @param hsl
-	 * @param rgb
+	 *
+	 * @param rgb red, green, blue value
+	 * @param hsl hue, saturation, lightness
 	 */
 	public static void hsl2rgb(float[] hsl, int[] rgb) {
 		int r, g, b;
@@ -126,38 +127,40 @@ public class HSL {
 
 	/**
 	 * Keep hue value within [0, 1] circle.
-	 *  
+	 *
 	 * @param hue
 	 * @return normalized hue
 	 */
 	private static float limitHue(float hue) {
-		if (hue < 0) {
-			hue += 1f;
-		} else if (hue > 1f) {
-			hue -= 1f;
+		float res = hue;
+		if (res < 0) {
+			res += 1f;
+		} else if (res > 1f) {
+			res -= 1f;
 		}
-		return hue;
+		return res;
 	}
 
 	/**
 	 * Transform a hue to RGB.
-	 * 
+	 *
 	 * @param hue
 	 * @param val1 color dependent value
 	 * @param val2 color dependent value
 	 * @return R, G, or B value
 	 */
 	private static float hue2rgb(float hue, float val1, float val2) {
+		float res = hue;
 		if (6f * hue < 1f) {
-			hue = val1 + (val2 - val1) * 6f * hue;
+			res = val1 + (val2 - val1) * 6f * hue;
 		} else if (2f * hue < 1f) {
-			hue = val2;
+			res = val2;
 		} else if (3f * hue < 2f) {
-			hue = val1 + (val2 - val1) * (2f/3f - hue) * 6f;
+			res = val1 + (val2 - val1) * (2f/3f - hue) * 6f;
 		} else {
-			hue = val1;
+			res = val1;
 		}
 
-		return hue;
+		return res;
 	}
 }

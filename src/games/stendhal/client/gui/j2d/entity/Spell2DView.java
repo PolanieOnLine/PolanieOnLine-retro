@@ -1,4 +1,4 @@
-/* $Id: Spell2DView.java,v 1.27 2012/05/29 21:45:20 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -16,6 +16,8 @@ package games.stendhal.client.gui.j2d.entity;
 import java.awt.Color;
 import java.awt.Graphics2D;
 
+import org.apache.log4j.Logger;
+
 import games.stendhal.client.entity.ActionType;
 import games.stendhal.client.entity.IEntity;
 import games.stendhal.client.gui.j2DClient;
@@ -24,18 +26,14 @@ import games.stendhal.client.gui.j2d.entity.helpers.HorizontalAlignment;
 import games.stendhal.client.gui.j2d.entity.helpers.VerticalAlignment;
 import games.stendhal.client.sprite.SpriteStore;
 import games.stendhal.client.sprite.TextSprite;
-
-
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPSlot;
-
-import org.apache.log4j.Logger;
 
 /**
  * The 2D view of a spell.
  */
-public class Spell2DView extends Entity2DView<IEntity> {
-	
+class Spell2DView extends Entity2DView<IEntity> {
+
 	private static final Logger logger = Logger.getLogger(Spell2DView.class);
 
 	//
@@ -58,9 +56,9 @@ public class Spell2DView extends Entity2DView<IEntity> {
 	 * Determines on top of which other entities this entity should be drawn.
 	 * Entities with a high Z index will be drawn on top of ones with a lower Z
 	 * index.
-	 * 
+	 *
 	 * Also, players can only interact with the topmost entity.
-	 * 
+	 *
 	 * @return The drawing index.
 	 */
 	@Override
@@ -70,10 +68,10 @@ public class Spell2DView extends Entity2DView<IEntity> {
 
 	/**
 	 * Translate a resource name into it's sprite image path.
-	 * 
+	 *
 	 * @param name
 	 *            The resource name.
-	 * 
+	 *
 	 * @return The full resource name.
 	 */
 	@Override
@@ -82,25 +80,13 @@ public class Spell2DView extends Entity2DView<IEntity> {
 		return "data/sprites/spells/" + translatedname + ".png";
 	}
 
-	//
-	// EntityChangeListener
-	//
-
 	private String translateName(String name) {
 		return name.replaceAll(" ", "_");
 	}
 
-	/**
-	 * An entity was changed.
-	 * 
-	 * @param entity
-	 *            The entity that was changed.
-	 * @param property
-	 *            The property identifier.
-	 */
 	@Override
-	public void entityChanged(final IEntity entity, final Object property) {
-		super.entityChanged(entity, property);
+	void entityChanged(final Object property) {
+		super.entityChanged(property);
 
 		if (property == IEntity.PROP_CLASS) {
 			representationChanged = true;
@@ -121,7 +107,7 @@ public class Spell2DView extends Entity2DView<IEntity> {
 
 	/**
 	 * Perform an action.
-	 * 
+	 *
 	 * @param at
 	 *            The action.
 	 */
@@ -163,7 +149,7 @@ public class Spell2DView extends Entity2DView<IEntity> {
 		}
 		return position.toString();
 	}
-	
+
 	@Override
 	public boolean isMovable() {
 		return true;

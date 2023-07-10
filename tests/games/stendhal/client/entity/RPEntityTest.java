@@ -1,4 +1,4 @@
-/* $Id: RPEntityTest.java,v 1.5 2010/09/19 02:37:50 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -15,16 +15,18 @@ package games.stendhal.client.entity;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
-import games.stendhal.client.entity.RPEntity.Resolution;
-import games.stendhal.client.events.AttackEvent;
-import games.stendhal.client.events.Event;
-import marauroa.common.game.RPEvent;
 
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import games.stendhal.client.entity.RPEntity.Resolution;
+import games.stendhal.client.events.AttackEvent;
+import games.stendhal.client.events.Event;
+import games.stendhal.client.util.UserInterfaceTestHelper;
+import marauroa.common.game.RPEvent;
 
 public class RPEntityTest {
 
@@ -33,6 +35,7 @@ public class RPEntityTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
+		UserInterfaceTestHelper.initUserInterface();
 	}
 
 	@AfterClass
@@ -66,15 +69,15 @@ public class RPEntityTest {
 	public void testEvaluateAttackNoHit() {
 		RPEvent obj = new RPEvent();
 		obj.put("type", 0);
-		
+
 		Event<RPEntity> ev = new AttackEvent();
 		ev.init(attacker, obj);
-		
+
 		attacker.attackTarget = defender;
 		ev.execute();
 		assertThat(defender.getResolution(), is(Resolution.MISSED));
 	}
-	
+
 	/**
 	 * Tests for AttackEvents without "hit" being missed
 	 */
@@ -83,10 +86,10 @@ public class RPEntityTest {
 		RPEvent obj = new RPEvent();
 		obj.put("type", 0);
 		obj.put("damage", "0");
-		
+
 		Event<RPEntity> ev = new AttackEvent();
 		ev.init(attacker, obj);
-		
+
 		attacker.attackTarget = defender;
 		ev.execute();
 		assertThat(defender.getResolution(), is(Resolution.MISSED));
@@ -101,13 +104,13 @@ public class RPEntityTest {
 		obj.put("type", 0);
 		obj.put("hit", "");
 		obj.put("damage", "0");
-		
+
 		Event<RPEntity> ev = new AttackEvent();
 		ev.init(attacker, obj);
-		
+
 		attacker.attackTarget = defender;
 		ev.execute();
-		
+
 		assertThat(defender.getResolution(), is(Resolution.BLOCKED));
 	}
 
@@ -120,13 +123,13 @@ public class RPEntityTest {
 		obj.put("type", 0);
 		obj.put("hit", "");
 		obj.put("damage", "1");
-		
+
 		Event<RPEntity> ev = new AttackEvent();
 		ev.init(attacker, obj);
-		
+
 		attacker.attackTarget = defender;
 		ev.execute();
-		
+
 		assertThat(defender.getResolution(), is(Resolution.HIT));
 	}
 }

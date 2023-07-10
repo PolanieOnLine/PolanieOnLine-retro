@@ -1,4 +1,4 @@
-/* $Id: TeleportListener.java,v 1.1 2011/10/03 12:00:47 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2011 - Faiumoni e. V.                   *
  ***************************************************************************
@@ -16,14 +16,14 @@ import games.stendhal.server.entity.player.Player;
 
 /**
  * Implementing classes can be notified that a player teleported.
- * 
+ *
  * @author hendrik
  */
 public interface TeleportListener {
 
 	/**
 	 * This method is called when a player teleports
-	 * 
+	 *
 	 * @param player the player teleporting
 	 * @param playerAction true, if the player actively teleported; false for all teleports
 	 */

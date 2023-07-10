@@ -1,6 +1,5 @@
-/* $Id: CommandCenterTest.java,v 1.17 2012/08/03 22:39:28 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -15,14 +14,14 @@ package games.stendhal.server.actions;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import games.stendhal.server.entity.player.Player;
-import games.stendhal.server.maps.MockStendhalRPRuleProcessor;
-import marauroa.common.Log4J;
-import marauroa.common.game.RPAction;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.maps.MockStendhalRPRuleProcessor;
+import marauroa.common.Log4J;
+import marauroa.common.game.RPAction;
 import utilities.PlayerTestHelper;
 
 public class CommandCenterTest {
@@ -39,6 +38,7 @@ public class CommandCenterTest {
 	@Test
 	public void testRegister() {
 		final ActionListener listener = new ActionListener() {
+			@Override
 			public void onAction(final Player player, final RPAction action) {
 				player.put("success", "true");
 			}
@@ -59,14 +59,16 @@ public class CommandCenterTest {
 	public void testRegisterTwice() {
 		CommandCenter.register("this", new ActionListener() {
 
+			@Override
 			public void onAction(final Player player, final RPAction action) {
-
+				// do nothing
 			}
 		});
 
 		CommandCenter.register("this", new ActionListener() {
+			@Override
 			public void onAction(final Player player, final RPAction action) {
-
+				// do nothing
 			}
 		});
 	}
@@ -86,40 +88,45 @@ public class CommandCenterTest {
 	@Test
 	public void testExecuteUnknown() {
 		final RPAction action = new RPAction();
-		
+
 		CommandCenter.register("this", new ActionListener() {
+			@Override
 			public void onAction(final Player player, final RPAction action) {
+				// do nothing
 			}
 		});
 		CommandCenter.register("that", new ActionListener() {
+			@Override
 			public void onAction(final Player player, final RPAction action) {
-
+				// do nothing
 			}
 		});
 		CommandCenter.register("thus", new ActionListener() {
+			@Override
 			public void onAction(final Player player, final RPAction action) {
+				// do nothing
 			}
 		});
-		
+
 
 		action.put("type", "");
 		final Player caster = PlayerTestHelper.createPlayer("bob");
 		CommandCenter.execute(caster, action);
-		assertEquals("Unknown command /. Please type #/help to get a list.", caster.events().get(0).get("text"));
+		assertEquals("Nieznana komenda /. Wpisz #'/help', aby otrzymać listę.", caster.events().get(0).get("text"));
 		caster.clearEvents();
-		
+
 		action.put("type", "taat");
 		CommandCenter.execute(caster, action);
-		assertEquals("Unknown command /taat. Did you mean #/that? Or type #/help to get a list.", caster.events().get(0).get("text"));
+		assertEquals("Nieznana komenda /taat. Chodziło o #/that? Wpisz #'/help', aby otrzymać listę.", caster.events().get(0).get("text"));
 		caster.clearEvents();
-		
+
 		action.put("type", "thos");
 		CommandCenter.execute(caster, action);
-		assertEquals("Unknown command /thos. Did you mean #/this or #/thus? Or type #/help to get a list.", caster.events().get(0).get("text"));
+		assertEquals("Nieznana komenda /thos. Chodziło o #/this lub #/thus? Wpisz #'/help', aby otrzymać listę.", caster.events().get(0).get("text"));
 		caster.clearEvents();
-		
+
 		action.put("type", "thas");
 		CommandCenter.execute(caster, action);
-		assertEquals("Unknown command /thas. Did you mean #/that, #/this or #/thus? Or type #/help to get a list.", caster.events().get(0).get("text"));
+		assertEquals("Nieznana komenda /thas. Chodziło o #/that, #/this lub #/thus? Wpisz #'/help', aby otrzymać listę.", caster.events().get(0).get("text"));
 	}
 }

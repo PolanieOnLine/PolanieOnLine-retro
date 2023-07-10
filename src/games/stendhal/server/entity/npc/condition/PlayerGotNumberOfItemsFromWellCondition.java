@@ -7,9 +7,6 @@ import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.player.Player;
 
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
-
 /**
  * Did the player get at least this number of items from the wishing well?
  *
@@ -29,6 +26,7 @@ public class PlayerGotNumberOfItemsFromWellCondition implements ChatCondition {
 		number = quantity;
 	}
 
+	@Override
 	public boolean fire(Player player, Sentence sentence, Entity npc) {
 		return number < player.getQuantityOfObtainedItems();
 	}
@@ -40,13 +38,16 @@ public class PlayerGotNumberOfItemsFromWellCondition implements ChatCondition {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 43789 * number;
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				PlayerGotNumberOfItemsFromWellCondition.class);
+		if (!(obj instanceof PlayerGotNumberOfItemsFromWellCondition)) {
+			return false;
+		}
+		PlayerGotNumberOfItemsFromWellCondition other = (PlayerGotNumberOfItemsFromWellCondition) obj;
+		return number == other.number;
 	}
 
 }

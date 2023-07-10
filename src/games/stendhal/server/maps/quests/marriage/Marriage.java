@@ -1,4 +1,4 @@
-/* $Id: Marriage.java,v 1.10 2011/05/01 19:50:06 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -47,19 +47,20 @@ class Marriage {
 
 		/**
 		 * Creates a priest NPC who can celebrate marriages between two players.
-		 * 
+		 *
 		 * Note: in this class, the Player variables are called groom and bride.
 		 * However, the game doesn't know the concept of genders. The player who
 		 * initiates the wedding is just called groom, the other bride.
-		 * 
+		 *
 		 * @author daniel
-		 * 
+		 *
 		 */
 
-		priest = npcs.get("Priest");
+		priest = npcs.get("Ksiądz");
 		priest.add(ConversationStates.ATTENDING,
 					Arrays.asList("marry", "poślub"),
 					new ChatCondition() {
+						@Override
 						public boolean fire(final Player player, final Sentence sentence,
 								final Entity npc) {
 							return player.hasQuest(marriage.getQuestSlot())
@@ -70,15 +71,16 @@ class Marriage {
 					},
 					// TODO: make sure the pair getting married are engaged to each
 					// other, if this is desired.
-					ConversationStates.ATTENDING, 
+					ConversationStates.ATTENDING,
 					null,
 					new ChatAction() {
 
+						@Override
 						public void fire(final Player player, final Sentence sentence,
 								final EventRaiser npc) {
 							// find out whom the player wants to marry.
 							final String brideName = sentence.getSubjectName();
-	
+
 							if (brideName == null) {
 								npc.say("Powinieneś mi powiedzieć kogo chcesz poślubić.");
 							} else {
@@ -88,12 +90,13 @@ class Marriage {
 					});
 
 		priest.add(ConversationStates.QUESTION_1,
-					ConversationPhrases.YES_MESSAGES, 
+					ConversationPhrases.YES_MESSAGES,
 					null,
-					ConversationStates.QUESTION_2, 
+					ConversationStates.QUESTION_2,
 					null,
 					new ChatAction() {
 
+						@Override
 						public void fire(final Player player, final Sentence sentence,
 								final EventRaiser npc) {
 							askBride();
@@ -101,19 +104,20 @@ class Marriage {
 					});
 
 		priest.add(ConversationStates.QUESTION_1,
-					ConversationPhrases.NO_MESSAGES, 
-					null, 
+					ConversationPhrases.NO_MESSAGES,
+					null,
 					ConversationStates.IDLE,
-					"Co za szkoda! Dowidzenia!", 
+					"Co za szkoda! Do widzenia!",
 					null);
 
 		priest.add(ConversationStates.QUESTION_2,
-					ConversationPhrases.YES_MESSAGES, 
+					ConversationPhrases.YES_MESSAGES,
 					null,
-					ConversationStates.ATTENDING, 
+					ConversationStates.ATTENDING,
 					null,
 					new ChatAction() {
 
+						@Override
 						public void fire(final Player player, final Sentence sentence,
 								final EventRaiser npc) {
 							finishMarriage();
@@ -121,10 +125,10 @@ class Marriage {
 					});
 
 		priest.add(ConversationStates.QUESTION_2,
-					ConversationPhrases.NO_MESSAGES, 
-					null, 
+					ConversationPhrases.NO_MESSAGES,
+					null,
 					ConversationStates.IDLE,
-					"Co za szkoda! Dowidzenia!", 
+					"Co za szkoda! Do widzenia!",
 					null);
 
 		// What he responds to marry if you haven't fulfilled all objectives
@@ -132,9 +136,10 @@ class Marriage {
 		priest.add(ConversationStates.ATTENDING,
 					Arrays.asList("marry", "poślub"),
 					new ChatCondition() {
+						@Override
 						public boolean fire(final Player player, final Sentence sentence,
 								final Entity npc) {
-							return (!player.hasQuest(marriage.getQuestSlot()) 
+							return (!player.hasQuest(marriage.getQuestSlot())
 									|| (player.hasQuest(marriage.getQuestSlot())	&& player.getQuest(marriage.getQuestSlot()).startsWith("engaged") && !player.isEquipped("obrączka ślubna")));
 						}
 					},
@@ -143,19 +148,20 @@ class Marriage {
 					null);
 
 		// What he responds to marry if you are already married
-		priest.add(ConversationStates.ATTENDING, 
+		priest.add(ConversationStates.ATTENDING,
 				Arrays.asList("marry", "poślub"),
 				new ChatCondition() {
+					@Override
 					public boolean fire(final Player player, final Sentence sentence,
 							final Entity npc) {
 						return (player.isQuestCompleted(marriage.getQuestSlot()));
 					}
-				}, 
+				},
 				ConversationStates.ATTENDING,
-				"Jesteś już żonaty i nie możesz wziąć ślubu jeszcze raz.", 
+				"Jesteś już żonaty i nie możesz wziąć ślubu jeszcze raz.",
 				null);
 	}
-	
+
 	private void startMarriage(final SpeakerNPC priest, final Player player,
 			final String partnerName) {
 		final StendhalRPZone churchZone = priest.getZone();

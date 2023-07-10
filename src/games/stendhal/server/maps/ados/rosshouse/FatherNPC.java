@@ -1,4 +1,3 @@
-/* $Id: FatherNPC.java,v 1.16 2012/03/26 19:42:58 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,20 +11,21 @@
  ***************************************************************************/
 package games.stendhal.server.maps.ados.rosshouse;
 
+import java.util.Arrays;
+import java.util.Map;
+
 import games.stendhal.common.Direction;
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.entity.Outfit;
 import games.stendhal.server.entity.RPEntity;
 import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 
-import java.util.Arrays;
-import java.util.Map;
 /**
- * <p>Creates a normal version of mr ross in the ross house.
+ * <p>Creates a normal version of Mr. Ross in the ross house.
  */
 public class FatherNPC implements ZoneConfigurator {
+	public final static String MRROSS_OUTFIT = "body=0,dress=34,head=0,eyes=0,hair=27";
 
 	/**
 	 * Configure a zone.
@@ -33,19 +33,13 @@ public class FatherNPC implements ZoneConfigurator {
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		createDadNPC(zone);
 	}
 
 	public void createDadNPC(final StendhalRPZone zone) {
-
-		final SpeakerNPC npc = new SpeakerNPC("Mr Ross") {
-			@Override
-			protected void createPath() {
-				setPath(null);
-
-			}
-
+		final SpeakerNPC npc = new SpeakerNPC("Mr. Ross") {
 			@Override
 			protected void createDialog() {
 			    addGreeting("Witam.");
@@ -53,7 +47,7 @@ public class FatherNPC implements ZoneConfigurator {
 			    addHelp("Jeżeli potrzebujesz pomocy w znalezieniu jakiegoś budynku w Ados to strażnik Julius da Tobie mapę. Znajdziesz go przy wejściu do miasta.");
 			    addOffer("Nie mam nic do zaoferowania, ale w Ados są dwa miejsca, gdzie możesz się posilić - tawerna i bar.");
 			    addQuest("Pod koniec października wybieramy się na #Mine #Town #Revival #Weeks");
-			    addGoodbye("Dowidzenia. Miło było Cię poznać.");
+			    addGoodbye("Do widzenia. Miło było Cię poznać.");
 
 				// Revival Weeks
 				add(
@@ -72,14 +66,13 @@ public class FatherNPC implements ZoneConfigurator {
 			protected void onGoodbye(RPEntity player) {
 				setDirection(Direction.DOWN);
 			}
-			
 		};
 
-		npc.setOutfit(new Outfit(027, 15, 034, 1));
+		npc.setDescription("Oto tata Susi, Mr. Ross. Uspokoił się trochę po ostatniej przygodzie córki.");
+		npc.setOutfit(MRROSS_OUTFIT);
+		npc.setGender("M");
 		npc.setPosition(12, 7);
 		npc.setDirection(Direction.DOWN);
-		npc.initHP(100);
-		npc.setDescription("Widzisz Susi's tatę Mr. Ross. Uspokoił się trochę po ostatniej przygodzie córki.");
 		zone.add(npc);
 	}
 

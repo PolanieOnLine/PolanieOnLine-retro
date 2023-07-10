@@ -1,6 +1,5 @@
-/* $Id: GroupMessageAction.java,v 1.1 2010/11/27 19:15:22 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -13,6 +12,7 @@
 package games.stendhal.server.actions.chat;
 
 import static games.stendhal.common.constants.Actions.TEXT;
+
 import games.stendhal.common.NotificationType;
 import games.stendhal.server.actions.ActionListener;
 import games.stendhal.server.core.engine.SingletonRepository;
@@ -35,6 +35,7 @@ public class GroupMessageAction implements ActionListener {
 	 * @param player Player
 	 * @param action RPAction
 	 */
+	@Override
 	public void onAction(Player player, RPAction action) {
 
 		// check that the player is not gagged and not jailed
@@ -55,7 +56,7 @@ public class GroupMessageAction implements ActionListener {
 		}
 
 		if (validateAction(action)) {
-			group.sendGroupMessage(player.getName(), action.get(TEXT));
+			group.sendGroupMessage(player.getName(), QuoteSpecials.quote(action.get(TEXT)));
 		}
 	}
 

@@ -1,4 +1,4 @@
-/* $Id: MinLengthValidatorTest.java,v 1.6 2010/09/19 02:37:56 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,10 +12,10 @@
  ***************************************************************************/
 package games.stendhal.common.account;
 
-import games.stendhal.server.core.account.MinLengthValidator;
-
 import org.junit.Assert;
 import org.junit.Test;
+
+import games.stendhal.server.core.account.MinLengthValidator;
 
 
 public class MinLengthValidatorTest {

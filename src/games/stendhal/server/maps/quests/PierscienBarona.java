@@ -1,6 +1,5 @@
-/* $Id: PierscienBarona.java,v 1.18 2012/02/26 01:38:06 Legolas Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2010-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -10,9 +9,16 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-// Based on UltimateCollector
 package games.stendhal.server.maps.quests;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
+import games.stendhal.common.grammar.Grammar;
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.ConversationPhrases;
@@ -21,64 +27,37 @@ import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.npc.action.DropItemAction;
 import games.stendhal.server.entity.npc.action.EquipItemAction;
-import games.stendhal.server.entity.npc.action.DropRecordedItemAction;
 import games.stendhal.server.entity.npc.action.IncreaseXPAction;
 import games.stendhal.server.entity.npc.action.MultipleActions;
-import games.stendhal.server.entity.npc.action.SayTimeRemainingAction;
 import games.stendhal.server.entity.npc.action.SetQuestAction;
-import games.stendhal.server.entity.npc.action.StartRecordingRandomItemCollectionAction;
 import games.stendhal.server.entity.npc.action.SetQuestAndModifyKarmaAction;
-import games.stendhal.server.entity.npc.action.SayRequiredItemAction;
 import games.stendhal.server.entity.npc.condition.AndCondition;
 import games.stendhal.server.entity.npc.condition.NotCondition;
-import games.stendhal.server.entity.npc.condition.OrCondition;
-import games.stendhal.server.entity.npc.condition.QuestInStateCondition;
 import games.stendhal.server.entity.npc.condition.PlayerHasItemWithHimCondition;
-import games.stendhal.server.entity.npc.condition.PlayerHasRecordedItemWithHimCondition;
-import games.stendhal.server.entity.npc.condition.QuestActiveCondition;
 import games.stendhal.server.entity.npc.condition.QuestCompletedCondition;
 import games.stendhal.server.entity.npc.condition.QuestInStateCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotCompletedCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotStartedCondition;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.log4j.Logger;
-
-	public class PierscienBarona extends AbstractQuest {
-
+public class PierscienBarona extends AbstractQuest {
 	private static final String QUEST_SLOT = "pierscien_barona";
+	private final SpeakerNPC npc = npcs.get("eDragon");
 
 	private static final String HUNGRY_JOSHUA_QUEST_SLOT = "hungry_joshua"; 
-
 	private static final String FISHERMANS_LICENSE2_QUEST_SLOT = "fishermans_license2";
-
 	private static final String OBSIDIAN_KNIFE_QUEST_SLOT = "obsidian_knife";
-
 	private static final String MITHRIL_CLOAK_QUEST_SLOT = "mithril_cloak";
-
 	private static final String CIUPAGA_DWA_WASY_QUEST_SLOT = "ciupaga_dwa_wasy";
 
 	private static Logger logger = Logger.getLogger(PierscienBarona.class);
 
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
-
 	private void checkLevelHelm() {
-		final SpeakerNPC npc = npcs.get("eDragon");
-
 		npc.add(ConversationStates.ATTENDING,
 			ConversationPhrases.QUEST_MESSAGES, null,
 			ConversationStates.QUEST_OFFERED, null,
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 					if (player.isBadBoy()){ 
 						raiser.say("Z twej ręki zginął rycerz! Nie masz tu czego szukać, pozbądź się piętna czaszki. A teraz precz mi z oczu!");
@@ -106,6 +85,7 @@ import org.apache.log4j.Logger;
 			ConversationPhrases.YES_MESSAGES, null,
 			ConversationStates.ATTENDING, null,
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 					raiser.say("Ale wpierw sprawdzę czy masz wszystkie zadania zrobione nim dostaniesz #listę.");
 					player.addKarma(10);
@@ -120,10 +100,7 @@ import org.apache.log4j.Logger;
 	}
 
 	private void checkCollectingQuests() {
-		final SpeakerNPC npc = npcs.get("eDragon");
-
-		npc.add(
-			ConversationStates.IDLE,
+		npc.add(ConversationStates.IDLE,
 			ConversationPhrases.GREETING_MESSAGES,
 			new AndCondition(new QuestCompletedCondition(CIUPAGA_DWA_WASY_QUEST_SLOT),
 					 new QuestNotStartedCondition(QUEST_SLOT)),
@@ -170,8 +147,6 @@ import org.apache.log4j.Logger;
 	}
 
 	private void requestItem() {
-		final SpeakerNPC npc = npcs.get("eDragon");
-
 		npc.add(ConversationStates.ATTENDING,
 				Arrays.asList("listę", "liste", "pierścień"),
 				new AndCondition( 
@@ -184,17 +159,17 @@ import org.apache.log4j.Logger;
 				ConversationStates.ATTENDING, "Widzę, że zadania masz zrobine. Teraz tylko spiszę listę brakujących #przedmiotów.",
 				new SetQuestAction(QUEST_SLOT, "lista" ));
 
-		final List<ChatAction> amuletactions = new LinkedList<ChatAction>();
-		amuletactions.add(new DropItemAction("pierścień rycerza",1));
-		amuletactions.add(new DropItemAction("ruda żelaza",100));
-		amuletactions.add(new DropItemAction("bryłka złota",150));
-		amuletactions.add(new DropItemAction("polano",200));
-		amuletactions.add(new DropItemAction("węgiel",100));
-		amuletactions.add(new DropItemAction("siarka",100));
-		amuletactions.add(new DropItemAction("sól",100));
-		amuletactions.add(new EquipItemAction("pierścień barona", 1, true));
-		amuletactions.add(new IncreaseXPAction(1000));
-		amuletactions.add(new SetQuestAction(QUEST_SLOT, "done"));
+		final List<ChatAction> reward = new LinkedList<ChatAction>();
+		reward.add(new DropItemAction("pierścień rycerza",1));
+		reward.add(new DropItemAction("ruda żelaza",100));
+		reward.add(new DropItemAction("bryłka złota",150));
+		reward.add(new DropItemAction("polano",200));
+		reward.add(new DropItemAction("węgiel",100));
+		reward.add(new DropItemAction("siarka",100));
+		reward.add(new DropItemAction("sól",100));
+		reward.add(new EquipItemAction("pierścień barona", 1, true));
+		reward.add(new IncreaseXPAction(100000));
+		reward.add(new SetQuestAction(QUEST_SLOT, "done"));
 
 		npc.add(ConversationStates.ATTENDING, Arrays.asList("przedmiotów", "przedmioty"),
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT,"lista"),
@@ -206,7 +181,7 @@ import org.apache.log4j.Logger;
 				new PlayerHasItemWithHimCondition("siarka",100),
 				new PlayerHasItemWithHimCondition("sól",100)),
 				ConversationStates.ATTENDING, "Widzę, że masz wszystko o co cię prosiłem. A oto twój pierścień barona.",
-				new MultipleActions(amuletactions));
+				new MultipleActions(reward));
 
 		npc.add(ConversationStates.ATTENDING, Arrays.asList("przedmioty","przedmiotów"),
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT,"lista"),
@@ -232,10 +207,9 @@ import org.apache.log4j.Logger;
 
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
 				"Pierścień Barona",
-				"Uporaj się z wyzwaniami, które postawił przed tobą kowal Marianek.",
+				"Uporaj się z wyzwaniami, które postawił przed tobą potężny smok eDragon.",
 				true);
 
 		checkLevelHelm(); 
@@ -250,20 +224,20 @@ import org.apache.log4j.Logger;
 				return res;
 			}
 			final String questState = player.getQuest(QUEST_SLOT);
-			res.add("Spotkałem smoka eDragon.");
+			res.add(Grammar.genderVerb(player.getGender(), "Spotkałem") + " smoka eDragon.");
 			res.add("Zaproponował mi pierścień barona.");
 			if ("rejected".equals(questState)) {
-				res.add("Nie potrzebna mi jest pierścień..");
+				res.add("Nie potrzebny mi jest pierścień.");
 				return res;
 			} 
 			if ("start".equals(questState)) {
 				return res;
 			} 
-			res.add("Smok eDragon poprosił abym mu dostarczył: pierścień rycerza, 100 rudy żelaza, 150 bryłek złota, 200 polan, 100 węgla, 100 siarki i 100 soli. Mam mu powiedzieć przedmioty gdy będę miał wszystko.");
+			res.add("Smok eDragon poprosił, abym mu " + Grammar.genderVerb(player.getGender(), "dostarczył") + ": pierścień rycerza, 100 rudy żelaza, 150 bryłek złota, 200 polan, 100 węgla, 100 siarki i 100 soli. Mam mu powiedzieć przedmioty gdy będę " + Grammar.genderVerb(player.getGender(), "miał") + " wszystko.");
 			if ("lista".equals(questState)) {
 				return res;
 			} 
-			res.add("Smok eDragon był zadowolony z mojej postawy. W zamian dostałem pierścień barona.");
+			res.add("Smok eDragon był zadowolony z mojej postawy. W zamian " + Grammar.genderVerb(player.getGender(), "dostałem") + " pierścień barona.");
 			if (isCompleted(player)) {
 				return res;
 			} 
@@ -276,12 +250,17 @@ import org.apache.log4j.Logger;
 	}
 
 	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
+	}
+
+	@Override
 	public String getName() {
-		return "EdragonNPC";
+		return "Pierścień Barona";
 	}
 
 	@Override
 	public String getNPCName() {
-		return "eDragon";
+		return npc.getName();
 	}
 }

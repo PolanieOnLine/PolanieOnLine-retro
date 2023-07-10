@@ -1,4 +1,4 @@
-/* $Id: Numeric.java,v 1.3 2010/11/27 16:35:13 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -25,6 +25,6 @@ public class Numeric
 
     public static float intToFloat(int value, float accuracy)
     {
-        return (float)(value / accuracy);
+        return value / accuracy;
     }
 }

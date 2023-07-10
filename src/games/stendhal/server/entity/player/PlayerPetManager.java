@@ -1,4 +1,4 @@
-/* $Id: PlayerPetManager.java,v 1.9 2010/09/19 02:26:09 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -17,6 +17,7 @@ import games.stendhal.server.entity.creature.Cat;
 import games.stendhal.server.entity.creature.Owczarek;
 import games.stendhal.server.entity.creature.OwczarekPodhalanski;
 import games.stendhal.server.entity.creature.Pet;
+import games.stendhal.server.entity.creature.PurpleDragon;
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPSlot;
 
@@ -37,7 +38,7 @@ public class PlayerPetManager {
 
 		/*
 		 * RPSlot.add() destroys zoneid, so preserve/restore it.
-		 * 
+		 *
 		 * TODO: Remove if getID()/setID() are made purely virtual.
 		 */
 		String zoneid;
@@ -59,7 +60,7 @@ public class PlayerPetManager {
 
 	/**
 	 * Recreate a saved pet.
-	 * 
+	 *
 	 * @return A pet, or <code>null</code> if none.
 	 */
 	public Pet retrievePet() {
@@ -80,6 +81,8 @@ public class PlayerPetManager {
 					return new OwczarekPodhalanski(object, player);
 				} else if (object.get("type").equals("baby_dragon")) {
 					return new BabyDragon(object, player);
+				} else if (object.get("type").equals("purple_dragon")) {
+					return new PurpleDragon(object, player);
 				}
 			}
 		}

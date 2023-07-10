@@ -1,4 +1,4 @@
-/* $Id: LevelGreaterThanConditionTest.java,v 1.14 2011/05/01 19:50:06 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -15,15 +15,15 @@ package games.stendhal.server.entity.npc.condition;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import games.stendhal.common.parser.ConversationParser;
-import games.stendhal.server.entity.player.Player;
-import games.stendhal.server.maps.MockStendlRPWorld;
-import marauroa.common.Log4J;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.common.parser.ConversationParser;
+import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.maps.MockStendlRPWorld;
+import marauroa.common.Log4J;
 import utilities.PlayerTestHelper;
 
 public class LevelGreaterThanConditionTest {
@@ -33,7 +33,7 @@ public class LevelGreaterThanConditionTest {
 	public static void setUpBeforeClass() throws Exception {
 		Log4J.init();
 		MockStendlRPWorld.get();
-		
+
 	}
 
 	@Before

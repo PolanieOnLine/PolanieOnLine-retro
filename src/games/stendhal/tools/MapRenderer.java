@@ -1,4 +1,4 @@
-/* $Id: MapRenderer.java,v 1.11 2011/12/08 11:53:22 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -45,7 +45,7 @@ import tiled.view.OrthogonalRenderer;
 /**
  * Renders Stendhal maps from *.tmx into PNG files of the same base name. This class can be started
  * from the command line or through an ant task.
- * 
+ *
  * @author mtotz
  */
 public class MapRenderer extends Task {
@@ -60,8 +60,8 @@ public class MapRenderer extends Task {
 	private static final List<String> visibleLayers = Arrays.asList( "0_floor",
 			"1_terrain", "2_object", "3_roof", "4_roof_add");
 
-	/** converts the map files. 
-	 * @param tmxFile 
+	/** converts the map files.
+	 * @param tmxFile
 	 * @throws Exception */
 	public void convert(final String tmxFile) throws Exception {
 		final File file = new File(tmxFile);
@@ -74,27 +74,35 @@ public class MapRenderer extends Task {
 	private void saveImageMap(final Map map, final String tmxFile) {
 		final File file = new File(tmxFile);
 		String filename = file.getAbsolutePath();
+		Boolean isworld = file.getName().equals("world.tmx");
+
 		for (final MapLayer layer : map) {
-			layer.setVisible(visibleLayers.contains(layer.getName()));
+			if (isworld) {
+				layer.setVisible(layer.getName().equals("Floor"));
+			} else {
+				layer.setVisible(visibleLayers.contains(layer.getName()));
+			}
 		}
 
 		final String area = file.getParentFile().getName();
-		String level;
+		String level = "int";
 		final String fileContainer = file.getParentFile().getParent();
 
-		if (fileContainer.contains("Level ")) {
-			level = fileContainer.split("Level ")[1];
+		if (isworld) {
+			filename = filename.replaceAll("\\.tmx", ".png");
 		} else {
-			level = "int";
-		}
+			if (fileContainer.contains("Level ")) {
+				level = fileContainer.split("Level ")[1];
+			}
 
-		if (level.equals("int") && area.equals("abstract")) {
-			filename = imagePath + File.separator + level.replace("-", "sub_")
-					+ "_" + file.getName().replaceAll("\\.tmx", ".png");
-		} else {
-			filename = imagePath + File.separator + level.replace("-", "sub_")
-					+ "_" + area + "_"
-					+ file.getName().replaceAll("\\.tmx", ".png");
+			if (level.equals("int") && area.equals("abstract")) {
+				filename = imagePath + File.separator + level.replace("-", "sub_")
+						+ "_" + file.getName().replaceAll("\\.tmx", ".png");
+			} else {
+				filename = imagePath + File.separator + level.replace("-", "sub_")
+						+ "_" + area + "_"
+						+ file.getName().replaceAll("\\.tmx", ".png");
+			}
 		}
 
 		final OrthogonalRenderer myView = new OrthogonalRenderer(map);
@@ -135,7 +143,7 @@ public class MapRenderer extends Task {
 			}
 		}
 		g.dispose();
-		
+
 		i = scaleImage(i, realZoom);
 
 		try {
@@ -147,7 +155,7 @@ public class MapRenderer extends Task {
 
 	/**
 	 * Scale an image. Downscaling is done using a multi-stage method.
-	 * 
+	 *
 	 * @param orig
 	 * @param scale
 	 * @return scaled image
@@ -180,7 +188,7 @@ public class MapRenderer extends Task {
 
 	/**
 	 * Adds a set of files to copy.
-	 * 
+	 *
 	 * @param set
 	 *            a set of files to copy
 	 */
@@ -190,7 +198,7 @@ public class MapRenderer extends Task {
 
 	/**
 	 * The setter for the "stendPath" attribute.
-	 * @param imagePath 
+	 * @param imagePath
 	 */
 	public void setImagePath(final String imagePath) {
 		this.imagePath = imagePath;

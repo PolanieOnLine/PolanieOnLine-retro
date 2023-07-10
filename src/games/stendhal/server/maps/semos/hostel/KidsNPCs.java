@@ -1,4 +1,4 @@
-/* $Id: KidsNPCs.java,v 1.8 2010/12/29 15:01:53 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -34,23 +34,19 @@ public class KidsNPCs implements ZoneConfigurator {
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildNPCs(zone);
 	}
 
 	private void buildNPCs(final StendhalRPZone zone) {
-		final String[] names = {"Taylor", "Covester", "Mick", "Richard"};
+		final String[] names = {"Taylora", "Covester", "Mick", "Richard"};
 		final String[] classes = { "kid2npc", "kid1npc", "kid9npc", "kid8npc" };
-		final String[] descriptions = {"Widzisz Taylora. Ona śpi głąbokim snem.", "Widzisz Covester, który cicho chrapie.", "Oto Mick. Wydaje się być naprawdę zmęczony.", "Oto Richard. Miał kilka stresujących dni urlopu."};
+		final String[] descriptions = {"Oto Taylora. Śpi ona głąbokim snem.", "Oto Covester, który cicho chrapie.", "Oto Mick. Wydaje się być naprawdę zmęczony.", "Oto Richard. Miał kilka stresujących dni urlopu."};
+		final String[] genders = { "F", "M", "M", "M" };
 		final int[][] start = { {3, 3}, {9, 3}, {15, 3}, {21, 3} };
 		for (int i = 0; i < 4; i++) {
 			final SpeakerNPC npc = new SpeakerNPC(names[i]) {
-				@Override
-				protected void createPath() {
-					// they sleeping!
-					setPath(null);
-				}
-
 				@Override
 				protected void createDialog() {
 					add(
@@ -58,15 +54,16 @@ public class KidsNPCs implements ZoneConfigurator {
 						ConversationPhrases.GREETING_MESSAGES,
 						new GreetingMatchesNameCondition(getName()), true,
 						ConversationStates.IDLE,
-						"ZZzzzz ... ",
+						"ZZzzzz...",
 						null);
 				}
 			};
-			npc.setEntityClass(classes[i]);
-			npc.setPosition(start[i][0], start[i][1]);
+
 			npc.setDescription(descriptions[i]);
+			npc.setEntityClass(classes[i]);
+			npc.setGender(genders[i]);
+			npc.setPosition(start[i][0], start[i][1]);
 			npc.setDirection(Direction.LEFT);
-			npc.initHP(100);
 			zone.add(npc);
 		}
 	}

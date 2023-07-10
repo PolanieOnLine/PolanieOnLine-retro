@@ -1,4 +1,4 @@
-/* $Id: TeleportNotifier.java,v 1.1 2011/10/03 12:00:47 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2011 - Faiumoni e. V.                   *
  ***************************************************************************
@@ -12,39 +12,44 @@
  ***************************************************************************/
 package games.stendhal.server.core.events;
 
-import games.stendhal.server.entity.player.Player;
-
 import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
 
+import games.stendhal.server.entity.player.Player;
+
 /**
  * Other classes can register here to be notified on teleports
- * 
+ *
  * @author hendrik
  */
 public final class TeleportNotifier {
-
 	private static Logger logger = Logger.getLogger(TeleportNotifier.class);
-
-	/** The Singleton instance. */
-	private static final TeleportNotifier INSTANCE = new TeleportNotifier();
+	/** The singleton instance. */
+	private static TeleportNotifier instance;
 
 	/** listeners */
 	private final Set<TeleportListener> listeners = new HashSet<TeleportListener>();
 
-	private TeleportNotifier() {
-		// singleton
-	}
-
 	/**
 	 * Return the TeleportNotifier instance.
-	 * 
+	 *
 	 * @return TeleportNotifier the Singleton instance
 	 */
 	public static TeleportNotifier get() {
-		return INSTANCE;
+		if (instance == null) {
+			instance = new TeleportNotifier();
+		}
+
+		return instance;
+	}
+
+	/**
+	 * Hidden singleton constructor.
+	 */
+	private TeleportNotifier() {
+		// singleton
 	}
 
 	/**
@@ -65,7 +70,7 @@ public final class TeleportNotifier {
 
 	/**
 	 * registers a TeleportListener.
-	 * 
+	 *
 	 * @param listener TeleportListener
 	 */
 	public void registerListener(final TeleportListener listener) {
@@ -78,7 +83,7 @@ public final class TeleportNotifier {
 
 	/**
 	 * unregisters a TeleportListener so that it will not be called anymore.
-	 * 
+	 *
 	 * @param listener TeleportListener
 	 */
 	public void unregisterListener(final TeleportListener listener) {

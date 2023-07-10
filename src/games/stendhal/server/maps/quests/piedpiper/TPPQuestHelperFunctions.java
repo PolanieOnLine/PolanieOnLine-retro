@@ -1,6 +1,5 @@
 package games.stendhal.server.maps.quests.piedpiper;
 
-
 import java.util.LinkedList;
 
 import games.stendhal.common.Rand;
@@ -13,15 +12,14 @@ import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
 import games.stendhal.server.entity.player.Player;
 
 public class TPPQuestHelperFunctions implements ITPPQuestConstants {
-	
 	private static LinkedList<Creature> rats = new LinkedList<Creature>();
-	
-	public static final String MAIN_NPC_NAME = "Mayor Chalmers"; 
-	
+
+	public static final String MAIN_NPC_NAME = "Mayor Chalmers";
+
 	public static SpeakerNPC getMainNPC() {
 		return SingletonRepository.getNPCList().get(MAIN_NPC_NAME);
 	}
-	
+
 	/**
 	 * function for calculating reward's moneys for player
 	 *
@@ -48,7 +46,7 @@ public class TPPQuestHelperFunctions implements ITPPQuestConstants {
 		}
 		return(moneys);
 	}
-	
+
 
 	public void setRats(LinkedList<Creature> rats) {
 		TPPQuestHelperFunctions.rats = rats;
@@ -57,32 +55,34 @@ public class TPPQuestHelperFunctions implements ITPPQuestConstants {
 	public static LinkedList<Creature> getRats() {
 		return rats;
 	}
-	
+
 	/**
-	 * 
+	 * Get the amount of rats.
+	 *
+	 * @return rat count
 	 */
 	public static int getRatsCount() {
 		return(getRats().size());
 	}
-	
+
 	public static void setupPiper(SpeakerNPC piedpiper) {
 		piedpiper.setEntityClass("holidaymakernpc");
 		piedpiper.initHP(1000);
 		piedpiper.setResistance(0);
 		piedpiper.setVisibility(100);
 		piedpiper.setAllowToActAlone(true);
-		piedpiper.add(ConversationStates.IDLE, 
-							ConversationPhrases.GREETING_MESSAGES, 
-							new GreetingMatchesNameCondition(piedpiper.getName()), true, 
-							ConversationStates.IDLE, 
-							"cześć", 
-							null);
-		piedpiper.addEmotionReply("hugs", "smile to");
+		piedpiper.add(ConversationStates.IDLE,
+				ConversationPhrases.GREETING_MESSAGES,
+				new GreetingMatchesNameCondition(piedpiper.getName()), true,
+				ConversationStates.IDLE,
+				"Cześć.",
+				null);
+		piedpiper.addEmotionReply("przytula", "uśmiecha się do");
 	}
-	
+
 	/**
 	 * return random rat from allowed list
-	 * @return
+	 * @return a random rat creature
 	 */
 	public static Creature getRandomRat() {
 		// Gaussian distribution
@@ -90,9 +90,8 @@ public class TPPQuestHelperFunctions implements ITPPQuestConstants {
 		if ((tc>(RAT_TYPES.size()-1)) || (tc<0)) {
 			tc=0;
 		}
-		final Creature tempCreature = 
+		final Creature tempCreature =
 			new Creature((Creature) SingletonRepository.getEntityManager().getEntity(RAT_TYPES.get(tc)));
-		return tempCreature;		
+		return tempCreature;
 	}
 }
-

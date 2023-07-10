@@ -1,6 +1,5 @@
-/* $Id: EquipUtil.java,v 1.20 2012/09/02 08:03:15 kiheru Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,15 +11,14 @@
  ***************************************************************************/
 package games.stendhal.server.actions.equip;
 
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.util.EntityHelper;
-
-import java.util.List;
-
 import marauroa.common.game.RPObject;
-
-import org.apache.log4j.Logger;
 
 /**
  * Useful method to deal with equipable items.
@@ -36,7 +34,7 @@ public class EquipUtil {
 	/**
 	 * Gets the object for the given id. Returns null when the item is not
 	 * available. Failure is written to the logger.
-	 * 
+	 *
 	 * @param player
 	 *            the player
 	 * @param objectId
@@ -50,7 +48,7 @@ public class EquipUtil {
 
 	/**
 	 * Checks if the object is of one of the given class or one of its children.
-	 * 
+	 *
 	 * @param validClasses
 	 *            list of valid class-objects
 	 * @param object

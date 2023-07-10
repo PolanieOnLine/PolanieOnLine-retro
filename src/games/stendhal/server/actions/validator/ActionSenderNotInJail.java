@@ -1,4 +1,4 @@
-/* $Id: ActionSenderNotInJail.java,v 1.2 2012/09/13 20:46:30 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -31,6 +31,7 @@ public class ActionSenderNotInJail implements ActionValidator {
 	 * @param data   data about this action
 	 * @return <code>null</code> if the action is valid; an error message otherwise
 	 */
+	@Override
 	public String validate(Player player, RPAction action, ActionData data) {
 		if (Jail.isInJail(player)) {
 			return "Silna ochronna aura uniemożliwia zrobienie tego. Użyj /support <tekst>, aby skontaktować się z administratorem!";

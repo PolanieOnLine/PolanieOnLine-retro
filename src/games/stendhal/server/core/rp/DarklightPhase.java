@@ -11,12 +11,10 @@
  ***************************************************************************/
 package games.stendhal.server.core.rp;
 
-import java.util.Calendar;
-
 /**
- * day light phase
+ * Dark light phase
  *
- * @author hendrik
+ * @author ??? but thank you!
  */
 public enum DarklightPhase {
 

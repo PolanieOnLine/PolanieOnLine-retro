@@ -11,6 +11,9 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.action;
 
+import java.util.Arrays;
+import java.util.List;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
 import games.stendhal.server.core.config.annotations.Dev.Category;
@@ -18,12 +21,6 @@ import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Gives description for unstarted quest based on npc name
@@ -51,13 +48,14 @@ public class SayUnstartedQuestDescriptionFromNPCNameAction implements ChatAction
 		this.regions = regions;
 	}
 
+	@Override
 	public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 		for (String region: regions) {
 			List<String> npcnames = SingletonRepository.getStendhalQuestSystem().getNPCNamesForUnstartedQuestsInRegionForLevel(player, region);
 			for (String name :  npcnames) {
 				if (name.equalsIgnoreCase(sentence.getTriggerExpression().toString())) {
 					List<String> descs = SingletonRepository.getStendhalQuestSystem().getQuestDescriptionForUnstartedQuestInRegionFromNPCName(player,region,name);
-					StringBuffer answer = new StringBuffer();
+					StringBuilder answer = new StringBuilder();
 					for (String desc : descs) {
 						answer.append(desc + " ");
 					}
@@ -72,15 +70,17 @@ public class SayUnstartedQuestDescriptionFromNPCNameAction implements ChatAction
 		return "SayUnstartedQuestDescriptionFromNPCNameAction in region <" + regions.toString() +  ">";
 	}
 
-
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 5443 * regions.hashCode();
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				SayUnstartedQuestDescriptionFromNPCNameAction.class);
+		if (!(obj instanceof SayUnstartedQuestDescriptionFromNPCNameAction)) {
+			return false;
+		}
+		SayUnstartedQuestDescriptionFromNPCNameAction other = (SayUnstartedQuestDescriptionFromNPCNameAction) obj;
+		return regions.equals(other.regions);
 	}
 }

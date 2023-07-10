@@ -1,6 +1,5 @@
-/* $Id: WhereWho.java,v 1.15 2010/09/19 02:36:26 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,19 +11,19 @@
  ***************************************************************************/
 package games.stendhal.server.script;
 
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.engine.Task;
 import games.stendhal.server.core.scripting.ScriptImpl;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
 /**
  * List all players an the zones they are in.
- * 
+ *
  * @author hendrik
  */
 public class WhereWho extends ScriptImpl {
@@ -34,9 +33,10 @@ public class WhereWho extends ScriptImpl {
 
 		final Map<String, StringBuilder> maps = new TreeMap<String, StringBuilder>();
 		SingletonRepository.getRuleProcessor().getOnlinePlayers().forAllPlayersExecute(
-				
+
 			new Task<Player>() {
 
+			@Override
 			public void execute(final Player player) {
 				final StendhalRPZone zone = player.getZone();
 				String zoneid;
@@ -62,11 +62,11 @@ public class WhereWho extends ScriptImpl {
 				sb.append(" (");
 				sb.append(player.getLevel());
 				sb.append(")  ");
-				
+
 			}
-			
+
 		});
-	
+
 
 		// create response
 		final StringBuilder sb = new StringBuilder();

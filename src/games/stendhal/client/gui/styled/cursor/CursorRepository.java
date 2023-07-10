@@ -12,21 +12,22 @@
 
 package games.stendhal.client.gui.styled.cursor;
 
-import games.stendhal.client.sprite.DataLoader;
-
 import java.awt.Cursor;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.io.IOException;
 import java.net.URL;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Locale;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
 
 import org.apache.log4j.Logger;
+
+import games.stendhal.client.gui.wt.core.WtWindowManager;
+import games.stendhal.client.sprite.DataLoader;
 
 /**
  * Loads and caches cursors
@@ -36,7 +37,7 @@ import org.apache.log4j.Logger;
 public class CursorRepository {
 	private static Logger logger = Logger.getLogger(CursorRepository.class);
 
-	private Map<StendhalCursor, Cursor> cursorMap = new HashMap<StendhalCursor, Cursor>();
+	private Map<StendhalCursor, Cursor> cursorMap = new EnumMap<StendhalCursor, Cursor>(StendhalCursor.class);
 
 	public Cursor get(StendhalCursor stendhalCursor) {
 		Cursor res = cursorMap.get(stendhalCursor);
@@ -47,7 +48,12 @@ public class CursorRepository {
 	}
 
 	private Cursor loadCursor(StendhalCursor stendhalCursor) {
-		String imageName = "data/sprites/cursor/" + stendhalCursor.getImageName();
+		String cursorPath = "data/sprites/cursor/";
+		if (WtWindowManager.getInstance().getPropertyBoolean("gamescreen.cursorclassic", true)) {
+			cursorPath = cursorPath + "classic/";
+		}
+
+		String imageName = cursorPath + stendhalCursor.getImageName() + ".png";
 
 		// load image file
 		URL url = DataLoader.getResource(imageName);

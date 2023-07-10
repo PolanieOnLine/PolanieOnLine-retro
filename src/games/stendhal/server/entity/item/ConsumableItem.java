@@ -1,4 +1,4 @@
-/* $Id: ConsumableItem.java,v 1.37 2010/12/05 12:46:02 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,33 +12,33 @@
  ***************************************************************************/
 package games.stendhal.server.entity.item;
 
-import games.stendhal.server.core.events.UseListener;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.RPEntity;
 import games.stendhal.server.entity.item.consumption.Feeder;
 import games.stendhal.server.entity.item.consumption.FeederFactory;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.Map;
-
+import games.stendhal.server.entity.status.StatusType;
 import marauroa.common.game.RPObject;
-
-import org.apache.log4j.Logger;
 
 /**
  * Represents everything that can be consumed by RPentity. Including food,
  * poison, antidote, ...
- * 
+ *
  * Note: this class has a natural ordering that is inconsistent with equals.
  */
-public class ConsumableItem extends StackableItem implements UseListener,
-		Comparable<ConsumableItem> {
+public class ConsumableItem extends StackableItem implements Comparable<ConsumableItem> {
 
 	private final static Logger logger = Logger.getLogger(ConsumableItem.class);
 
 	/** How much of this item has not yet been consumed. */
 	private int left;
-	private final Feeder feeder;
+	protected final Feeder feeder;
 
 	@Override
 	public void put(final String attribute, final double value) {
@@ -76,7 +76,7 @@ public class ConsumableItem extends StackableItem implements UseListener,
 
 	/**
 	 * copy constructor.
-	 * 
+	 *
 	 * @param item
 	 *            item to copy
 	 */
@@ -100,7 +100,7 @@ public class ConsumableItem extends StackableItem implements UseListener,
 
 	/**
 	 * Consumes a part of this item.
-	 * 
+	 *
 	 * @return The amount that has been consumed
 	 */
 	public int consume() {
@@ -120,7 +120,7 @@ public class ConsumableItem extends StackableItem implements UseListener,
 
 	/**
 	 * Checks whether this item has already been fully consumed.
-	 * 
+	 *
 	 * @return true iff this item has been consumed
 	 */
 	public boolean consumed() {
@@ -133,6 +133,7 @@ public class ConsumableItem extends StackableItem implements UseListener,
 	 * @param user the eating player
 	 * @return true if consumption can be started
 	 */
+	@Override
 	public boolean onUsed(final RPEntity user) {
 		if (user instanceof Player) {
 			final Player player = (Player) user;
@@ -146,12 +147,12 @@ public class ConsumableItem extends StackableItem implements UseListener,
 				}
 
 				if (!user.nextTo((Entity) base)) {
-					user.sendPrivateText("Jedzenie jest zbyt daleko");
+					user.sendPrivateText("Jedzenie jest zbyt daleko.");
 					return false;
 				}
 			} else {
 				if (!nextTo(user)) {
-					user.sendPrivateText("Jedzenie jest zbyt daleko");
+					user.sendPrivateText("Jedzenie jest zbyt daleko.");
 					return false;
 				}
 			}
@@ -166,14 +167,21 @@ public class ConsumableItem extends StackableItem implements UseListener,
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
 	 */
+	@Override
 	public int compareTo(final ConsumableItem other) {
 
 		final float result = (float) other.getRegen() / (float) other.getFrecuency()
 				- (float) getRegen() / (float) getFrecuency();
 		return (int) Math.signum(result);
 	}
-	
+
+	/*
+	 * Sub-classes that use immunizations should override this.
+	 */
+	public Set<StatusType> getImmunizations() {
+		return Collections.emptySet();
+	}
 }

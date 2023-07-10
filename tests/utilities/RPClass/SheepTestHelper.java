@@ -1,4 +1,4 @@
-/* $Id: SheepTestHelper.java,v 1.3 2010/09/19 01:28:49 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -17,7 +17,7 @@ import marauroa.common.game.RPClass;
 
 public class SheepTestHelper {
 	public static void generateRPClasses() {
-	
+
 		CreatureTestHelper.generateRPClasses();
 		if (!RPClass.hasRPClass("sheep")) {
 			Sheep.generateRPClass();

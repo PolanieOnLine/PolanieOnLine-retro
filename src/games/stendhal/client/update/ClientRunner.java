@@ -16,15 +16,15 @@ import java.lang.reflect.Method;
 /**
  * @author hendrik
  */
-public class ClientRunner {
+class ClientRunner {
 
 	/**
 	 * Starts stendhal.
-	 * 
+	 *
 	 * @param args
 	 *            args
 	 */
-	public static void run(final String[] args) {
+	static void run(final String[] args) {
 
 
 		try {
@@ -33,7 +33,7 @@ public class ClientRunner {
 
 			// get class and create an object of it
 			final Class<?> clazz = Class.forName("games.stendhal.client.update.Bootstrap");
-			final Object object = clazz.newInstance();
+			final Object object = clazz.getDeclaredConstructor().newInstance();
 
 			// get param values of boot method
 			final Object[] params = new Object[2];

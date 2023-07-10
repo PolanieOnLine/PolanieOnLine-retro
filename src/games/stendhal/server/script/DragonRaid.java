@@ -1,6 +1,5 @@
-/* $Id: DragonRaid.java,v 1.4 2011/01/02 15:39:04 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -17,7 +16,7 @@ import java.util.Map;
 
 /**
  * @author kymara
- * 
+ *
  * Not safe for players below level 150
  */
 public class DragonRaid extends CreateRaid {
@@ -28,7 +27,7 @@ public class DragonRaid extends CreateRaid {
 		attackArmy.put("czerwony smok", 2);
 		attackArmy.put("zielony smok", 2);
 		attackArmy.put("szkielet smoka", 3);
-		attackArmy.put("smok dwugłowy niebieski", 2);
+		attackArmy.put("dwugłowy niebieski smok", 2);
 		attackArmy.put("błękitny smok", 3);
 		attackArmy.put("jeździec chaosu na czerwonym smoku", 2);
 		attackArmy.put("jeździec chaosu na zielonym smoku", 2);

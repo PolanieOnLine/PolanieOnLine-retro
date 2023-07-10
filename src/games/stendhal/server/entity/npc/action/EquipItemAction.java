@@ -1,4 +1,3 @@
-/* $Id: EquipItemAction.java,v 1.23 2012/09/09 12:19:56 nhnb Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +11,8 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.action;
 
+import org.apache.log4j.Logger;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
 import games.stendhal.server.core.config.annotations.Dev.Category;
@@ -22,8 +23,6 @@ import games.stendhal.server.entity.item.StackableItem;
 import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.player.Player;
-
-import org.apache.log4j.Logger;
 
 /**
  * Equips the specified item.
@@ -75,6 +74,7 @@ public class EquipItemAction implements ChatAction {
 		this.bind = bind;
 	}
 
+	@Override
 	public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 		final Item item = SingletonRepository.getEntityManager().getItem(itemName);
 		if (item != null) {
@@ -86,7 +86,7 @@ public class EquipItemAction implements ChatAction {
 				item.setBoundTo(player.getName());
 			}
 			player.equipOrPutOnGround(item);
-			TutorialNotifier.equipped(player);
+			TutorialNotifier.equippedByNPC(player, item);
 			player.notifyWorldAboutChanges();
 		} else {
 			logger.error("Cannot find item '" + itemName + "' to equip", new Throwable());
@@ -149,4 +149,11 @@ public class EquipItemAction implements ChatAction {
 		return bind == other.bind;
 	}
 
+	public static ChatAction equipItem(String itemName) {
+		return new EquipItemAction(itemName);
+	}
+
+	public static ChatAction equipBoundItem(String itemName) {
+		return new EquipItemAction(itemName, 1, true);
+	}
 }

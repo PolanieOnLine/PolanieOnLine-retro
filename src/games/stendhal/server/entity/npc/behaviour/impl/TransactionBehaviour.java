@@ -1,4 +1,4 @@
-/* $Id: TransactionBehaviour.java,v 1.7 2011/05/01 19:50:06 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,11 +12,11 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.behaviour.impl;
 
+import java.util.Set;
+
 import games.stendhal.common.grammar.ItemParserResult;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.Set;
 
 public abstract class TransactionBehaviour extends Behaviour {
 
@@ -30,7 +30,7 @@ public abstract class TransactionBehaviour extends Behaviour {
 
 	/**
 	 * Transacts the deal that is described in BehaviourResult.
-	 * 
+	 *
 	 * @param res
 	 * 			  result of the Behaviour parsing
 	 * @param seller

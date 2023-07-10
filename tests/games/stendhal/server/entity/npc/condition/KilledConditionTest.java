@@ -1,4 +1,4 @@
-/* $Id: KilledConditionTest.java,v 1.7 2010/09/19 02:39:46 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -15,12 +15,12 @@ package games.stendhal.server.entity.npc.condition;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import games.stendhal.server.entity.player.Player;
 
 import java.util.Arrays;
 
 import org.junit.Test;
 
+import games.stendhal.server.entity.player.Player;
 import utilities.PlayerTestHelper;
 
 public class KilledConditionTest {
@@ -31,11 +31,11 @@ public class KilledConditionTest {
 	@Test
 	public final void testHashCode() {
 
-		assertEquals(new KilledCondition("rat").hashCode(),
-				new KilledCondition("rat").hashCode());
-		assertEquals("i would expect this equal", new KilledCondition("rat",
+		assertEquals(new KilledCondition("szczur").hashCode(),
+				new KilledCondition("szczur").hashCode());
+		assertEquals("i would expect this equal", new KilledCondition("szczur",
 				"mouse").hashCode(),
-				new KilledCondition("mouse", "rat").hashCode());
+				new KilledCondition("mouse", "szczur").hashCode());
 
 	}
 
@@ -49,16 +49,16 @@ public class KilledConditionTest {
 		Player bob = PlayerTestHelper.createPlayer("player");
 
 		assertTrue("bob has killed all of none", kc.fire(bob, null, null));
-		kc = new KilledCondition("rat");
+		kc = new KilledCondition("szczur");
 		assertFalse(kc.fire(bob, null, null));
-		bob.setSoloKill("rat");
-		assertTrue("bob killed a rat ", kc.fire(bob, null, null));
+		bob.setSoloKill("szczur");
+		assertTrue("bob killed a szczur ", kc.fire(bob, null, null));
 
 		bob = PlayerTestHelper.createPlayer("player");
-		new KilledCondition(Arrays.asList("rat"));
+		new KilledCondition(Arrays.asList("szczur"));
 		assertFalse(kc.fire(bob, null, null));
-		bob.setSoloKill("rat");
-		assertTrue("bob killed a rat ", kc.fire(bob, null, null));
+		bob.setSoloKill("szczur");
+		assertTrue("bob killed a szczur ", kc.fire(bob, null, null));
 	}
 
 	/**
@@ -66,8 +66,8 @@ public class KilledConditionTest {
 	 */
 	@Test
 	public final void testToString() {
-		final KilledCondition kc = new KilledCondition("rat");
-		assertEquals("KilledCondition <[rat]>", kc.toString());
+		final KilledCondition kc = new KilledCondition("szczur");
+		assertEquals("KilledCondition <[szczur]>", kc.toString());
 	}
 
 	/**
@@ -75,9 +75,9 @@ public class KilledConditionTest {
 	 */
 	@Test
 	public final void testEqualsObject() {
-		assertEquals(new KilledCondition("rat"), new KilledCondition("rat"));
-		assertEquals("i would expect this equal", new KilledCondition("rat",
-				"mouse"), new KilledCondition("mouse", "rat"));
+		assertEquals(new KilledCondition("szczur"), new KilledCondition("szczur"));
+		assertEquals("i would expect this equal", new KilledCondition("szczur",
+				"mouse"), new KilledCondition("mouse", "szczur"));
 	}
 
 }

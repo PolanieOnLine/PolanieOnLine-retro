@@ -1,4 +1,4 @@
-/* $Id: Pet.java,v 1.17 2012/03/26 20:12:21 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -17,9 +17,4 @@ package games.stendhal.client.entity;
  * A Pet entity.
  */
 public class Pet extends DomesticAnimal {
-	
-	@Override
-	protected void probableChat(final int chance) {
-		// do not chat
-	}
 }

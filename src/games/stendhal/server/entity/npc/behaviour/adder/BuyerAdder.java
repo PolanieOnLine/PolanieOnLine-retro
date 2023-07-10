@@ -1,4 +1,4 @@
-/* $Id: BuyerAdder.java,v 1.47 2012/08/23 20:05:43 yoriy Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2011 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +12,9 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.behaviour.adder;
 
+import org.apache.log4j.Logger;
+
+import games.stendhal.common.constants.SoundID;
 import games.stendhal.common.constants.SoundLayer;
 import games.stendhal.common.grammar.Grammar;
 import games.stendhal.common.grammar.ItemParserResult;
@@ -33,9 +36,6 @@ import games.stendhal.server.entity.npc.fsm.Engine;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.events.SoundEvent;
 
-import org.apache.log4j.Logger;
-import java.util.Arrays;
-
 public class BuyerAdder {
 	private static Logger logger = Logger.getLogger(BuyerAdder.class);
 
@@ -47,44 +47,71 @@ public class BuyerAdder {
 	 */
 	private ItemParserResult currentBehavRes;
 
+	/**
+	 * Configures an NPC to buy items.
+	 *
+	 * @param npc
+	 *     The NPC that buys.
+	 * @param buyerBehavior
+	 *     The <code>BuyerBehaviour</code>.
+	 */
+	public void addBuyer(final SpeakerNPC npc, final BuyerBehaviour buyerBehaviour) {
+		addBuyer(npc, buyerBehaviour, true);
+	}
+
+	/**
+	 * Configures an NPC to buy items.
+	 *
+	 * @param npc
+	 *     The NPC that buys.
+	 * @param buyerBehavior
+	 *     The <code>BuyerBehaviour</code>.
+	 * @param offer
+	 *     If <code>true</code>, adds reply to "offer".
+	 */
 	public void addBuyer(final SpeakerNPC npc, final BuyerBehaviour buyerBehaviour, final boolean offer) {
 		final Engine engine = npc.getEngine();
 
-		merchantsRegister.add(npc.getName(), buyerBehaviour);
+		merchantsRegister.add(npc, buyerBehaviour);
+		npc.put("job_merchant", "");
 
 		if (offer) {
 			engine.add(
-					ConversationStates.ATTENDING,
-					ConversationPhrases.OFFER_MESSAGES,
-					null,
-					false,
-					ConversationStates.ATTENDING,
-					"Skupuję " + Grammar.enumerateCollectionPlural(buyerBehaviour.dealtItems()) + ".",
-					null);
+				ConversationStates.ATTENDING,
+				ConversationPhrases.OFFER_MESSAGES,
+				null,
+				false,
+				ConversationStates.ATTENDING,
+				"Skupuję " + Grammar.enumerateCollectionPlural(buyerBehaviour.dealtItems()) + ".",
+				null);
 		}
-		engine.add(ConversationStates.ATTENDING, Arrays.asList("sell", "sprzedam"), new SentenceHasErrorCondition(),
-				false, ConversationStates.ATTENDING,
-				null, new ComplainAboutSentenceErrorAction());
+		engine.add(ConversationStates.ATTENDING,
+			ConversationPhrases.SALES_MESSAGES,
+			new SentenceHasErrorCondition(),
+			false, ConversationStates.ATTENDING,
+			null, new ComplainAboutSentenceErrorAction());
 
-		engine.add(ConversationStates.ATTENDING, Arrays.asList("sell", "sprzedam"),
+		engine.add(ConversationStates.ATTENDING,
+			ConversationPhrases.SALES_MESSAGES,
 			new AndCondition(
 					new NotCondition(new SentenceHasErrorCondition()),
 					new NotCondition(buyerBehaviour.getTransactionCondition())),
 			false, ConversationStates.ATTENDING,
 			null, buyerBehaviour.getRejectedTransactionAction());
 
-		engine.add(ConversationStates.ATTENDING, Arrays.asList("sell", "sprzedam"),
+		engine.add(ConversationStates.ATTENDING,
+				ConversationPhrases.SALES_MESSAGES,
 				new AndCondition(
 						new NotCondition(new SentenceHasErrorCondition()),
 						buyerBehaviour.getTransactionCondition()),
 				false, ConversationStates.ATTENDING,
 				null,
-				new BehaviourAction(buyerBehaviour, Arrays.asList("sell", "sprzedam"), "buy") {
+				new BehaviourAction(buyerBehaviour, ConversationPhrases.SALES_MESSAGES, "buy") {
 					@Override
 					public void fireRequestOK(final ItemParserResult res, final Player player, final Sentence sentence, final EventRaiser raiser) {
 						if (player.isBadBoy()) {
 							// don't buy from player killers at all
-							raiser.say("Przepraszam, ale nie mogę ci zaufać. Wyglądasz na zbyt niebezpiecznego do handlowania. Odejdź proszę.");
+							raiser.say("Przepraszam, ale nie mogę ci zaufać. Wyglądasz na zbyt " + Grammar.genderVerb(player.getGender(), "niebezpiecznego") + " do handlowania. Odejdź proszę.");
 							raiser.setCurrentState(ConversationStates.IDLE);
 							return;
 						}
@@ -114,14 +141,24 @@ public class BuyerAdder {
 							} else {
 								// handle other items as appropriate
 							}
+							
+							if (itemName.equals("goat")) {
+								if (!player.hasGoat()) {
+									raiser.say("Nie posiadasz kozy " + player.getTitle() + "! Co chcesz zrobić?");
+									return;
+								}
+							} else {
+								// handle other items as appropriate
+							}
 
 							final int price = buyerBehaviour.getCharge(res, player);
 
 							if (price != 0) {
-    							raiser.say(Grammar.quantityplnoun(res.getAmount(), chosenItemName, "")
-	    								+ " " + Grammar.isare(res.getAmount()) + "warty jest "
-	    								+ price + ". Czy chcesz sprzedać "
-    									+ Grammar.itthem(res.getAmount()) + "?");
+    							raiser.say(Grammar.capitalize(Grammar.quantityplnoun(res.getAmount(), chosenItemName))
+	    								+ " " + Grammar.isare(res.getAmount()) + " "
+    									+ Grammar.singular(res.getAmount(), "warty") + " "
+	    								+ price + " monet. Czy chcesz "
+    									+ Grammar.itthem(res.getAmount()) + " sprzedać?");
 
     							currentBehavRes = res;
     							npc.setCurrentState(ConversationStates.SELL_PRICE_OFFERED); // success
@@ -141,12 +178,13 @@ public class BuyerAdder {
 				ConversationPhrases.YES_MESSAGES, null,
 				false, ConversationStates.ATTENDING,
 				null, new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						logger.debug("Buying something from player " + player.getName());
 
 						boolean success = buyerBehaviour.transactAgreedDeal(currentBehavRes, raiser, player);
 						if (success) {
-							raiser.addEvent(new SoundEvent("coins-1", SoundLayer.CREATURE_NOISE));
+							raiser.addEvent(new SoundEvent(SoundID.COMMERCE, SoundLayer.CREATURE_NOISE));
 						}
 
 						currentBehavRes = null;

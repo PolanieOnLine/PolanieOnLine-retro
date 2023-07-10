@@ -1,6 +1,5 @@
-/* $Id: ActionType.java,v 1.47 2012/09/02 11:40:50 kiheru Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2022 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -14,12 +13,14 @@ package games.stendhal.client.entity;
 
 import games.stendhal.client.StendhalClient;
 import games.stendhal.common.constants.Actions;
+import marauroa.common.game.Definition.DefinitionClass;
 import marauroa.common.game.RPAction;
+import marauroa.common.game.RPClass;
 import marauroa.common.game.RPObject;
 
 /**
  * translates the visual representation into server side commands.
- * 
+ *
  * @author astridemma
  */
 public enum ActionType {
@@ -30,7 +31,7 @@ public enum ActionType {
 		}
 	},
 	READ("look", "Przeczytaj"),
-	LOOK_CLOSELY("use", "Przyjżyj się dokładnie"),
+	LOOK_CLOSELY("use", "Przyjrzyj się dokładnie"),
 	INSPECT("inspect", "Przeszukaj") {
 		@Override
 		public RPAction fillTargetInfo(final IEntity entity) {
@@ -57,8 +58,8 @@ public enum ActionType {
 	HARVEST("use", "Zbierz"),
 	PICK("use", "Podnieś"),
 	PROSPECT("use", "Poszukaj złota"),
-	FISH("use", "Złów rybę"),
 	STONE("use", "Wydobądź"),
+	FISH("use", "Złów rybę"),
 	WISH("use", "Pomyśl życzenie"),
 	WOOD("use", "Zetnij"),
 	LEAVE_SHEEP("forsake", "Zostaw owcę") {
@@ -66,6 +67,14 @@ public enum ActionType {
 		public RPAction fillTargetInfo(final IEntity entity) {
 			RPAction rpaction = super.fillTargetInfo(entity);
 			rpaction.put("species", "sheep");
+			return rpaction;
+		}
+	},
+	LEAVE_GOAT("forsake", "Zostaw kozę") {
+		@Override
+		public RPAction fillTargetInfo(final IEntity entity) {
+			RPAction rpaction = super.fillTargetInfo(entity);
+			rpaction.put("species", "goat");
 			return rpaction;
 		}
 	},
@@ -129,7 +138,7 @@ public enum ActionType {
 			return fillTargetPath(super.fillTargetInfo(entity), entity);
 		}
 	},
-	SET_OUTFIT("outfit", "Ustaw wygląd"),
+	SET_OUTFIT(Actions.OUTFIT, "Ustaw wygląd"),
 	WHERE("where", "Gdzie") {
 		@Override
 		public RPAction fillTargetInfo(final IEntity entity) {
@@ -141,7 +150,6 @@ public enum ActionType {
 	ADMIN_VIEW_NPC_TRANSITIONS("npctransitions", "(*)Pokaż przejścia"),
 	KNOCK("knock", "Zapukaj"),
 	INVITE("group_management", "Zaproś") {
-
 		@Override
 		public RPAction fillTargetInfo(IEntity entity) {
 			// invite action needs to add additional parameters to the RPAction
@@ -150,7 +158,39 @@ public enum ActionType {
 			a.put("params", entity.getName());
 			return a;
 		}
-		
+	},
+	WALK_START("walk", "Chódź"),
+	WALK_STOP("walk", "Stój"),
+	CHALLENGE("challenge", "Wyzwanie") {
+		@Override
+		public RPAction fillTargetInfo(IEntity entity) {
+			RPAction a = super.fillTargetInfo(entity);
+			a.put("type", "challenge");
+			a.put("action", "open");
+			a.put("target", entity.getName());
+			return a;
+		}
+	},
+	ACCEPT_CHALLENGE("challenge", "Zaakceptuj") {
+		@Override
+		public RPAction fillTargetInfo(IEntity entity) {
+			RPAction a = super.fillTargetInfo(entity);
+			a.put("type", "challenge");
+			a.put("action", "accept");
+			a.put("target", entity.getName());
+			return a;
+		}
+	},
+	MARK_ALL("markscroll", "Zapisz wszystkie") {
+		@Override
+		public RPAction fillTargetInfo(final IEntity entity) {
+			// Servers older than v1.40 don't support the "quantity" attribute.
+			// This should still work but only mark one scroll.
+			final RPAction a = super.fillTargetInfo(entity);
+			a.put("type", "markscroll");
+			a.put("quantity", entity.getRPObject().get("quantity"));
+			return a;
+		}
 	};
 
 	/**
@@ -165,7 +205,7 @@ public enum ActionType {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param actCode
 	 *            the code to be sent to the server
 	 * @param actionRep
@@ -178,7 +218,7 @@ public enum ActionType {
 
 	/**
 	 * finds the ActionType that belongs to a visual String representation.
-	 * 
+	 *
 	 * @param representation
 	 *            the menu String
 	 * @return the Action Element or null if not found
@@ -210,27 +250,40 @@ public enum ActionType {
 
 	/**
 	 * sends the requested action to the server.
-	 * 
+	 *
 	 * @param rpaction
 	 *            action to be sent
 	 */
 	public void send(final RPAction rpaction) {
 		StendhalClient.get().send(rpaction);
 	}
-	
+
 	/**
 	 * Create an RPAction with target information pointing to an entity.
-	 * 
+	 *
 	 * @param entity target entity
 	 * @return action with entity as the target
 	 */
 	public RPAction fillTargetInfo(final IEntity entity) {
 		RPAction rpaction = new RPAction();
-		
-		rpaction.put("type", toString());
-		
-		RPObject rpObject = entity.getRPObject(); 
+
+		RPClass rpClass = RPClass.getRPClass(actionCode);
+		boolean includeZone = true;
+		if (rpClass != null) {
+			rpaction.setRPClass(actionCode);
+			if (rpClass.getDefinition(DefinitionClass.ATTRIBUTE, "zone") == null) {
+				includeZone = false;
+			}
+		} else {
+			rpaction.put("type", toString());
+		}
+
+		RPObject rpObject = entity.getRPObject();
 		final int id = rpObject.getID().getObjectID();
+		// Compatibility: Don't include zone if the action does not support it
+		if (includeZone) {
+			rpaction.put("zone", entity.getRPObject().getBaseContainer().get("zoneid"));
+		}
 
 		if (rpObject.isContained()) {
 			/*
@@ -248,13 +301,13 @@ public enum ActionType {
 			target.append(Integer.toString(id));
 			rpaction.put("target", target.toString());
 		}
-		
+
 		return rpaction;
 	}
-	
+
 	/**
 	 * Add target information for a contained target object.
-	 * 
+	 *
 	 * @param action
 	 * @param entity target entity
 	 * @return the action

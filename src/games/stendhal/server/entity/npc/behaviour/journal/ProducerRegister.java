@@ -1,4 +1,4 @@
-/* $Id: ProducerRegister.java,v 1.18 2012/04/22 15:04:07 nylon0700 Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,31 +12,41 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.behaviour.journal;
 
-import games.stendhal.common.grammar.Grammar;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.entity.item.Item;
-import games.stendhal.server.entity.npc.behaviour.impl.ProducerBehaviour;
-import games.stendhal.server.entity.npc.behaviour.impl.MultiProducerBehaviour;
-import games.stendhal.server.entity.player.Player;
-
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
+import games.stendhal.common.grammar.Grammar;
+import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.entity.item.Item;
+import games.stendhal.server.entity.npc.SpeakerNPC;
+import games.stendhal.server.entity.npc.behaviour.adder.ProducerAdder;
+import games.stendhal.server.entity.npc.behaviour.impl.MultiProducerBehaviour;
+import games.stendhal.server.entity.npc.behaviour.impl.ProducerBehaviour;
+import games.stendhal.server.entity.player.Player;
 import marauroa.common.Pair;
 
 public class ProducerRegister {
-	
+	private final static Logger logger = Logger.getLogger(ProducerRegister.class);
+	/** The singleton instance. */
 	private static ProducerRegister instance;
-	
+
 	private final List<Pair<String, ProducerBehaviour>> producers;
 	private final List<Pair<String, MultiProducerBehaviour>> multiproducers;
-	
+
+	/**
+	 * Singleton access method.
+	 *
+	 * @return
+	 *     The static instance.
+	 */
 	public static ProducerRegister get() {
 		if (instance == null) {
-			new ProducerRegister();
+			instance = new ProducerRegister();
 		}
+
 		return instance;
 	}
 
@@ -46,14 +56,23 @@ public class ProducerRegister {
 		multiproducers  = new LinkedList<Pair<String, MultiProducerBehaviour>>();
 	}
 	
+	public boolean isProducerExist(final String npcName) {
+		for (Pair<String, ProducerBehaviour> producer : producers) {
+			if (producer.first().contains(npcName)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * Adds an NPC to the NPCList. Does nothing if an NPC with the same name
 	 * already exists. This makes sure that each NPC can be uniquely identified
 	 * by his/her name.
-	 * 
+	 *
 	 * @param npcName
 	 *            The NPC that should be added
-	 * @param behaviour   
+	 * @param behaviour
 	 *            The ProducerBehaviour of that NPC
 	 */
 	public void add(final String npcName, final ProducerBehaviour behaviour) {
@@ -62,7 +81,7 @@ public class ProducerRegister {
 		Pair<String, ProducerBehaviour> pair = new Pair<String, ProducerBehaviour>(npcName, behaviour);
 		producers.add(pair);
 	}
-	
+
 	public void add(final String npcName, final MultiProducerBehaviour behaviour) {
 		// insert lower case names ?
 		// final String name = npcName.toLowerCase();
@@ -73,11 +92,11 @@ public class ProducerRegister {
 	public List<Pair<String, ProducerBehaviour>> getProducers() {
 		return producers;
 	}
-	
+
 	public List<Pair<String, MultiProducerBehaviour>> getMultiProducers() {
 		return multiproducers;
 	}
-	
+
 	public String listWorkingProducers(final Player player) {
 		final StringBuilder sb = new StringBuilder("");
 
@@ -86,27 +105,27 @@ public class ProducerRegister {
 			String npcName = producer.first();
 			ProducerBehaviour behaviour = producer.second();
 			String questSlot =  behaviour.getQuestSlot();
-			List<String> activity =  behaviour.getProductionActivity();
+			behaviour.getProductionActivity();
 			String product =  behaviour.getProductName();
 			if (player.hasQuest(questSlot) && !player.isQuestCompleted(questSlot)) {
 				int amount = behaviour.getNumberOfProductItems(player);
 				if (behaviour.isOrderReady(player)) {
 					// put all completed orders first - player wants to collect these!
-					sb.insert(0,"\n" + npcName + " ukończył "
-							+ " twój " + Grammar.plnoun(amount,product) + ".");
+					sb.insert(0,"\n" + npcName + " ukończył twój "
+							+ Grammar.plnoun(amount,product) + ".");
 				} else {
 					String timeleft = behaviour.getApproximateRemainingTime(player);
 					// put all ongoing orders last
 					sb.append("\n" + npcName + " pracuje nad "
-							+ " " + Grammar.quantityplnoun(amount, product, "") + ". Będzie gotowy za " + timeleft + ".");
+							+ Grammar.quantityplnoun(amount, product) + ". Będzie gotowy za " + timeleft + ".");
+				}
 			}
-		}
 		}
 		for (final Pair<String, MultiProducerBehaviour> producer : multiproducers) {
 			String npcName = producer.first();
 			MultiProducerBehaviour behaviour = producer.second();
 			String questSlot =  behaviour.getQuestSlot();
-			List<String> activity =  behaviour.getProductionActivity();
+			behaviour.getProductionActivity();
             // Retrieve all production details from the questSlot
 			if (player.hasQuest(questSlot) && !player.isQuestCompleted(questSlot)) {
                 final String orderString = player.getQuest(questSlot);
@@ -116,24 +135,24 @@ public class ProducerRegister {
                 final String product = order[1];
 				if (behaviour.isOrderReady(player)) {
 					// put all completed orders first - player wants to collect these!
-					sb.insert(0,"\n" + npcName + " ukończył twój"
-							+ " twój " + Grammar.plnoun(amount,product) + ".");
+					sb.insert(0,"\n" + npcName + " ukończył twój "
+							+ Grammar.plnoun(amount,product) + ".");
 				} else {
 					String timeleft = behaviour.getApproximateRemainingTime(player);
 					// put all ongoing orders last
-					sb.append("\n" + npcName + " wciąż pracuje nad"
-							+ " " + Grammar.quantityplnoun(amount, product, "") + ". Będzie gotowy za " + timeleft + ".");
+					sb.append("\n" + npcName + " wciąż pracuje nad "
+							+ Grammar.quantityplnoun(amount, product) + ". Będzie gotowy za " + timeleft + ".");
 				}
 			}
 		}
 		if (!"".equals(sb.toString())) {
 			sb.insert(0,"\r\nZlecenia: ");
 		} else {
-			sb.append("Nie masz trwających lub niepobranych zleceń.");
+			sb.append("Nie masz trwających lub nieodebranych zleceń.");
 		}
 		return sb.toString();
 	}
-	
+
 	/**
 	 * gets description of the production
 	 *
@@ -143,24 +162,24 @@ public class ProducerRegister {
 	 */
 	public String getProductionDescription(final Player player, final String npcName) {
 		for (final Pair<String, ProducerBehaviour> producer : producers) {
-			if(npcName.equals(producer.first())) {
+			if (npcName.equals(producer.first())) {
 				ProducerBehaviour behaviour = producer.second();
-				List<String> activity =  behaviour.getProductionActivity();
+				behaviour.getProductionActivity();
 				String product =  behaviour.getProductName();
-				return npcName + " wykonał " + Grammar.plural(product) + ".";
+				return npcName + " wykonuje dla nas " + Grammar.plural(product) + ".";
 			}
 		}
 		for (final Pair<String, MultiProducerBehaviour> producer : multiproducers) {
-			if(npcName.equals(producer.first())) {
+			if (npcName.equals(producer.first())) {
 				MultiProducerBehaviour behaviour = producer.second();
-				List<String> activity =  behaviour.getProductionActivity();
+				behaviour.getProductionActivity();
 				HashSet<String> products =  behaviour.getProductsNames();
-				return npcName + " wykonał " + Grammar.enumerateCollection(products) + ".";
+				return npcName + " wykonuje dla nas " + Grammar.enumerateCollection(products) + ".";
 			}
 		}
 		return "";
 	}
-				
+
 	/**
 	 * gets description of the produced item
 	 *
@@ -171,35 +190,30 @@ public class ProducerRegister {
 	 */
 	public String getProducedItemDetails(final String itemName) {
 		for (final Pair<String, ProducerBehaviour> producer : producers) {
-				ProducerBehaviour behaviour = producer.second();
-				String product =  behaviour.getProductName();
+			ProducerBehaviour behaviour = producer.second();
+			String product =  behaviour.getProductName();
 
+		if(itemName.equals(product)) {
+			String npcName = producer.first();
+			behaviour.getProductionActivity();
+			String resources = behaviour.getRequiredResourceNames(1);
+			return  npcName + " pracuje nad " + Grammar.plural(product) + ", który potrzebuje " + resources + ".";
+		}
+	}
+	for (final Pair<String, MultiProducerBehaviour> producer : multiproducers) {
+		MultiProducerBehaviour behaviour = producer.second();
+		for (String product : behaviour.getProductsNames()) {
 			if(itemName.equals(product)) {
 				String npcName = producer.first();
-				List<String> activity =  behaviour.getProductionActivity();
-				String resources = behaviour.getRequiredResourceNames(1);
+				behaviour.getProductionActivity();
+				String resources = behaviour.getRequiredResourceNames(product, 1);
 				return  npcName + " pracuje nad " + Grammar.plural(product) + ", który potrzebuje " + resources + ".";
 			}
 		}
-		for (final Pair<String, MultiProducerBehaviour> producer : multiproducers) {
-			MultiProducerBehaviour behaviour = producer.second();
-			HashSet<String> products =  behaviour.getProductsNames();
-			Iterator<String> i = products.iterator();
-			String product;
-
-			while (i.hasNext()) {
-				product = (String) i.next();
-				if(itemName.equals(product)) {
-					String npcName = producer.first();
-					List<String> activity =  behaviour.getProductionActivity();
-					String resources = behaviour.getRequiredResourceNames(product, 1);
-					return  npcName + " pracuje nad " + Grammar.plural(product) + ", który potrzebuje " + resources + ".";
-				}
-			}
-		}
+	}
 		return "";
 	}
-	
+
 	/**
 	 * gets names of all items produced, which are of the given item class (i.e. food, drink)
 	 *
@@ -218,23 +232,19 @@ public class ProducerRegister {
 		}
 		for (final Pair<String, MultiProducerBehaviour> producer : multiproducers) {
 			final MultiProducerBehaviour behaviour = producer.second();
-			final HashSet<String> products =  behaviour.getProductsNames();
-            Iterator<String> i = products.iterator();
-            String product;
-            while (i.hasNext()) {
-                product = (String) i.next();
-                final Item item = SingletonRepository.getEntityManager().getItem(product);
+			for (String product : behaviour.getProductsNames()) {
+				final Item item = SingletonRepository.getEntityManager().getItem(product);
                 if (item.isOfClass(clazz)) {
                     res.add(product);
                 }
-            }
+			}
 		}
 		return res;
 	}
-	
+
 	/**
      * gets the names of all the NPCs to whom the player has asked to produce something
-	 *
+     *
 	 * @param player player to get the details for
 	 * @return NPC names
      */
@@ -271,7 +281,7 @@ public class ProducerRegister {
 
 	/**
 	 * gets details on the progress of the production
-	 * 
+	 *
 	 * @param player player to get the details for
 	 * @param npcName name of quest
 	 * @return details
@@ -282,19 +292,20 @@ public class ProducerRegister {
 			if(npcName.equals(producer.first())) {
 			ProducerBehaviour behaviour = producer.second();
 				String questSlot =  behaviour.getQuestSlot();
-				List<String> activity =  behaviour.getProductionActivity();
+				behaviour.getProductionActivity();
 				String product =  behaviour.getProductName();
 				if (player.hasQuest(questSlot) && !player.isQuestCompleted(questSlot)) {
 					int amount = behaviour.getNumberOfProductItems(player);
 					if (behaviour.isOrderReady(player)) {
 						// put all completed orders first - player wants to collect these!
 						res.add(npcName + " ukończył "
-							+ " twój " + Grammar.plnoun(amount,product) + ".");
+							+ Grammar.youryour(amount, product) + " " + Grammar.plnoun(amount, product) + ".");
 					} else {
 						String timeleft = behaviour.getApproximateRemainingTime(player);
 						// put all ongoing orders last
-						res.add("\n" + npcName + " pracuje nad"
-							+ " " + Grammar.quantityplnoun(amount, product, "") + ", który będzie gotowy za " + timeleft + ".");
+						res.add("\n" + npcName + " pracuje nad "
+							+ Grammar.quantityplnoun(amount, Grammar.alternativeSingular(amount, product)) + ".");
+						res.add("\n Powinno być gotowe za " + timeleft + ".");
 					}
 				}
 			}
@@ -303,7 +314,7 @@ public class ProducerRegister {
 			if(npcName.equals(producer.first())) {
                 MultiProducerBehaviour behaviour = producer.second();
                 String questSlot =  behaviour.getQuestSlot();
-                List<String> activity =  behaviour.getProductionActivity();
+                behaviour.getProductionActivity();
                 // Retrieve all production details from the questSlot
                 if (player.hasQuest(questSlot) && !player.isQuestCompleted(questSlot)) {
                     final String orderString = player.getQuest(questSlot);
@@ -313,18 +324,41 @@ public class ProducerRegister {
                     final String product = order[1];
                     if (behaviour.isOrderReady(player)) {
                         // put all completed orders first - player wants to collect these!
-                        res.add(npcName + " ukończył"
-                            + " twój " + Grammar.plnoun(amount,product) + ".");
+                        res.add(npcName + " ukończył "
+                        	+ Grammar.youryour(amount, product) + " " + Grammar.plnoun(amount, product) + ".");
                     } else {
                         String timeleft = behaviour.getApproximateRemainingTime(player);
                         // put all ongoing orders last
-						res.add("\n" + npcName + " wciąż pracuje nad"
-							+ " " + Grammar.quantityplnoun(amount, product, "") + ", który będzie gotowy za " + timeleft + ".");
+						res.add("\n" + npcName + " wciąż pracuje nad "
+							+ Grammar.quantityplnoun(amount, Grammar.alternativeSingular(amount, product)) + ".");
+						res.add("\n Powinno być gotowe za " + timeleft + ".");
                     }
                 }
 			}
 		}
 		return res;
 	}
-	
+
+	public void configureNPC(final String npcName, ProducerBehaviour behaviour, final String text,
+			final int units, final int time, final boolean remind) {
+		if (!isProducerExist(npcName)) {
+			if (units > 0) {
+				behaviour.setUnitsPerTime(units);
+			}
+			if (time > 0) {
+				behaviour.setWaitingTime(time);
+			}
+			behaviour.setRemind(remind);
+			configureNPC(npcName, behaviour, text);
+		}
+	}
+
+	public void configureNPC(final String npcName, ProducerBehaviour behaviour, final String text) {
+		final SpeakerNPC npc = SingletonRepository.getNPCList().get(npcName);
+		if (npc == null) {
+			logger.error("Cannot configure a production for non-existing NPC " + npcName);
+			return;
+		}
+		new ProducerAdder().addProducer(npc, behaviour, text);
+	}
 }

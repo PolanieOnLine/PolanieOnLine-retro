@@ -1,4 +1,4 @@
-/* $Id: HealedEventTest.java,v 1.5 2010/11/24 23:43:27 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -28,7 +28,7 @@ public class HealedEventTest {
         HealedEvent event = new HealedEvent(1);
         assertThat(Integer.valueOf(event.getInt("amount")), is(Integer.valueOf(1)));
     }
-    
+
 	/**
 	 * Tests for healedEventTryBroken.
 	 */

@@ -21,7 +21,7 @@ public class NoLoginAreaFactory implements ConfigurableFactory {
 
 	/**
 	 * Extract the height from context.
-	 * 
+	 *
 	 * @param ctx
 	 *            The configuration context.
 	 * @return The height, 1 if unspecified.
@@ -34,7 +34,7 @@ public class NoLoginAreaFactory implements ConfigurableFactory {
 
 	/**
 	 * Extract the width from context.
-	 * 
+	 *
 	 * @param ctx
 	 *            The configuration context.
 	 * @return The width, 1 if unspecified.
@@ -47,10 +47,10 @@ public class NoLoginAreaFactory implements ConfigurableFactory {
 
 	/**
 	 * Get the message to send to the player.
-	 * 
+	 *
 	 * @param ctx
 	 *            The configuration context.
-	 * 
+	 *
 	 * @return The message to send to the player.
 	 */
 	protected String getMessage(final ConfigurableFactoryContext ctx) {
@@ -59,12 +59,12 @@ public class NoLoginAreaFactory implements ConfigurableFactory {
 
 	/**
 	 * Get the new player X coordinate.
-	 * 
+	 *
 	 * @param ctx
 	 *            The configuration context.
-	 * 
+	 *
 	 * @return The new player X coordinate.
-	 * 
+	 *
 	 * @throws IllegalArgumentException
 	 *             If the attribute is missing/invalid.
 	 */
@@ -74,12 +74,12 @@ public class NoLoginAreaFactory implements ConfigurableFactory {
 
 	/**
 	 * Get the new player Y coordinate.
-	 * 
+	 *
 	 * @param ctx
 	 *            The configuration context.
-	 * 
+	 *
 	 * @return The new player Y coordinate.
-	 * 
+	 *
 	 * @throws IllegalArgumentException
 	 *             If the attribute is missing/invalid.
 	 */
@@ -89,18 +89,19 @@ public class NoLoginAreaFactory implements ConfigurableFactory {
 
 	/**
 	 * Create an object.
-	 * 
+	 *
 	 * @param ctx
 	 *            The configuration context.
-	 * 
+	 *
 	 * @return A new object, or <code>null</code> if allowed by the factory
 	 *         type.
-	 * 
+	 *
 	 * @throws IllegalArgumentException
 	 *             If there is a problem with the attributes. The exception
 	 *             message should be a value suitable for meaningful user
 	 *             interpretation.
 	 */
+	@Override
 	public AreaEntity create(final ConfigurableFactoryContext ctx) {
 		AreaEntity area = new AreaEntity(getWidth(ctx), getHeight(ctx));
 		NoLoginAreaBehaviour noLoginAreaBehaviour = new NoLoginAreaBehaviour(getNewX(ctx), getNewY(ctx), getMessage(ctx));

@@ -1,4 +1,4 @@
-/* $Id: DadNPC.java,v 1.9 2012/03/26 19:42:58 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,10 +12,11 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests.revivalweeks;
 
+import static games.stendhal.server.maps.ados.rosshouse.FatherNPC.MRROSS_OUTFIT;
+
 import games.stendhal.common.Direction;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.entity.Outfit;
 import games.stendhal.server.entity.npc.NPCList;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.maps.ados.rosshouse.FatherNPC;
@@ -26,7 +27,7 @@ import games.stendhal.server.maps.ados.rosshouse.FatherNPC;
 public class DadNPC implements LoadableContent {
 	private void createDadNPC() {
 		final StendhalRPZone zone2 = SingletonRepository.getRPWorld().getZone("int_semos_frank_house");
-		final SpeakerNPC npc2 = new SpeakerNPC("Mr Ross") {
+		final SpeakerNPC npc2 = new SpeakerNPC("Mr. Ross") {
 
 			@Override
 			protected void createPath() {
@@ -41,11 +42,11 @@ public class DadNPC implements LoadableContent {
 				addReply("susi", "Moja córka Susi jest podekscytowana Mine Town Revival Weeks, ale martwię się, że znów coś może pójść źle i dlatego musi poczekać dopóki nie skończę mojej pracy.");
 				addOffer("Nie mam nic dla Ciebie. Muszę odprowadzić #Susi do domu w Ados, gdy festyn się skończy.");
 				addQuest("Idź do mojej córki #Susi. Ona uwielbia poznawać nowych ludzi.");
-				addGoodbye("Dowidzenia. Miło było Cię spotkać.");
+				addGoodbye("Do widzenia. Miło było Cię spotkać.");
 			}
 		};
 
-		npc2.setOutfit(new Outfit(27, 8, 034, 1));
+		npc2.setOutfit(MRROSS_OUTFIT);
 		npc2.setPosition(21, 10);
 		npc2.setDirection(Direction.LEFT);
 		npc2.initHP(100);
@@ -66,8 +67,9 @@ public class DadNPC implements LoadableContent {
 		npc.getZone().remove(npc);
 	}
 
+	@Override
 	public void addToWorld() {
-		removeNPC("Mr Ross");
+		removeNPC("Mr. Ross");
 		createDadNPC();
 	}
 
@@ -77,8 +79,9 @@ public class DadNPC implements LoadableContent {
 	 *
 	 * @return <code>true</code>, if the content was removed, <code>false</code> otherwise
 	 */
+	@Override
 	public boolean removeFromWorld() {
-		removeNPC("Mr Ross");
+		removeNPC("Mr. Ross");
 
 		final StendhalRPZone zone = SingletonRepository.getRPWorld().getZone("int_ados_ross_house");
 		new FatherNPC().createDadNPC(zone);

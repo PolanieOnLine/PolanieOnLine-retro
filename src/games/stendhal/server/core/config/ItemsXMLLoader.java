@@ -1,6 +1,6 @@
-/* $Id: ItemsXMLLoader.java,v 1.12 2010/12/05 14:01:40 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -11,8 +11,6 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.core.config;
-
-import games.stendhal.server.core.rule.defaultruleset.DefaultItem;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -33,13 +31,23 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import games.stendhal.server.core.rule.defaultruleset.DefaultItem;
+import games.stendhal.server.entity.item.behavior.UseBehavior;
+
 public final class ItemsXMLLoader extends DefaultHandler {
 
 	/** the logger instance. */
 	private static final Logger LOGGER = Logger.getLogger(ItemsXMLLoader.class);
 
 	private Class< ? > implementation;
-	
+
+	/** Class of the use behavior, if the item has one. */
+	private Class<?> behaviorClass;
+	/** Parameters to the UseBehavior constructor. */
+	private Map<String, String> behaviorMap;
+	/** UseBehavior. Can be <code>null</code>. */
+	private UseBehavior useBehavior;
+
 	private String name;
 
 	private String clazz;
@@ -63,12 +71,21 @@ public final class ItemsXMLLoader extends DefaultHandler {
 	private List<DefaultItem> list;
 
 	private boolean attributesTag;
-	
+
 	private String damageType;
-	
+
 	private Map<String, Double> susceptibilities = new HashMap<String, Double>();
 
-	
+	/* Slots where SlotActivatedItem can be activated when equipped. */
+	private String activeSlots;
+
+	/* Statuses that StatusResistantItem resists. */
+	private Map<String, Double> resistances = new HashMap<String, Double>();
+
+	private String statusAttacks;
+
+	private boolean unattainable = false;
+
 	public List<DefaultItem> load(final URI uri) throws SAXException {
 		list = new LinkedList<DefaultItem>();
 		// Use the default (non-validating) parser
@@ -84,7 +101,7 @@ public final class ItemsXMLLoader extends DefaultHandler {
 						+ "' in classpath");
 			}
 			try {
-			saxParser.parse(is, this);
+				saxParser.parse(is, this);
 			} finally {
 				is.close();
 			}
@@ -111,6 +128,28 @@ public final class ItemsXMLLoader extends DefaultHandler {
 	@Override
 	public void startElement(final String namespaceURI, final String lName, final String qName,
 			final Attributes attrs) {
+		if (attributesTag && qName.equals("unattainable")) {
+			LOGGER.warn("\"item->attributes->unattainable\" is deprecated, use \"item->unattainable\"");
+			// "unattainable" is for website use to prevent listing item
+			return;
+		}
+
+		// allow items or item attributes to be disabled with system properties
+		boolean conditionMet = true;
+		String condition = attrs.getValue("condition");
+		if (condition != null) {
+			if (condition.startsWith("!")) {
+				condition = new StringBuilder(condition).deleteCharAt(0).toString();
+				conditionMet = System.getProperty(condition) == null;
+			} else {
+				conditionMet = System.getProperty(condition) != null;
+			}
+		}
+
+		if (!conditionMet) {
+			return;
+		}
+
 		text = "";
 		if (qName.equals("item")) {
 			name = attrs.getValue("name");
@@ -118,11 +157,13 @@ public final class ItemsXMLLoader extends DefaultHandler {
 			slots = new LinkedList<String>();
 			description = "";
 			implementation = null;
+			useBehavior = null;
+			statusAttacks = null;
+			unattainable = false;
 		} else if (qName.equals("type")) {
 			clazz = attrs.getValue("class");
 			subclass = attrs.getValue("subclass");
 		} else if (qName.equals("implementation")) {
-
 			final String className = attrs.getValue("class-name");
 
 			try {
@@ -131,7 +172,7 @@ public final class ItemsXMLLoader extends DefaultHandler {
 				LOGGER.error("Unable to load class: " + className);
 			}
 		} else if (qName.equals("weight")) {
-			weight = Double.parseDouble(attrs.getValue("value"));
+			weight = Double.valueOf(attrs.getValue("value"));
 		} else if (qName.equals("value")) {
 			value = Integer.parseInt(attrs.getValue("value"));
 		} else if (qName.equals("slot")) {
@@ -139,11 +180,40 @@ public final class ItemsXMLLoader extends DefaultHandler {
 		} else if (qName.equals("attributes")) {
 			attributesTag = true;
 		} else if (attributesTag) {
-			attributes.put(qName, attrs.getValue("value"));
+			if (qName.equals("damagetype")) {
+				damageType = attrs.getValue("value");
+			} else if (qName.equals("statusresist") || qName.equals("status_resist")) {
+				if (qName.equals("status_resist")) {
+					LOGGER.warn("\"item->attributes->status_resist\" is deprecated, use \"item->attributes->statusresist\"");
+				}
+				this.resistances.put(attrs.getValue("type"), Double.valueOf(attrs.getValue("value")));
+				this.activeSlots = attrs.getValue("slots");
+			} else if (qName.equals("statusattack")) {
+				statusAttacks = attrs.getValue("value");
+			} else if (qName.equals("durability")) {
+				attributes.put(qName, attrs.getValue("value"));
+				attributes.put("uses", "0");
+			} else if (qName.equals("max_improves")) {
+				attributes.put(qName, attrs.getValue("value"));
+				attributes.put("improve", "0");
+			} else {
+				attributes.put(qName, attrs.getValue("value"));
+			}
 		} else if (qName.equals("damage")) {
+			LOGGER.warn("\"item->damage\" is deprecated, use \"item->attributes->damagetype\"");
 			damageType = attrs.getValue("type");
 		} else if (qName.equals("susceptibility")) {
 			susceptibilities.put(attrs.getValue("type"), Double.valueOf(attrs.getValue("value")));
+		} else if (qName.equals("behavior")) {
+			String className = attrs.getValue("class-name");
+			try {
+				behaviorClass = Class.forName(className);
+			} catch (ClassNotFoundException e) {
+				LOGGER.error("Unable to load class: " + className);
+			}
+			behaviorMap = new HashMap<String, String>();
+		} else if (qName.equals("parameter")) {
+			behaviorMap.put(attrs.getValue("name"), attrs.getValue("value"));
 		}
 	}
 
@@ -163,6 +233,21 @@ public final class ItemsXMLLoader extends DefaultHandler {
 			}
 			item.setSusceptibilities(susceptibilities);
 			susceptibilities.clear();
+			if (statusAttacks != null) {
+				item.setStatusAttacks(statusAttacks);
+			}
+
+			/* SlotActivatedItem */
+			if (this.activeSlots != null) {
+				item.initializeActiveSlotsList(this.activeSlots);
+				this.activeSlots = null;
+			}
+
+			/* StatusResistantItem */
+			if ((this.resistances != null) && !this.resistances.isEmpty()) {
+				item.initializeStatusResistancesList(this.resistances);
+				this.resistances.clear();
+			}
 
 			if (implementation == null) {
 				LOGGER.error("Item without defined implementation: " + name);
@@ -170,6 +255,8 @@ public final class ItemsXMLLoader extends DefaultHandler {
 			}
 
 			item.setImplementation(implementation);
+			item.setBehavior(useBehavior);
+			item.setUnattainable(unattainable);
 
 			list.add(item);
 		} else if (qName.equals("attributes")) {
@@ -178,6 +265,14 @@ public final class ItemsXMLLoader extends DefaultHandler {
 			if (text != null) {
 				description = text.trim();
 			}
+		} else if (qName.equals("behavior")) {
+			try {
+				useBehavior = (UseBehavior) behaviorClass.getConstructor(Map.class).newInstance(behaviorMap);
+			} catch (Exception e) {
+				LOGGER.error("Failed to construct use behavior.", e);
+			}
+		} else if (qName.equals("unattainable")) {
+			unattainable = Boolean.parseBoolean(text.trim());
 		}
 	}
 

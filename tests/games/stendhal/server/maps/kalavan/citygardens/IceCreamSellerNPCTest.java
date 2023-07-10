@@ -1,6 +1,5 @@
-/* $Id: IceCreamSellerNPCTest.java,v 1.18 2011/03/28 22:32:27 martinfuchs Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2011 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -17,18 +16,18 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static utilities.SpeakerNPCTestHelper.getReply;
-import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.fsm.Engine;
 
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.entity.npc.SpeakerNPC;
+import games.stendhal.server.entity.npc.fsm.Engine;
 import utilities.QuestHelper;
 import utilities.ZonePlayerAndNPCTestImpl;
 
 /**
- * Test buying ice cream.
+ * Test buying lody.
  *
  * @author Martin Fuchs
  */
@@ -40,15 +39,13 @@ public class IceCreamSellerNPCTest extends ZonePlayerAndNPCTestImpl {
 	public static void setUpBeforeClass() throws Exception {
 		QuestHelper.setUpBeforeClass();
 
-		setupZone(ZONE_NAME, new IceCreamSellerNPC());
-	}
-
-	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
+		setupZone(ZONE_NAME);
 	}
 
 	public IceCreamSellerNPCTest() {
-		super(ZONE_NAME, "Sam");
+		setNpcNames("Sam");
+		setZoneForPlayer(ZONE_NAME);
+		addZoneConfigurator(new IceCreamSellerNPC(), ZONE_NAME);
 	}
 
 	/**
@@ -61,10 +58,10 @@ public class IceCreamSellerNPCTest extends ZonePlayerAndNPCTestImpl {
 		final Engine en = npc.getEngine();
 
 		assertTrue(en.step(player, "hello"));
-		assertEquals("Hi. Can I #offer you an ice cream?", getReply(npc));
+		assertEquals("Cześć. Czy mogę #zaoferować Tobie porcję lodów?", getReply(npc));
 
 		assertTrue(en.step(player, "bye"));
-		assertEquals("Bye, enjoy your day!", getReply(npc));
+		assertEquals("Do widzenia. Ciesz się dniem!", getReply(npc));
 	}
 
 	/**
@@ -75,89 +72,91 @@ public class IceCreamSellerNPCTest extends ZonePlayerAndNPCTestImpl {
 		final SpeakerNPC npc = getNPC("Sam");
 		final Engine en = npc.getEngine();
 
+		SingletonRepository.getShopsList().configureNPC("Sam", "icecreamseller", true, true);
+
 		assertTrue(en.step(player, "hi"));
-		assertEquals("Hi. Can I #offer you an ice cream?", getReply(npc));
+		assertEquals("Cześć. Czy mogę #zaoferować Tobie porcję lodów?", getReply(npc));
 
 		assertTrue(en.step(player, "job"));
-		assertEquals("I sell delicious ice creams.", getReply(npc));
+		assertEquals("Sprzedaje pyszne lody.", getReply(npc));
 
 		assertTrue(en.step(player, "offer"));
-		assertEquals("I sell ice cream.", getReply(npc));
+		assertEquals("Sprzedaję lody.", getReply(npc));
 
 		assertTrue(en.step(player, "quest"));
-		assertEquals("Mine's a simple life, I don't need a lot.", getReply(npc));
+		assertEquals("Prowadzę proste życie. Nie potrzebuję wiele do szczęścia.", getReply(npc));
 
 		assertTrue(en.step(player, "buy"));
-		assertEquals("An ice cream will cost 30. Do you want to buy it?", getReply(npc));
+		assertEquals("Lody kosztuje 30 monet. Chcesz to kupić?", getReply(npc));
 		assertTrue(en.step(player, "no"));
-		assertEquals("Ok, how else may I help you?", getReply(npc));
+		assertEquals("Dobrze w czym jeszcze mogę pomóc?", getReply(npc));
 
 		assertTrue(en.step(player, "buy dog"));
-		assertEquals("Sorry, I don't sell dogs.", getReply(npc));
+		assertEquals("Nie sprzedaję dogi.", getReply(npc));
 
 		assertTrue(en.step(player, "buy house"));
-		assertEquals("Sorry, I don't sell houses.", getReply(npc));
+		assertEquals("Nie sprzedaję housa.", getReply(npc));
 
 		assertTrue(en.step(player, "buy someunknownthing"));
-		assertEquals("Sorry, I don't sell someunknownthings.", getReply(npc));
+		assertEquals("Nie sprzedaję someunknownthingi.", getReply(npc));
 
 		assertTrue(en.step(player, "buy a bunch of socks"));
-		assertEquals("Sorry, I don't sell bunches of socks.", getReply(npc));
+		assertEquals("Nie sprzedaję bunch of socks.", getReply(npc));
 
-		assertTrue(en.step(player, "buy 0 ice creams"));
-		assertEquals("Sorry, how many ice creams do you want to buy?!", getReply(npc));
+		assertTrue(en.step(player, "buy 0 lody"));
+		assertEquals("Ile lodów chcesz kupić?!", getReply(npc));
 
-		assertTrue(en.step(player, "buy ice cream"));
-		assertEquals("An ice cream will cost 30. Do you want to buy it?", getReply(npc));
+		assertTrue(en.step(player, "buy lody"));
+		assertEquals("Lody kosztuje 30 monet. Chcesz to kupić?", getReply(npc));
 
 		assertTrue(en.step(player, "no"));
-		assertEquals("Ok, how else may I help you?", getReply(npc));
+		assertEquals("Dobrze w czym jeszcze mogę pomóc?", getReply(npc));
 
-		assertTrue(en.step(player, "buy ice cream"));
-		assertEquals("An ice cream will cost 30. Do you want to buy it?", getReply(npc));
+		assertTrue(en.step(player, "buy lody"));
+		assertEquals("Lody kosztuje 30 monet. Chcesz to kupić?", getReply(npc));
 
 		assertTrue(en.step(player, "yes"));
-		assertEquals("Sorry, you don't have enough money!", getReply(npc));
+		assertEquals("Przepraszam, ale nie masz wystarczająco dużo pieniędzy!", getReply(npc));
 
-		// equip with enough money to buy two ice creams
+		// equip with enough money to buy two lodys
 		assertTrue(equipWithMoney(player, 60));
 
-		assertTrue(en.step(player, "buy three icecreams"));
-		assertEquals("3 ice creams will cost 90. Do you want to buy them?", getReply(npc));
+		assertTrue(en.step(player, "buy trzy lody"));
+		assertEquals("3 lody kosztuje 90 monet. Chcesz je kupić?", getReply(npc));
 
 		assertTrue(en.step(player, "yes"));
-		assertEquals("Sorry, you don't have enough money!", getReply(npc));
+		assertEquals("Przepraszam, ale nie masz wystarczająco dużo pieniędzy!", getReply(npc));
 
-		assertTrue(en.step(player, "buy ice cream"));
-		assertEquals("An ice cream will cost 30. Do you want to buy it?", getReply(npc));
+		assertTrue(en.step(player, "buy lody"));
+		assertEquals("Lody kosztuje 30 monet. Chcesz to kupić?", getReply(npc));
 
-		assertFalse(player.isEquipped("ice cream"));
-
-		assertTrue(en.step(player, "yes"));
-		assertEquals("Congratulations! Here is your ice cream!", getReply(npc));
-		assertTrue(player.isEquipped("icecream", 1));
-
-		assertTrue(en.step(player, "buy icecream"));
-		assertEquals("An ice cream will cost 30. Do you want to buy it?", getReply(npc));
+		assertFalse(player.isEquipped("lody"));
 
 		assertTrue(en.step(player, "yes"));
-		assertEquals("Congratulations! Here is your ice cream!", getReply(npc));
-		assertTrue(player.isEquipped("icecream", 2));
+		assertEquals("Gratulacje! Oto twój lody!", getReply(npc));
+		assertTrue(player.isEquipped("lody", 1));
 
-		assertTrue(en.step(player, "buy 0 ice creams"));
-		assertEquals("Sorry, how many ice creams do you want to buy?!", getReply(npc));
+		assertTrue(en.step(player, "buy lody"));
+		assertEquals("Lody kosztuje 30 monet. Chcesz to kupić?", getReply(npc));
 
-		// buying one ice cream by answering "yes" to npc's greeting
-		assertTrue(equipWithMoney(player, 30));		
+		assertTrue(en.step(player, "yes"));
+		assertEquals("Gratulacje! Oto twój lody!", getReply(npc));
+		assertTrue(player.isEquipped("lody", 2));
+
+		assertTrue(en.step(player, "buy 0 lody"));
+		assertEquals("Ile lodów chcesz kupić?!", getReply(npc));
+
+		// buying one lody by answering "yes" to npc's greeting
+		assertTrue(equipWithMoney(player, 30));
 		assertTrue(en.step(player, "bye"));
-		assertEquals("Bye, enjoy your day!", getReply(npc));
+		assertEquals("Do widzenia. Ciesz się dniem!", getReply(npc));
 		assertTrue(en.step(player, "hi"));
-		assertEquals("Hi. Can I #offer you an ice cream?", getReply(npc));		
+		assertEquals("Cześć. Czy mogę #zaoferować Tobie porcję lodów?", getReply(npc));
 		assertTrue(en.step(player, "yes"));
-		assertEquals("An ice cream will cost 30. Do you want to buy it?", getReply(npc));
+		assertEquals("Lody kosztuje 30 monet. Chcesz to kupić?", getReply(npc));
 		assertTrue(en.step(player, "yes"));
-		assertEquals("Congratulations! Here is your ice cream!", getReply(npc));
-		assertTrue(player.isEquipped("icecream", 3));		
+		assertEquals("Gratulacje! Oto twój lody!", getReply(npc));
+		assertTrue(player.isEquipped("lody", 3));
 	}
 
 	/**
@@ -169,7 +168,7 @@ public class IceCreamSellerNPCTest extends ZonePlayerAndNPCTestImpl {
 		final Engine en = npc.getEngine();
 
 		assertTrue(en.step(player, "hi Sam"));
-		assertEquals("Hi. Can I #offer you an ice cream?", getReply(npc));
+		assertEquals("Cześć. Czy mogę #zaoferować Tobie porcję lodów?", getReply(npc));
 
 		// Currently there are no response to sell sentences for Sam.
 		assertFalse(en.step(player, "sell"));

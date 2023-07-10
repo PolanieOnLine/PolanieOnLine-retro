@@ -1,6 +1,5 @@
-/* $Id: ZonePlayerAndNPCTestImpl.java,v 1.4 2010/09/19 01:29:04 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -14,13 +13,18 @@ package utilities;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.entity.npc.SpeakerNPC;
 
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Vector;
+import java.util.Map;
 
 import org.junit.After;
+import org.junit.Before;
+
+import games.stendhal.server.core.config.ZoneConfigurator;
+import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.entity.npc.SpeakerNPC;
 
 /**
  * NPCTest is the base class for tests dealing with NPCs.
@@ -29,42 +33,56 @@ import org.junit.After;
  */
 public abstract class ZonePlayerAndNPCTestImpl extends ZoneAndPlayerTestImpl {
 
-	private final List<String> npcNames = new Vector<String>();
-	
+	private final List<String> npcNames = new LinkedList<>();
+
+	private final Map<ZoneConfigurator, String> zoneConfiguratorsAndZones = new HashMap<>();
+
+	protected ZonePlayerAndNPCTestImpl() {
+	}
+
 	/**
 	 * Register NPC names for cleanup in tearDown().
-	 * @param zoneName 
-	 * 
+	 * @param zoneName
+	 *
 	 * @param npcNames
 	 */
 	protected ZonePlayerAndNPCTestImpl(final String zoneName, final String... npcNames) {
 		super(zoneName);
-		
+
 		assertTrue(npcNames.length > 0);
 
 		for (final String npcName : npcNames) {
 			this.npcNames.add(npcName);
 		}
-    }
+	}
 
-	/**
-	 * Reset all involved NPCs.
-	 *
-	 * @throws Exception
-	 */
+	@Before
+	@Override
+	public void setUp() throws Exception {
+		for (Map.Entry<ZoneConfigurator, String> configuratorToZone : zoneConfiguratorsAndZones.entrySet()) {
+			setupZone(configuratorToZone.getValue(), configuratorToZone.getKey());
+		}
+
+		super.setUp();
+
+		for (final String npcName : npcNames) {
+			resetNPC(npcName);
+		}
+	}
+
 	@Override
 	@After
 	public void tearDown() throws Exception {
 		for (final String npcName : npcNames) {
-			resetNPC(npcName);
+			removeNPC(npcName);
 		}
-		
+
 		super.tearDown();
 	}
 
 	/**
 	 * Return the SpeakerNPC of the given name.
-	 * 
+	 *
 	 * @param npcName
 	 * @return SpeakerNPC
 	 */
@@ -76,4 +94,15 @@ public abstract class ZonePlayerAndNPCTestImpl extends ZoneAndPlayerTestImpl {
 		return npc;
 	}
 
+	protected void addZoneConfigurator(ZoneConfigurator zoneConfigurator, String zoneName) {
+		zoneConfiguratorsAndZones.put(zoneConfigurator, zoneName);
+	}
+
+	protected void setNpcNames(final String... npcNames) {
+		assertTrue(npcNames.length > 0);
+
+		for (final String npcName : npcNames) {
+			this.npcNames.add(npcName);
+		}
+	}
 }

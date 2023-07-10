@@ -1,4 +1,4 @@
-/* $Id: DamageTypeTest.java,v 1.3 2010/09/19 02:37:55 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -13,7 +13,6 @@
 package games.stendhal.common.constants;
 
 import static org.junit.Assert.assertEquals;
-import games.stendhal.common.constants.Nature;
 
 import org.junit.Test;
 

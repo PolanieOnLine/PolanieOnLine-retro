@@ -1,4 +1,4 @@
-/* $Id: ReadAchievementsForPlayerCommand.java,v 1.7 2011/02/25 07:46:44 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,20 +12,19 @@
  ***************************************************************************/
 package games.stendhal.server.core.engine.dbcommand;
 
-import games.stendhal.server.core.engine.db.AchievementDAO;
-import games.stendhal.server.entity.player.Player;
-
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Set;
 
+import games.stendhal.server.core.engine.db.AchievementDAO;
+import games.stendhal.server.entity.player.Player;
 import marauroa.server.db.DBTransaction;
 import marauroa.server.db.command.AbstractDBCommand;
 import marauroa.server.game.db.DAORegister;
 
 public class ReadAchievementsForPlayerCommand extends AbstractDBCommand {
-	
+
 	private Set<String> identifiers = new HashSet<String>();
 	private final Player player;
 

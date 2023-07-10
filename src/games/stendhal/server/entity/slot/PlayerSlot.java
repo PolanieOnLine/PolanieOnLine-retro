@@ -1,4 +1,4 @@
-/* $Id: PlayerSlot.java,v 1.10 2011/01/12 21:58:24 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -16,14 +16,14 @@ import games.stendhal.server.entity.Entity;
 
 /**
  * Slots of players which contain items.
- * 
+ *
  * @author hendrik
  */
 public class PlayerSlot extends EntitySlot {
 
 	/**
 	 * Creates a new PlayerSlot.
-	 * 
+	 *
 	 * @param name
 	 *            name of slot
 	 */
@@ -33,7 +33,7 @@ public class PlayerSlot extends EntitySlot {
 
 	@Override
 	public boolean isReachableForTakingThingsOutOfBy(final Entity entity) {
-		setErrorMessage("Hej żadnych kradzieży.");
+		setErrorMessage("Hej, żadnych kradzieży!");
 		return super.hasAsAncestor(entity);
 	}
 }

@@ -1,4 +1,4 @@
-/* $Id: ActionSenderUseChatBucket.java,v 1.4 2012/09/13 20:55:10 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -40,6 +40,7 @@ public class ActionSenderUseChatBucket implements ActionValidator {
 	 * @param data   data about this action
 	 * @return <code>null</code> if the action is valid; an error message otherwise
 	 */
+	@Override
 	public String validate(Player player, RPAction action, ActionData data) {
 		int amount = 1;
 		if (attribute != null) {

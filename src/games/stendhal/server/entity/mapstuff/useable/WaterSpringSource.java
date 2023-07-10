@@ -1,4 +1,4 @@
-/* $Id: WaterSpringSource.java,v 1.10 2011/04/02 15:44:18 kymara Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -13,36 +13,46 @@
 package games.stendhal.server.entity.mapstuff.useable;
 
 import games.stendhal.common.Rand;
+import games.stendhal.common.constants.SoundLayer;
 import games.stendhal.common.grammar.Grammar;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.item.Item;
 import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.events.SoundEvent;
 import marauroa.common.game.RPClass;
 
 /**
  * A water spring source is a spot where a player can fill an empty flask with spring water.
- * 
+ *
  * Filling an empty flask takes 10 seconds + randomized 4 seconds; during this time, the player keep standing next to
- * the water spring. 
- * 
+ * the water spring.
+ *
  * @author Vanessa Julius (based on WellSource by kymara)
- * 
+ *
  */
 public class WaterSpringSource extends PlayerActivityEntity {
 	/**
 	 * The reward
 	 */
-	private static final String[] items = { "woda" };
-	
+	private static final String[] items = { "butelka woda" };
+
 	/**
 	 * The chance that filling flask is successful.
 	 */
 	private static final double FINDING_PROBABILITY = 0.50;
 
 	/**
-	 * How long it takes to fill the bottle (in seconds). 
+	 * How long it takes to fill the bottle (in seconds).
 	 */
 	private static final int DURATION = 10;
+
+	/**
+	 * Sound effects
+	 */
+	private final String startSound = "liquid-fill-01";
+	private final String successSound = "cork-pop-1";
+	private final String failSound = "glass-break-2";
+	private final int SOUND_RADIUS = 20;
 
 	/**
 	 * Create a water spring source.
@@ -54,7 +64,7 @@ public class WaterSpringSource extends PlayerActivityEntity {
 		setDescription("Widzisz jakieś bąbelki w wodzie. Wygląda na to, że znalazłeś źródło.");
 		setResistance(0);
 	}
-	
+
 	/**
 	 * source name.
 	 */
@@ -78,17 +88,17 @@ public class WaterSpringSource extends PlayerActivityEntity {
 
 	/**
 	 * Get the time it takes to perform this activity.
-	 * 
+	 *
 	 * @return The time to perform the activity (in seconds).
 	 */
 	@Override
-	protected int getDuration() {
+	protected int getDuration(Player player) {
 		return DURATION + Rand.rand(5);
 	}
 
 	/**
 	 * Decides if the activity can be done.
-	 * 
+	 *
 	 * @return <code>true</code> if successful.
 	 */
 	@Override
@@ -97,17 +107,17 @@ public class WaterSpringSource extends PlayerActivityEntity {
         * The player can fill an empty flask at the spring.
         * Check they have it before they can start filling it up.
 		*/
-		if (player.isEquipped("flasza")) {
+		if (player.isEquipped("butelka")) {
 			return true;
 		} else {
-			player.sendPrivateText("Potrzebujesz flaszy, aby napełnić ją wodą.");
+			player.sendPrivateText("Potrzebujesz butelki, aby napełnić ją wodą.");
 			return false;
 		}
 	}
 
 	/**
 	 * Decides if the activity was successful.
-	 * 
+	 *
 	 * @return <code>true</code> if successful.
 	 */
 	@Override
@@ -132,7 +142,7 @@ public class WaterSpringSource extends PlayerActivityEntity {
 
 	/**
 	 * Called when the activity has finished.
-	 * 
+	 *
 	 * @param player
 	 *            The player that did the activity.
 	 * @param successful
@@ -144,34 +154,46 @@ public class WaterSpringSource extends PlayerActivityEntity {
 			final String itemName = items[Rand.rand(items.length)];
 			final Item item = SingletonRepository.getEntityManager().getItem(itemName);
 			int amount = 1;
-			if (itemName.equals("woda"))
+			if (itemName.equals("butelka wody"))
 					 {
 				/*
 				 * Bound powerful items.
 				 */
 				item.setBoundTo(player.getName());
-			
+
 			}
+
+            this.addEvent(new SoundEvent(successSound, SOUND_RADIUS, 100, SoundLayer.AMBIENT_SOUND));
+    		this.notifyWorldAboutChanges();
+
 
 			player.equipOrPutOnGround(item);
 			player.sendPrivateText("Miałeś szczęście i napełniłeś "
-					+ Grammar.quantityplnoun(amount, itemName, "a")+ ".");
-			
+					+ Grammar.quantityplnoun(amount, itemName)+ ".");
+
 		} else {
-			player.sendPrivateText("Oh nie! Rozbiłeś flaszę i rozlałeś wodę. Teraz jest rozbita.");
+            this.addEvent(new SoundEvent(failSound, SOUND_RADIUS, 100, SoundLayer.AMBIENT_SOUND));
+    		this.notifyWorldAboutChanges();
+
+			player.sendPrivateText("Och nie! Rozbiłeś swoją butelkę i rozlałeś wodę. Teraz jest butelka w malutkich częściach.");
 		}
+		notifyWorldAboutChanges();
 	}
 
 	/**
 	 * Called when the activity has started.
-	 * 
+	 *
 	 * @param player
 	 *            The player starting the activity.
 	 */
 	@Override
 	protected void onStarted(final Player player) {
+	    // Play a nice sound effect
+        addEvent(new SoundEvent(startSound, SOUND_RADIUS, 100, SoundLayer.AMBIENT_SOUND));
+        notifyWorldAboutChanges();
+
 		// remove flask from player as they try to fill it.
-		player.drop("flasza");
-		player.sendPrivateText("Rozpocząłeś napełnianie pustej flaszy świeżą wodą. Miejmy nadzieje, że nie wyślizgnie ci się z rąk!");
+		player.drop("butelka");
+		player.sendPrivateText("Rozpocząłeś napełnianie pustej butelki świeżą wodą. Miejmy nadzieje, że nie wyślizgnie ci się z rąk!");
 	}
 }

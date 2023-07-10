@@ -1,6 +1,5 @@
-/* $Id: SolveWoodCutterTest.java,v 1.19 2011/12/11 02:12:04 edi18028 Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -11,26 +10,6 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
-
-import games.stendhal.common.Direction;
-import games.stendhal.common.NotificationType;
-import games.stendhal.common.Rand;
-import games.stendhal.common.parser.ConversationParser;
-import games.stendhal.common.parser.Sentence;
-import games.stendhal.common.parser.SimilarExprMatcher;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.entity.item.Item;
-import games.stendhal.server.entity.npc.ChatAction;
-import games.stendhal.server.entity.npc.ConversationPhrases;
-import games.stendhal.server.entity.npc.ConversationStates;
-import games.stendhal.server.entity.npc.EventRaiser;
-import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.action.SetQuestAndModifyKarmaAction;
-import games.stendhal.server.entity.npc.condition.QuestActiveCondition;
-import games.stendhal.server.entity.npc.condition.QuestNotStartedCondition;
-import games.stendhal.server.entity.npc.condition.QuestStartedCondition;
-import games.stendhal.server.entity.player.Player;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,33 +28,50 @@ import org.apache.log4j.Logger;
 import org.xml.sax.Attributes;
 import org.xml.sax.helpers.DefaultHandler;
 
+import games.stendhal.common.Rand;
+import games.stendhal.common.parser.ConversationParser;
+import games.stendhal.common.parser.Sentence;
+import games.stendhal.common.parser.SimilarExprMatcher;
+import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.entity.item.Item;
+import games.stendhal.server.entity.npc.ChatAction;
+import games.stendhal.server.entity.npc.ConversationPhrases;
+import games.stendhal.server.entity.npc.ConversationStates;
+import games.stendhal.server.entity.npc.EventRaiser;
+import games.stendhal.server.entity.npc.SpeakerNPC;
+import games.stendhal.server.entity.npc.action.SetQuestAndModifyKarmaAction;
+import games.stendhal.server.entity.npc.condition.QuestActiveCondition;
+import games.stendhal.server.entity.npc.condition.QuestNotStartedCondition;
+import games.stendhal.server.entity.npc.condition.QuestStartedCondition;
+import games.stendhal.server.entity.player.Player;
+
 /**
  * QUEST: Quest to solve a test on woodcutter
  * <p>
- * 
+ *
  * PARTICIPANTS: <ul><li>Drwal</ul>
- * 
- * 
- * STEPS: <ul><li> Drwal sets you a test 
+ *
+ *
+ * STEPS: <ul><li> Drwal sets you a test
  * <li> Player tries to answer
- * <li> Drwal compares answers to configuration file on server 
+ * <li> Drwal compares answers to configuration file on server
  * </ul>
- * 
- * 
+ *
+ *
  * REWARD: <ul><li>2000 XP <li> siekierka </ul>
- * 
+ *
  * REPETITIONS: <ul><li>Test you can repeat until you pass him. When you leave during test you lost some karma.
  *   If you say something to break test Drwal takes you less karma then if you leave test without word.</ul>
- * 
+ *
  * @author edi18028 based on kymara's quest
  */
 
 public class SolveWoodcutterTest extends AbstractQuest {
 	private static final String QUEST_SLOT = "woodcutter_license";
+
 	private static final String TEMP_QUEST_SLOT = "question_woodcutter_license";
 	private static final String TEST_QUEST_SLOT = "test_woodcutter_license";
 	private static final String KARMA_QUEST_SLOT = "karma_woodcutter_license";
-	private static final int xpreward = 100;
 	private Questions questions;
 
 	private static class Questions {
@@ -93,7 +89,7 @@ public class SolveWoodcutterTest extends AbstractQuest {
 
 		/**
 		 * Check if an answer mathces the riddle.
-		 * 
+		 *
 		 * @param riddle The riddle to be answered
 		 * @param answer The answer given by the player
 		 * @return <code>true</code> iff the answer is correct
@@ -112,7 +108,7 @@ public class SolveWoodcutterTest extends AbstractQuest {
 
 		/**
 		 * Get a random riddle.
-		 * 
+		 *
 		 * @return A random ridde
 		 */
 		String getQuestion() {
@@ -232,6 +228,7 @@ public class SolveWoodcutterTest extends AbstractQuest {
 				ConversationStates.QUESTION_1,
 				null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 						// randomly choose from available riddles
 						player.setQuest(QUEST_SLOT, "start");
@@ -248,6 +245,7 @@ public class SolveWoodcutterTest extends AbstractQuest {
 				ConversationStates.QUESTION_1,
 				null,
 				new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					final String karmaState = player.getQuest(KARMA_QUEST_SLOT);
 					player.removeQuest(TEST_QUEST_SLOT);
@@ -270,6 +268,7 @@ public class SolveWoodcutterTest extends AbstractQuest {
 		woodcutter.add(ConversationStates.QUESTION_1, "", null,
 			ConversationStates.QUESTION_1, null,
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					final String question = player.getQuest(TEMP_QUEST_SLOT);
 					final String triggerText = sentence.getTriggerExpression().getNormalized();
@@ -278,12 +277,12 @@ public class SolveWoodcutterTest extends AbstractQuest {
 						player.setQuest(KARMA_QUEST_SLOT, "test1");
 						player.setQuest(TEST_QUEST_SLOT, "1");
 						npc.say("Teraz kolejne pytanie. Jesteś gotowy?");
-					} else if (triggerText.equals("bye") || triggerText.equals("dowidzenia")
+					} else if (triggerText.equals("bye") || triggerText.equals("do widzenia")
 							|| triggerText.equals("no") || triggerText.equals("nie")) {
 						player.setQuest(KARMA_QUEST_SLOT, "test3");
 						player.setQuest(QUEST_SLOT, "rejected");
 						player.addKarma(-10.0);
-						npc.say("Łatwo się poddałeś. Dowidzenia.");
+						npc.say("Łatwo się poddałeś. Do widzenia.");
 						npc.setCurrentState(ConversationStates.IDLE);
 					} else {
 						player.setQuest(KARMA_QUEST_SLOT, "test1");
@@ -301,6 +300,7 @@ public class SolveWoodcutterTest extends AbstractQuest {
 			ConversationStates.QUESTION_2,
 			null,
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					player.removeQuest(TEMP_QUEST_SLOT);
 					final String question = questions.getQuestion();
@@ -321,7 +321,7 @@ public class SolveWoodcutterTest extends AbstractQuest {
 			ConversationPhrases.GOODBYE_MESSAGES,
 			null,
 			ConversationStates.IDLE,
-			"Szkoda. Powodzenia następnym razem. Dowidzenia.",
+			"Szkoda. Powodzenia następnym razem. Do widzenia.",
 			new SetQuestAndModifyKarmaAction(QUEST_SLOT, "start", 5.0));
 
 		woodcutter.add(ConversationStates.QUESTION_2,
@@ -330,6 +330,7 @@ public class SolveWoodcutterTest extends AbstractQuest {
 			ConversationStates.QUESTION_2,
 			null,
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					final String question = player.getQuest(TEMP_QUEST_SLOT);
 					final String doneText = player.getQuest(TEST_QUEST_SLOT);
@@ -340,12 +341,12 @@ public class SolveWoodcutterTest extends AbstractQuest {
 						player.setQuest(KARMA_QUEST_SLOT, "test2");
 						player.setQuest(TEST_QUEST_SLOT, doneText + ";1");
 						npc.say("Ostatnie już pytanie. Jesteś gotowy?");
-					} else if (triggerText.equals("bye") || triggerText.equals("dowidzenia")
+					} else if (triggerText.equals("bye") || triggerText.equals("do widzenia")
 							|| triggerText.equals("no") || triggerText.equals("nie")) {
 						player.setQuest(KARMA_QUEST_SLOT, "test3");
 						player.setQuest(QUEST_SLOT, "rejected");
 						player.addKarma(-10.0);
-						npc.say("Poddałeś się w połowie drogi. Dowidzenia.");
+						npc.say("Poddałeś się w połowie drogi. Do widzenia.");
 						npc.setCurrentState(ConversationStates.IDLE);
 					} else {
 						player.setQuest(KARMA_QUEST_SLOT, "test2");
@@ -363,6 +364,7 @@ public class SolveWoodcutterTest extends AbstractQuest {
 			ConversationStates.QUESTION_3,
 			null,
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					player.removeQuest(TEMP_QUEST_SLOT);
 					final String question = questions.getQuestion();
@@ -383,7 +385,7 @@ public class SolveWoodcutterTest extends AbstractQuest {
 			ConversationPhrases.GOODBYE_MESSAGES,
 			null,
 			ConversationStates.IDLE,
-			"Szkoda. Powodzenia następnym razem. Dowidzenia.",
+			"Szkoda. Powodzenia następnym razem. Do widzenia.",
 			new SetQuestAndModifyKarmaAction(QUEST_SLOT, "start", 5.0));
 
 		woodcutter.add(ConversationStates.QUESTION_3,
@@ -392,6 +394,7 @@ public class SolveWoodcutterTest extends AbstractQuest {
 			ConversationStates.QUESTION_3,
 			null,
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					final String question = player.getQuest(TEMP_QUEST_SLOT);
 					final String doneText = player.getQuest(TEST_QUEST_SLOT);
@@ -417,12 +420,12 @@ public class SolveWoodcutterTest extends AbstractQuest {
 							player.setQuest(QUEST_SLOT, "start");
 							npc.setCurrentState(ConversationStates.IDLE);
 						}
-					} else if (triggerText.equals("bye") || triggerText.equals("dowidzenia")
+					} else if (triggerText.equals("bye") || triggerText.equals("do widzenia")
 							|| triggerText.equals("no") || triggerText.equals("nie")) {
 						player.setQuest(KARMA_QUEST_SLOT, "test3");
 						player.setQuest(QUEST_SLOT, "rejected");
 						player.addKarma(-10.0);
-						npc.say("Co za szkoda poddałeś się przy ostatnim pytaniu. Dowidzenia.");
+						npc.say("Co za szkoda poddałeś się przy ostatnim pytaniu. Do widzenia.");
 						npc.setCurrentState(ConversationStates.IDLE);
 					} else {
 						player.setQuest(KARMA_QUEST_SLOT, "test3");
@@ -439,17 +442,16 @@ public class SolveWoodcutterTest extends AbstractQuest {
 
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
-				"Rozwiąż Test na Drwala",
-				"Musisz rozwiązać test drwala, aby zdobyć umiejętność ścinania drzew.",
+				"Egzamin na Drwala",
+				"Musisz zdać test na drwala, aby zdobyć umiejętność ścinania drzew.",
 				false);
 		setQuestion();
 	}
 
 	@Override
 	public String getName() {
-		return "SolveWoodcutterTest";
+		return "Egzamin na Drwala";
 	}
 
 	// there is a minimum level requirement to get new skill
@@ -467,6 +469,7 @@ public class SolveWoodcutterTest extends AbstractQuest {
 	public List<String> getHistory(final Player player) {
 		return new ArrayList<String>();
 	}
+
 	@Override
 	public String getNPCName() {
 		return "Drwal";

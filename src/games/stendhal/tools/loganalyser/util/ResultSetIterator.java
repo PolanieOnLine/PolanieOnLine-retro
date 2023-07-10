@@ -1,4 +1,4 @@
-/* $Id: ResultSetIterator.java,v 1.7 2010/09/19 01:29:08 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -28,7 +28,7 @@ import org.apache.log4j.Logger;
  */
 public abstract class ResultSetIterator<T> implements Iterator<T>, Iterable<T> {
 	private static Logger logger = Logger.getLogger(ResultSetIterator.class);
-	
+
 	private final Statement statement;
 	protected ResultSet resultSet;
 	private boolean hasNext;
@@ -63,6 +63,7 @@ public abstract class ResultSetIterator<T> implements Iterator<T>, Iterable<T> {
 	 */
 	protected abstract T createObject();
 
+	@Override
 	public boolean hasNext() {
 		if (nextCalled) {
 			return hasNext;
@@ -88,6 +89,7 @@ public abstract class ResultSetIterator<T> implements Iterator<T>, Iterable<T> {
         }
     }
 
+	@Override
 	public T next() {
 		if (!nextCalled) {
 			resultSetNext();
@@ -96,6 +98,7 @@ public abstract class ResultSetIterator<T> implements Iterator<T>, Iterable<T> {
 		return createObject();
 	}
 
+	@Override
 	public void remove() {
 		try {
 			if (nextCalled) {
@@ -132,8 +135,9 @@ public abstract class ResultSetIterator<T> implements Iterator<T>, Iterable<T> {
         }
 	}
 
+	@Override
 	public Iterator<T> iterator() {
 		return this;
 	}
-	
+
 }

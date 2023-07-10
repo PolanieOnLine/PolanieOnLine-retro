@@ -1,4 +1,4 @@
-/* $Id: LogEntryIterator.java,v 1.7 2010/09/19 01:29:16 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,13 +12,13 @@
  ***************************************************************************/
 package games.stendhal.tools.loganalyser.itemlog.consistency;
 
-import games.stendhal.tools.loganalyser.util.ResultSetIterator;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.apache.log4j.Logger;
+
+import games.stendhal.tools.loganalyser.util.ResultSetIterator;
 
 
 /**

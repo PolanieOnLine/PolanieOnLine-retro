@@ -1,17 +1,14 @@
 package games.stendhal.server.entity.npc.condition;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
 import games.stendhal.server.core.config.annotations.Dev.Category;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Checks if a player has mined a given number of items
@@ -41,6 +38,7 @@ public class PlayerMinedNumberOfItemsCondition implements ChatCondition {
 		quantity = number;
 	}
 
+	@Override
 	public boolean fire(Player player, Sentence sentence, Entity npc) {
 		for(String item : itemMinedList) {
 			if(quantity > player.getQuantityOfMinedItems(item)) {
@@ -52,13 +50,17 @@ public class PlayerMinedNumberOfItemsCondition implements ChatCondition {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 44017 * itemMinedList.hashCode() + quantity;
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				PlayerMinedNumberOfItemsCondition.class);
+		if (!(obj instanceof PlayerMinedNumberOfItemsCondition)) {
+			return false;
+		}
+		PlayerMinedNumberOfItemsCondition other = (PlayerMinedNumberOfItemsCondition) obj;
+		return (quantity == other.quantity)
+			&& itemMinedList.equals(other.itemMinedList);
 	}
 
 	@Override

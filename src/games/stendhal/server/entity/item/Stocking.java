@@ -1,4 +1,4 @@
-/* $Id: Stocking.java,v 1.17 2012/12/03 16:27:50 kymara Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,26 +12,25 @@
  ***************************************************************************/
 package games.stendhal.server.entity.item;
 
+import java.util.Map;
+
 import games.stendhal.common.Rand;
-import games.stendhal.common.grammar.Grammar;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.Map;
-
 /**
  * a stocking which can be opened
- * 
+ *
  * @author kymara
  */
 public class Stocking extends Box {
 
 	private static final String[] ITEMS = { "wielki eliksir", "eliksir miłości", "granat",
-			"zupa rybna", "bryłka mithrilu", "węgiel", "niezapisany zwój" , "leżakowana nalewka litworowa"};
+			"zupa rybna", "bryłka mithrilu", "niezapisany zwój", "pluszowy miś", "naleśniki z polewą czekoladową", "leżakowana nalewka litworowa"};
 
 	/**
 	 * Creates a new Stocking.
-	 * 
+	 *
 	 * @param name
 	 * @param clazz
 	 * @param subclass
@@ -44,7 +43,7 @@ public class Stocking extends Box {
 
 	/**
 	 * Copy constructor.
-	 * 
+	 *
 	 * @param item
 	 *            item to copy
 	 */
@@ -59,7 +58,7 @@ public class Stocking extends Box {
 		final Item item = SingletonRepository.getEntityManager().getItem(
 				itemName);
 		player.sendPrivateText("Gratulacje otrzymałeś "
-				+ Grammar.a_noun(itemName));
+				+ itemName + "!");
 		player.equipOrPutOnGround(item);
 		player.notifyWorldAboutChanges();
 		return true;

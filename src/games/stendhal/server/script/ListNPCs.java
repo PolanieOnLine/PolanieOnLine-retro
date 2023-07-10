@@ -1,5 +1,6 @@
-/* $Id: ListNPCs.java,v 1.9 2008/07/12 14:43:48 astridemma Exp $ */
 package games.stendhal.server.script;
+
+import java.util.List;
 
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.scripting.ScriptImpl;
@@ -7,11 +8,9 @@ import games.stendhal.server.entity.npc.NPCList;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.List;
-
 /**
  * Lists all npcs and there position.
- * 
+ *
  * @author hendrik
  */
 public class ListNPCs extends ScriptImpl {

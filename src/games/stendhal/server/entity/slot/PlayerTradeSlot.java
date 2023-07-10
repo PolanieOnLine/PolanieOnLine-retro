@@ -1,4 +1,4 @@
-/* $Id: PlayerTradeSlot.java,v 1.7 2010/09/19 01:11:24 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -18,14 +18,14 @@ import games.stendhal.server.entity.player.Player;
 
 /**
  * Slots of players which are use to offer items for trading.
- * 
+ *
  * @author hendrik
  */
 public class PlayerTradeSlot extends PlayerSlot {
 
 	/**
 	 * Creates a new PlayerTradeSlot.
-	 * 
+	 *
 	 * @param name name of slot
 	 */
 	public PlayerTradeSlot(final String name) {

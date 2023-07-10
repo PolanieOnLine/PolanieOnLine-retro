@@ -1,4 +1,4 @@
-/* $Id: WhereAction.java,v 1.8 2010/09/19 02:17:50 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -13,6 +13,7 @@
 package games.stendhal.client.actions;
 
 import games.stendhal.client.ClientSingletonRepository;
+import games.stendhal.client.StendhalClient;
 import games.stendhal.common.StringHelper;
 import marauroa.common.game.RPAction;
 
@@ -23,16 +24,22 @@ class WhereAction implements SlashAction {
 
 	/**
 	 * Execute a chat command.
-	 * 
+	 *
 	 * @param params
 	 *            The formal parameters.
 	 * @param remainder
 	 *            Line content after parameters.
-	 * 
+	 *
 	 * @return <code>true</code> if command was handled.
 	 */
-	public boolean execute(final String[] params, final String remainder) {
+	@Override
+	public boolean execute(final String[] params, String remainder) {
 		final RPAction where = new RPAction();
+
+		// use executing character if name parameter not supplied
+		if (remainder.length() == 0) {
+			remainder = StendhalClient.get().getCharacter();
+		}
 
 		where.put("type", "where");
 		where.put("target", StringHelper.unquote(remainder));
@@ -44,18 +51,20 @@ class WhereAction implements SlashAction {
 
 	/**
 	 * Get the maximum number of formal parameters.
-	 * 
+	 *
 	 * @return The parameter count.
 	 */
+	@Override
 	public int getMaximumParameters() {
 		return 0;
 	}
 
 	/**
 	 * Get the minimum number of formal parameters.
-	 * 
+	 *
 	 * @return The parameter count.
 	 */
+	@Override
 	public int getMinimumParameters() {
 		return 0;
 	}

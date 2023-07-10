@@ -1,4 +1,3 @@
-/* $Id: CreatureInfo.java,v 1.25 2011/04/02 15:44:20 kymara Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +11,17 @@
  ***************************************************************************/
 package games.stendhal.server.maps.semos.plains;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
 import games.stendhal.common.Rand;
 import games.stendhal.common.grammar.Grammar;
 import games.stendhal.server.core.engine.SingletonRepository;
@@ -22,38 +32,18 @@ import games.stendhal.server.entity.creature.impl.DropItem;
 import games.stendhal.server.entity.mapstuff.spawner.CreatureRespawnPoint;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.util.TimeUtil;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Map.Entry;
-
 import marauroa.common.game.IRPZone;
 
 public class CreatureInfo {
-
 	private final Map<Double, String> probabilityLiterals;
-
 	private final Map<Integer, String> amountLiterals;
-
 	private final Map<Double, String> dangerLiterals;
 
 	private final String[] lineStartTexts;
-
 	private final String[] respawnTexts;
-
 	private final String[] carryTexts;
-
 	private final String[] carryNothingTexts;
-
 	private final String[] locationTexts;
-
 	private final String[] locationUnknownTexts;
 
 	/**
@@ -164,7 +154,7 @@ public class CreatureInfo {
 				result.append(getRandomString(locationTexts, locationInfo)).append(' ');
 			} else {
 				result.append(getRandomString(locationUnknownTexts,
-						Grammar.a_noun(creature.getCreatureName()))).append(' ');
+						creature.getCreatureName())).append(' ');
 			}
 		}
 		return result.toString();
@@ -257,7 +247,7 @@ public class CreatureInfo {
 		result = result.replaceAll("%S",
 				Grammar.plural(creature.getCreatureName()));
 		result = result.replaceAll("%a",
-				Grammar.a_noun(creature.getCreatureName()))
+				creature.getCreatureName())
 				+ " ";
 		result += getHowDangerous(player, creature, dangerLiterals) + " ";
 		return result;
@@ -298,6 +288,7 @@ public class CreatureInfo {
 		final StringBuilder result = new StringBuilder();
 		final List<DropItem> dropItems = creature.getDropItems();
 		Collections.sort(dropItems, new Comparator<DropItem>() {
+			@Override
 			public int compare(final DropItem o1, final DropItem o2) {
 				if (o1.probability < o2.probability) {
 					return 1;
@@ -319,17 +310,17 @@ public class CreatureInfo {
 				if (result.length() > 0) {
 					result.append(", ");
 				}
-				
+
 				prevProbability = prevProbability.replaceAll("%s",
 						Grammar.enumerateCollection(items));
 				prevProbability = prevProbability.replaceAll("%a",
-						Grammar.a_noun(item.name));
+						item.name);
 				result.append(prevProbability);
 				items = new ArrayList<String>();
 			}
 			String s = getLiteral(amountLiterals, item.max, 1);
 			s = s.replaceAll("%s", item.name);
-			s = s.replaceAll("%a", Grammar.a_noun(item.name));
+			s = s.replaceAll("%a", item.name);
 			items.add(s);
 			prevProbability = probability;
 			if (++counter >= maxNumberOfItems) {
@@ -340,7 +331,7 @@ public class CreatureInfo {
 
 		if (result.length() > 0) {
 			result.append(", ");
-		} 
+		}
 		if (prevProbability != null) {
 			result.append(prevProbability.replaceAll("%s",
 					Grammar.enumerateCollection(items)));

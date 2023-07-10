@@ -1,6 +1,5 @@
-/* $Id: CastSpellAction.java,v 1.6 2012/06/28 20:11:16 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -13,6 +12,7 @@
 package games.stendhal.server.actions.spell;
 import static games.stendhal.common.constants.Actions.CASTSPELL;
 import static games.stendhal.common.constants.Actions.TARGET;
+
 import games.stendhal.common.NotificationType;
 import games.stendhal.server.actions.ActionListener;
 import games.stendhal.server.actions.CommandCenter;
@@ -24,15 +24,16 @@ import games.stendhal.server.util.EntityHelper;
 import marauroa.common.game.RPAction;
 /**
  * Casts a spell for a player at the given target
- * 
+ *
  * @author madmetzger
  */
 public class CastSpellAction implements ActionListener {
-	
+
 	public static void register() {
 		CommandCenter.register(CASTSPELL, new CastSpellAction());
 	}
 
+	@Override
 	public void onAction(Player player, RPAction action) {
 		if (!Boolean.parseBoolean(System.getProperty("stendhal.testserver", "false"))) {
 			player.sendPrivateText("Ta funkcja nie jest jeszcze aktywna.");

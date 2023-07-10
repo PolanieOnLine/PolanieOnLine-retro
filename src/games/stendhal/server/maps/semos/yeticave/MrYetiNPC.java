@@ -1,4 +1,3 @@
-/* $Id: MrYetiNPC.java,v 1.8 2012/02/13 00:05:15 bluelads99 Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,15 +11,16 @@
  ***************************************************************************/
 package games.stendhal.server.maps.semos.yeticave;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
+import games.stendhal.server.entity.CollisionAction;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 public class MrYetiNPC implements ZoneConfigurator {
 	/**
@@ -29,13 +29,13 @@ public class MrYetiNPC implements ZoneConfigurator {
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildYeti(zone);
 	}
 
 	private void buildYeti(final StendhalRPZone zone) {
 		final SpeakerNPC yetimale = new SpeakerNPC("Mr. Yeti") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -66,10 +66,11 @@ public class MrYetiNPC implements ZoneConfigurator {
 			}
 		};
 
-		yetimale.setEntityClass("yetimalenpc");
 		yetimale.setDescription("Oto Mr. Yeti o białych włosach z dużymi stopami!");
+		yetimale.setEntityClass("yetimalenpc");
+		yetimale.setGender("M");
 		yetimale.setPosition(29, 29);
-		yetimale.initHP(100);
+		yetimale.setCollisionAction(CollisionAction.STOP);
 		zone.add(yetimale);
 	}
 }

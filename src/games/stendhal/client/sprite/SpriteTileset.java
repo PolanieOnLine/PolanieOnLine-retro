@@ -1,4 +1,4 @@
-/* $Id: SpriteTileset.java,v 1.7 2011/10/02 12:53:07 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -25,11 +25,11 @@ public class SpriteTileset implements Tileset {
 	/**
 	 * The sprite tiles.
 	 */
-	protected Sprite[] tiles;
+	private Sprite[] tiles;
 
 	/**
 	 * Create a tileset.
-	 * 
+	 *
 	 * @param store
 	 *            A sprite store.
 	 * @param filename
@@ -45,7 +45,7 @@ public class SpriteTileset implements Tileset {
 
 	/**
 	 * Create a tileset.
-	 * 
+	 *
 	 * @param store
 	 *            A sprite store.
 	 * @param sprite
@@ -53,7 +53,7 @@ public class SpriteTileset implements Tileset {
 	 * @param size
 	 *            The tile size.
 	 */
-	private SpriteTileset(final SpriteStore store, final Sprite sprite,
+	public SpriteTileset(final SpriteStore store, final Sprite sprite,
 			final int size) {
 		if (sprite == null) {
 			tiles = new Sprite[0];
@@ -69,17 +69,17 @@ public class SpriteTileset implements Tileset {
 	/**
 	 * Extract all the tiles from a source sprite in left-right, top-bottom scan
 	 * order.
-	 * 
+	 *
 	 * @param store
 	 *            A sprite store.
 	 * @param sprite
 	 *            The master sprite.
 	 * @param size
 	 *            The tile size.
-	 * 
+	 *
 	 * @return An array of sprites.
 	 */
-	protected Sprite[] extractTiles(final SpriteStore store,
+	private Sprite[] extractTiles(final SpriteStore store,
 			final Sprite sprite, final int size) {
 		final int rows = sprite.getHeight() / size;
 		final int cols = sprite.getWidth() / size;
@@ -110,21 +110,23 @@ public class SpriteTileset implements Tileset {
 
 	/**
 	 * Get the number of tiles.
-	 * 
+	 *
 	 * @return The number of tiles.
 	 */
+	@Override
 	public int getSize() {
 		return tiles.length;
 	}
 
 	/**
 	 * Get the sprite for an index tile of a tileset.
-	 * 
+	 *
 	 * @param index
 	 *            The index with-in the tileset.
-	 * 
+	 *
 	 * @return A sprite, or <code>null</code> if no mapped sprite.
 	 */
+	@Override
 	public Sprite getSprite(final int index) {
 		if (index < tiles.length) {
 			return tiles[index];

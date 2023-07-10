@@ -1,6 +1,5 @@
-/* $Id: QuestListAction.java,v 1.1 2010/12/04 20:28:35 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -14,6 +13,7 @@ package games.stendhal.server.actions.query;
 
 import static games.stendhal.common.constants.Actions.LISTQUESTS;
 import static games.stendhal.common.constants.Actions.TARGET;
+
 import games.stendhal.common.NotificationType;
 import games.stendhal.server.actions.ActionListener;
 import games.stendhal.server.actions.CommandCenter;
@@ -25,12 +25,13 @@ import marauroa.common.game.RPAction;
  * list the known quest or gives details on them.
  */
 public class QuestListAction implements ActionListener {
-	
+
 
 	public static void register() {
 		CommandCenter.register(LISTQUESTS, new QuestListAction());
 	}
 
+	@Override
 	public void onAction(final Player player, final RPAction action) {
 
 		final StringBuilder st = new StringBuilder();

@@ -1,4 +1,4 @@
-/* $Id: StoredEntityMoveConfigurator.java,v 1.1 2011/08/15 19:11:39 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                 (C) Copyright 2003-2011 - Faiumoni e. V.                *
  ***************************************************************************
@@ -12,13 +12,13 @@
  ***************************************************************************/
 package games.stendhal.server.entity.mapstuff.office;
 
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.common.MathHelper;
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.entity.Entity;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * Moves a stored entity to another location.
@@ -27,6 +27,7 @@ import java.util.Map;
  */
 public class StoredEntityMoveConfigurator implements ZoneConfigurator {
 
+	@Override
 	public void configureZone(StendhalRPZone zone, Map<String, String> attributes) {
 		final int x = MathHelper.parseInt(attributes.get("x"));
 		final int y = MathHelper.parseInt(attributes.get("y"));

@@ -1,4 +1,4 @@
-/* $Id: Door.java,v 1.9 2011/07/19 09:44:37 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -12,17 +12,19 @@
  ***************************************************************************/
 package games.stendhal.server.entity.mapstuff.portal;
 
+import static games.stendhal.common.constants.Actions.MOVE_CONTINUOUS;
+
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.events.TurnListener;
 import games.stendhal.server.core.events.TurnNotifier;
 import games.stendhal.server.entity.RPEntity;
 import marauroa.common.game.Definition;
-import marauroa.common.game.RPClass;
 import marauroa.common.game.Definition.Type;
+import marauroa.common.game.RPClass;
 
 /**
  * A door is a special kind of portal which can be open or closed.
- * 
+ *
  * Note that you can link a door with a portal; that way, people only require
  * the key when walking in one direction and can walk in the other direction
  * without any key.
@@ -46,11 +48,13 @@ public abstract class Door extends AccessCheckingPortal implements TurnListener 
 		door.addAttribute("class", Type.STRING);
 		door.addAttribute("locked", Type.STRING, Definition.HIDDEN);
 		door.addAttribute("open", Type.FLAG);
+		door.addAttribute(ATTR_FACE, Type.STRING);
+		door.addAttribute(MOVE_CONTINUOUS, Type.FLAG, Definition.VOLATILE);
 	}
 
 	/**
 	 * Creates a new door.
-	 * 
+	 *
 	 * @param clazz
 	 *            The class. Responsible for how this door looks like.
 	 */
@@ -60,10 +64,10 @@ public abstract class Door extends AccessCheckingPortal implements TurnListener 
 
 	/**
 	 * Creates a new door.
-	 * 
+	 *
 	 * @param clazz
 	 *            The class. Responsible for how this door looks like.
-	 * 
+	 *
 	 * @param rejectMessage
 	 *            The message to given when rejected.
 	 */
@@ -121,7 +125,7 @@ public abstract class Door extends AccessCheckingPortal implements TurnListener 
 
 	/**
 	 * Is the door open?
-	 * 
+	 *
 	 * @return true, if opened; false otherwise
 	 */
 	protected boolean isOpen() {
@@ -138,7 +142,7 @@ public abstract class Door extends AccessCheckingPortal implements TurnListener 
 
 		if (couldUse) {
 			keepOpen();
-		} else { 
+		} else {
 			// player may not use it
 			if (isOpen()) {
 				// close now to make visible that the entity is not allowed
@@ -152,9 +156,12 @@ public abstract class Door extends AccessCheckingPortal implements TurnListener 
 	}
 
 	@Override
-	public void onUsedBackwards(final RPEntity user) {
+	public void onUsedBackwards(final RPEntity user, final boolean hadPath) {
 		keepOpen();
 		notifyWorldAboutChanges();
+
+		// call super method to handle facing direction & continuous movement
+		super.onUsedBackwards(user, hadPath);
 	}
 
 	@Override
@@ -172,6 +179,7 @@ public abstract class Door extends AccessCheckingPortal implements TurnListener 
 		return (text);
 	}
 
+	@Override
 	public void onTurnReached(final int currentTurn) {
 		close();
 		notifyWorldAboutChanges();

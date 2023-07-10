@@ -1,4 +1,4 @@
-/* $Id: StoredChestConfigurator.java,v 1.3 2010/09/19 02:24:38 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,13 +12,13 @@
  ***************************************************************************/
 package games.stendhal.server.entity.mapstuff.chest;
 
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.common.MathHelper;
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.entity.Entity;
-
-import java.util.List;
-import java.util.Map;
 
 public class StoredChestConfigurator implements ZoneConfigurator {
 
@@ -28,6 +28,7 @@ public class StoredChestConfigurator implements ZoneConfigurator {
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		if (isValid(attributes)) {
 			final int x = MathHelper.parseInt(attributes.get("x"));

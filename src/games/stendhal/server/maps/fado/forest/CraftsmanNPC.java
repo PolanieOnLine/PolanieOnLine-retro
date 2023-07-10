@@ -1,6 +1,5 @@
-/* $Id: CraftsmanNPC.java,v 1.19 2012/08/23 20:05:44 yoriy Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,19 +11,19 @@
  ***************************************************************************/
 package games.stendhal.server.maps.fado.forest;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
-import games.stendhal.server.entity.npc.ShopList;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.npc.behaviour.adder.BuyerAdder;
 import games.stendhal.server.entity.npc.behaviour.impl.QuestCompletedBuyerBehaviour;
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import games.stendhal.server.entity.npc.shop.ShopsList;
 
 /**
  * Builds an albino elf NPC .
@@ -33,7 +32,7 @@ import java.util.Map;
  * @author kymara
  */
 public class CraftsmanNPC implements ZoneConfigurator {
-	private final ShopList shops = SingletonRepository.getShopList();
+	private final ShopsList shops = SingletonRepository.getShopsList();
 
 	/**
 	 * Configure a zone.
@@ -41,13 +40,13 @@ public class CraftsmanNPC implements ZoneConfigurator {
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		buildNPC(zone);
 	}
 
 	private void buildNPC(final StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Lupos") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -62,19 +61,18 @@ public class CraftsmanNPC implements ZoneConfigurator {
 
 			@Override
 			protected void createDialog() {
-			    //addGreeting("Welcome to this forest, south of Or'ril river.");
+			    //addGreeting("Co cię sprowadza do lasu, na południe od rzeki Or'ril.");
 				addJob("Jestem rzemieślnikiem. Pewnego dnia, mam nadzieję, uda mi się wytworzyć taki przedmiot jaki robią zielone elfy.");
 				addHelp("Mój przyjaciel Orchiwald jest największym gadułą. Mógłby z tobą rozmawiać godzinami o albino elfach i jak tutaj się dostaliśmy.");
-				new BuyerAdder().addBuyer(this, new QuestCompletedBuyerBehaviour("elvish_armor", "I'm not able to buy anything from you right now.", shops.get("buyelvish")), false);
-				addGoodbye("Dowidzenia.");
+				new BuyerAdder().addBuyer(this, new QuestCompletedBuyerBehaviour("elvish_armor", "W tej chwili nie mogę nic od ciebie kupić.", shops.get("buyelvish")), false);
+				addGoodbye("Do widzenia.");
 			}
 		};
 
-		npc.setDescription("Oto Lupos albino elf.");
+		npc.setDescription("Oto Lupos. Jak widzisz jest albino-elfem.");
 		npc.setEntityClass("albinoelfnpc");
+		npc.setGender("M");
 		npc.setPosition(3, 11);
-		npc.initHP(100);
-		npc.setDescription("Oto Lupos. Jak widzisz jest albinos elfem.");
 		zone.add(npc);
 	}
 }

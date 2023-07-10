@@ -1,4 +1,4 @@
-/* $Id: ExamineEvent.java,v 1.7 2010/09/19 02:26:08 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,14 +12,14 @@
  ***************************************************************************/
 package games.stendhal.server.events;
 
+import org.apache.log4j.Logger;
+
 import marauroa.common.game.Definition;
-import marauroa.common.game.RPClass;
-import marauroa.common.game.RPEvent;
 import marauroa.common.game.Definition.DefinitionClass;
 import marauroa.common.game.Definition.Type;
+import marauroa.common.game.RPClass;
+import marauroa.common.game.RPEvent;
 import marauroa.common.game.SyntaxException;
-
-import org.apache.log4j.Logger;
 /**
  * An examine event that opens an image viewer with
  * the specified image in the client.
@@ -60,7 +60,11 @@ public class ExamineEvent extends RPEvent {
 	 */
 	public ExamineEvent(final String image, final String title, final String caption) {
 		super(RPCLASS_NAME);
-		super.put(PATH, IMAGE_PATH + image);
+		String path = image;
+		if (!image.startsWith("http://") && !image.startsWith("https://")) {
+			path = IMAGE_PATH + image;
+		}
+		super.put(PATH, path);
 		super.put(TITLE, title);
 		super.put(CAPTION, caption);
 	}

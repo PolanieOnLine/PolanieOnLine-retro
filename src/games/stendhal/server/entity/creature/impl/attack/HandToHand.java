@@ -1,4 +1,4 @@
-/* $Id: HandToHand.java,v 1.4 2012/06/26 17:48:44 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -20,17 +20,19 @@ class HandToHand implements AttackStrategy {
 
 	private static final int FOLLOW_RADIUS = 12;
 
+	@Override
 	public void attack(final Creature creature) {
 		if (creature.isAttackTurn(SingletonRepository.getRuleProcessor().getTurn())) {
 			creature.attack();
-			creature.tryToPoison();
 		}
 	}
 
+	@Override
 	public boolean canAttackNow(final Creature creature) {
 		return canAttackNow(creature, creature.getAttackTarget());
 	}
-	
+
+	@Override
 	public boolean canAttackNow(Creature attacker, RPEntity target) {
 		if (target != null) {
 			return attacker.squaredDistance(target) < 1;
@@ -38,6 +40,7 @@ class HandToHand implements AttackStrategy {
 		return false;
 	}
 
+	@Override
 	public void findNewTarget(final Creature creature) {
 		final RPEntity enemy = creature.getNearestEnemy(creature.getPerceptionRange()+2);
 		if (enemy != null) {
@@ -45,6 +48,7 @@ class HandToHand implements AttackStrategy {
 		}
 	}
 
+	@Override
 	public void getBetterAttackPosition(final Creature creature) {
 		final games.stendhal.server.entity.Entity target = creature.getAttackTarget();
 		if (creature.hasTargetMoved()) {
@@ -59,6 +63,7 @@ class HandToHand implements AttackStrategy {
 		creature.faceToward(creature.getAttackTarget());
 	}
 
+	@Override
 	public boolean hasValidTarget(final Creature creature) {
 		if (!creature.isAttacking()) {
 			return false;
@@ -78,6 +83,7 @@ class HandToHand implements AttackStrategy {
 		return creature.squaredDistance(victim) < (FOLLOW_RADIUS * FOLLOW_RADIUS);
 	}
 
+	@Override
 	public int getRange() {
 		return 0;
 	}

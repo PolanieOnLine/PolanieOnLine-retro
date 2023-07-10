@@ -1,6 +1,6 @@
-/* $Id: Kostka.java,v 1.21 2010/09/04 09:19:39 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
- *                      (C) Copyright 2003 - Marauroa                      *
+ *                	(C) Copyright 2003-2018 - Stendhal                  	*
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,14 +12,13 @@
  ***************************************************************************/
 package games.stendhal.server.entity.item;
 
-import games.stendhal.common.Rand;
-import games.stendhal.common.grammar.Grammar;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.entity.player.Player;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import games.stendhal.common.Rand;
+import games.stendhal.common.grammar.Grammar;
+import games.stendhal.server.entity.player.Player;
 
 public class Kostka extends Item {
 
@@ -38,7 +37,7 @@ public class Kostka extends Item {
 
 	/**
 	 * copy constructor.
-	 * 
+	 *
 	 * @param item
 	 *            item to copy
 	 */
@@ -49,7 +48,7 @@ public class Kostka extends Item {
 
 	/**
 	 * Get a list of the top faces as a readable string.
-	 * 
+	 *
 	 * @return list of top faces
 	 */
 	private String getTopFacesString() {
@@ -62,7 +61,7 @@ public class Kostka extends Item {
 
 	/**
 	 * Get the sum of the thrown kostka.
-	 * 
+	 *
 	 * @return sum of the set of kostki
 	 */
 	public int getSum() {

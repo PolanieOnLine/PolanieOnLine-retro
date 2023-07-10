@@ -12,6 +12,7 @@
 package games.stendhal.server.core.rp.equipping.builder;
 
 import static games.stendhal.common.constants.Actions.BASEITEM;
+
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.rp.equipping.EquipmentActionData;
 import games.stendhal.server.entity.Entity;
@@ -23,6 +24,7 @@ import marauroa.common.game.RPAction;
 
 class BuildSourceFromGround implements PartialBuilder {
 
+	@Override
 	public void build(EquipmentActionData data, Player player, RPAction action) {
 		final StendhalRPZone zone = player.getZone();
 		final int objectid = action.getInt(BASEITEM);

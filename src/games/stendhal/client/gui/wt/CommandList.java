@@ -1,4 +1,4 @@
-/* $Id: CommandList.java,v 1.27 2010/09/19 02:19:19 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,8 +12,6 @@
  ***************************************************************************/
 package games.stendhal.client.gui.wt;
 
-import games.stendhal.client.gui.wt.core.WtPopupMenu;
-
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
@@ -23,18 +21,19 @@ import java.awt.event.ActionListener;
 import javax.swing.Icon;
 import javax.swing.JMenuItem;
 
+import games.stendhal.client.gui.wt.core.WtPopupMenu;
+
 /**
  * This is a command list .
- * 
+ *
  * @author mtotz
  */
 abstract class CommandList extends WtPopupMenu {
 	private static final long serialVersionUID = -1607102841664745919L;
 
-
 	/**
 	 * Create a command list.
-	 * 
+	 *
 	 * @param name
 	 *            The menu name (needed?).
 	 * @param items
@@ -45,6 +44,11 @@ abstract class CommandList extends WtPopupMenu {
 		populate(items);
 	}
 
+	/**
+	 * Populate the menu.
+	 *
+	 * @param items menu items
+	 */
 	private void populate(final String[] items) {
 		ActionListener listener;
 		Icon adminIcon;
@@ -54,13 +58,32 @@ abstract class CommandList extends WtPopupMenu {
 		listener = new ActionSelectedCB();
 		adminIcon = new AdminIcon();
 
-		for (final String item : items) {
+		for (String item : items) {
+			// Comma separated list of commands, not a single command
+			if (item.indexOf(',') > 0) {
+				String[] sublist = item.split(",");
+				populate(sublist);
+				continue;
+			}
+
 			if (item.startsWith("(*)")) {
 				icon = adminIcon;
 				label = item.substring(3);
 			} else {
 				icon = null;
 				label = item;
+			}
+			/*
+			 * Deal with '|' definitions. (Coming from server side).
+			 * Before the break is the user representation, after it is the
+			 * usual representation of the actual command.
+			 *
+			 * That is, a teddy might have a menu item definition "Hug|Use".
+			 */
+			int breakPoint = label.indexOf('|');
+			if (breakPoint >= 0) {
+				label = item.substring(0, breakPoint);
+				item = item.substring(breakPoint + 1);
 			}
 
 			final JMenuItem mi = createItem(label, icon);
@@ -70,22 +93,15 @@ abstract class CommandList extends WtPopupMenu {
 		}
 	}
 
-	/** an action has been chosen. 
+	/** an action has been chosen.
 	 * @param command */
 	protected abstract void doAction(final String command);
-
-	//
-	//
 
 	/**
 	 * Handle action selection.
 	 */
 	private class ActionSelectedCB implements ActionListener {
-
-		//
-		// ActionListener
-		//
-
+		@Override
 		public void actionPerformed(final ActionEvent ev) {
 			doAction(ev.getActionCommand());
 		}
@@ -93,10 +109,10 @@ abstract class CommandList extends WtPopupMenu {
 
 	/**
 	 * A pretty icon to indicate an admin option.
-	 *  
+	 *
 	 * <p>
 	 * It looks something like:
-	 * 
+	 *
 	 * <pre>
 	 *      :
 	 *      :
@@ -108,15 +124,17 @@ abstract class CommandList extends WtPopupMenu {
 	 * </pre>
 	 */
 	private static class AdminIcon implements Icon {
-
+		@Override
 		public int getIconHeight() {
 			return 7;
 		}
 
+		@Override
 		public int getIconWidth() {
 			return 7;
 		}
 
+		@Override
 		public void paintIcon(final Component c, final Graphics g, final int x, final int y) {
 			Color oldColor;
 

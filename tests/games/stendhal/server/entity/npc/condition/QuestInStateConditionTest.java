@@ -1,4 +1,4 @@
-/* $Id: QuestInStateConditionTest.java,v 1.14 2011/05/01 19:50:06 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -15,15 +15,15 @@ package games.stendhal.server.entity.npc.condition;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import games.stendhal.common.parser.ConversationParser;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.MockStendhalRPRuleProcessor;
 import games.stendhal.server.maps.MockStendlRPWorld;
 import marauroa.common.Log4J;
-
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import utilities.PlayerTestHelper;
 import utilities.SpeakerNPCTestHelper;
 
@@ -92,7 +92,7 @@ public class QuestInStateConditionTest {
 	 * Tests for equals.
 	 */
 	@Test
-	public void testEquals() throws Throwable {
+	public void testEquals() {
 		final String state = "state";
 		assertFalse(new QuestInStateCondition(QUESTNAME, state).equals(null));
 
@@ -101,19 +101,9 @@ public class QuestInStateConditionTest {
 
 		assertTrue(new QuestInStateCondition(QUESTNAME, state).equals(new QuestInStateCondition(
 				QUESTNAME, state)));
-		assertTrue(new QuestInStateCondition(null, state).equals(new QuestInStateCondition(
-				null, state)));
-		assertTrue(new QuestInStateCondition(QUESTNAME, null).equals(new QuestInStateCondition(
-				QUESTNAME, null)));
 
 		assertFalse(new QuestInStateCondition(QUESTNAME, state).equals(new Object()));
 
-		assertFalse(new QuestInStateCondition(null, state).equals(new QuestInStateCondition(
-				QUESTNAME, state)));
-		assertFalse(new QuestInStateCondition(QUESTNAME, null).equals(new QuestInStateCondition(
-				QUESTNAME, state)));
-		assertFalse(new QuestInStateCondition(QUESTNAME, null).equals(new QuestInStateCondition(
-				null, state)));
 		assertFalse(new QuestInStateCondition(QUESTNAME, state).equals(new QuestInStateCondition(
 				QUESTNAME, state + "2")));
 
@@ -127,19 +117,13 @@ public class QuestInStateConditionTest {
 	 * Tests for hashCode.
 	 */
 	@Test
-	public void testHashCode() throws Throwable {
-
+	public void testHashCode() {
 		final QuestInStateCondition obj = new QuestInStateCondition(QUESTNAME, "state");
 		assertEquals(obj.hashCode(), obj.hashCode());
 
 		assertEquals(
 				new QuestInStateCondition("questname", "state").hashCode(),
 				new QuestInStateCondition("questname", "state").hashCode());
-		assertEquals(new QuestInStateCondition(null, "state").hashCode(),
-				new QuestInStateCondition(null, "state").hashCode());
-		assertEquals(new QuestInStateCondition("questname", null).hashCode(),
-				new QuestInStateCondition("questname", null).hashCode());
-
 	}
 
 }

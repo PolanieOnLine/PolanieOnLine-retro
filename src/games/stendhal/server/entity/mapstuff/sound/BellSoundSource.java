@@ -1,4 +1,4 @@
-/* $Id: BellSoundSource.java,v 1.4 2010/09/19 02:24:30 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +12,8 @@
  ***************************************************************************/
 package games.stendhal.server.entity.mapstuff.sound;
 
+import java.util.Calendar;
+
 import games.stendhal.common.MathHelper;
 import games.stendhal.common.constants.SoundLayer;
 import games.stendhal.server.core.engine.SingletonRepository;
@@ -19,8 +21,6 @@ import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.events.TurnListener;
 import games.stendhal.server.entity.PassiveEntity;
 import games.stendhal.server.events.SoundEvent;
-
-import java.util.Calendar;
 
 /**
  * A sound event generating object for the churches. Plays bell sound every half
@@ -33,27 +33,28 @@ public class BellSoundSource extends PassiveEntity implements TurnListener {
 	private static final int RADIUS = 70;
 	/** Volume of the sound */
 	private static final int VOLUME = 120;
-	
+
 	/** Time between bell playings in minutes. */
 	private static final int TIME_SLICE = MathHelper.MINUTES_IN_ONE_HOUR / 2;
-	
+
 	/** Time between individual bell sounds when playing */
 	private static final int TIME_BETWEEN_SOUNDS = 3;
-	
+
 	public BellSoundSource() {
 		/*
-		 * The client won't add anything but entities to the GameObjects. 
+		 * The client won't add anything but entities to the GameObjects.
 		 */
 		setRPClass("entity");
 		put("type", "entity");
 	}
-	
+
 	@Override
 	public void onAdded(StendhalRPZone zone) {
 		super.onAdded(zone);
 		startTimer();
 	}
 
+	@Override
 	public void onTurnReached(int currentTurn) {
 		Calendar now = Calendar.getInstance();
 		int minute = now.get(Calendar.MINUTE);
@@ -70,7 +71,7 @@ public class BellSoundSource extends PassiveEntity implements TurnListener {
 			new BellPlay(bongs);
 		}
 	}
-	
+
 	/**
 	 * Start the timer for the next playing.
 	 */
@@ -84,17 +85,17 @@ public class BellSoundSource extends PassiveEntity implements TurnListener {
 		int timeToNext = TIME_SLICE - (now.get(Calendar.MINUTE) % TIME_SLICE);
 		SingletonRepository.getTurnNotifier().notifyInSeconds(Math.max(1, timeToNext * MathHelper.SECONDS_IN_ONE_MINUTE), this);
 	}
-	
+
 	/**
 	 * A playing of bells.
 	 */
 	private class BellPlay implements TurnListener {
 		/** Remaining number of hitting the bell */
 		int times;
-		
+
 		/**
 		 * Create a new BellPlay.
-		 * 
+		 *
 		 * @param times number of times the bell should be played
 		 */
 		public BellPlay(int times) {
@@ -103,6 +104,7 @@ public class BellSoundSource extends PassiveEntity implements TurnListener {
 			onTurnReached(0);
 		}
 
+		@Override
 		public void onTurnReached(int currentTurn) {
 			playSound();
 			if (times > 0) {
@@ -112,7 +114,7 @@ public class BellSoundSource extends PassiveEntity implements TurnListener {
 				BellSoundSource.this.startTimer();
 			}
 		}
-		
+
 		/**
 		 * Create a sound event for one hit of the bell.
 		 */
@@ -122,12 +124,12 @@ public class BellSoundSource extends PassiveEntity implements TurnListener {
 			BellSoundSource.this.addEvent(event);
 			BellSoundSource.this.notifyWorldAboutChanges();
 		}
-		
+
 		/**
 		 * Start the internal timer.
 		 */
 		private void startTimer() {
-			SingletonRepository.getTurnNotifier().notifyInSeconds(TIME_BETWEEN_SOUNDS, this);	
+			SingletonRepository.getTurnNotifier().notifyInSeconds(TIME_BETWEEN_SOUNDS, this);
 		}
 	}
 }

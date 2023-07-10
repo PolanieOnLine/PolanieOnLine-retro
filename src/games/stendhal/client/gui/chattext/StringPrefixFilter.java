@@ -1,4 +1,4 @@
-/* $Id: StringPrefixFilter.java,v 1.3 2010/10/04 19:44:49 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,20 +12,18 @@
  ***************************************************************************/
 package games.stendhal.client.gui.chattext;
 
+import java.util.Locale;
+
 import games.stendhal.common.filter.CollectionFilter;
 import games.stendhal.common.filter.FilterCriteria;
-
-import java.util.Locale;
 
 class StringPrefixFilter extends CollectionFilter<String> {
 	public StringPrefixFilter(final String prefix) {
 		this.addFilterCriteria(new FilterCriteria<String>() {
-
+			@Override
 			public boolean passes(final String o) {
 				return prefix.length() > 0 && o.toLowerCase(Locale.ENGLISH).startsWith(prefix.toLowerCase(Locale.ENGLISH));
 			}
 		});
-		
 	}
-	
 }

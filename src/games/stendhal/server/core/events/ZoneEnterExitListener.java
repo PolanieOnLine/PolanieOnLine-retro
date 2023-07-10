@@ -1,4 +1,4 @@
-/* $Id: ZoneEnterExitListener.java,v 1.3 2010/09/19 02:22:51 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -18,7 +18,7 @@ import marauroa.common.game.RPObject;
 public interface ZoneEnterExitListener {
 	/**
 	 * Invoked when an entity enters the object area.
-	 * 
+	 *
 	 * @param object
 	 *            The object that entered.
 	 * @param zone
@@ -28,12 +28,12 @@ public interface ZoneEnterExitListener {
 
 	/**
 	 * Invoked when an entity leaves the object area.
-	 * 
+	 *
 	 * @param object
 	 *            The object that exited.
 	 * @param zone
 	 *            The zone that was exited.
-	 * 
+	 *
 	 */
 	void onExited(RPObject object, StendhalRPZone zone);
 

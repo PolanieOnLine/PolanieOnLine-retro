@@ -1,6 +1,5 @@
-/* $Id: FarmRaid.java,v 1.3 2010/09/19 02:36:26 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -17,7 +16,7 @@ import java.util.Map;
 
 /**
  * @author kymara
- * 
+ *
  * A raid safe for lowest level players
  */
 public class FarmRaid extends CreateRaid {
@@ -37,7 +36,7 @@ public class FarmRaid extends CreateRaid {
 		attackArmy.put("biały koń", 2);
 		return attackArmy;
 	}
-	
+
 	@Override
 	protected String getInfo() {
 		return "Rajd bezpieczny dla wojowników z niskim poziomem.";

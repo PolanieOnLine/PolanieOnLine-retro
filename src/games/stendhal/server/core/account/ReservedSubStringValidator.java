@@ -1,4 +1,4 @@
-/* $Id: ReservedSubStringValidator.java,v 1.8 2011/04/14 19:49:26 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -18,7 +18,7 @@ import marauroa.common.game.Result;
 
 /**
  * validates that reserved names (like admin) are not used as substrings.
- * 
+ *
  * @author hendrik
  */
 public class ReservedSubStringValidator implements AccountParameterValidator {
@@ -26,7 +26,7 @@ public class ReservedSubStringValidator implements AccountParameterValidator {
 
 	/**
 	 * creates a ReservedSubStringValidator.
-	 * 
+	 *
 	 * @param parameterValue
 	 *            value to validate
 	 */
@@ -34,6 +34,7 @@ public class ReservedSubStringValidator implements AccountParameterValidator {
 		this.parameterValue = parameterValue;
 	}
 
+	@Override
 	public Result validate() {
 		if (parameterValue.toLowerCase(Locale.ENGLISH).contains("admin")) {
 			return Result.FAILED_RESERVED_NAME;
@@ -117,6 +118,7 @@ public class ReservedSubStringValidator implements AccountParameterValidator {
 				|| (parameterValue.toLowerCase(Locale.ENGLISH).contains("kurew"))
 				|| (parameterValue.toLowerCase(Locale.ENGLISH).contains("skurw"))
 				|| (parameterValue.toLowerCase(Locale.ENGLISH).contains("suka"))
+				|| (parameterValue.toLowerCase(Locale.ENGLISH).contains("suke"))
 				|| (parameterValue.toLowerCase(Locale.ENGLISH).contains("suce"))
 				|| (parameterValue.toLowerCase(Locale.ENGLISH).contains("suki"))
 				|| (parameterValue.toLowerCase(Locale.ENGLISH).contains("suczk"))
@@ -124,6 +126,15 @@ public class ReservedSubStringValidator implements AccountParameterValidator {
 				|| (parameterValue.toLowerCase(Locale.ENGLISH).contains("szmat"))
 				|| (parameterValue.toLowerCase(Locale.ENGLISH).contains("pierda"))
 				|| (parameterValue.toLowerCase(Locale.ENGLISH).contains("pizd"))
+				|| (parameterValue.toLowerCase(Locale.ENGLISH).contains("peni"))
+				|| (parameterValue.toLowerCase(Locale.ENGLISH).contains("vagi"))
+				|| (parameterValue.toLowerCase(Locale.ENGLISH).contains("wagi"))
+				|| (parameterValue.toLowerCase(Locale.ENGLISH).contains("gej"))
+				|| (parameterValue.toLowerCase(Locale.ENGLISH).contains("gey"))
+				|| (parameterValue.toLowerCase(Locale.ENGLISH).contains("japier"))
+				|| (parameterValue.toLowerCase(Locale.ENGLISH).contains("lesb"))
+				|| (parameterValue.toLowerCase(Locale.ENGLISH).contains("lezb"))
+				|| (parameterValue.toLowerCase(Locale.ENGLISH).contains("cwe"))
 		) {
 			return Result.FAILED_RESERVED_NAME;
 		}

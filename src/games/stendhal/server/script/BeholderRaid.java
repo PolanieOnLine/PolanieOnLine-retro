@@ -1,4 +1,4 @@
-/* $Id: BeholderRaid.java,v 1.1 2011/01/02 10:23:05 kymara Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -17,7 +17,7 @@ import java.util.Map;
 
 /**
  * @author kymara
- * 
+ *
  * Not safe for players below level 10
  */
 public class BeholderRaid extends CreateRaid {
@@ -33,7 +33,7 @@ public class BeholderRaid extends CreateRaid {
 		attackArmy.put("żmija", 4);
 		return attackArmy;
 	}
-	
+
 	@Override
 	protected String getInfo() {
 		return "Nie jest bezpieczna dla wojowników poniżej 12 poziomu";

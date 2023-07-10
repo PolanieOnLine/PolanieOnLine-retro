@@ -13,13 +13,17 @@ package games.stendhal.server.core.engine.db;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+
+import games.stendhal.server.entity.player.Player;
 import marauroa.server.db.DBTransaction;
-import marauroa.server.db.TransactionPool;
 
 /**
  * database access for the redundant buddy table used on the website
@@ -27,39 +31,60 @@ import marauroa.server.db.TransactionPool;
 public class StendhalBuddyDAO {
 
 	/**
-	 * loads the buddy list for the specified charname
+	 * loads the relationship lists for the specified charname
 	 *
 	 * @param transaction DBTransaction
 	 * @param charname name of char
 	 * @return buddy list
 	 * @throws SQLException in case of an database error
 	 */
-	public Set<String> loadBuddyList(DBTransaction transaction, String charname) throws SQLException {
-		String query = "SELECT buddy FROM buddy WHERE charname='[charname]'";
+	public Multimap<String, String> loadRelations(DBTransaction transaction, String charname) throws SQLException {
+		HashMultimap<String, String> map = HashMultimap.create();
+		String query = "SELECT relationtype, buddy FROM buddy WHERE charname='[charname]'";
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("charname", charname);
 		ResultSet resultSet = transaction.query(query, params);
-		Set<String> res = new TreeSet<String>();
 		while (resultSet.next()) {
-			res.add(resultSet.getString(1));
+			map.put(resultSet.getString(1), resultSet.getString(2));
 		}
-		return res;
+		return map;
+	}
+
+
+	/**
+	 * checks whether a palyer is ignored by another player
+	 *
+	 * @param transaction DBTransaction
+	 *
+	 * @param character character whose ignore list is checked
+	 * @param candidate candidate who might have been ignored
+	 * @return true, if the player is ginored, false otherwise
+	 * @throws SQLException SQLException
+	 */
+	public boolean isIgnored(DBTransaction transaction, String character, String candidate) throws SQLException {
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("charname", character);
+		params.put("candidate", candidate);
+		int count = transaction.querySingleCellInt("SELECT count(*) FROM buddy WHERE charname='[charname]' AND buddy='[candidate]' AND relationtype='ignore'", params);
+		return count > 0;
 	}
 
 
 	/**
 	 * saves the buddy list for the specified charname
 	 *
+	 * @param transaction transaction
 	 * @param charname name of char
-	 * @param buddies buddy list
-	 * @throws SQLException 
+	 * @param player player
 	 * @throws SQLException in case of an database error
 	 */
-	public void saveBuddyList(DBTransaction transaction, String charname, Set<String> buddies) throws SQLException {
-		Set<String> oldList = loadBuddyList(transaction, charname);
-		Set<String> newList = buddies;
-		newList.add(charname);
-		syncBuddyListToDB(transaction, charname, oldList, newList);
+	public void saveRelations(DBTransaction transaction, String charname, Player player) throws SQLException {
+		Multimap<String, String> oldList = loadRelations(transaction, charname);
+
+		Set<String> buddies = player.getBuddies();
+		buddies.add(charname);
+		syncBuddyListToDB(transaction, charname, "buddy", oldList.get("buddy"), buddies);
+		syncBuddyListToDB(transaction, charname, "ignore", oldList.get("ignore"), player.getIgnores());
 	}
 
 
@@ -68,19 +93,21 @@ public class StendhalBuddyDAO {
 	 *
 	 * @param transaction DBTransaction
 	 * @param charname name of character
+	 * @param relationtype type of the relationship
 	 * @param oldList  old buddy list from db
 	 * @param newList  current buddy list
-	 * @throws SQLException 
+	 * @throws SQLException
 	 * @throws SQLException in case of an database error
 	 */
-	private void syncBuddyListToDB(DBTransaction transaction, String charname, Set<String> oldList, Set<String> newList) throws SQLException {
+	private void syncBuddyListToDB(DBTransaction transaction, String charname, String relationtype, Collection<String> oldList, Collection<String> newList) throws SQLException {
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("charname", charname);
+		params.put("relationtype", relationtype);
 
 		// add
 		Set<String> toAdd = new TreeSet<String>(newList);
 		toAdd.removeAll(oldList);
-		String query = "INSERT INTO buddy (charname, buddy) VALUES ('[charname]', '[buddy]')";
+		String query = "INSERT INTO buddy (charname, relationtype, buddy) VALUES ('[charname]', '[relationtype]', '[buddy]')";
 		for (String buddy : toAdd) {
 			params.put("buddy", buddy);
 			transaction.execute(query, params);
@@ -89,45 +116,12 @@ public class StendhalBuddyDAO {
 		// delete
 		Set<String> toDel = new TreeSet<String>(oldList);
 		toDel.removeAll(newList);
-		query = "DELETE FROM buddy WHERE charname='[charname]' AND buddy='[buddy]'";
+		query = "DELETE FROM buddy WHERE charname='[charname]' AND buddy='[buddy]' AND relationtype='[relationtype]'";
 		for (String buddy : toDel) {
 			params.put("buddy", buddy);
 			transaction.execute(query, params);
 		}
 	}
 
-
-	/**
-	 * loads the buddy list for the specified charname
-	 *
-	 * @param charname name of char
-	 * @return buddy list
-	 * @throws SQLException in case of an database error
-	 */
-	public Set<String> loadBuddyList(String charname) throws SQLException {
-		DBTransaction transaction = TransactionPool.get().beginWork();
-		try {
-			return loadBuddyList(transaction, charname);
-		} finally {
-			TransactionPool.get().commit(transaction);
-		}
-	}
-
-
-	/**
-	 * saves the buddy list for the specified charname
-	 *
-	 * @param charname name of char
-	 * @param buddies buddy list
-	 * @throws SQLException in case of an database error
-	 */
-	public void saveBuddyList(String charname, Set<String> buddies) throws SQLException {
-		DBTransaction transaction = TransactionPool.get().beginWork();
-		try {
-			saveBuddyList(transaction, charname, buddies);
-		} finally {
-			TransactionPool.get().commit(transaction);
-		}
-	}
 
 }

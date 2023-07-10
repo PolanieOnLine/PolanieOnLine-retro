@@ -1,4 +1,3 @@
-/* $Id: NPC2DView.java,v 1.31 2012/04/06 14:41:18 kiheru Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +11,10 @@
  ***************************************************************************/
 package games.stendhal.client.gui.j2d.entity;
 
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.log4j.Logger;
 
 import games.stendhal.client.OutfitStore;
 import games.stendhal.client.ZoneInfo;
@@ -21,36 +24,46 @@ import games.stendhal.client.entity.NPC;
 import games.stendhal.client.entity.RPEntity;
 import games.stendhal.client.entity.User;
 import games.stendhal.client.gui.OutfitColor;
+import games.stendhal.client.gui.j2d.entity.helpers.HorizontalAlignment;
+import games.stendhal.client.gui.j2d.entity.helpers.VerticalAlignment;
 import games.stendhal.client.gui.styled.cursor.StendhalCursor;
 import games.stendhal.client.sprite.Sprite;
 import games.stendhal.client.sprite.SpriteStore;
-
-import java.awt.Graphics2D;
-import java.util.List;
-
 import marauroa.common.game.RPAction;
-
-import org.apache.log4j.Logger;
 
 /**
  * The 2D view of an NPC.
- * 
+ *
  * @param <T> type of NPC
  */
 class NPC2DView<T extends NPC> extends RPEntity2DView<T> {
-	/**
-	 * Log4J.
-	 */
 	private static final Logger logger = Logger.getLogger(NPC2DView.class);
+	/**
+	 * The idea property changed.
+	 */
+	private volatile boolean ideaChanged = true;
+	/**
+	 * The current idea sprite.
+	 */
+	private Sprite ideaSprite;
 
+	private List<String> animatedSprites = Arrays.asList("love");
 
-	//
-	// RPEntity2DView
-	//
+	@Override
+	public void initialize(final T entity) {
+		super.initialize(entity);
+		if (entity.showTitle()) {
+			final String ename = entity.getName();
+			if (ename != null && ename.startsWith("Zekiel")) {
+				// Zekiel uses transparentnpc sprite but he is taller
+				titleDrawYOffset = -32;
+			}
+		}
+	}
 
 	/**
 	 * Get the full directional animation tile set for this entity.
-	 * 
+	 *
 	 * @return A tile sprite containing all animation images.
 	 */
 	@Override
@@ -58,43 +71,56 @@ class NPC2DView<T extends NPC> extends RPEntity2DView<T> {
 		final SpriteStore store = SpriteStore.get();
 		ZoneInfo info = ZoneInfo.get();
 
-		try {
-			final int code = ((RPEntity) entity).getOutfit();
+		Sprite sprite;
 
-			if (code != RPEntity.OUTFIT_UNSET) {
-				return OutfitStore.get().getAdjustedOutfit(code, OutfitColor.PLAIN,
-						info.getZoneColor(), info.getColorMethod());
+		try {
+			final RPEntity npc = entity;
+			final int code = npc.getOldOutfitCode();
+			final String strcode = npc.getExtOutfit();
+
+			final OutfitColor color = OutfitColor.get(npc.getRPObject());
+
+			if (strcode != null) {
+				sprite = OutfitStore.get().getAdjustedOutfit(strcode, color, info.getZoneColor(), info.getColorMethod());
+			} else if (code != RPEntity.OUTFIT_UNSET) {
+				final int body = code % 100;
+				final int dress = code / 100 % 100;
+				final int head = (int) (code / Math.pow(100, 2) % 100);
+				final int hair = (int) (code / Math.pow(100, 3) % 100);
+				final int detail = (int) (code / Math.pow(100, 4) % 100);
+
+				final StringBuilder sb = new StringBuilder();
+				sb.append("body=" + body);
+				sb.append(",dress=" + dress);
+				sb.append(",head=" + head);
+				sb.append(",hair=" + hair);
+				sb.append(",detail=" + detail);
+
+				sprite = OutfitStore.get().getAdjustedOutfit(sb.toString(), color, info.getZoneColor(),
+						info.getColorMethod());
 			} else {
 				// This NPC's outfit is read from a single file.
-				return store.getModifiedSprite(translate("npc/"
+				sprite = store.getModifiedSprite(translate("npc/"
 						+ entity.getEntityClass()), info.getZoneColor(),
 						info.getColorMethod());
 			}
 		} catch (final Exception e) {
 			logger.error("Cannot build animations", e);
-			return store.getModifiedSprite(translate(entity.getEntityClass()),
+			sprite = store.getModifiedSprite(translate(entity.getEntityClass()),
 					info.getZoneColor(), info.getColorMethod());
 		}
+
+		return addShadow(sprite);
 	}
 
-	//
-	// EntityChangeListener
-	//
-
-	/**
-	 * An entity was changed.
-	 * 
-	 * @param entity
-	 *            The entity that was changed.
-	 * @param property
-	 *            The property identifier.
-	 */
 	@Override
-	public void entityChanged(final T entity, final Object property) {
-		super.entityChanged(entity, property);
+	void entityChanged(final Object property) {
+		super.entityChanged(property);
 
 		if (property == IEntity.PROP_CLASS) {
 			representationChanged = true;
+		} else if (property == NPC.PROP_IDEA) {
+			ideaChanged = true;
 		}
 	}
 
@@ -109,22 +135,43 @@ class NPC2DView<T extends NPC> extends RPEntity2DView<T> {
 	}
 
 	/**
-	 * Draw the entity.
-	 * 
-	 * @param g2d
-	 *            The graphics to drawn on.
+	 * Handle updates.
 	 */
 	@Override
-	protected void drawTop(final Graphics2D g2d, final int x, final int y, final int width, final int height) {
-		super.drawTop(g2d, x, y, width, height);
+	protected void update() {
+		super.update();
 
-		if (entity.getIdea() != null) {
-			Sprite sprite = SpriteStore.get().getSprite("data/sprites/ideas/" + entity.getIdea() + ".png");
-			sprite.draw(g2d, x + (width * 3 / 4), y - 10);
+		if (ideaChanged) {
+			ideaChanged = false;
+			detachSprite(ideaSprite);
+			ideaSprite = getIdeaSprite();
+			if (ideaSprite != null) {
+				attachSprite(ideaSprite, HorizontalAlignment.RIGHT, VerticalAlignment.TOP, 8, -8);
+			}
+		}
+	}
+
+	/**
+	 * Get the appropriate idea sprite.
+	 *
+	 * @return The sprite representing the current idea, or null.
+	 */
+	private Sprite getIdeaSprite() {
+		final String idea = entity.getIdea();
+
+		if (idea == null) {
+			return null;
 		}
 
-		
+		final SpriteStore ss = SpriteStore.get();
+		Sprite ideaSprite = ss.getSprite("data/sprites/ideas/" + idea + ".png");
+		if (animatedSprites.contains(idea)) {
+			ideaSprite = ss.getAnimatedSprite(ideaSprite, 100);
+		}
+
+		return ideaSprite;
 	}
+
 	@Override
 	public void onAction(final ActionType at) {
 		switch (at) {
@@ -142,7 +189,7 @@ class NPC2DView<T extends NPC> extends RPEntity2DView<T> {
 	}
 
 	/**
-	 * gets the mouse cursor image to use for this entity
+	 * Gets the mouse cursor image to use for this entity.
 	 *
 	 * @return StendhalCursor
 	 */

@@ -1,4 +1,4 @@
-/* $Id: NonHealingBehaviour.java,v 1.1 2010/12/02 20:44:49 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -16,14 +16,16 @@ import games.stendhal.server.entity.creature.Creature;
 
 final class NonHealingBehaviour implements HealerBehavior {
 
-	
+
+	@Override
 	public void heal(final Creature creature) {
 		// does not heal;
 	}
 
+	@Override
 	public void init(final String healingProfile) {
 		// does not need init
-		
+
 	}
 
 }

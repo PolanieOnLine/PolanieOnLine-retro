@@ -1,6 +1,5 @@
-/* $Id: TheMissingBooks.java,v 1.6 2012/05/27 13:52:00 bluelads99 Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2012 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,7 +11,13 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.common.Rand;
+import games.stendhal.common.grammar.Grammar;
 import games.stendhal.common.parser.ConvCtxForMatchingSource;
 import games.stendhal.common.parser.ConversationParser;
 import games.stendhal.common.parser.Expression;
@@ -28,20 +33,15 @@ import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 /**
  * QUEST: Quest to get a recipe for a potion for Imorgen
  * <p>
- * 
- * PARTICIPANTS: 
+ *
+ * PARTICIPANTS:
  * <ul>
  * <li>Cameron</li>
  * </ul>
- * 
+ *
  * STEPS:
  * <ul>
  * <li> The librarian, Cameron, of Constantines Villa needs to find some books.</li>
@@ -51,26 +51,26 @@ import java.util.Map;
  * <li> He knows then that you found the book and that these aren't lost.</li>
  * <li> You'll reward you for your efforts.</li>
  * </ul>
- * 
+ *
  * REWARD:
  *  <ul>
  *  <li>A recipe which Imorgen needs for her potion</li>
  *  </ul>
- * 
- * REPETITIONS: 
+ *
+ * REPETITIONS:
  * <ul>
  * <li>no repetitions</li>
  * </ul>
- * 
+ *
  * @author storyteller and bluelads4
  */
-
 public class TheMissingBooks extends AbstractQuest {
 	private static final String QUEST_SLOT = "find_book";
+	private final SpeakerNPC npc = npcs.get("Cameron");
 
 	private static Map<String, String> quotes = new HashMap<String, String>();
 	static {
-		quotes.put("W głębokim morzu wokół wyspy Athor...", 
+		quotes.put("W głębokim morzu wokół wyspy Athor...",
 						"leży, głęboko ukryty pod piaskiem - potężny skarb Faiumoni.");
 		quotes.put("Jako potężny wojownik,...",
 						"wiesz na pewno, że do walki potrzebujesz potężnej zbroij.");
@@ -86,34 +86,13 @@ public class TheMissingBooks extends AbstractQuest {
 						"ciepły napój na zimę. Po jakimś czasie i skończonej pracy otrzymasz pyszne naleśniki z polewą czekoladową ");
 	}
 
-
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
-	@Override
-	public List<String> getHistory(final Player player) {
-		final List<String> res = new ArrayList<String>();
-		if (!player.hasQuest(QUEST_SLOT)) {
-			return res;
-		}
-		res.add("Spotkałem Cameron w Constantines Villa. Poprosił mnie abym znalazł dla niego cytat z książki.");
-		if (!player.isQuestCompleted(QUEST_SLOT)) {
-			res.add("To koniec tego cytatu ja muszę znaleść początek: " + player.getQuest(QUEST_SLOT) + ".");
-		} else {
-			res.add("Powiedziałem cytat do Cameron w zamian dostałem receptę, która może przydać się dla Imorgen.");
-		}
-		return res;
-	}
-
 	private void createRecipe() {
-		final SpeakerNPC npc = npcs.get("Cameron");
-
 		npc.add(ConversationStates.IDLE,
 			ConversationPhrases.GREETING_MESSAGES,
 			new GreetingMatchesNameCondition(npc.getName()), true,
 			ConversationStates.ATTENDING, null,
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					if (!player.hasQuest(QUEST_SLOT)) {
 						npc.say("Cześć, witaj w mojej małej biblotece! Widzę, że jesteś przyjacielem Constantina, inaczej jego ochrona nie puściła by ciebie. Myślę, że mogę tobie zaufać. Mógłbyś zrobić dla mnie małą #przysługę!");
@@ -131,6 +110,7 @@ public class TheMissingBooks extends AbstractQuest {
 			ConversationPhrases.QUEST_MESSAGES, null,
 			ConversationStates.QUEST_OFFERED, null,
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					if (player.isQuestCompleted(QUEST_SLOT)) {
 						npc.say("Dziąkuje bardzo jestem już szczęśliwy. Książka, którą znalazłeś jest jedną z najcenniejszych i leży tam.");
@@ -154,6 +134,7 @@ public class TheMissingBooks extends AbstractQuest {
 			ConversationPhrases.YES_MESSAGES, null,
 			ConversationStates.ATTENDING, null,
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					final String startsentence = Rand.rand(quotes.keySet());
 					npc.say("Proszę poszukaj książki, która zawiera cytat, zaczynający się od słów " + startsentence + ". Gdy ją znajdziesz powiedz mi dalszą część tego cytatu.");
@@ -174,15 +155,16 @@ public class TheMissingBooks extends AbstractQuest {
 		npc.addMatching(ConversationStates.QUESTION_2, Expression.JOKER, new JokerExprMatcher(), null,
 			ConversationStates.ATTENDING, null,
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					final String startsentence = player.getQuest(QUEST_SLOT);
 					final String quote = quotes.get(startsentence);
-					
+
 					final Sentence answer = sentence.parseAsMatchingSource();
 					final Sentence expected = ConversationParser.parse(quote, new ConvCtxForMatchingSource());
 
 					if (answer.matchesFull(expected)) {
-						npc.say("Super, znalazłeś ją! Jestem szczęśliwy, że jedna z siedmniu książek znalazła się. Proszę, oto nagroda za twój wysiłek. Myślę, że Imorgen będzie zadowolony z tej recepty. Strzeż jej to jest orginał.");
+						npc.say("Super, " + Grammar.genderVerb(player.getGender(), "znalazłeś") + " ją! Jestem szczęśliwy, że jedna z siedmniu książek znalazła się. Proszę, oto nagroda za twój wysiłek. Myślę, że Imorgen będzie zadowolony z tej recepty. Strzeż jej to jest orginał.");
 						final Item recipe = SingletonRepository.getEntityManager().getItem("recepta");
 						recipe.setBoundTo(player.getName());
 						player.equipOrPutOnGround(recipe);
@@ -190,10 +172,10 @@ public class TheMissingBooks extends AbstractQuest {
 						player.setQuest(QUEST_SLOT, "done");
 						player.notifyWorldAboutChanges();
 					} else if (ConversationPhrases.GOODBYE_MESSAGES.contains(sentence.getTriggerExpression().getNormalized())) {
-						npc.say("Czytasz...ech...zobaczymy się ponownie wkrótce!");
+						npc.say("Czytasz... ech... zobaczymy się ponownie wkrótce!");
 						npc.setCurrentState(ConversationStates.IDLE);
 					} else {
-						npc.say("Och, Nie posiadam książki z takim cytatem. Możliwe, że znalazłeś nie tą co trzeba. Proszę poszukaj tej prawdziwej i podaj mi cytat z niej.");
+						npc.say("Och, Nie posiadam książki z takim cytatem. Możliwe, że " + Grammar.genderVerb(player.getGender(), "znalazłeś") + " nie tą co trzeba. Proszę poszukaj tej prawdziwej i podaj mi cytat z niej.");
 						npc.setCurrentState(ConversationStates.IDLE);
 					}
 				}
@@ -202,20 +184,40 @@ public class TheMissingBooks extends AbstractQuest {
 
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
-				"Zagubione książki",
-				"Cameron, Biblotekarz w Constantines Villa, zgineło mu parę drogocennych książek.",
+				"Zagubione Książki",
+				"Cameron, Biblotekarz w Constantines Villa, zagineło mu parę drogocennych książek.",
 				false);
 		createRecipe();
 	}
+
+	@Override
+	public List<String> getHistory(final Player player) {
+		final List<String> res = new ArrayList<String>();
+		if (!player.hasQuest(QUEST_SLOT)) {
+			return res;
+		}
+		res.add(Grammar.genderVerb(player.getGender(), "Spotkałem") + " Cameron w Constantines Villa. Poprosił mnie abym " + Grammar.genderVerb(player.getGender(), "odnalazł") + " dla niego cytat z książki.");
+		if (!player.isQuestCompleted(QUEST_SLOT)) {
+			res.add("To koniec tego cytatu ja muszę znaleźć początek: " + player.getQuest(QUEST_SLOT) + ".");
+		} else {
+			res.add(Grammar.genderVerb(player.getGender(), "Powiedziałem") + " cytat do Cameron w zamian " + Grammar.genderVerb(player.getGender(), "dostałem") + " receptę, która może przydać się dla Imorgen.");
+		}
+		return res;
+	}
+
+	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
+	}
+
 	@Override
 	public String getName() {
-		return "TheMissingBooks";
-	
+		return "Zagubione Książki";
 	}
+
 	@Override
 	public String getNPCName() {
-		return "Cameron";
+		return npc.getName();
 	}
 }

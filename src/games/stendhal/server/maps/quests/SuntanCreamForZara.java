@@ -1,6 +1,5 @@
-/* $Id: SuntanCreamForZara.java,v 1.37 2012/04/20 17:39:19 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,6 +11,12 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
+import games.stendhal.common.grammar.Grammar;
 import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
@@ -24,6 +29,7 @@ import games.stendhal.server.entity.npc.action.MultipleActions;
 import games.stendhal.server.entity.npc.action.SetQuestAction;
 import games.stendhal.server.entity.npc.action.SetQuestAndModifyKarmaAction;
 import games.stendhal.server.entity.npc.condition.AndCondition;
+import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
 import games.stendhal.server.entity.npc.condition.NotCondition;
 import games.stendhal.server.entity.npc.condition.PlayerHasItemWithHimCondition;
 import games.stendhal.server.entity.npc.condition.QuestActiveCondition;
@@ -31,14 +37,8 @@ import games.stendhal.server.entity.npc.condition.QuestCompletedCondition;
 import games.stendhal.server.entity.npc.condition.QuestInStateCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotInStateCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotStartedCondition;
-import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.Region;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * QUEST: Suntan Cream for Zara
@@ -55,132 +55,95 @@ import java.util.List;
  * <p>
  * REWARD:
  * <li> 1000 XP
+ * <li> some karma (15)
  * <li> The key for a house in Ados where a personal chest with new slots is
  * inside
  * <p>
  * REPETITIONS: - None.
  */
 public class SuntanCreamForZara extends AbstractQuest {
-
 	private static final String QUEST_SLOT = "suntan_cream_zara";
-
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
-
-	@Override
-	public List<String> getHistory(final Player player) {
-		final List<String> res = new ArrayList<String>();
-		if (!player.hasQuest(QUEST_SLOT)) {
-			return res;
-		}
-		res.add("Spotkałem Zarę na wyspie Athor.");
-		final String questState = player.getQuest(QUEST_SLOT);
-		if (questState.equals("rejected")) {
-			res.add("Nie chcę pomagać Zarze. Może się spiec.");
-		}
-		if (questState.equals("start") ||  questState.equals("done")) {
-			res.add("Chcę pomóc Zarze w złagodzeniu opalenizny. Potrzebuję zdobyć suntan cream od ratowników.");
-		}
-		if ((player.isEquipped("olejek do opalania") && questState.equals("start"))
-				|| questState.equals("done")) {
-			res.add("Mam olejek do opalania.");
-		}
-		if (questState.equals("done")) {
-			res.add("Zabrałem olejek do Zary, a ona udostępniła mi klucz do swojego domu w północnej części miasta Ados. Powiedziała, że jest na końcu w niższym rzędzie.");
-		}
-		return res;
-	}
+	private final SpeakerNPC zara = npcs.get("Zara");
 
 	private void createRequestingStep() {
-		final SpeakerNPC zara = npcs.get("Zara");
+		zara.add(ConversationStates.ATTENDING,
+				ConversationPhrases.QUEST_MESSAGES,
+				new QuestCompletedCondition(QUEST_SLOT),
+				ConversationStates.ATTENDING,
+				"Nie mam nowego zadania dla ciebie. Ale dziękuję za krem do opalania. Czuję, że moja skóra ma się coraz lepiej!",
+				null);
 
 		zara.add(ConversationStates.ATTENDING,
-			ConversationPhrases.QUEST_MESSAGES, 
-			new QuestCompletedCondition(QUEST_SLOT),
-			ConversationStates.ATTENDING, 
-			"Nie mam nowego zadania dla ciebie. Ale dziękuję za krem do opalania. Czuję, że moja skóra ma się coraz lepiej!",
-			null);
-		
-		zara.add(ConversationStates.ATTENDING,
-				ConversationPhrases.QUEST_MESSAGES, 
+				ConversationPhrases.QUEST_MESSAGES,
 				new QuestInStateCondition(QUEST_SLOT, "rejected"),
-				ConversationStates.QUEST_OFFERED, 
-				"Ostatnio zgodziłeś się mi pomóc, a moja skóra ma się coraz gorzej. " 
+				ConversationStates.QUEST_OFFERED,
+				"Ostatnio zgodziłeś się mi pomóc, a moja skóra ma się coraz gorzej. "
 				+ "Proszę czy mógłbyś przynieść mi #'olejek do opalania', który #ratownicy produkują?",
 				null);
-		
+
 		zara.add(ConversationStates.ATTENDING,
-				ConversationPhrases.QUEST_MESSAGES, 
+				ConversationPhrases.QUEST_MESSAGES,
 				new QuestActiveCondition(QUEST_SLOT),
-				ConversationStates.ATTENDING, 
+				ConversationStates.ATTENDING,
 				"Zapomniałeś o obietnicy zapytania się #ratowników o #'olejek do opalania'?",
 				null);
-		
+
 		zara.add(ConversationStates.ATTENDING,
-				ConversationPhrases.QUEST_MESSAGES, 
+				ConversationPhrases.QUEST_MESSAGES,
 				new AndCondition(new QuestNotStartedCondition(QUEST_SLOT), new QuestNotInStateCondition(QUEST_SLOT, "rejected")),
-				ConversationStates.QUEST_OFFERED, 
+				ConversationStates.QUEST_OFFERED,
 				"Czuję się śpiąca na słońcu, a moja skóra jest teraz spalona. Czy możesz mi przynieść #'olejek do opalania' wyrabiany przez #ratowników?",
 				null);
 
 		zara.add(ConversationStates.QUEST_OFFERED,
-			ConversationPhrases.YES_MESSAGES, null,
-			ConversationStates.ATTENDING,
-			"Dziękuję bardzo. Będę czekać na twój powrót!",
-			new SetQuestAndModifyKarmaAction(QUEST_SLOT, "start", 5.0));
+				ConversationPhrases.YES_MESSAGES, null,
+				ConversationStates.ATTENDING,
+				"Dziękuję bardzo. Będę czekać na twój powrót!",
+				new SetQuestAndModifyKarmaAction(QUEST_SLOT, "start", 5.0));
 
 		zara.add(ConversationStates.QUEST_OFFERED,
-			ConversationPhrases.NO_MESSAGES, null,
-			ConversationStates.ATTENDING,
-			"Dobrze. Mam dla ciebie nagrodę...",
-			new SetQuestAndModifyKarmaAction(QUEST_SLOT, "rejected", -5.0));
+				ConversationPhrases.NO_MESSAGES, null,
+				ConversationStates.ATTENDING,
+				"Dobrze. Mam dla ciebie nagrodę...",
+				new SetQuestAndModifyKarmaAction(QUEST_SLOT, "rejected", -5.0));
 
-		zara.add(
-			ConversationStates.QUEST_OFFERED,
-			Arrays.asList("olejek do opalania", "suntan", "cream"),
-			null,
-			ConversationStates.QUEST_OFFERED,
-			"#Ratownicy robią wspaniały olejek do ochrony przed słońcem i leczący oparzenia w tym samym czasie. Zdobędziesz go dla mnie?",
-			null);
+		zara.add(ConversationStates.QUEST_OFFERED,
+				Arrays.asList("olejek do opalania", "suntan", "cream"),
+				null,
+				ConversationStates.QUEST_OFFERED,
+				"#Ratownicy robią wspaniały olejek do ochrony przed słońcem i leczący oparzenia w tym samym czasie. Zdobędziesz go dla mnie?",
+				null);
 
-		zara.add(
-			ConversationStates.QUEST_OFFERED,
-			Arrays.asList("lifeguard", "ratownik"),
-			null,
-			ConversationStates.QUEST_OFFERED,
-			"Ratownikami są Pam i David. Przebywają chyba w przebieralniach. Zapytasz się ich dla mnie?",
-			null);
+		zara.add(ConversationStates.QUEST_OFFERED,
+				Arrays.asList("lifeguard", "ratownik"),
+				null,
+				ConversationStates.QUEST_OFFERED,
+				"Ratownikami są Pam i David. Przebywają chyba w przebieralniach. Zapytasz się ich dla mnie?",
+				null);
 
-		zara.addReply(
-			Arrays.asList("olejek do opalania", "suntan", "cream"),
-			"#Ratownicy robią wspaniały olejek do ochrony przed słońcem i także leczący oparzenia w tym samym czasie.");
+		zara.addReply(Arrays.asList("olejek do opalania", "suntan", "cream"),
+				"#Ratownicy robią wspaniały olejek do ochrony przed słońcem i także leczący oparzenia w tym samym czasie.");
 
-		zara.addReply(
-			Arrays.asList("lifeguard", "ratowników", "ratownicy"),
-			"Ratownikami są Pam i David. Przebywają chyba w przebieralniach.");
-
+		zara.addReply(Arrays.asList("lifeguard", "ratowników", "ratownicy"),
+				"Ratownikami są Pam i David. Przebywają chyba w przebieralniach.");
 	}
 
 	private void createBringingStep() {
-		final SpeakerNPC zara = npcs.get("Zara");
-
 		zara.add(ConversationStates.IDLE,
-			ConversationPhrases.GREETING_MESSAGES,
-			new AndCondition(new GreetingMatchesNameCondition(zara.getName()),
-					new QuestInStateCondition(QUEST_SLOT, "start"),
-					new PlayerHasItemWithHimCondition("olejek do opalania")),
-			ConversationStates.QUEST_ITEM_BROUGHT, 
-			"Wspaniale! Dostałeś olejek! Jest dla mnie?",
-			null);
-		
+				ConversationPhrases.GREETING_MESSAGES,
+				new AndCondition(new GreetingMatchesNameCondition(zara.getName()),
+						new QuestInStateCondition(QUEST_SLOT, "start"),
+						new PlayerHasItemWithHimCondition("olejek do opalania")),
+				ConversationStates.QUEST_ITEM_BROUGHT,
+				"Wspaniale! Dostałeś olejek! Jest dla mnie?",
+				null);
+
 		zara.add(ConversationStates.IDLE,
 				ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new GreetingMatchesNameCondition(zara.getName()),
 						new QuestInStateCondition(QUEST_SLOT, "start"),
 						new NotCondition(new PlayerHasItemWithHimCondition("olejek do opalania"))),
-				ConversationStates.ATTENDING, 
+				ConversationStates.ATTENDING,
 				"Wiem, że #'olejek do opalania' jest trudno dostać, ale mam nadzieję, że nie zapomniałeś o moim problemie...",
 				null);
 
@@ -191,28 +154,26 @@ public class SuntanCreamForZara extends AbstractQuest {
 		reward.add(new SetQuestAction(QUEST_SLOT, "done"));
 		reward.add(new IncreaseKarmaAction(15));
 
-		zara.add(
-			ConversationStates.QUEST_ITEM_BROUGHT,
-			ConversationPhrases.YES_MESSAGES,
-			// make sure the player isn't cheating by putting the
-			// cream away and then saying "yes"
-			new PlayerHasItemWithHimCondition("olejek do opalania"),
-			ConversationStates.ATTENDING,
-			"Dziękuję! Czuję się lepiej! Weź ten klucz do mojego domu w Ados. Czuj się jak u siebie w domu tak długo jak tu będę!",
-			new MultipleActions(reward));
+		zara.add(ConversationStates.QUEST_ITEM_BROUGHT,
+				ConversationPhrases.YES_MESSAGES,
+				// make sure the player isn't cheating by putting the
+				// cream away and then saying "yes"
+				new PlayerHasItemWithHimCondition("olejek do opalania"),
+				ConversationStates.ATTENDING,
+				"Dziękuję! Czuję się lepiej! Weź ten klucz do mojego domu w Ados. Czuj się jak u siebie w domu tak długo jak tu będę!",
+				new MultipleActions(reward));
 
 		zara.add(ConversationStates.QUEST_ITEM_BROUGHT,
-			ConversationPhrases.NO_MESSAGES, null,
-			ConversationStates.ATTENDING,
-			"Nie? Spójrz na mnie! Nie mogę uwierzyć, że jesteś takim samolubem!",
-			null);
+				ConversationPhrases.NO_MESSAGES, null,
+				ConversationStates.ATTENDING,
+				"Nie? Spójrz na mnie! Nie mogę uwierzyć, że jesteś takim samolubem!",
+				null);
 	}
 
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
-				"Olejek do Opalania dla Zary",
+				"Olejek do Opalania",
 				"Zara spiekła się na gorącym Athorskim słońcu.",
 				false);
 		createRequestingStep();
@@ -220,11 +181,35 @@ public class SuntanCreamForZara extends AbstractQuest {
 	}
 
 	@Override
-	public String getName() {
-		return "SuntanCreamForZara";
+	public List<String> getHistory(final Player player) {
+		final List<String> res = new ArrayList<String>();
+		if (!player.hasQuest(QUEST_SLOT)) {
+			return res;
+		}
+		res.add(Grammar.genderVerb(player.getGender(), "Spotkałem") + " Zarę na wyspie Athor.");
+		final String questState = player.getQuest(QUEST_SLOT);
+		if (questState.equals("rejected")) {
+			res.add("Nie chcę pomagać Zarze. Może się spiec.");
+		}
+		if (questState.equals("start") ||  questState.equals("done")) {
+			res.add("Chcę pomóc Zarze w złagodzeniu opalenizny. Potrzebuję zdobyć olejek do opalania od ratowników.");
+		}
+		if (player.isEquipped("olejek do opalania") && questState.equals("start")
+				|| questState.equals("done")) {
+			res.add("Mam olejek do opalania.");
+		}
+		if (questState.equals("done")) {
+			res.add(Grammar.genderVerb(player.getGender(), "Zabrałem") + " olejek do Zary, a ona udostępniła mi klucz do swojego domku w północnej części miasta Ados. Powiedziała, że jest na końcu w niższym rzędzie.");
+		}
+		return res;
 	}
 
-		@Override
+	@Override
+	public String getName() {
+		return "Olejek do Opalania";
+	}
+
+	@Override
 	public int getMinLevel() {
 		return 50;
 	}
@@ -233,9 +218,14 @@ public class SuntanCreamForZara extends AbstractQuest {
 	public String getNPCName() {
 		return "Zara";
 	}
-	
+
 	@Override
 	public String getRegion() {
 		return Region.ATHOR_ISLAND;
+	}
+
+	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
 	}
 }

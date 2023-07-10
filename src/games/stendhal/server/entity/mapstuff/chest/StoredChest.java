@@ -1,4 +1,4 @@
-/* $Id: StoredChest.java,v 1.16 2011/07/10 09:32:37 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,25 +12,23 @@
  ***************************************************************************/
 package games.stendhal.server.entity.mapstuff.chest;
 
-import games.stendhal.common.grammar.Grammar;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.engine.transformer.ItemTransformer;
 import games.stendhal.server.core.events.TurnListener;
 import games.stendhal.server.entity.item.Item;
 import games.stendhal.server.entity.slot.ChestSlot;
-
-import java.util.LinkedList;
-import java.util.List;
-
 import marauroa.common.game.RPObject;
 import marauroa.common.game.RPSlot;
 
-import org.apache.log4j.Logger;
-
 /**
  * A Chest whose contents are stored by the zone.
- * 
+ *
  * @author kymara
  */
 public class StoredChest extends Chest {
@@ -39,7 +37,7 @@ public class StoredChest extends Chest {
 
 	/**
 	 * Creates a new StoredChest.
-	 * 
+	 *
 	 */
 	public StoredChest() {
 		super();
@@ -49,7 +47,7 @@ public class StoredChest extends Chest {
 	/**
 	 * Creates a StoredChest based on an existing RPObject. This is just for
 	 * loading a chest from the database, use the other constructors.
-	 * 
+	 *
 	 * @param rpobject
 	 */
 	public StoredChest(final RPObject rpobject) {
@@ -96,13 +94,13 @@ public class StoredChest extends Chest {
 
 			final RPSlot newSlot = new ChestSlot(this);
 			addSlot(newSlot);
-			
+
 			// Restore the stored items
 			ItemTransformer transformer = new ItemTransformer();
 			for (final RPObject rpobject : objects) {
 				try {
 					Item item = transformer.transform(rpobject);
-					
+
 					// log removed items
 					if (item == null) {
 						int quantity = 1;
@@ -125,24 +123,23 @@ public class StoredChest extends Chest {
 	}
 
 	@Override
-	public String getDescriptionName(final boolean definite) {
-		return Grammar.article_noun("chest in " + this.getZone().getName(), definite);
+	public String getDescriptionName() {
+		return "chest in " + this.getZone().getName();
 	}
 
 	/**
 	 * Checks if it should close the chest
-	 * 
+	 *
 	 * @return <code>true</code> if it should be called again.
 	 */
 	protected boolean chestCloser() {
-
 		if (getZone().getPlayers().size() > 0) {
 			// do nothing - people are still in the zone
-				return true;
+			return true;
 		} else {
 			// the zone is empty, close the chest
-				close();
-				notifyWorldAboutChanges();
+			close();
+			notifyWorldAboutChanges();
 		}
 		return false;
 	}
@@ -154,10 +151,11 @@ public class StoredChest extends Chest {
 	protected class ChestListener implements TurnListener {
 		/**
 		 * This method is called when the turn number is reached.
-		 * 
+		 *
 		 * @param currentTurn
 		 *            The current turn number.
 		 */
+		@Override
 		public void onTurnReached(final int currentTurn) {
 			StendhalRPZone zone = getZone();
 			if (zone != null) {

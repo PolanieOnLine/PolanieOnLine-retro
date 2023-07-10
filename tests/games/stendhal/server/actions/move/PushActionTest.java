@@ -12,6 +12,11 @@
 package games.stendhal.server.actions.move;
 
 import static org.junit.Assert.assertEquals;
+
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import games.stendhal.common.constants.Actions;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPRuleProcessor;
@@ -22,11 +27,6 @@ import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.MockStendhalRPRuleProcessor;
 import marauroa.common.game.RPAction;
 import marauroa.server.game.db.DatabaseFactory;
-
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import utilities.ZoneAndPlayerTestImpl;
 
 /**
@@ -47,7 +47,7 @@ public class PushActionTest extends ZoneAndPlayerTestImpl {
 		new DatabaseFactory().initializeDatabase();
 		ZoneAndPlayerTestImpl.setupZone(ZONE_NAME, false);
 	}
-	
+
 	@AfterClass
 	public static void resetWorld() {
 		StendhalRPRuleProcessor rp = SingletonRepository.getRuleProcessor();
@@ -55,10 +55,10 @@ public class PushActionTest extends ZoneAndPlayerTestImpl {
 			((MockStendhalRPRuleProcessor) rp).setTurn(0);
 		}
 	}
-	
+
 	/**
 	 * Test pushing another player.
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	@Test
 	public void testPush() throws Exception {
@@ -71,14 +71,14 @@ public class PushActionTest extends ZoneAndPlayerTestImpl {
 		pusher.setPosition(0, 0);
 		zone.add(pusher);
 
-		final Item item = SingletonRepository.getEntityManager().getItem("club");
+		final Item item = SingletonRepository.getEntityManager().getItem("maczuga");
 		zone.add(item);
 		item.setPosition(1, 1);
-		final Item item2 = SingletonRepository.getEntityManager().getItem("club");
+		final Item item2 = SingletonRepository.getEntityManager().getItem("maczuga");
 		zone.add(item2);
 		item2.setPosition(1, 1);
 		item2.setBoundTo("bob");
-		final Item item3 = SingletonRepository.getEntityManager().getItem("club");
+		final Item item3 = SingletonRepository.getEntityManager().getItem("maczuga");
 		zone.add(item3);
 		item3.setPosition(1, 1);
 		item3.setBoundTo("alice");
@@ -92,10 +92,10 @@ public class PushActionTest extends ZoneAndPlayerTestImpl {
 		// Out of breath... (turn is 0, and no time has passed)
 		assertEquals(1, pushed.getX());
 		assertEquals(1, pushed.getY());
-		assertEquals("Give yourself a breather before you start pushing again.",
+		assertEquals("Daj sobie chwilę oddechu przed następnym pchaniem.",
 				pusher.events().get(0).get("text"));
 		pusher.clearEvents();
-		
+
 		StendhalRPRuleProcessor rp = SingletonRepository.getRuleProcessor();
 		if (!(rp instanceof MockStendhalRPRuleProcessor)) {
 			throw new Exception("The test works only when using MockStendhalRPRuleProcessor");
@@ -106,18 +106,18 @@ public class PushActionTest extends ZoneAndPlayerTestImpl {
 		assertEquals(1, pushed.getX());
 		assertEquals(2, pushed.getY());
 		assertEquals(pusher.events().size(), 0);
-		
+
 		// Finally check item locations
 		assertEquals(1, item.getX());
 		assertEquals(2, item.getY());
-		
+
 		assertEquals(1, item2.getX());
 		assertEquals("item bound to pushed player; it should move", 2, item2.getY());
-		
+
 		assertEquals(1, item3.getX());
 		assertEquals("item bound to the pushing player, it should not move", 1, item3.getY());
 	}
-	
+
 	/**
 	 * Test pushing another player when not close enough
 	 */
@@ -150,7 +150,7 @@ public class PushActionTest extends ZoneAndPlayerTestImpl {
 	@Test
 	public void testPushTooLarge() {
 		final StendhalRPZone zone = SingletonRepository.getRPWorld().getZone(ZONE_NAME);
-		final Entity giant = SingletonRepository.getEntityManager().getCreature("green dragon");
+		final Entity giant = SingletonRepository.getEntityManager().getCreature("zielony smok");
 		giant.setPosition(1, 1);
 		zone.add(giant);
 
@@ -167,10 +167,10 @@ public class PushActionTest extends ZoneAndPlayerTestImpl {
 
 		assertEquals(1, giant.getX());
 		assertEquals(1, giant.getY());
-		assertEquals("You're strong, but not that strong!",
+		assertEquals("Jesteś silny, ale nie aż tak!",
 				pusher.events().get(0).get("text"));
 	}
-	
+
 	/**
 	 * Test pushing something too big
 	 */
@@ -180,7 +180,7 @@ public class PushActionTest extends ZoneAndPlayerTestImpl {
 		final Player pushed = createPlayer("bob");
 		pushed.setPosition(1, 1);
 		zone.add(pushed);
-		final Entity giant = SingletonRepository.getEntityManager().getCreature("green dragon");
+		final Entity giant = SingletonRepository.getEntityManager().getCreature("zielony smok");
 		giant.setPosition(1, 2);
 		zone.add(giant);
 

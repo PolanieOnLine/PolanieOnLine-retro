@@ -1,4 +1,4 @@
-/* $Id: Sprite.java,v 1.7 2010/11/09 19:29:52 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -25,7 +25,7 @@ public interface Sprite {
 	/**
 	 * Create a sub-region of this sprite. <strong>NOTE: This does not use
 	 * caching.</strong>
-	 * 
+	 *
 	 * @param x
 	 *            The starting X coordinate.
 	 * @param y
@@ -36,7 +36,7 @@ public interface Sprite {
 	 *            The region height.
 	 * @param ref
 	 *            The sprite reference.
-	 * 
+	 *
 	 * @return A new sprite.
 	 */
 	Sprite createRegion(final int x, final int y, final int width,
@@ -44,7 +44,7 @@ public interface Sprite {
 
 	/**
 	 * Draw the sprite onto the graphics context provided.
-	 * 
+	 *
 	 * @param g
 	 *            The graphics context on which to draw the sprite
 	 * @param x
@@ -56,7 +56,7 @@ public interface Sprite {
 
 	/**
 	 * Draws the image.
-	 * 
+	 *
 	 * @param g
 	 *            the graphics context where to draw to
 	 * @param destx
@@ -76,7 +76,7 @@ public interface Sprite {
 
 	/**
 	 * Get the height of the drawn sprite.
-	 * 
+	 *
 	 * @return The height in pixels of this sprite
 	 */
 	int getHeight();
@@ -85,7 +85,7 @@ public interface Sprite {
 	 * Get the sprite reference. This identifier is an externally opaque object
 	 * that implements equals() and hashCode() to uniquely/repeatably reference
 	 * a keyed sprite.
-	 * 
+	 *
 	 * @return The reference identifier, or <code>null</code> if not
 	 *         referencable.
 	 */
@@ -93,8 +93,17 @@ public interface Sprite {
 
 	/**
 	 * Get the width of the drawn sprite.
-	 * 
+	 *
 	 * @return The width in pixels of this sprite
 	 */
 	int getWidth();
+	/**
+	 * Check whether the sprite won't change between draws.
+	 *
+	 * @return <code>true</code> if different draws of the sprite always
+	 * have the same result.
+	 */
+	default boolean isConstant() {
+		return false;
+	}
 }

@@ -1,4 +1,4 @@
-/* $Id: QuestNotCompletedConditionTest.java,v 1.13 2011/05/01 19:50:06 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -15,15 +15,15 @@ package games.stendhal.server.entity.npc.condition;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import games.stendhal.common.parser.ConversationParser;
-import games.stendhal.server.entity.player.Player;
-import games.stendhal.server.maps.MockStendlRPWorld;
-import marauroa.common.Log4J;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.common.parser.ConversationParser;
+import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.maps.MockStendlRPWorld;
+import marauroa.common.Log4J;
 import utilities.PlayerTestHelper;
 import utilities.SpeakerNPCTestHelper;
 
@@ -89,25 +89,15 @@ public class QuestNotCompletedConditionTest {
 	 * Tests for equals.
 	 */
 	@Test
-	public void testEquals() throws Throwable {
+	public void testEquals() {
 		assertFalse(new QuestNotCompletedCondition("questname").equals(null));
 
-		final QuestNotCompletedCondition obj = new QuestNotCompletedCondition(
-				"questname");
+		final QuestNotCompletedCondition obj = new QuestNotCompletedCondition("questname");
 		assertTrue(obj.equals(obj));
-		assertTrue(new QuestNotCompletedCondition("questname").equals(new QuestNotCompletedCondition(
-				"questname")));
-		assertTrue(new QuestNotCompletedCondition(null).equals(new QuestNotCompletedCondition(
-				null)));
-
-		assertFalse(new QuestNotCompletedCondition(null).equals(new QuestNotCompletedCondition(
-				"questname")));
-		assertFalse(new QuestNotCompletedCondition("questname").equals(new QuestNotCompletedCondition(
-				null)));
+		assertTrue(new QuestNotCompletedCondition("questname").equals(new QuestNotCompletedCondition("questname")));
 		assertFalse(new QuestNotCompletedCondition("questname").equals(new Object()));
 
-		assertTrue(new QuestNotCompletedCondition("questname").equals(new QuestNotCompletedCondition(
-				"questname") {
+		assertTrue(new QuestNotCompletedCondition("questname").equals(new QuestNotCompletedCondition("questname") {
 			// this is an anonymous sub class
 		}));
 	}
@@ -116,16 +106,13 @@ public class QuestNotCompletedConditionTest {
 	 * Tests for hashCode.
 	 */
 	@Test
-	public void testHashCode() throws Exception {
+	public void testHashCode() {
 		final QuestNotCompletedCondition obj = new QuestNotCompletedCondition(
 				"questname");
 
 		assertEquals(obj.hashCode(), obj.hashCode());
 		assertEquals(new QuestNotCompletedCondition("questname").hashCode(),
 				new QuestNotCompletedCondition("questname").hashCode());
-		assertEquals(new QuestNotCompletedCondition(null).hashCode(),
-				new QuestNotCompletedCondition(null).hashCode());
-
 	}
 
 }

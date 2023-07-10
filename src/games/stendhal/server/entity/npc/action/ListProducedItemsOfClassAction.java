@@ -1,4 +1,4 @@
-/* $Id: ListProducedItemsOfClassAction.java,v 1.5 2012/09/09 12:19:56 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,6 +12,11 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.action;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import games.stendhal.common.grammar.Grammar;
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.annotations.Dev;
@@ -22,12 +27,6 @@ import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.npc.behaviour.journal.ProducerRegister;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.util.StringUtils;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Lists all items produced, which are of the given item class, as part of a message
@@ -52,10 +51,11 @@ public class ListProducedItemsOfClassAction implements ChatAction {
 	 *
 	 */
 	public ListProducedItemsOfClassAction(final String clazz, final String message) {
-		this.clazz = clazz;
-		this.message = message;
+		this.clazz = checkNotNull(clazz);
+		this.message = checkNotNull(message);
 	}
 
+	@Override
 	public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 		Map<String, String> substitutes = new HashMap<String, String>();
 		substitutes.put("items", Grammar.enumerateCollection(producerRegister.getProducedItemNames(clazz)));
@@ -70,13 +70,17 @@ public class ListProducedItemsOfClassAction implements ChatAction {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 5303 * (clazz.hashCode() + 5309 * message.hashCode());
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				ListProducedItemsOfClassAction.class);
+		if (!(obj instanceof ListProducedItemsOfClassAction)) {
+			return false;
+		}
+		ListProducedItemsOfClassAction other = (ListProducedItemsOfClassAction) obj;
+		return clazz.equals(other.clazz)
+			&& message.equals(other.message);
 	}
 
 }

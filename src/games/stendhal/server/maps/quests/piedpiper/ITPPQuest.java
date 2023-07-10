@@ -1,4 +1,4 @@
-/* $Id: ITPPQuest.java,v 1.4 2010/09/19 02:33:29 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -15,43 +15,50 @@ package games.stendhal.server.maps.quests.piedpiper;
 import java.util.List;
 
 public interface ITPPQuest extends ITPPQuestConstants {
-	
+
 	/**
-	 * function will change phase to next phase 
+	 * Function will change phase to next phase.
+	 *
+	 * @param nextPhase
+	 * @param comments
 	 */
 	void phaseToNextPhase(ITPPQuest nextPhase, List<String> comments);
-	
+
 	/**
 	 * function will reset quest state to default phase (INACTIVE).
+	 *
+	 * @param comments
 	 */
 	void phaseToDefaultPhase(List<String> comments);
-	
+
 	/**
-	 * function return shout message when quest going to next phase 
+	 * function return shout message when quest going to next phase
 	 * @return next phase message
 	 */
 	String getSwitchingToNextPhaseMessage();
-	
+
 	/**
 	 * function return shout message when quest going to default phase
 	 * @return default phase message
 	 */
 	String getSwitchingToDefPhaseMessage();
-	
+
 	/**
 	 * return minimal timeout period for quest phase
 	 * @return minimum timeout
 	 */
 	int getMinTimeOut();
-	
+
 	/**
 	 * return maximal timeout period for quest phase
 	 * @return maximum timeout
 	 */
 	int getMaxTimeOut();
-	
+
 	/**
-	 * return quest phase
+	 * Get the current phase.
+	 *
+	 * @return quest phase
 	 */
 	TPP_Phase getPhase();
 
@@ -60,4 +67,3 @@ public interface ITPPQuest extends ITPPQuestConstants {
 	 */
 	void prepare();
 }
-

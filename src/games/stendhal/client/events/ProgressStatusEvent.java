@@ -1,4 +1,4 @@
-/* $Id: ProgressStatusEvent.java,v 1.5 2011/08/16 19:10:47 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,17 +12,17 @@
  ***************************************************************************/
 package games.stendhal.client.events;
 
+import org.apache.log4j.Logger;
+
 import games.stendhal.client.entity.RPEntity;
 import games.stendhal.client.gui.progress.ProgressLogController;
-
-import org.apache.log4j.Logger;
 
 /**
  * adjust the quest progress view
  *
  * @author hendrik
  */
-public class ProgressStatusEvent extends Event<RPEntity> {
+class ProgressStatusEvent extends Event<RPEntity> {
 	private static Logger logger = Logger.getLogger(ProgressStatusEvent.class);
 
 	/**
@@ -34,7 +34,11 @@ public class ProgressStatusEvent extends Event<RPEntity> {
 			if (!event.has("progress_type")) {
 				ProgressLogController.get().showCategories(event.getList("data"));
 			} else if (!event.has("item")) {
-				ProgressLogController.get().showCategorySummary(event.get("progress_type"), event.getList("data"));
+				if (event.get("progress_type").equals("repeatable")) {
+					ProgressLogController.get().setRepeatable(event.getList("data"));
+				} else {
+					ProgressLogController.get().showCategorySummary(event.get("progress_type"), event.getList("data"));
+				}
 			} else {
 				ProgressLogController.get().showDescription(event.get("progress_type"), event.get("item"), event.get("description"), event.get("information"), event.getList("data"));
 			}

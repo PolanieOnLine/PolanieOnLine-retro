@@ -1,4 +1,4 @@
-/* $Id: GetOutfits.java,v 1.6 2011/05/01 19:50:06 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -26,30 +26,30 @@ import games.stendhal.server.entity.player.Player;
 
 class GetOutfits {
 	private final MarriageQuestInfo marriage;
-	
+
 	private final NPCList npcs = SingletonRepository.getNPCList();
-	private SpeakerNPC tam;
-	private SpeakerNPC tim;
-	
+
 	public GetOutfits(final MarriageQuestInfo marriage) {
 		this.marriage = marriage;
 	}
-	
+
 	private void getOutfitsStep() {
-		tam = npcs.get("Tamara");
+		SpeakerNPC tam = npcs.get("Tamara");
 		tam.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new GreetingMatchesNameCondition(tam.getName()),
 						new ChatCondition() {
+							@Override
 							public boolean fire(final Player player, final Sentence sentence, final Entity npc) {
 								return marriage.isEngaged(player);
 							}
-						}), 
+						}),
 				ConversationStates.ATTENDING,
 				"Witaj! Jeśli jesteś przyszłą Panną Młodą mogę ci #pomóc przygotować się do ślubu",
 				null);
 		tam.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new GreetingMatchesNameCondition(tam.getName()),
 						new ChatCondition() {
+							@Override
 							public boolean fire(final Player player, final Sentence sentence, final Entity npc) {
 								return !marriage.isEngaged(player);
 							}
@@ -58,10 +58,11 @@ class GetOutfits {
 				"Wybacz, nie mogę ci pomóc, bo jestem zajęta przygotowaniem innej przyszłej Panny Młodej!",
 				null);
 
-		tim = npcs.get("Timothy");
+		SpeakerNPC tim = npcs.get("Timothy");
 		tim.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new GreetingMatchesNameCondition(tim.getName()),
 					new ChatCondition() {
+						@Override
 						public boolean fire(final Player player, final Sentence sentence, final Entity npc) {
 							return marriage.isEngaged(player);
 						}
@@ -72,6 +73,7 @@ class GetOutfits {
 		tim.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
 				new AndCondition(new GreetingMatchesNameCondition(tim.getName()),
 					new ChatCondition() {
+						@Override
 						public boolean fire(final Player player, final Sentence sentence, final Entity npc) {
 							return !marriage.isEngaged(player);
 						}

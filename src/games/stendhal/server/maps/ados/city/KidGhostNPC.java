@@ -1,4 +1,3 @@
-/* $Id: KidGhostNPC.java,v 1.34 2011/05/01 19:50:07 martinfuchs Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -11,6 +10,11 @@
  *                                                                         *
  ***************************************************************************/
 package games.stendhal.server.maps.ados.city;
+
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.config.ZoneConfigurator;
@@ -25,47 +29,39 @@ import games.stendhal.server.entity.npc.SpeakerNPC;
 import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 /**
  * Builds a Ghost NPC.
  *
  * @author kymara
  */
 public class KidGhostNPC implements ZoneConfigurator {
-	//
-	// ZoneConfigurator
-	//
-
 	/**
 	 * Configure a zone.
 	 *
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
-		buildNPC(zone, attributes);
+		buildNPC(zone);
 	}
-	private void buildNPC(final StendhalRPZone zone, final Map<String, String> attributes) {
+	private void buildNPC(final StendhalRPZone zone) {
 		final SpeakerNPC ghost = new SpeakerNPC("Ben") {
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
 				nodes.add(new Node(34, 121));
-				nodes.add(new Node(24, 121));
-				nodes.add(new Node(24, 112));
-				nodes.add(new Node(13, 112));
-				nodes.add(new Node(13, 121));
-				nodes.add(new Node(6, 121));
-				nodes.add(new Node(6, 112));
-				nodes.add(new Node(13, 112));
-				nodes.add(new Node(13, 121));
-				nodes.add(new Node(24, 121));
-				nodes.add(new Node(24, 112));
-				nodes.add(new Node(34, 112));
+				nodes.add(new Node(23, 121));
+				nodes.add(new Node(23, 112));
+				nodes.add(new Node(17, 112));
+				nodes.add(new Node(17, 124));
+				nodes.add(new Node(5, 124));
+				nodes.add(new Node(5, 111));
+				nodes.add(new Node(17, 111));
+				nodes.add(new Node(17, 112));
+				nodes.add(new Node(35, 112));
+				nodes.add(new Node(35, 119));
+				nodes.add(new Node(23, 119));
 				setPath(new FixedPath(nodes, true));
 			}
 
@@ -77,6 +73,7 @@ public class KidGhostNPC implements ZoneConfigurator {
 			    	ConversationStates.IDLE,
 			    	null,
 			    	new ChatAction() {
+			    		@Override
 			    		public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 			    			if (!player.hasQuest("find_ghosts")) {
 			    				player.setQuest("find_ghosts", "looking:said");
@@ -120,6 +117,7 @@ public class KidGhostNPC implements ZoneConfigurator {
 		// He has low HP
 		ghost.initHP(30);
 		ghost.setBaseHP(100);
+		ghost.put("no_shadow", "");
 		zone.add(ghost);
 	}
 }

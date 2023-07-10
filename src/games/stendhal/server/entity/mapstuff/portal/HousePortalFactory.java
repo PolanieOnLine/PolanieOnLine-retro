@@ -1,4 +1,4 @@
-/* $Id: HousePortalFactory.java,v 1.2 2010/09/19 02:24:39 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -28,7 +28,7 @@ public class HousePortalFactory extends AccessCheckingPortalFactory {
 
 	/**
 	 * Extract the portal key's doorId from a context.
-	 * 
+	 *
 	 * @param ctx
 	 *            The configuration context.
 	 * @return The key doorId.
@@ -45,12 +45,12 @@ public class HousePortalFactory extends AccessCheckingPortalFactory {
 
 	/**
 	 * Create a stored keyed portal.
-	 * 
+	 *
 	 * @param ctx
 	 *            The configuration context.
-	 * 
+	 *
 	 * @return The portal.
-	 * 
+	 *
 	 * @throws IllegalArgumentException
 	 *             If the class attribute is missing.
 	 */

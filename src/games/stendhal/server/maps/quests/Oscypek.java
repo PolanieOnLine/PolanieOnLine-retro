@@ -1,6 +1,5 @@
-/* $Id: Oscypek.java,v 1.49 2011/12/11 14:25:23 Legolas Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -10,68 +9,48 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-// Based on few tasks. Zwracac uwage na zmiany w plikach o sprzedazy owcy, mrs.yeti(biega o czas)     
-
 package games.stendhal.server.maps.quests;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
+import games.stendhal.common.grammar.Grammar;
 import games.stendhal.common.parser.Sentence;
-import games.stendhal.server.core.engine.SingletonRepository; 
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.core.rp.StendhalRPAction;
-import games.stendhal.server.entity.RPEntity;
-import games.stendhal.server.entity.item.StackableItem;
-import games.stendhal.server.entity.item.Item;
-import games.stendhal.server.entity.creature.Pet;
+import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.creature.Sheep;
+import games.stendhal.server.entity.item.Item;
+import games.stendhal.server.entity.item.StackableItem;
 import games.stendhal.server.entity.npc.ChatAction;
 import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.action.DropItemAction;
-import games.stendhal.server.entity.npc.action.EquipItemAction;
-import games.stendhal.server.entity.npc.action.IncreaseKarmaAction;
-import games.stendhal.server.entity.npc.action.IncreaseXPAction;
-import games.stendhal.server.entity.npc.action.MultipleActions;
-import games.stendhal.server.entity.npc.action.SetQuestAction;
-import games.stendhal.server.entity.npc.action.SetQuestAndModifyKarmaAction;
 import games.stendhal.server.entity.npc.action.SayTimeRemainingAction;
+import games.stendhal.server.entity.npc.action.SetQuestAndModifyKarmaAction;
 import games.stendhal.server.entity.npc.condition.AndCondition;
 import games.stendhal.server.entity.npc.condition.NotCondition;
-import games.stendhal.server.entity.npc.condition.OrCondition;
 import games.stendhal.server.entity.npc.condition.PlayerHasItemWithHimCondition;
-import games.stendhal.server.entity.npc.condition.PlayerHasPetOrSheepCondition;
 import games.stendhal.server.entity.npc.condition.QuestCompletedCondition;
 import games.stendhal.server.entity.npc.condition.QuestInStateCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotStartedCondition;
 import games.stendhal.server.entity.npc.condition.QuestStateStartsWithCondition;
 import games.stendhal.server.entity.npc.condition.TimePassedCondition;
 import games.stendhal.server.entity.player.Player;
-import games.stendhal.server.maps.pol.zakopane.city.BacaZbyszekNPC;
-import games.stendhal.server.util.Area;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-
-import org.apache.log4j.Logger;
+import games.stendhal.server.maps.Region;
 
 public class Oscypek extends AbstractQuest {
-
 	private static final String QUEST_SLOT = "oscypek";
+	private final SpeakerNPC npc = npcs.get("Baca Zbyszek");
+
 	private static final int DELAY_IN_MINUTES = 60*3;
+
 	private static Logger logger = Logger.getLogger(Oscypek.class);
-  
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
 
 	private void step1() {
-		final SpeakerNPC npc = npcs.get("Baca Zbyszek");
-
 		npc.add(ConversationStates.ATTENDING,
 				ConversationPhrases.QUEST_MESSAGES,
 				new QuestNotStartedCondition(QUEST_SLOT),
@@ -101,11 +80,11 @@ public class Oscypek extends AbstractQuest {
 	}
 
 	private void step2() {
-		final SpeakerNPC npc = npcs.get("Baca Zbyszek");
 		npc.add(ConversationStates.ATTENDING, Arrays.asList("sheep", "owca"),
 				new QuestInStateCondition(QUEST_SLOT, "start"),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 						final Sheep sheep = player.getSheep();
 						if (sheep != null) {
@@ -116,13 +95,13 @@ public class Oscypek extends AbstractQuest {
 								npc.say("Ej, lichy z ciebie honielnik! Owca jeszcze nie jest dobrze wypasiona");
 								player.addKarma(-10);
 							} else {
-								npc.say("No! Takiego juhasa trza mi było. Teraz pora na jej dojenie. Gieletę, czyli wiaderko mam, ale biegnij za ten czas do Kościeliska. Jest tam #kowal #Jacek. U niego jest moja #puciera.");				
+								npc.say("No! Takiego juhasa trza mi było. Teraz pora na jej dojenie. Gieletę, czyli wiaderko mam, ale będę potrzebować czegoś co ma #kowal na Kościelisku.");
 								//sheep.getZone().remove(sheep);
 								player.removeSheep(sheep);
 								sheep.getZone().remove(sheep);
 								player.notifyWorldAboutChanges();
-								player.addKarma(10);
-								player.addXP(100);
+								player.addKarma(15);
+								player.addXP(500);
 								player.setQuest(QUEST_SLOT, "inter1");
 							}
 						} else {
@@ -134,12 +113,11 @@ public class Oscypek extends AbstractQuest {
 
 
 	private void interpretacion1() {
-		final SpeakerNPC npc = npcs.get("Baca Zbyszek");
-
-		npc.add(ConversationStates.ATTENDING, Arrays.asList("kowal jacek", "kowal Jacek"),
+		npc.add(ConversationStates.ATTENDING, Arrays.asList("kowal", "Jacek"),
 				new QuestInStateCondition(QUEST_SLOT, "inter1"),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					npc.say("U kowala Jacka jest moja #puciera. Wczoraj się oberwała i pogięła. Biegnij po nią wartko!");
 					player.setQuest(QUEST_SLOT, "puciera_make");
@@ -155,18 +133,19 @@ public class Oscypek extends AbstractQuest {
 
 
 	private void odbior1() {
-		final SpeakerNPC npc = npcs.get("Kowal Jacek");	
+		final SpeakerNPC npc = npcs.get("Kowal Jacek");
 
 		npc.add(ConversationStates.ATTENDING, "puciera",
 				new QuestInStateCondition(QUEST_SLOT, "puciera_make"),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 						final Item puciera = SingletonRepository.getEntityManager().getItem("puciera");
 						puciera.setBoundTo(player.getName());
 						player.equipOrPutOnGround(puciera);
 						player.addKarma(10);
-						player.addXP(100);
+						player.addXP(150);
 						npc.say("Witaj! Skończyłem go, zanieś wartko ten garniec do bacy");
 						player.setQuest(QUEST_SLOT, "puciera_done");
 					};
@@ -175,17 +154,16 @@ public class Oscypek extends AbstractQuest {
 
 
 	private void step3() {
-		final SpeakerNPC npc = npcs.get("Baca Zbyszek");
-
 		npc.add(ConversationStates.ATTENDING, "puciera",
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, "puciera_done"),
 				new PlayerHasItemWithHimCondition("puciera")),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					player.drop("puciera");
 					player.addKarma(10);
-					player.addXP(100);
+					player.addXP(150);
 					npc.say("Aleś długo szedł! O mało co mleko się nie popsuło! Leć jeszcze raz do Kościeliska. Na południe obok doliny Kościeliskiej mieszka #gaździna #Maryśka." +
 					" Jest u niej moja wyprana #grudziarka. Po drodze nazbieraj trochę drewna do rozpalenia watry!");
 					player.setQuest(QUEST_SLOT, "inter2");
@@ -200,22 +178,21 @@ public class Oscypek extends AbstractQuest {
 			null);
 
 		npc.add(
-				ConversationStates.ATTENDING,
-				ConversationPhrases.QUEST_MESSAGES,
-				new QuestInStateCondition(QUEST_SLOT, "puciera_done"),
-				ConversationStates.ATTENDING,
-				"Prosiłem Ciebie o przyniesienie puciery!",
-				null);
+			ConversationStates.ATTENDING,
+			ConversationPhrases.QUEST_MESSAGES,
+			new QuestInStateCondition(QUEST_SLOT, "puciera_done"),
+			ConversationStates.ATTENDING,
+			"Prosiłem Ciebie o przyniesienie puciery!",
+			null);
 	}
 
 
 	private void interpretacion2() {
-		final SpeakerNPC npc = npcs.get("Baca Zbyszek");
-
 		npc.add(ConversationStates.ATTENDING, "grudziarka",
 				new QuestInStateCondition(QUEST_SLOT, "inter2"),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					npc.say("To ścierka płócienna do przecedzania ściętego mleka. Dla lepszego smaku buncu i oscypków kładzie sie na niej gałązkę świerkową."
 				+ " Gaździna Maryśka miała mi ją uprać! Pośpiesz się!");
@@ -238,12 +215,13 @@ public class Oscypek extends AbstractQuest {
 				new QuestInStateCondition(QUEST_SLOT, "grudziarka_make"),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 						final Item grudziarka = SingletonRepository.getEntityManager().getItem("grudziarka");
 						grudziarka.setBoundTo(player.getName());
 						player.equipOrPutOnGround(grudziarka);
 						player.addKarma(10);
-						player.addXP(100);
+						player.addXP(150);
 						npc.say("Trzymaj, jest uprana więc jej nie upapraj!");
 						player.setQuest(QUEST_SLOT, "grudziarka_done");
 					};
@@ -252,17 +230,16 @@ public class Oscypek extends AbstractQuest {
 
 
 	private void step4() {
-		final SpeakerNPC npc = npcs.get("Baca Zbyszek");
-
 		npc.add(ConversationStates.ATTENDING, "grudziarka",
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, "grudziarka_done"),
 				new PlayerHasItemWithHimCondition("grudziarka")),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 						player.drop("grudziarka");
 						player.addKarma(10);
-						player.addXP(100);
+						player.addXP(150);
 						npc.say("Jesteś wreszcie! Dziękuję za grudziarkę. Teraz muszę przecedzić ścięte mleko i pucyć, czyli ugnieść oscypki w drewnianej formie. Potem będą się wędzić nad watrą. Masz #drewno?");
 						player.setQuest(QUEST_SLOT, "drewno");
 					};
@@ -276,27 +253,26 @@ public class Oscypek extends AbstractQuest {
 			null);
 
 		npc.add(ConversationStates.ATTENDING,
-				ConversationPhrases.QUEST_MESSAGES,
-				new QuestInStateCondition(QUEST_SLOT, "grudziarka_done"),
-				ConversationStates.ATTENDING,
-				"Prosiłem Ciebie o przyniesienie #grudziarki!",
-				null);
+			ConversationPhrases.QUEST_MESSAGES,
+			new QuestInStateCondition(QUEST_SLOT, "grudziarka_done"),
+			ConversationStates.ATTENDING,
+			"Prosiłem Ciebie o przyniesienie #grudziarki!",
+			null);
 	}
 
 
 	private void step5() {
-		final SpeakerNPC npc = npcs.get("Baca Zbyszek");
-
 		npc.add(ConversationStates.ATTENDING, Arrays.asList("polano", "drewno"),
 				new AndCondition(new QuestInStateCondition(QUEST_SLOT, "drewno"),
 				new PlayerHasItemWithHimCondition("polano")),
 				ConversationStates.ATTENDING, null,
 				new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					player.drop("polano");
 					player.addKarma(10);
 					player.addXP(100);
-					npc.say("Dziękuję. Wróć do mnie za kilka godzin, kiedy #oscypki będą gotowe."); 
+					npc.say("Dziękuję. Wróć do mnie za kilka godzin, kiedy #oscypki będą gotowe.");
 					player.setQuest(QUEST_SLOT, "oscypek;"+System.currentTimeMillis());
 				};
 		});
@@ -309,17 +285,15 @@ public class Oscypek extends AbstractQuest {
 			null);
 
 		npc.add(ConversationStates.ATTENDING,
-				ConversationPhrases.QUEST_MESSAGES,
-				new QuestInStateCondition(QUEST_SLOT, "drewno"),
-				ConversationStates.ATTENDING,
-				"Prosiłem Ciebie o przyniesienie #drewna!",
-				null);
+			ConversationPhrases.QUEST_MESSAGES,
+			new QuestInStateCondition(QUEST_SLOT, "drewno"),
+			ConversationStates.ATTENDING,
+			"Prosiłem Ciebie o przyniesienie #'drewna'!",
+			null);
 		}
 
 
 	private void step6() {
-		final SpeakerNPC npc = npcs.get("Baca Zbyszek");
-
 		final String extraTrigger = "oscypki";
 		List<String> questTrigger;
 		questTrigger = new LinkedList<String>(ConversationPhrases.QUEST_MESSAGES);
@@ -342,6 +316,7 @@ public class Oscypek extends AbstractQuest {
 			ConversationStates.ATTENDING,
 			"Dziękuję! Nadajesz się na juhasa! Oto twoja nagroda! Pyszne, wędzone oscypki i żyntyca, która została z cedzenia ściętego mleka! Smacznego!",
 			new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					final StackableItem oscypek = (StackableItem) SingletonRepository.getEntityManager().getItem("oscypek");
 					final StackableItem zyntyca = (StackableItem) SingletonRepository.getEntityManager().getItem("żyntyca");
@@ -351,7 +326,7 @@ public class Oscypek extends AbstractQuest {
 					zyntyca.setQuantity(zyntycaamount);
 					player.equipOrPutOnGround(oscypek);
 					player.equipOrPutOnGround(zyntyca);
-					player.addXP(5000);
+					player.addXP(6500);
 					player.addKarma(50);
 					player.setQuest(QUEST_SLOT, "done");
 				};
@@ -361,7 +336,6 @@ public class Oscypek extends AbstractQuest {
 
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
 			"Oscypek",
 			"Pomoc bacy Zbyszkowi w zrobieniu oscypka.",
@@ -386,8 +360,8 @@ public class Oscypek extends AbstractQuest {
 			return res;
 		}
 		final String questState = player.getQuest(QUEST_SLOT);
-		res.add("W Zakopanem spotkałem Bace Zbyszka.");
-		res.add("Zaproponował mi abym został jego juhasem. Mam pilnować aby owca miała 100 wagi.");
+		res.add("W Zakopanem " + Grammar.genderVerb(player.getGender(), "spotkałem") + " Bace Zbyszka.");
+		res.add("Zaproponował mi, abym " + Grammar.genderVerb(player.getGender(), "został") + " jego juhasem. Mam pilnować, aby owca miała 100 wagi.");
 		if ("rejected".equals(questState)) {
 			res.add("Nie mam ochoty pilnować owiec.");
 			return res;
@@ -419,16 +393,16 @@ public class Oscypek extends AbstractQuest {
 		if ("grudziarka_done".equals(questState)) {
 			return res;
 		}
-		res.add("Zaniosłem grudziarkę do Bacy Zbyszka. Mam mu jeszcze donieść drewna.");
+		res.add(Grammar.genderVerb(player.getGender(), "Zaniosłem") + " grudziarkę do Bacy Zbyszka. Mam mu jeszcze donieść drewna.");
 		if ("drewno".equals(questState)) {
 			return res;
 		}
-		res.add("Przyniosłem drewno. Baca zajoł się wyrabianiem oscypków.");
+		res.add(Grammar.genderVerb(player.getGender(), "Przyniosłem") + " drewno. Baca zajoł się wyrabianiem oscypków.");
 		if (questState.startsWith("oscypek")) {
 			if (new TimePassedCondition(QUEST_SLOT,1,DELAY_IN_MINUTES).fire(player, null, null)) {
 				res.add("Mam zgłosić się za 3 godziny do Bacy Zbyszka po nagrodę za moją pomoc.");
 				} else {
-				res.add("Dopiero za 3 godziny będę mógł odebrać ngrodę.");
+				res.add("Dopiero za 3 godziny będę " + Grammar.genderVerb(player.getGender(), "mógł") + " odebrać nagrodę.");
 			}
 			return res;
 		}
@@ -445,11 +419,22 @@ public class Oscypek extends AbstractQuest {
 	}
 
 	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
+	}
+
+	@Override
 	public String getName() {
 		return "Oscypek";
 	}
+
+	@Override
+	public String getRegion() {
+		return Region.ZAKOPANE_CITY;
+	}
+
 	@Override
 	public String getNPCName() {
-		return "Baca Zbyszek";
+		return npc.getName();
 	}
 }

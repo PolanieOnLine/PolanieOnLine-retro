@@ -1,6 +1,5 @@
-/* $Id: EmoteAction.java,v 1.9 2012/09/13 21:24:00 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2016 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -13,6 +12,7 @@
 package games.stendhal.server.actions.chat;
 
 import static games.stendhal.common.constants.Actions.TEXT;
+
 import games.stendhal.server.actions.ActionListener;
 import games.stendhal.server.actions.validator.StandardActionValidations;
 import games.stendhal.server.core.engine.GameEvent;
@@ -27,6 +27,7 @@ import marauroa.common.game.RPAction;
  */
 public class EmoteAction implements ActionListener {
 
+	@Override
 	public void onAction(final Player player, final RPAction action) {
 
 		if (!StandardActionValidations.CHAT.validateAndInformPlayer(player, action)) {
@@ -35,7 +36,7 @@ public class EmoteAction implements ActionListener {
 
 		//emote actions are treated as normal chat actions
 		//on the client side, !me is replaced with the name
-		final String text = "!me " + action.get(TEXT);
+		final String text = "!me " + QuoteSpecials.quote(action.get(TEXT));
 		player.put("text", text);
 
 		new GameEvent(player.getName(), "chat", null, Integer.toString(text.length()), text.substring(0, Math.min(text.length(), 1000))).raise();

@@ -11,9 +11,6 @@ import games.stendhal.server.entity.player.Player;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
-
 /**
  * Checks the current dark light phase.
  *
@@ -34,19 +31,23 @@ public class DarklightCondition implements ChatCondition {
 		this.darklightPhases = Arrays.asList(darklightPhases);
 	}
 
+	@Override
 	public boolean fire(final Player player, final Sentence sentence, final Entity npc) {
 		return darklightPhases.contains(DarklightPhase.current());
 	}
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return 43623 * darklightPhases.hashCode();
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, false,
-				DarklightCondition.class);
+		if (!(obj instanceof DarklightCondition)) {
+			return false;
+		}
+		DarklightCondition other = (DarklightCondition) obj;
+		return darklightPhases.equals(other.darklightPhases);
 	}
 
 }

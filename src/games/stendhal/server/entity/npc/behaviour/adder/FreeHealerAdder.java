@@ -1,4 +1,4 @@
-/* $Id: FreeHealerAdder.java,v 1.23 2011/06/19 19:46:42 kymara Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -13,6 +13,7 @@
 package games.stendhal.server.entity.npc.behaviour.adder;
 
 import games.stendhal.common.MathHelper;
+import games.stendhal.common.grammar.Grammar;
 import games.stendhal.common.grammar.ItemParserResult;
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.engine.SingletonRepository;
@@ -31,7 +32,7 @@ import java.util.Arrays;
 public class FreeHealerAdder {
 
     private final ServicersRegister servicersRegister = SingletonRepository.getServicersRegister();
-    
+
 	/**
 	 * Behaviour parse result in the current conversation.
 	 * Remark: There is only one conversation between a player and the NPC at any time.
@@ -48,7 +49,7 @@ public class FreeHealerAdder {
 	 *
 	 *<p>Players who have done PVP in the last 2 hours cannot be healed free,
 	 * unless they are very new to the game.
-	 * 
+	 *
 	 * @param npc
 	 *            SpeakerNPC
 	 * @param cost
@@ -59,6 +60,9 @@ public class FreeHealerAdder {
 		final HealerBehaviour healerBehaviour = new HealerBehaviour(cost);
 		servicersRegister.add(npc.getName(), healerBehaviour);
 
+		// Give attribute to healers
+		npc.put("job_healer", 0);
+
 		final Engine engine = npc.getEngine();
 
 		engine.add(ConversationStates.ATTENDING,
@@ -68,12 +72,13 @@ public class FreeHealerAdder {
 		engine.add(ConversationStates.ATTENDING, Arrays.asList("heal", "ulecz", "wylecz"), null,
 				false, ConversationStates.ATTENDING,
 				null, new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						ItemParserResult res = new ItemParserResult(true, "heal", 1, null);
 
 						int cost = healerBehaviour.getCharge(res, player);
 						currentBehavRes = res;
-						
+
 						String badboymsg = "";
 						if (player.isBadBoy()) {
 							cost = cost * 2;
@@ -107,7 +112,7 @@ public class FreeHealerAdder {
 								// (low atk, low def AND low level)
 								raiser.say("Przepraszam, ale Twoje ręce splamionę są krwią niewinnych. Nie mogę Ciebie uleczyć.");
 							} else {
-								raiser.say("Zostałeś uleczony. W czym jeszcze mogę pomóc?");
+								raiser.say(Grammar.genderVerb(player.getGender(), "Zostałeś") + " " + Grammar.genderVerb(player.getGender(), "uleczony") + ". W czym jeszcze mogę pomóc?");
 								healerBehaviour.heal(player);
 							}
 						}
@@ -119,6 +124,7 @@ public class FreeHealerAdder {
 				ConversationPhrases.YES_MESSAGES, null,
 				false, ConversationStates.ATTENDING,
 				null, new ChatAction() {
+					@Override
 					public void fire(final Player player, final Sentence sentence, final EventRaiser raiser) {
 						int cost = healerBehaviour.getCharge(currentBehavRes, player);
 						if (cost < 0) {
@@ -127,7 +133,7 @@ public class FreeHealerAdder {
 						if (player.drop("money",
 								cost)) {
 							healerBehaviour.heal(player);
-							raiser.say("Zostałeś uleczony. W czym jeszcze mogę pomóc?");
+							raiser.say(Grammar.genderVerb(player.getGender(), "Zostałeś") + " " + Grammar.genderVerb(player.getGender(), "uleczony") + ". W czym jeszcze mogę pomóc?");
 						} else {
 							raiser.say("Przepraszam, ale nie możesz sobie na to pozwolić.");
 						}

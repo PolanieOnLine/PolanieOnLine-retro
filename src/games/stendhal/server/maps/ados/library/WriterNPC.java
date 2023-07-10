@@ -1,3 +1,14 @@
+/***************************************************************************
+ *                   (C) Copyright 2003-2010 - Stendhal                    *
+ ***************************************************************************
+ ***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
 package games.stendhal.server.maps.ados.library;
 
 import java.util.Arrays;
@@ -16,21 +27,19 @@ public class WriterNPC implements ZoneConfigurator {
 
 	/**
 	 * Configure a zone.
-	 * 
+	 *
 	 * @param zone
 	 *            The zone to be configured.
 	 * @param attributes
 	 *            Configuration attributes.
 	 */
-	public void configureZone(final StendhalRPZone zone,
-			final Map<String, String> attributes) {
-		buildNPC(zone, attributes);
+	@Override
+	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
+		buildNPC(zone);
 	}
 
-	private void buildNPC(final StendhalRPZone zone,
-			final Map<String, String> attributes) {
+	private void buildNPC(final StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC(npc_name) {
-
 			@Override
 			protected void createPath() {
 				// setPath(null);
@@ -53,11 +62,10 @@ public class WriterNPC implements ZoneConfigurator {
 			}
 		};
 
+		npc.setDescription("Oto " + npc_name + ", znany francuski pisarz.");
 		npc.setEntityClass("writernpc");
-		npc.setDescription("Oto " + npc_name + " znany francuski pisarz.");
+		npc.setGender("M");
 		npc.setPosition(19, 3);
-		npc.initHP(100);
-
 		zone.add(npc);
 	}
 }

@@ -1,4 +1,3 @@
-/* $Id: YanNPC.java,v 1.8 2010/10/31 13:11:11 kymara Exp $ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,29 +11,21 @@
  ***************************************************************************/
 package games.stendhal.server.maps.athor.holiday_area;
 
+import java.util.Map;
+
 import games.stendhal.common.Direction;
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.entity.npc.SpeakerNPC;
 
-import java.util.Map;
-
 public class YanNPC implements ZoneConfigurator  {
-
-	public void configureZone(StendhalRPZone zone,
-			Map<String, String> attributes) {
+	@Override
+	public void configureZone(StendhalRPZone zone, Map<String, String> attributes) {
 		buildNPC(zone);
 	}
 
 	private void buildNPC(StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Yan") {
-
-			@Override
-			protected void createPath() {
-				// doesn't move
-				setPath(null);
-			}
-			
 			@Override
 			public void createDialog() {
 				addGreeting("Witaj nieznajomy!");
@@ -43,11 +34,13 @@ public class YanNPC implements ZoneConfigurator  {
 				addHelp("Bar z koktajlami jest otwarty! Poszukaj chatki ze słomką na dachu.");
 				addGoodbye("Do zobaczenia później!");
 			}
-
 		};
-		npc.setPosition(62, 72);
+
+		npc.setDescription ("Oto Yan. Wyleguje się na plaży i popija koktaile.");
 		npc.setEntityClass("swimmer4npc");
+		npc.setGender("M");
+		npc.setPosition(62, 72);
 		npc.setDirection(Direction.DOWN);
-		zone.add(npc);		
+		zone.add(npc);
 	}
 }

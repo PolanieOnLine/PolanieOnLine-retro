@@ -1,4 +1,4 @@
-/* $Id: DomesticAnimalMapObject.java,v 1.5 2012/06/30 12:45:23 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,30 +12,31 @@
  ***************************************************************************/
 package games.stendhal.client.gui.map;
 
-import games.stendhal.client.entity.DomesticAnimal;
-import games.stendhal.client.entity.User;
-
 import java.awt.Color;
 import java.awt.Graphics;
 
-public class DomesticAnimalMapObject extends MovingMapObject {
+import games.stendhal.client.entity.DomesticAnimal;
+import games.stendhal.client.entity.User;
+
+class DomesticAnimalMapObject extends MovingMapObject {
 	private static final Color COLOR_DOMESTIC_ANIMAL = new Color(255, 150, 0);
-	
+
 	private DomesticAnimal domesticanimal;
-	protected Color drawColor;
-	
-	public DomesticAnimalMapObject(final DomesticAnimal domesticanimal) {
+	private Color drawColor;
+
+	DomesticAnimalMapObject(final DomesticAnimal domesticanimal) {
 		super(domesticanimal);
 		this.domesticanimal = domesticanimal;
 		drawColor = COLOR_DOMESTIC_ANIMAL;
 	}
-	
+
 	@Override
-	public void draw(final Graphics g, final int scale) {
+	void draw(final Graphics g, final int scale) {
 		// we check this here rather than in the MapPanel so that any changes to the user are refreshed (e.g. disowning pet)
 		User user = User.get();
 		if ((user != null) && ((user.hasPet() && user.getPetID() == domesticanimal.getObjectID())
-				|| (user.hasSheep() && user.getSheepID() == domesticanimal.getObjectID()))) {
+				|| (user.hasSheep() && user.getSheepID() == domesticanimal.getObjectID())
+				|| (user.hasGoat() && user.getGoatID() == domesticanimal.getObjectID()))) {
 			draw(g, scale, drawColor);
 		}
 	}

@@ -1,4 +1,4 @@
-/* $Id: PlayerTestHelperTest.java,v 1.4 2010/09/19 01:29:04 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -13,12 +13,13 @@
 package utilities;
 
 import static org.junit.Assert.assertTrue;
-import games.stendhal.server.entity.player.Player;
-import marauroa.common.game.RPObject;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import games.stendhal.server.entity.player.Player;
+import marauroa.common.game.RPObject;
 
 public class PlayerTestHelperTest {
 
@@ -35,22 +36,25 @@ public class PlayerTestHelperTest {
 		PlayerTestHelper.generatePlayerRPClasses();
 		final Player bob = new Player(new RPObject());
 		PlayerTestHelper.addEmptySlots(bob);
-		
+
 		assertTrue(bob.hasSlot("bag"));
 		assertTrue(bob.hasSlot("lhand"));
 		assertTrue(bob.hasSlot("rhand"));
-		assertTrue(bob.hasSlot("armor"));
+		assertTrue(bob.hasSlot("neck"));
 		assertTrue(bob.hasSlot("head"));
+		assertTrue(bob.hasSlot("armor"));
 		assertTrue(bob.hasSlot("legs"));
 		assertTrue(bob.hasSlot("feet"));
 		assertTrue(bob.hasSlot("finger"));
+		assertTrue(bob.hasSlot("fingerb"));
+		assertTrue(bob.hasSlot("glove"));
 		assertTrue(bob.hasSlot("cloak"));
+		assertTrue(bob.hasSlot("pas"));
 		assertTrue(bob.hasSlot("keyring"));
+		assertTrue(bob.hasSlot("pouch"));
 		assertTrue(bob.hasSlot("!quests"));
 		assertTrue(bob.hasSlot("!kills"));
 		assertTrue(bob.hasSlot("!tutorial"));
 		assertTrue(bob.hasSlot("!visited"));
-
 	}
-
 }

@@ -1,4 +1,4 @@
-/* $Id: HungryJoshuaTest.java,v 1.8 2010/10/31 16:38:42 kymara Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -19,39 +19,45 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static utilities.SpeakerNPCTestHelper.getReply;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.entity.item.Item;
-import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.fsm.Engine;
-import games.stendhal.server.entity.player.Player;
-import games.stendhal.server.maps.MockStendlRPWorld;
-import games.stendhal.server.maps.ados.goldsmith.GoldsmithNPC;
-import games.stendhal.server.maps.semos.blacksmith.BlacksmithNPC;
+
+import java.util.Arrays;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import games.stendhal.server.core.engine.SingletonRepository;
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.entity.item.Item;
+import games.stendhal.server.entity.npc.SpeakerNPC;
+import games.stendhal.server.entity.npc.behaviour.impl.ProducerBehaviour;
+import games.stendhal.server.entity.npc.fsm.Engine;
+import games.stendhal.server.entity.player.Player;
+import games.stendhal.server.maps.MockStendlRPWorld;
+import games.stendhal.server.maps.ados.goldsmith.GoldsmithNPC;
+import games.stendhal.server.maps.semos.blacksmith.BlacksmithNPC;
 import utilities.PlayerTestHelper;
 import utilities.QuestHelper;
 import utilities.RPClass.ItemTestHelper;
 
 public class HungryJoshuaTest {
-
-
 	private static String questSlot = "hungry_joshua";
-	
+
 	private Player player = null;
 	private SpeakerNPC npc = null;
 	private Engine en = null;
+
+	private static String xoderos_greet = "Witaj! Przykro mi to mówić, ale z powodu trwającej wojny nie wolno mi sprzedawać broni nikomu spoza grona oficjalnych wojskowych. Mogę odlać dla Ciebie żelazo, a może interesuję Cię moja #oferta specjalna? Powiedz tylko #odlej.";
+	private static String joshua_greet = "Cześć! Jestem tutejszym złotnikiem. Jeżeli będziesz chciał, abym odlał dla Ciebie #sztabkę #złota to daj znać! Wystarczy, że powiesz #odlej.";
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		QuestHelper.setUpBeforeClass();
 
 		MockStendlRPWorld.get();
-		
+
 		final StendhalRPZone zone = new StendhalRPZone("admin_test");
 
 		new GoldsmithNPC().configureZone(zone, null);
@@ -64,6 +70,14 @@ public class HungryJoshuaTest {
 	@Before
 	public void setUp() {
 		player = PlayerTestHelper.createPlayer("player");
+
+		final Map<String, Integer> requiredResources = new TreeMap<String, Integer>();
+		requiredResources.put("ser", 1);
+
+		SingletonRepository.getProducerRegister().configureNPC(
+			"Xoderos", new ProducerBehaviour("xoderos_test", Arrays.asList("cast"), "ser", requiredResources, 0), xoderos_greet);
+		SingletonRepository.getProducerRegister().configureNPC(
+			"Joshua", new ProducerBehaviour("joshua_cast_gold", Arrays.asList("cast"), "sztabka złota", requiredResources, 0), joshua_greet);
 	}
 
 	/**
@@ -71,38 +85,38 @@ public class HungryJoshuaTest {
 	 */
 	@Test
 	public void testQuest() {
-		
+
 		npc = SingletonRepository.getNPCList().get("Xoderos");
 		en = npc.getEngine();
 
 		en.step(player, "hi");
-		assertEquals("Greetings. I am sorry to tell you that, because of the war, I am not allowed to sell you any weapons. However, I can #cast iron for you. I can also #offer you tools.", getReply(npc));
+		assertEquals("Witaj! Przykro mi to mówić, ale z powodu trwającej wojny nie wolno mi sprzedawać broni nikomu spoza grona oficjalnych wojskowych. Mogę odlać dla Ciebie żelazo, a może interesuję Cię moja #oferta specjalna? Powiedz tylko #odlej.", getReply(npc));
 		en.step(player, "task");
-		assertEquals("I'm worried about my brother who lives in Ados. I need someone to take some #food to him.", getReply(npc));
+		assertEquals("Martwię się o mojego brata, który mieszka w Ados. Potrzebuję kogoś kto przekaże mu #jedzenie.", getReply(npc));
 		en.step(player, "food");
-		assertEquals("I think five sandwiches would be enough. My brother is called #Joshua. Can you help?", getReply(npc));
+		assertEquals("Sądzę, że pięć kanapek mu wystarczy. Mój brat nazywa się #Joshua. Czy możesz pomóc?", getReply(npc));
 		en.step(player, "joshua");
-		assertEquals("He's the goldsmith in Ados. They're so short of supplies. Will you help?", getReply(npc));
+		assertEquals("Jest złotnikiem w Ados. Nie mają tam zapasów jedzenia. Pomożesz mu?", getReply(npc));
 		en.step(player, "yes");
-		assertEquals("Thank you. Please tell him #food or #sandwich so he knows you're not just a customer.", getReply(npc));
+		assertEquals("Dziękuję. Powiedz mu #jedzenie lub #kanapka to będzie wiedział, że nie jesteś tylko klientem.", getReply(npc));
 		assertThat(player.getQuest(questSlot), is("start"));
 		en.step(player, "food");
-		assertEquals("#Joshua will be getting hungry! Please hurry!", getReply(npc));
+		assertEquals("#Joshua będzie coraz głodniejszy! Proszę pospiesz się!", getReply(npc));
 		en.step(player, "joshua");
-		assertEquals("My brother, the goldsmith in Ados.", getReply(npc));
+		assertEquals("Mój brat jest złotnikiem w Ados.", getReply(npc));
 		en.step(player, "bye");
-		assertEquals("Bye.", getReply(npc));
+		assertEquals("Do widzenia.", getReply(npc));
 
 		// -----------------------------------------------
 
 		en.step(player, "hi");
-		assertEquals("Greetings. I am sorry to tell you that, because of the war, I am not allowed to sell you any weapons. However, I can #cast iron for you. I can also #offer you tools.", getReply(npc));
+		assertEquals("Witaj! Przykro mi to mówić, ale z powodu trwającej wojny nie wolno mi sprzedawać broni nikomu spoza grona oficjalnych wojskowych. Mogę odlać dla Ciebie żelazo, a może interesuję Cię moja #oferta specjalna? Powiedz tylko #odlej.", getReply(npc));
 		en.step(player, "task");
-		assertEquals("Please don't forget the five #sandwiches for #Joshua!", getReply(npc));
+		assertEquals("Proszę nie zapomnij o pięciu #kanapkach dla #Joshua!", getReply(npc));
 		en.step(player, "sandwiches");
-		assertEquals("#Joshua will be getting hungry! Please hurry!", getReply(npc));
+		assertEquals("#Joshua będzie coraz głodniejszy! Proszę pospiesz się!", getReply(npc));
 		en.step(player, "bye");
-		assertEquals("Bye.", getReply(npc));
+		assertEquals("Do widzenia.", getReply(npc));
 
 		// -----------------------------------------------
 
@@ -113,41 +127,41 @@ public class HungryJoshuaTest {
 		// -----------------------------------------------
 		npc = SingletonRepository.getNPCList().get("Joshua");
 		en = npc.getEngine();
-		
-		Item item = ItemTestHelper.createItem("sandwich", 5);
+
+		Item item = ItemTestHelper.createItem("kanapka", 5);
 		player.getSlot("bag").add(item);
 		final int xp = player.getXP();
-		
+
 		en.step(player, "hi");
-		assertEquals("Hi! I'm the local goldsmith. If you require me to #cast you a #'gold bar' just tell me!", getReply(npc));
+		assertEquals(joshua_greet, getReply(npc));
 		en.step(player, "food");
-		assertEquals("Oh great! Did my brother Xoderos send you with those sandwiches?", getReply(npc));
+		assertEquals("Och wspaniale! Czy mój brat Xoderos przysłał Ciebie z tymi kanapkami?", getReply(npc));
 		en.step(player, "yes");
 		// [07:28] kymara earns 150 experience points.
-		assertEquals("Thank you! Please let Xoderos know that I am fine. Say my name, Joshua, so he knows that you saw me. He will probably give you something in return.", getReply(npc));
-		assertFalse(player.isEquipped("sandwich"));
+		assertEquals("Dziękuję! Proszę daj znać Xoderosowi, że ze mną jest wszystko w porządku. Powiedz moje imię Joshua, a będzie wiedział, że ja Ciebie przysłałem. Prawdopodobnie da ci coś w zamian.", getReply(npc));
+		assertFalse(player.isEquipped("kanapka"));
 		assertThat(player.getXP(), greaterThan(xp));
 		assertThat(player.getQuest(questSlot), is("joshua"));
 		en.step(player, "bye");
-		assertEquals("Bye.", getReply(npc));
+		assertEquals("Do widzenia.", getReply(npc));
 
 		// -----------------------------------------------
 		npc = SingletonRepository.getNPCList().get("Xoderos");
 		en = npc.getEngine();
 		final int xp2 = player.getXP();
-		
+
 		en.step(player, "hi");
-		assertEquals("Greetings. I am sorry to tell you that, because of the war, I am not allowed to sell you any weapons. However, I can #cast iron for you. I can also #offer you tools.", getReply(npc));
+		assertEquals("Witaj! Przykro mi to mówić, ale z powodu trwającej wojny nie wolno mi sprzedawać broni nikomu spoza grona oficjalnych wojskowych. Mogę odlać dla Ciebie żelazo, a może interesuję Cię moja #oferta specjalna? Powiedz tylko #odlej.", getReply(npc));
 		en.step(player, "task");
-		assertEquals("I do hope #Joshua is well ....", getReply(npc));
+		assertEquals("Mam nadzieję, że #Joshua ma się dobrze...", getReply(npc));
 		en.step(player, "food");
-		assertEquals("I wish you could confirm for me that #Joshua is fine ...", getReply(npc));
+		assertEquals("Chciałbym, abyś mi przekazał, że #Joshua ma się dobrze...", getReply(npc));
 		en.step(player, "joshua");
 		// [07:29] kymara earns 50 experience points.
-		assertEquals("I'm glad Joshua is well. Now, what can I do for you? I know, I'll fix that broken key ring that you're carrying ... there, it should work now!", getReply(npc));
+		assertEquals("Jestem wdzięczny, że Joshua ma się dobrze. Co mogę dla Ciebie zrobić? Wiem. Naprawię to uszkodzone kółko od kluczy, które nosisz ... proszę, powinno już działać!", getReply(npc));
 		assertThat(player.getXP(), greaterThan(xp2));
 		assertTrue(player.isQuestCompleted(questSlot));
 		en.step(player, "bye");
-		assertEquals("Bye.", getReply(npc));
+		assertEquals("Do widzenia.", getReply(npc));
 	}
 }

@@ -1,4 +1,4 @@
-/* $Id: StringPrefixFilterTest.java,v 1.4 2010/09/19 02:37:45 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -13,7 +13,8 @@
 package games.stendhal.client.gui.chattext;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Collection;
 import java.util.Vector;
@@ -45,22 +46,22 @@ public class StringPrefixFilterTest {
 	@Test
 	public void testFilterCopy() {
 		StringPrefixFilter filter = new StringPrefixFilter("");
-		
+
 		Collection< ? extends String> filterednames = filter.filterCopy(names);
 		assertTrue(filterednames.isEmpty());
-		
+
 		filter = new StringPrefixFilter("m");
 		filterednames = filter.filterCopy(names);
 		assertThat(filterednames.size(), is(2));
-		
+
 		filter = new StringPrefixFilter("ma");
 		filterednames = filter.filterCopy(names);
 		assertThat(filterednames.size(), is(1));
-		
+
 		filter = new StringPrefixFilter("a");
 		filterednames = filter.filterCopy(names);
 		assertThat(filterednames.size(), is(1));
-		
+
 	}
 
 	/**
@@ -72,5 +73,5 @@ public class StringPrefixFilterTest {
 		Collection< ? extends String> filterednames = filter.filterCopy(names);
 		assertThat(filterednames.size(), is(2));
 	}
-	
+
 }

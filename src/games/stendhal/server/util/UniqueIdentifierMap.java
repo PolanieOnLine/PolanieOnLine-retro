@@ -1,4 +1,4 @@
-/* $Id: UniqueIdentifierMap.java,v 1.1 2010/12/02 21:26:36 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -20,7 +20,7 @@ import java.util.TreeMap;
 
 /**
  * A map which assigns a unique id to every entry.
- * 
+ *
  * @author hendrik
  * @param <V>
  *            value type
@@ -36,7 +36,7 @@ public class UniqueIdentifierMap<V> implements Serializable,
 
 	/**
 	 * Creates a new counting map.
-	 * 
+	 *
 	 * @param prefix
 	 *            prefix
 	 */
@@ -46,7 +46,7 @@ public class UniqueIdentifierMap<V> implements Serializable,
 
 	/**
 	 * Adds a new entry to the map unless it is already part of it.
-	 * 
+	 *
 	 * @param value
 	 *            entry
 	 * @return key
@@ -62,6 +62,7 @@ public class UniqueIdentifierMap<V> implements Serializable,
 		return key;
 	}
 
+	@Override
 	public Iterator<Map.Entry<String, V>> iterator() {
 		return mapKeys.entrySet().iterator();
 	}

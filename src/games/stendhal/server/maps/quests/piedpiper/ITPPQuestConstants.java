@@ -1,4 +1,4 @@
-/* $Id: ITPPQuestConstants.java,v 1.5 2010/11/27 07:13:53 yoriy Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -16,7 +16,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public interface ITPPQuestConstants {
-	
+
 	/**
 	 * related to quest part.
 	 * <ul>
@@ -37,16 +37,16 @@ public interface ITPPQuestConstants {
 		TPP_CHILDRENS,
 		TPP_FINAL
 	}
-	
+
 	public TPP_Phase INACTIVE = TPP_Phase.TPP_INACTIVE;
 	public TPP_Phase INVASION = TPP_Phase.TPP_INVASION;
 	public TPP_Phase AWAITING = TPP_Phase.TPP_AWAITING;
 	public TPP_Phase OUTGOING = TPP_Phase.TPP_OUTGOING;
 	public TPP_Phase CHILDRENS = TPP_Phase.TPP_CHILDRENS;
 	public TPP_Phase FINAL = TPP_Phase.TPP_FINAL;
-	
+
 	final String QUEST_SLOT = "the_pied_piper";
-	
+
 	final String INACTIVE_TIME_MAX = "QUEST_INACTIVE_TIME_MAX";
 	final String INACTIVE_TIME_MIN = "QUEST_INACTIVE_TIME_MIN";
 	final String INVASION_TIME_MIN = "QUEST_INVASION_TIME_MIN";
@@ -60,7 +60,7 @@ public interface ITPPQuestConstants {
 	final String FINAL_TIME_MIN = "QUEST_FINAL_TIME_MIN";
 	final String FINAL_TIME_MAX = "QUEST_FINAL_TIME_MAX";
 	final String SHOUT_TIME = "QUEST_SHOUT_TIME";
-	
+
 	/**
 	 * List of game zones, where rats will appears.
 	 *
@@ -68,26 +68,30 @@ public interface ITPPQuestConstants {
 	 *       to avoid placing rats inside closed areas within houses.
 	 */
 	public final List<String> RAT_ZONES = Arrays.asList(
-//			"int_ados_haunted_house",
-//			"int_ados_storage",
+// can't be used because NPC can block creature
+//			"int_ados_bank",
+			"int_ados_bar",
+//			"int_ados_bar_1",
 			"int_ados_barracks_0",
 			"int_ados_barracks_1",
 			"int_ados_bakery",
-			"int_ados_goldsmith",
-			"int_ados_bank",
-// can't be used because NPC can block creature
-//			"int_ados_tavern_0",
-			"int_ados_library",
-			"int_ados_bar",
-			"int_ados_bar_1",
-			"int_ados_sewing_room",
-			"int_ados_meat_market",
+			"int_ados_carolines_house_0",
+			"int_ados_church_0",
+			"int_ados_church_1",
+//			"int_ados_felinas_house",
 			"int_ados_fishermans_hut_north",
+			"int_ados_goldsmith",
+//			"int_ados_haunted_house",
+			"int_ados_library",
+			"int_ados_meat_market",
+			"int_ados_ross_house",
+			"int_ados_sewing_room",
+//			"int_ados_storage",
+//			"int_ados_tavern_0",
 			"int_ados_town_hall",
 			"int_ados_town_hall_1",
 			"int_ados_town_hall_2",
 			"int_ados_town_hall_3",
-			"int_ados_ross_house",
 			"0_ados_city_n",
 			"0_ados_city",
 			"0_ados_city_s");
@@ -101,7 +105,7 @@ public interface ITPPQuestConstants {
 			"wściekły szczur",
 			"krwiożerczy szczur",
 			"szczur olbrzymi",
-			"archiszur");
+			"archiszczur");
 
 	/**
 	 * List of reward moneys quantities for each type of killed rats.
@@ -113,5 +117,5 @@ public interface ITPPQuestConstants {
 			160,
 			360,
 			800);
-	
+
 }

@@ -1,4 +1,4 @@
-/* $Id: Portal.java,v 1.39 2010/04/27 18:29:45 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                      (C) Copyright 2003 - Marauroa                      *
  ***************************************************************************
@@ -30,7 +30,7 @@ public class Portal extends InvisibleEntity {
 
 	/**
 	 * Determine if the portal is hidden.
-	 * 
+	 *
 	 * @return <code>true</code> if hidden.
 	 */
 	public boolean isHidden() {
@@ -43,10 +43,10 @@ public class Portal extends InvisibleEntity {
 
 	/**
 	 * Initialize this entity for an object.
-	 * 
+	 *
 	 * @param object
 	 *            The object.
-	 * 
+	 *
 	 * @see #release()
 	 */
 	@Override
@@ -62,7 +62,7 @@ public class Portal extends InvisibleEntity {
 
 	/**
 	 * The object added/changed attribute(s).
-	 * 
+	 *
 	 * @param object
 	 *            The base object.
 	 * @param changes
@@ -79,7 +79,7 @@ public class Portal extends InvisibleEntity {
 
 	/**
 	 * The object removed attribute(s).
-	 * 
+	 *
 	 * @param object
 	 *            The base object.
 	 * @param changes

@@ -1,4 +1,4 @@
-/* $Id: MazePainter.java,v 1.6 2012/08/03 16:07:59 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2012 - Stendhal                    *
  ***************************************************************************
@@ -45,26 +45,26 @@ public class MazePainter {
 		 *  <li>bottom right concave corner</li>
 		 * 	<li>outside</li>
 		 * </ol>
-		 * 
+		 *
 		 * @return list of indices
 		 */
 		abstract int[] getWallIndices();
 		/**
 		 * Get the index of the ground tile.
-		 * 
+		 *
 		 * @return ground tile index
 		 */
 		abstract int getGroundIndex();
 		/**
 		 * Get the index of the portal tile.
-		 * 
+		 *
 		 * @return portal tile index
 		 */
 		abstract int getPortalIndex();
 
 		/**
 		 * Select tile to a location.
-		 * 
+		 *
 		 * @param collision collision layer
 		 * @param x
 		 * @param y
@@ -78,10 +78,10 @@ public class MazePainter {
 				return selectWall(collision, x, y);
 			}
 		}
-		
+
 		/**
 		 * Select a wall tile.
-		 * 
+		 *
 		 * @param collision collision layer
 		 * @param x
 		 * @param y
@@ -132,11 +132,11 @@ public class MazePainter {
 			// Filler
 			return wall[wall.length - 1];
 		}
-		
+
 		/**
 		 * Check if the tile at location (x, y) is a collision or outside the
 		 * map.
-		 * 
+		 *
 		 * @param collision
 		 * @param x
 		 * @param y
@@ -151,34 +151,28 @@ public class MazePainter {
 			}
 		}
 	}
-	
+
 	/**
 	 * Style that paints the walls using the int_wall_dark_red_* set.
 	 */
 	private static class RedWallStyle extends Style {
 		public RedWallStyle(StendhalMapStructure map) {
-			TileSetDefinition set = new TileSetDefinition("filler", 1);
-			set.setSource("../../tileset/ground/gravel.png");
+			TileSetDefinition set = new TileSetDefinition("filler", "../../tileset/ground/gravel.png", 1);
 			map.addTileset(set);
 
-			set = new TileSetDefinition("outercorners", 2);
-			set.setSource("../../tileset/building/wall/int_wall_dark_red_corners_2.png");
+			set = new TileSetDefinition("outercorners", "../../tileset/building/wall/int_wall_dark_red_corners_2.png", 2);
 			map.addTileset(set);
 
-			set = new TileSetDefinition("wall", 10);
-			set.setSource("../../tileset/building/wall/int_wall_dark_red.png");
+			set = new TileSetDefinition("wall", "../../tileset/building/wall/int_wall_dark_red.png", 10);
 			map.addTileset(set);
 
-			set = new TileSetDefinition("innercorners", 26);
-			set.setSource("../../tileset/building/wall/int_wall_dark_red_corners.png");
+			set = new TileSetDefinition("innercorners", "../../tileset/building/wall/int_wall_dark_red_corners.png", 26);
 			map.addTileset(set);
 
-			set = new TileSetDefinition("paving", 42);
-			set.setSource("../../tileset/ground/brown_paving.png");
+			set = new TileSetDefinition("paving", "../../tileset/ground/brown_paving.png", 42);
 			map.addTileset(set);
 
-			set = new TileSetDefinition("portal", 44);
-			set.setSource("../../tileset/building/decoration/floor_sparkle.png");
+			set = new TileSetDefinition("portal", "../../tileset/building/decoration/floor_sparkle.png", 44);
 			map.addTileset(set);
 		}
 
@@ -197,25 +191,22 @@ public class MazePainter {
 			return 59;
 		}
 	}
-	
+
 	/**
 	 * Style that paints the walls using the grey decorated wall tiles.
 	 */
 	private static class GreyWallStyle extends Style {
 		// Pick a random one from the base ground colors
 		private int groundIndex = 122 + Rand.rand(3);
-		
+
 		public GreyWallStyle(StendhalMapStructure map) {
-			TileSetDefinition set = new TileSetDefinition("wall", 1);
-			set.setSource("../../tileset/building/wall/int_grey.png");
+			TileSetDefinition set = new TileSetDefinition("wall", "../../tileset/building/wall/int_grey.png", 1);
 			map.addTileset(set);
-			
-			set = new TileSetDefinition("floor", 122);
-			set.setSource("../../tileset/ground/indoor/floor.png");
+
+			set = new TileSetDefinition("floor", "../../tileset/ground/indoor/floor.png", 122);
 			map.addTileset(set);
-			
-			set = new TileSetDefinition("portal", 125);
-			set.setSource("../../tileset/building/decoration/floor_sparkle.png");
+
+			set = new TileSetDefinition("portal", "../../tileset/building/decoration/floor_sparkle.png", 125);
 			map.addTileset(set);
 		}
 
@@ -234,41 +225,41 @@ public class MazePainter {
 			return 138;
 		}
 	}
-	
+
 	private Style style;
 
 	/**
 	 * Paint tiles to a map according to a maps collision layer.
-	 * 
+	 *
 	 * @param map
 	 */
 	public void paint(StendhalMapStructure map) {
 		LayerDefinition collision = map.getLayer("collision");
-		
+
 		int i = Rand.rand(2);
 		switch (i) {
 		case 0: style = new GreyWallStyle(map);
 		break;
-		case 1: 
+		case 1:
 		default:
 			style = new RedWallStyle(map);
 		}
 
 		LayerDefinition ground = map.getLayer("0_floor");
-		// prepare the floor data arrays for for painting 
+		// prepare the floor data arrays for for painting
 		ground.build();
 		fillFloor(style, ground);
-		
+
 		// Walls
 		ground = map.getLayer("1_terrain");
 		ground.build();
 		drawTerrain(style, ground, collision);
 	}
-	
+
 	/**
 	 * Paint the portal tile at specified location. Can not be called before
 	 * paint().
-	 * 
+	 *
 	 * @param map
 	 * @param x
 	 * @param y
@@ -280,17 +271,17 @@ public class MazePainter {
 		LayerDefinition ground = map.getLayer("0_floor");
 		ground.set(x, y, style.getPortalIndex());
 	}
-	
+
 	/**
 	 * Fill the ground layer with the ground tile.
-	 * 
+	 *
 	 * @param style
 	 * @param floor
 	 */
 	private void fillFloor(Style style, LayerDefinition floor) {
 		int width = floor.getWidth();
 		int height = floor.getHeight();
-		
+
 		int ground = style.getGroundIndex();
 		for (int x = 0; x < width; x++) {
 			for (int y = 0; y < height; y++) {
@@ -301,7 +292,7 @@ public class MazePainter {
 
 	/**
 	 * Paint the walls.
-	 * 
+	 *
 	 * @param style
 	 * @param terrain
 	 * @param collision

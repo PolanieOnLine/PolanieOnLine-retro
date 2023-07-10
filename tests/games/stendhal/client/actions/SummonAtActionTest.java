@@ -1,4 +1,4 @@
-/* $Id: SummonAtActionTest.java,v 1.11 2011/09/08 19:10:10 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -16,17 +16,19 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
+import org.junit.After;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import games.stendhal.client.ClientSingletonRepository;
 import games.stendhal.client.MockStendhalClient;
 import games.stendhal.client.StendhalClient;
 import games.stendhal.client.gui.MockUserInterface;
 import games.stendhal.client.gui.UserInterface;
 import games.stendhal.client.scripting.ChatLineParser;
+import games.stendhal.client.util.UserInterfaceTestHelper;
 import marauroa.common.game.RPAction;
-
-import org.junit.After;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 /**
  * Test the SummonAtAction class.
@@ -36,18 +38,18 @@ import org.junit.Test;
 public class SummonAtActionTest {
 	@BeforeClass
 	public static void init() {
-		ClientSingletonRepository.setUserInterface(new MockUserInterface());
+		UserInterfaceTestHelper.resetUserInterface();
 	}
 
 	@After
 	public void tearDown() throws Exception {
 		StendhalClient.resetClient();
 	}
-	
+
 	private static MockUserInterface getInterface() {
 		// Check the message
 		UserInterface ui = ClientSingletonRepository.getUserInterface();
-		// sanity check 
+		// sanity check
 		if (ui instanceof MockUserInterface) {
 			return (MockUserInterface) ui;
 		}
@@ -74,7 +76,7 @@ public class SummonAtActionTest {
 
 		// issue "/summonat bag 5x money"
 		assertTrue(action.execute(new String[]{"player", "bag", "5x"}, "money"));
-		
+
 		assertEquals("Invalid amount: 5x", getInterface().getLastEventLine());
 	}
 

@@ -1,4 +1,4 @@
-/* $Id: AdminChatBucket.java,v 1.3 2012/02/26 10:56:49 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -24,5 +24,5 @@ public class AdminChatBucket extends PlayerChatBucket {
 	public boolean checkAndAdd(int count) {
 		return true;
 	}
-	
+
 }

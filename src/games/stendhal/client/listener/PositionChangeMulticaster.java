@@ -1,4 +1,4 @@
-/* $Id: PositionChangeMulticaster.java,v 1.3 2011/11/03 14:23:49 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -22,7 +22,7 @@ public class PositionChangeMulticaster implements PositionChangeListener {
 	/**
 	 * The position change listeners.
 	 */
-	private final CopyOnWriteArrayList<PositionChangeListener> listeners = 
+	private final CopyOnWriteArrayList<PositionChangeListener> listeners =
 		new CopyOnWriteArrayList<PositionChangeListener>();
 
 	//
@@ -31,22 +31,12 @@ public class PositionChangeMulticaster implements PositionChangeListener {
 
 	/**
 	 * Add a position change listener.
-	 * 
+	 *
 	 * @param listener
 	 *            The listener.
 	 */
 	public void add(final PositionChangeListener listener) {
 		listeners.add(listener);
-	}
-
-	/**
-	 * Remove a position change listener.
-	 * 
-	 * @param listener
-	 *            The listener.
-	 */
-	public void remove(final PositionChangeListener listener) {
-		listeners.remove(listener);
 	}
 
 	//
@@ -55,12 +45,13 @@ public class PositionChangeMulticaster implements PositionChangeListener {
 
 	/**
 	 * Call position change event on all registered listeners.
-	 * 
+	 *
 	 * @param x
 	 *            The new X coordinate (in world units).
 	 * @param y
 	 *            The new Y coordinate (in world units).
 	 */
+	@Override
 	public void positionChanged(final double x, final double y) {
 		for (final PositionChangeListener l : listeners) {
 			l.positionChanged(x, y);

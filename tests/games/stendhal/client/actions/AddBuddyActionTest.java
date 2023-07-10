@@ -1,4 +1,4 @@
-/* $Id: AddBuddyActionTest.java,v 1.7 2011/05/01 21:20:27 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,16 +12,19 @@
  ***************************************************************************/
 package games.stendhal.client.actions;
 
-import static org.junit.Assert.*;
-import static org.hamcrest.CoreMatchers.*;
-import games.stendhal.client.MockStendhalClient;
-import games.stendhal.client.StendhalClient;
-
-import marauroa.common.game.RPAction;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import games.stendhal.client.MockStendhalClient;
+import games.stendhal.client.StendhalClient;
+import marauroa.common.game.RPAction;
 
 public class AddBuddyActionTest {
 

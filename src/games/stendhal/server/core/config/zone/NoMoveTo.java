@@ -1,4 +1,4 @@
-/* $Id: NoMoveTo.java,v 1.2 2010/09/19 02:22:42 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,14 +12,14 @@
  ***************************************************************************/
 package games.stendhal.server.core.config.zone;
 
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 
-import java.util.Map;
-
 /**
  * Semos Jail - Level -3.
- * 
+ *
  * @author hendrik
  */
 public class NoMoveTo implements ZoneConfigurator {
@@ -29,6 +29,7 @@ public class NoMoveTo implements ZoneConfigurator {
 	 * @param	zone		The zone to be configured.
 	 * @param	attributes	Configuration attributes.
 	 */
+	@Override
 	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
 		zone.setMoveToAllowed(false);
 	}

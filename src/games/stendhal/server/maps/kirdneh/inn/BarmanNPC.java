@@ -1,6 +1,5 @@
-/* $Id: BarmanNPC.java,v 1.4 2010/09/19 02:30:47 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,18 +11,15 @@
  ***************************************************************************/
 package games.stendhal.server.maps.kirdneh.inn;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.core.pathfinder.FixedPath;
 import games.stendhal.server.core.pathfinder.Node;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.behaviour.adder.SellerAdder;
-import games.stendhal.server.entity.npc.behaviour.impl.SellerBehaviour;
-
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Builds the barman in kirdneh.
@@ -31,10 +27,6 @@ import java.util.Map;
  * @author kymara
  */
 public class BarmanNPC implements ZoneConfigurator {
-	//
-	// ZoneConfigurator
-	//
-
 	/**
 	 * Configure a zone.
 	 *
@@ -43,14 +35,13 @@ public class BarmanNPC implements ZoneConfigurator {
 	 * @param attributes
 	 *            Configuration attributes.
 	 */
-	public void configureZone(final StendhalRPZone zone,
-			final Map<String, String> attributes) {
-		buildNPC(zone, attributes);
+	@Override
+	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
+		buildNPC(zone);
 	}
 
-	private void buildNPC(final StendhalRPZone zone, final Map<String, String> attributes) {
+	private void buildNPC(final StendhalRPZone zone) {
 		final SpeakerNPC barmanNPC = new SpeakerNPC("Ruarhi") {
-
 			@Override
 			protected void createPath() {
 				final List<Node> nodes = new LinkedList<Node>();
@@ -73,22 +64,14 @@ public class BarmanNPC implements ZoneConfigurator {
 				addGreeting("Cześć!");
 				addJob("Jestem barmanem. Jeżeli mógłbym #zaoferować Tobie drinka to daj znać.");
 				addHelp("Cii możesz podejść bliżej? (Wiem, że Katerina wygląda jak ruina .. ale ona jest uzdrowicielką .. w dodatku tanią.)");
-				final Map<String, Integer> offerings = new HashMap<String, Integer>();
-				offerings.put("sok z chmielu", 10);
-				offerings.put("napój z winogron", 15);
-				// more expensive than in normal taverns
-				offerings.put("chleb", 50);
-				offerings.put("ser", 20);
-				offerings.put("tarta", 160);
-				new SellerAdder().addSeller(this, new SellerBehaviour(offerings));
-				addGoodbye("Dowidzenia.");
+				addGoodbye("Do widzenia.");
 			}
 		};
 
-		barmanNPC.setEntityClass("barman2npc");
-		barmanNPC.setPosition(15, 4);
-		barmanNPC.initHP(100);
 		barmanNPC.setDescription("Oto Ruarhi. Wygląda na właściela baru.");
+		barmanNPC.setEntityClass("barman2npc");
+		barmanNPC.setGender("M");
+		barmanNPC.setPosition(15, 4);
 		zone.add(barmanNPC);
 	}
 }

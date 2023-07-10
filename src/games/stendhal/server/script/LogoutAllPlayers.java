@@ -1,6 +1,5 @@
-/* $Id: LogoutAllPlayers.java,v 1.20 2011/10/14 23:51:26 edi18028 Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,21 +11,16 @@
  ***************************************************************************/
 package games.stendhal.server.script;
 
+import java.util.List;
+
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.Task;
 import games.stendhal.server.core.scripting.ScriptImpl;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
-import marauroa.server.game.container.PlayerEntry;
-import marauroa.server.game.container.PlayerEntryContainer;
-
 /**
  * Logout all players in the game.
- * 
+ *
  * @author edi18028
  */
 public class LogoutAllPlayers extends ScriptImpl {

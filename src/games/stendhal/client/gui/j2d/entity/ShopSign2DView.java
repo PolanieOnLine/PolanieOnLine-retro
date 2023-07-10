@@ -1,4 +1,4 @@
-/* $Id: ShopSign2DView.java,v 1.7 2012/09/01 20:17:54 kiheru Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,11 +12,10 @@
  ***************************************************************************/
 package games.stendhal.client.gui.j2d.entity;
 
+import java.util.List;
+
 import games.stendhal.client.entity.ActionType;
 import games.stendhal.client.entity.Sign;
-import games.stendhal.client.gui.styled.cursor.StendhalCursor;
-
-import java.util.List;
 
 /**
  * The 2D view of a shop-sign.
@@ -29,7 +28,7 @@ class ShopSign2DView extends Sign2DView<Sign> {
 	/**
 	 * Build a list of entity specific actions. <strong>NOTE: The first entry
 	 * should be the default.</strong>
-	 * 
+	 *
 	 * @param list
 	 *            The list to populate.
 	 */
@@ -51,7 +50,7 @@ class ShopSign2DView extends Sign2DView<Sign> {
 
 	/**
 	 * Perform an action.
-	 * 
+	 *
 	 * @param at
 	 *            The action.
 	 */
@@ -69,16 +68,5 @@ class ShopSign2DView extends Sign2DView<Sign> {
 			super.onAction(at);
 			break;
 		}
-	}
-
-
-	/**
-	 * gets the mouse cursor image to use for this entity
-	 *
-	 * @return StendhalCursor
-	 */
-	@Override
-	public StendhalCursor getCursor() {
-		return StendhalCursor.LOOK;
 	}
 }

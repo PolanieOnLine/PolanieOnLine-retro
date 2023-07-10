@@ -1,6 +1,5 @@
-/* $Id: ZoneAndPlayerTestImpl.java,v 1.6 2011/01/18 00:30:01 martinfuchs Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,14 +11,20 @@
  ***************************************************************************/
 package utilities;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Arrays;
+
+import org.junit.After;
+import org.junit.Before;
+
 import games.stendhal.server.core.config.ZoneConfigurator;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPZone;
 import games.stendhal.server.entity.player.Player;
-
-import org.junit.After;
-import org.junit.Before;
+import games.stendhal.server.maps.quests.AbstractQuest;
 
 /**
  * Base class for quest tests.
@@ -34,6 +39,13 @@ public abstract class ZoneAndPlayerTestImpl extends QuestHelper {
 	/** Player object to be used in the test. */
 	protected Player player;
 
+	protected AbstractQuest quest;
+
+	private double initialKarma;
+
+	protected ZoneAndPlayerTestImpl() {
+	}
+
 	/**
 	 * Protected constructor to initialize the zone member variable.
 	 *
@@ -44,19 +56,24 @@ public abstract class ZoneAndPlayerTestImpl extends QuestHelper {
 		assertNotNull(zone);
 	}
 
+	protected void setZoneForPlayer(final String zoneName) {
+		zone = SingletonRepository.getRPWorld().getZone(zoneName);
+		assertNotNull(zone);
+	}
+
 	/**
 	 * Setup and configure zone with the configurators given as parameters before starting the test.
 	 *
 	 * @param zoneName
 	 * @param zoneConfigurators
 	 */
-	protected static void setupZone(final String zoneName, final ZoneConfigurator... zoneConfigurators) {
+	public static void setupZone(final String zoneName, final ZoneConfigurator... zoneConfigurators) {
 		final StendhalRPZone zone = setupZone(zoneName);
 
 		for (final ZoneConfigurator zoneConfigurator : zoneConfigurators) {
 			zoneConfigurator.configureZone(zone, null);
 		}
-    }
+	}
 
 	/**
 	 * Creates zone and adds it to RPWorld.
@@ -64,9 +81,14 @@ public abstract class ZoneAndPlayerTestImpl extends QuestHelper {
 	 * @param zoneName
 	 * @return the new created zone
 	 */
-	protected static StendhalRPZone setupZone(final String zoneName) {
-		return setupZone(zoneName, true);
-    }
+	public static StendhalRPZone setupZone(final String zoneName) {
+		StendhalRPZone existingZone = SingletonRepository.getRPWorld().getZone(zoneName);
+		if (existingZone != null) {
+			return existingZone;
+		} else {
+			return setupZone(zoneName, true);
+		}
+	}
 
 	/**
 	 * Creates zone and adds it to RPWorld.
@@ -75,7 +97,7 @@ public abstract class ZoneAndPlayerTestImpl extends QuestHelper {
 	 * @param collisions
 	 * @return the new created zone
 	 */
-	protected static StendhalRPZone setupZone(final String zoneName, boolean collisions) {
+	public static StendhalRPZone setupZone(final String zoneName, boolean collisions) {
 		final StendhalRPZone zone;
 
 		if (collisions) {
@@ -87,7 +109,7 @@ public abstract class ZoneAndPlayerTestImpl extends QuestHelper {
 		SingletonRepository.getRPWorld().addRPZone(zone);
 
 		return zone;
-    }
+	}
 
 	/**
 	 * Create the player to be used in the test.
@@ -99,6 +121,8 @@ public abstract class ZoneAndPlayerTestImpl extends QuestHelper {
 		player = createPlayer("player");
 
 		registerPlayer(player, zone);
+
+		initialKarma = player.getKarma();
 	}
 
 	/**
@@ -111,4 +135,19 @@ public abstract class ZoneAndPlayerTestImpl extends QuestHelper {
 		removePlayer(player);
 	}
 
+	protected void assertHistory(String... entries) {
+		assertEquals(Arrays.asList(entries), quest.getHistory(player));
+	}
+
+	protected void assertNoHistory() {
+		assertTrue(quest.getHistory(player).isEmpty());
+	}
+
+	protected void assertGainKarma(double delta) {
+		assertEquals(delta, player.getKarma() - initialKarma, 0.01);
+	}
+
+	protected void assertLoseKarma(double delta) {
+		assertEquals(delta, initialKarma - player.getKarma(), 0.01);
+	}
 }

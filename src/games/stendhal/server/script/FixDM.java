@@ -1,6 +1,5 @@
-/* $Id: FixDM.java,v 1.4 2010/09/19 02:36:26 nhnb Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2018 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,16 +11,16 @@
  ***************************************************************************/
 package games.stendhal.server.script;
 
+import java.util.List;
+
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.engine.StendhalRPRuleProcessor;
 import games.stendhal.server.core.scripting.ScriptImpl;
 import games.stendhal.server.entity.player.Player;
 
-import java.util.List;
-
 /**
  * Puts the Deathmatch slot of a player into victory format.
- * 
+ *
  * @author kymara
  */
 public class FixDM extends ScriptImpl {
@@ -66,12 +65,12 @@ public class FixDM extends ScriptImpl {
 				target.setQuest(questName, newQuestState);
 
 				// notify admin and altered player
-				target.sendPrivateText("Spróbuj ponownie zawołać victory, a " + admin.getTitle() 
+				target.sendPrivateText("Spróbuj ponownie zawołać victory, a " + admin.getTitle()
 									   + " uderzy magiczną różdżką.");
 				admin.sendPrivateText("Zmienił stan zadania '" + questName
 									  + "' z '" + oldQuestState + "' na '" + newQuestState
 									  + "'. Powiedz " + target.getTitle() + ", aby znowu zawołał victory.");
-			} 
+			}
 		} else {
 				admin.sendPrivateText(args.get(0) + " nie jest zalogowany");
 		}

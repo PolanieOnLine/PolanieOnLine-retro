@@ -1,4 +1,4 @@
-/* $Id: AccountParameterValidator.java,v 1.2 2010/09/19 02:22:40 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -16,14 +16,14 @@ import marauroa.common.game.Result;
 
 /**
  * validates a parameter used during account creation.
- * 
+ *
  * @author hendrik
  */
 public interface AccountParameterValidator {
 
 	/**
 	 * validates a parameter provided for account creation.
-	 * 
+	 *
 	 * @return <code>null</code> in case the parameter is valid, or an error
 	 *         otherwise
 	 */

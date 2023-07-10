@@ -1,6 +1,5 @@
-/* $Id: CuratorNPC.java,v 1.9 2011/09/08 17:20:59 bluelads99 Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2023 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,18 +11,14 @@
  ***************************************************************************/
 package games.stendhal.server.maps.kirdneh.museum;
 
-import games.stendhal.common.Direction;
-import games.stendhal.server.core.config.ZoneConfigurator;
-import games.stendhal.server.core.engine.SingletonRepository;
-import games.stendhal.server.core.engine.StendhalRPZone;
-import games.stendhal.server.entity.RPEntity;
-import games.stendhal.server.entity.npc.ShopList;
-import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.behaviour.adder.SellerAdder;
-import games.stendhal.server.entity.npc.behaviour.impl.SellerBehaviour;
-
 import java.util.Arrays;
 import java.util.Map;
+
+import games.stendhal.common.Direction;
+import games.stendhal.server.core.config.ZoneConfigurator;
+import games.stendhal.server.core.engine.StendhalRPZone;
+import games.stendhal.server.entity.RPEntity;
+import games.stendhal.server.entity.npc.SpeakerNPC;
 
 /**
  * Builds a Curator NPC in Kirdneh museum .
@@ -31,11 +26,6 @@ import java.util.Map;
  * @author kymara
  */
 public class CuratorNPC implements ZoneConfigurator {
-	private final ShopList shops = SingletonRepository.getShopList();
-	//
-	// ZoneConfigurator
-	//
-
 	/**
 	 * Configure a zone.
 	 *
@@ -44,40 +34,34 @@ public class CuratorNPC implements ZoneConfigurator {
 	 * @param attributes
 	 *            Configuration attributes.
 	 */
-	public void configureZone(final StendhalRPZone zone,
-			final Map<String, String> attributes) {
-		buildNPC(zone, attributes);
+	@Override
+	public void configureZone(final StendhalRPZone zone, final Map<String, String> attributes) {
+		buildNPC(zone);
 	}
 
-	private void buildNPC(final StendhalRPZone zone, final Map<String, String> attributes) {
+	private void buildNPC(final StendhalRPZone zone) {
 		final SpeakerNPC npc = new SpeakerNPC("Hazel") {
-
-			@Override
-			protected void createPath() {
-				setPath(null);
-			}
-
 			@Override
 			protected void createDialog() {
 				addGreeting("Witam w Muzeum Kirdneh.");
-				addJob("Jestem kuratorem tego muzeum. Oznacza to, że ja organizuję wystawy i szukam nowych #eksponatów.");
+				addJob("Jestem kuratorką tego muzeum. Oznacza to, że ja organizuję wystawy i szukam nowych #eksponatów.");
 				addHelp("To miejsce jest na rzadkie artefakty i specjalne #eksponaty.");
-				addReply(Arrays.asList("exhibits", "eksponaty", "eksponatów"),"Być może będziesz mieć dryg do wyszukiwania przedmiotów i chciałbyś zrobić #zadanie dla mnie.");
+				addReply(Arrays.asList("exhibits", "eksponaty", "eksponatów"),"Być może będziesz mieć dryg do wyszukiwania rzadkich przedmiotów i chciałbyś zrobić #zadanie dla mnie.");
 				// remaining behaviour defined in games.stendhal.server.maps.quests.WeeklyItemQuest
-				new SellerAdder().addSeller(this, new SellerBehaviour(shops.get("kirdnehscrolls")));
-				addGoodbye("Dowidzenia. Miło się z tobą rozmawiało.");
+				addGoodbye("Do widzenia. Miło się z tobą rozmawiało.");
 			}
-			
+
+			@Override
 			protected void onGoodbye(RPEntity player) {
 				setDirection(Direction.RIGHT);
 			}
 		};
 
+		npc.setDescription("Oto Hazel, kustoszka muzeum Kirdneh.");
 		npc.setEntityClass("curatornpc");
+		npc.setGender("F");
 		npc.setPosition(2, 38);
 		npc.setDirection(Direction.RIGHT);
-		npc.initHP(100);
-		npc.setDescription("Oto Hazel, kustosz muzeum Kirdneh.");
 		zone.add(npc);
 	}
 }

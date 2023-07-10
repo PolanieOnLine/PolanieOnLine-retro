@@ -1,4 +1,4 @@
-/* $Id: TransitionList.java,v 1.9 2011/05/01 19:50:05 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,18 +12,19 @@
  ***************************************************************************/
 package games.stendhal.server.entity.npc.fsm;
 
-import games.stendhal.common.parser.Expression;
-import games.stendhal.server.entity.npc.ConversationStates;
-
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import games.stendhal.common.parser.Expression;
+import games.stendhal.server.entity.npc.ConversationStates;
+
 /**
  * easy access to a list of transitions for debugging.
- * 
+ *
  * @author hendrik
  */
 public class TransitionList {
@@ -31,7 +32,7 @@ public class TransitionList {
 
 	/**
 	 * Creates a new TransitionList.
-	 * 
+	 *
 	 * @param transitions
 	 *            list of transitions
 	 */
@@ -41,11 +42,11 @@ public class TransitionList {
 
 	/**
 	 * gets all source states.
-	 * 
+	 *
 	 * @return Set of source states
 	 */
 	public Set<ConversationStates> getSourceStates() {
-		final Set<ConversationStates> res = new HashSet<ConversationStates>();
+		final Set<ConversationStates> res = EnumSet.noneOf(ConversationStates.class);
 		for (final Transition transition : transitions) {
 			res.add(transition.getState());
 		}
@@ -54,7 +55,7 @@ public class TransitionList {
 
 	/**
 	 * returns a set of triggers for a given source state.
-	 * 
+	 *
 	 * @param state
 	 *            source state
 	 * @return set of triggers
@@ -73,7 +74,7 @@ public class TransitionList {
 
 	/**
 	 * returns a list of transitions for this state-trigger pair.
-	 * 
+	 *
 	 * @param state
 	 *            source state
 	 * @param trigger
@@ -87,7 +88,7 @@ public class TransitionList {
 			if (transition.getState() == state) {
 				for(Expression triggerExpr : transition.getTriggers()) {
 					if (triggerExpr.matches(trigger)) {
-				res.add(transition);
+						res.add(transition);
 					}
 				}
 			}

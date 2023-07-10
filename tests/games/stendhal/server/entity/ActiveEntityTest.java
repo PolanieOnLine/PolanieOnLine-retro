@@ -1,4 +1,4 @@
-/* $Id: ActiveEntityTest.java,v 1.8 2010/09/19 02:39:45 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -13,11 +13,12 @@
 package games.stendhal.server.entity;
 
 import static org.junit.Assert.assertEquals;
-import games.stendhal.common.Direction;
 
 import java.awt.Rectangle;
 
 import org.junit.Test;
+
+import games.stendhal.common.Direction;
 
 public class ActiveEntityTest {
 

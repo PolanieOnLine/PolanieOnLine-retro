@@ -1,4 +1,4 @@
-/* $Id: BuyerBehaviour.java,v 1.17 2011/05/01 19:50:06 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -13,14 +13,13 @@
 
 package games.stendhal.server.entity.npc.behaviour.impl;
 
-import games.stendhal.common.grammar.Grammar;
+import java.util.Map;
+
 import games.stendhal.common.grammar.ItemParserResult;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.item.StackableItem;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.Map;
 
 /**
  * Represents the behaviour of a NPC who is able to buy items from a player.
@@ -48,7 +47,7 @@ public class BuyerBehaviour extends MerchantBehaviour {
 
 	/**
 	 * Transacts the deal that is described in BehaviourResult.
-	 * 
+	 *
 	 * @param seller
 	 *            The NPC who buys
 	 * @param player
@@ -60,8 +59,8 @@ public class BuyerBehaviour extends MerchantBehaviour {
 	public boolean transactAgreedDeal(ItemParserResult res, final EventRaiser seller, final Player player) {
 		if (player.drop(res.getChosenItemName(), res.getAmount())) {
 			payPlayer(res, player);
+			updatePlayerTransactions(player, seller.getName(), res);
 			seller.say("Dziękuję! Oto twoje pieniądze.");
-			player.incSoldForItem(res.getChosenItemName(), res.getAmount());
 			return true;
 		} else {
 			StringBuilder stringBuilder = new StringBuilder();
@@ -71,12 +70,28 @@ public class BuyerBehaviour extends MerchantBehaviour {
 			} else {
 				stringBuilder.append("tyle");
 			}
-			
+
 			stringBuilder.append(" ");
-			stringBuilder.append(Grammar.plnoun(res.getAmount(), res.getChosenItemName()));
+			stringBuilder.append(res.getChosenItemName());
 			stringBuilder.append(".");
 			seller.say(stringBuilder.toString());
 			return false;
 		}
+	}
+
+	/**
+	 * Updates stored information about Player-NPC commerce transactions.
+	 *
+	 * @param player
+	 *     Player to be updated.
+	 * @param merchant
+	 *     Name of merchant involved in transaction.
+	 * @param res
+	 *     Information about the transaction.
+	 */
+	protected void updatePlayerTransactions(final Player player, final String merchant,
+			final ItemParserResult res) {
+		player.incSoldForItem(res.getChosenItemName(), res.getAmount());
+		player.incCommerceTransaction(merchant, getCharge(res, player), true);
 	}
 }

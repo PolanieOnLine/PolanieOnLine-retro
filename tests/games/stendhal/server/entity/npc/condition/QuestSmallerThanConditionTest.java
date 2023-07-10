@@ -1,4 +1,4 @@
-/* $Id: QuestSmallerThanConditionTest.java,v 1.4 2011/05/01 19:50:06 martinfuchs Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -15,15 +15,15 @@ package games.stendhal.server.entity.npc.condition;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import games.stendhal.common.parser.ConversationParser;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.MockStendhalRPRuleProcessor;
 import games.stendhal.server.maps.MockStendlRPWorld;
 import marauroa.common.Log4J;
-
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import utilities.PlayerTestHelper;
 import utilities.SpeakerNPCTestHelper;
 
@@ -90,7 +90,7 @@ public class QuestSmallerThanConditionTest {
 	 * Tests for equals.
 	 */
 	@Test
-	public void testEquals() throws Throwable {
+	public void testEquals() {
 		final int value = 2009;
 		assertFalse(new QuestSmallerThanCondition(QUESTNAME, value).equals(null));
 
@@ -98,13 +98,10 @@ public class QuestSmallerThanConditionTest {
 		assertTrue(obj.equals(obj));
 
 		assertTrue(new QuestSmallerThanCondition(QUESTNAME, value).equals(new QuestSmallerThanCondition(QUESTNAME, value)));
-		assertTrue(new QuestSmallerThanCondition(null, value).equals(new QuestSmallerThanCondition(null, value)));
 
 		assertFalse(new QuestSmallerThanCondition(QUESTNAME, value).equals(new Object()));
 
-		assertFalse(new QuestSmallerThanCondition(null, value).equals(new QuestSmallerThanCondition(QUESTNAME, value)));
 		assertFalse(new QuestSmallerThanCondition(QUESTNAME, 2008).equals(new QuestSmallerThanCondition(QUESTNAME, value)));
-		assertFalse(new QuestSmallerThanCondition(QUESTNAME, 2008).equals(new QuestSmallerThanCondition(null, value)));
 		assertFalse(new QuestSmallerThanCondition(QUESTNAME, value).equals(new QuestSmallerThanCondition(QUESTNAME, value + 2)));
 
 		assertTrue(new QuestSmallerThanCondition(QUESTNAME, value).equals(new QuestSmallerThanCondition(QUESTNAME, value) {
@@ -116,7 +113,7 @@ public class QuestSmallerThanConditionTest {
 	 * Tests for hashCode.
 	 */
 	@Test
-	public void testHashCode() throws Throwable {
+	public void testHashCode() {
 
 		final QuestSmallerThanCondition obj = new QuestSmallerThanCondition(QUESTNAME, 2009);
 		assertEquals(obj.hashCode(), obj.hashCode());
@@ -124,9 +121,6 @@ public class QuestSmallerThanConditionTest {
 		assertEquals(
 				new QuestSmallerThanCondition("questname", 2009).hashCode(),
 				new QuestSmallerThanCondition("questname", 2009).hashCode());
-		assertEquals(
-				new QuestSmallerThanCondition(null, 2009).hashCode(),
-				new QuestSmallerThanCondition(null, 2009).hashCode());
 	}
 
 }

@@ -1,4 +1,4 @@
-/* $Id: PlayersTurnValidator.java,v 1.4 2010/09/19 02:24:37 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -23,6 +23,7 @@ import games.stendhal.server.entity.player.Player;
  */
 public class PlayersTurnValidator implements MoveValidator {
 
+	@Override
 	public boolean validate(GameBoard board, Player player, BoardToken token, int xIndex, int yIndex) {
 		if (!player.getName().equals(board.getCurrentPlayer())) {
 			player.sendPrivateText("To nie twoja kolej. Poczekaj na ruch przeciwnika.");

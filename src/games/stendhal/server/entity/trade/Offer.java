@@ -1,4 +1,4 @@
-/* $Id: Offer.java,v 1.17 2012/01/19 23:38:53 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,23 +12,22 @@
  ***************************************************************************/
 package games.stendhal.server.entity.trade;
 
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.server.actions.CStatusAction;
 import games.stendhal.server.core.engine.transformer.ItemTransformer;
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.item.Item;
 import games.stendhal.server.entity.player.Player;
-
-import java.util.Map;
-
 import marauroa.common.game.Definition.Type;
 import marauroa.common.game.RPClass;
 import marauroa.common.game.RPObject;
 
-import org.apache.log4j.Logger;
-
 /**
  * Represents an Offer for sale in the {@link Market}
- *  
+ *
  * @author madmetzger
  */
 public class Offer extends Entity implements Dateable {
@@ -37,7 +36,7 @@ public class Offer extends Entity implements Dateable {
 	private static final String OFFERER_ATTRIBUTE_NAME = "offerer";
 	private static final String OFFERER_CID_ATTRIBUTE = "offerer_cid";
 	private static final String PRICE_ATTRIBUTE = "price";
-	
+
 	/**
 	 * The name of the slot where the item for sale is stored
 	 */
@@ -60,7 +59,11 @@ public class Offer extends Entity implements Dateable {
 	}
 
 	/**
-	 * @param item
+	 * Create a new Offer.
+	 *
+	 * @param item offered item
+	 * @param price price of the item
+	 * @param offerer player making the offer
 	 */
 	public Offer(final Item item, final Integer price, final Player offerer) {
 		super();
@@ -86,9 +89,9 @@ public class Offer extends Entity implements Dateable {
 		super(object);
 		setRPClass("offer");
 		hide();
-		
+
 		getSlot(OFFER_ITEM_SLOT_NAME).clear();
-				
+
 		final RPObject itemObject = object.getSlot(OFFER_ITEM_SLOT_NAME).getFirst();
 
 		final Item entity = new ItemTransformer().transform(itemObject);
@@ -155,9 +158,10 @@ public class Offer extends Entity implements Dateable {
 
 	/**
 	 * Get the creation or renewal time of the offer.
-	 * 
+	 *
 	 * @return Timestamp in milliseconds
 	 */
+	@Override
 	public long getTimestamp() {
 		long timeStamp = 0;
 		try {
@@ -167,30 +171,30 @@ public class Offer extends Entity implements Dateable {
 		}
 		return timeStamp;
 	}
-	
+
 	/**
 	 * Update the timestamp of the offer to the current moment.
 	 */
 	public void updateTimestamp() {
 		put(TIMESTAMP, Long.toString(System.currentTimeMillis()));
 	}
-	
+
 	/**
 	 * Check whether accepting this offer should be rewarder in trade score.
-	 * 
+	 *
 	 * @param player The player accepting the offer
 	 * @return True iff the accepting the offer should be rewarded
 	 */
 	public boolean shouldReward(Player player) {
 		String cid = getPlayerCID(player);
-		
-		// Do not reward if either the buyer or the offerer 
+
+		// Do not reward if either the buyer or the offerer
 		// does not have a proper CID for some reason
 		if (cid.equals("") || "".equals(get(OFFERER_CID_ATTRIBUTE))
 				|| cid.equals(get(OFFERER_CID_ATTRIBUTE))) {
 			return false;
 		}
-		
+
 		// Finally check if it's the same player from another computer
 		return !player.getName().equals(getOfferer());
 	}

@@ -1,7 +1,7 @@
 /*
  * @(#) src/games/stendhal/server/entity/portal/KeyDestroyingDoorFactory.java
  *
- * $Id: KeyDestroyingDoorFactory.java,v 1.5 2010/03/29 22:20:42 nhnb Exp $
+ * $Id$
  */
 
 package games.stendhal.server.entity.mapstuff.portal;
@@ -15,17 +15,17 @@ public class KeyDestroyingDoorFactory extends LockedDoorFactory {
 
 	/**
 	 * Create a locked door.
-	 * 
+	 *
 	 * @param ctx
 	 *            Configuration context.
-	 * 
+	 *
 	 * @return A KeyDestroyingDoor.
-	 * 
+	 *
 	 * @throws IllegalArgumentException
 	 *             If there is a problem with the attributes. The exception
 	 *             message should be a value suitable for meaningful user
 	 *             interpretation.
-	 * 
+	 *
 	 * @see KeyDestroyingDoor
 	 */
 	@Override

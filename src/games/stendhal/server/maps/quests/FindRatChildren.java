@@ -1,6 +1,5 @@
-/* $Id: FindRatChildren.java,v 1.18 2012/04/24 17:01:18 kymara Exp $ */
 /***************************************************************************
- *                   (C) Copyright 2003-2010 - Stendhal                    *
+ *                   (C) Copyright 2003-2021 - Stendhal                    *
  ***************************************************************************
  ***************************************************************************
  *                                                                         *
@@ -12,6 +11,13 @@
  ***************************************************************************/
 package games.stendhal.server.maps.quests;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
 import games.stendhal.common.grammar.Grammar;
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.entity.npc.ChatAction;
@@ -19,6 +25,7 @@ import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.npc.SpeakerNPC;
+import games.stendhal.server.entity.npc.action.SetQuestAction;
 import games.stendhal.server.entity.npc.action.SetQuestAndModifyKarmaAction;
 import games.stendhal.server.entity.npc.condition.AndCondition;
 import games.stendhal.server.entity.npc.condition.GreetingMatchesNameCondition;
@@ -32,13 +39,6 @@ import games.stendhal.server.entity.npc.condition.TimePassedCondition;
 import games.stendhal.server.entity.npc.condition.TriggerInListCondition;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.Region;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-
-import org.apache.log4j.Logger;
 
 /**
  * QUEST: Find Rat children
@@ -69,23 +69,16 @@ import org.apache.log4j.Logger;
  * </ul>
  */
 public class FindRatChildren extends AbstractQuest {
-
-	private static Logger logger = Logger.getLogger(FindRatChildren.class);
-
 	private static final String QUEST_SLOT = "find_rat_kids";
+	private final SpeakerNPC npc = npcs.get("Agnus");
 
-	// twenty four hours
-	private static final int REQUIRED_MINUTES = 24 * 60;
-	
 	// children names must be lower text as this is what we compare against
 	private static final List<String> NEEDED_KIDS =
 		Arrays.asList("avalon", "cody", "mariel", "opal");
 
+	private static final int REQUIRED_MINUTES = 24 * 60;// twenty four hours
 
-	@Override
-	public String getSlotName() {
-		return QUEST_SLOT;
-	}
+	private static Logger logger = Logger.getLogger(FindRatChildren.class);
 
 	private List<String> missingNames(final Player player) {
 		if (!player.hasQuest(QUEST_SLOT)) {
@@ -112,8 +105,6 @@ public class FindRatChildren extends AbstractQuest {
 	}
 
 	private void askingStep() {
-		final SpeakerNPC npc = npcs.get("Agnus");
-
 		npc.add(ConversationStates.ATTENDING,
 				ConversationPhrases.QUEST_MESSAGES,
 				new OrCondition(new QuestNotStartedCondition(QUEST_SLOT), new QuestInStateCondition(QUEST_SLOT, "rejected")),
@@ -135,7 +126,7 @@ public class FindRatChildren extends AbstractQuest {
 				ConversationPhrases.QUEST_MESSAGES,
 				new QuestActiveCondition(QUEST_SLOT),
 				ConversationStates.ATTENDING,
-				"Dlaczego są tak długo na dworze. Poszukaj je, sprawdź czy wszystko z nimi w porządku.",
+				"Dlaczego moje dzieci są tak długo poza domem? Poszukaj je i sprawdź czy wszystko z nimi w porządku.",
 				null);
 
 		npc.add(ConversationStates.ATTENDING,
@@ -150,7 +141,7 @@ public class FindRatChildren extends AbstractQuest {
 				null,
 				ConversationStates.ATTENDING,
 				"To bardzo miłe z twojej strony. Powodzenia w poszukiwaniach.",
-				new SetQuestAndModifyKarmaAction(QUEST_SLOT, "looking:said", 5.0));
+				new SetQuestAction(QUEST_SLOT, "looking:said"));
 
 		npc.add(
 				ConversationStates.QUEST_OFFERED,
@@ -162,22 +153,18 @@ public class FindRatChildren extends AbstractQuest {
 
 		npc.add(
 				ConversationStates.QUEST_OFFERED,
-				"dzieci",
+				Arrays.asList("children", "dzieci"),
 				null,
 				ConversationStates.QUEST_OFFERED,
-				"Moje dzieci poszły bawić się gdzieś w kanałach. Minęło już sporo czasu od tego momentu. Znajdziesz ich i sprawdzisz czy u nich jest wszystko w porządku?",
+				"Moje dzieci poszły bawić się gdzieś w kanałach. Minęło już sporo czasu od tego momentu. Znajdziesz je i sprawdzisz czy u nich jest wszystko w porządku?",
 				null);
 	}
 
 	private void findingStep() {
 		// Player goes to look for the children
-		
 	}
 
 	private void retrievingStep() {
-
-		final SpeakerNPC npc = npcs.get("Agnus");
-
 		// the player returns to Agnus after having started the quest, or found
 		// some kids.
 		npc.add(ConversationStates.IDLE, ConversationPhrases.GREETING_MESSAGES,
@@ -190,6 +177,7 @@ public class FindRatChildren extends AbstractQuest {
 			npc.add(ConversationStates.QUESTION_1, name, null,
 					ConversationStates.QUESTION_1, null,
 					new ChatAction() {
+				@Override
 				public void fire(final Player player, final Sentence sentence, final EventRaiser npc) {
 					final String npcQuestText = player.getQuest(QUEST_SLOT).toLowerCase();
 					final String[] npcDoneText = npcQuestText.split(":");
@@ -233,12 +221,12 @@ public class FindRatChildren extends AbstractQuest {
 					missing = missingNames(player);
 
 					if (!missing.isEmpty()) {
-						reply += " Jeżeli widziałeś inne z moich dzieci powiedz mi które.";
+						reply += " Jeżeli widziałeś inne z moich dzieci to proszę powiedz mi które.";
 						npc.say(reply);
 					} else {
 						player.addXP(5000);
 						player.addKarma(15);
-						reply += " Uff.... teraz mogę odsapnąć wiedząc, że z dziećmi jest wszystko w porządku.";
+						reply += " Uff... teraz mogę odsapnąć wiedząc, że z dziećmi jest wszystko w porządku.";
 						npc.say(reply);
 						player.setQuest(QUEST_SLOT, "done;" + System.currentTimeMillis());
 						player.notifyWorldAboutChanges();
@@ -274,9 +262,8 @@ public class FindRatChildren extends AbstractQuest {
 
 	@Override
 	public void addToWorld() {
-		super.addToWorld();
 		fillQuestInfo(
-				"Znajdź Szczurze Dzieci",
+				"Poszukiwanie Szczurzych Dzieci",
 				"Agnus, która żyje w Rat City prosi młodych bohaterów o znalezienie jej dzieci i sprawdzenie czy wszystko u nich w porządku. Poszły one w głąb tuneli i jeszcze się nie wróciły...",
 				true);
 		askingStep();
@@ -285,11 +272,6 @@ public class FindRatChildren extends AbstractQuest {
 	}
 
 	@Override
-	public String getName() {
-		return "FindRatChildren";
-	}
-	
-	@Override
 	public List<String> getHistory(final Player player) {
 			final List<String> res = new ArrayList<String>();
 			if (!player.hasQuest(QUEST_SLOT)) {
@@ -297,15 +279,25 @@ public class FindRatChildren extends AbstractQuest {
 			}
 			res.add("Agnus naprawdę martwi się o swoje dzieci, które są w tunelach. Muszę je znaleźć i porozmawiać z nimi, aby sprawdzić czy są w porządku.");
 			if ("rejected".equals(player.getQuest(QUEST_SLOT))) {
-				res.add("Nie chce jej pomóc.");
+				res.add("Nie chce jej pomagać.");
 				return res;
 			}
 			if (!isCompleted(player)) {
-				res.add("Znalazłem " + missingNames(player).size() + " " + Grammar.plnoun(missingNames(player).size(), "child") + " , aby sprawdzić i powiedzieć to Agnus ..");
+				res.add("Pozostało " + missingNames(player).size() + " " + Grammar.plnoun(missingNames(player).size(), "dziecko") + " do odnalezienia i przekazania wiadomości Agnus o ich stanie...");
 			} else {
 				res.add("Agnus jest szczęśliwa, że znalazłem jej dzieci. Znalezienie ich zaprocentowało więkrzym doświadczeniem.");
 			}
 			return res;
+	}
+
+	@Override
+	public String getSlotName() {
+		return QUEST_SLOT;
+	}
+
+	@Override
+	public String getName() {
+		return "Poszukiwanie Szczurzych Dzieci";
 	}
 
 	@Override
@@ -315,11 +307,17 @@ public class FindRatChildren extends AbstractQuest {
 
 	@Override
 	public String getNPCName() {
-		return "Agnus";
+		return npc.getName();
 	}
-	
+
 	@Override
 	public String getRegion() {
 		return Region.ORRIL_DUNGEONS;
+	}
+
+	@Override
+	public boolean isRepeatable(final Player player) {
+		return	new AndCondition(new QuestCompletedCondition(QUEST_SLOT),
+				 new TimePassedCondition(QUEST_SLOT, 1, REQUIRED_MINUTES)).fire(player, null, null);
 	}
 }

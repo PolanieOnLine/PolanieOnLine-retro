@@ -1,4 +1,4 @@
-/* $Id: RandTest.java,v 1.3 2010/09/19 02:37:46 nhnb Exp $ */
+/* $Id$ */
 /***************************************************************************
  *                   (C) Copyright 2003-2010 - Stendhal                    *
  ***************************************************************************
@@ -12,8 +12,8 @@
  ***************************************************************************/
 package games.stendhal.common;
 
-
-import static org.hamcrest.Matchers.isIn;
+import static org.hamcrest.Matchers.in;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
@@ -32,26 +32,26 @@ public class RandTest {
 	@After
 	public void tearDown() throws Exception {
 	}
-	
+
 	/**
 	 * Tests for randUniform.
 	 */
 	@Test
-	public void testRandUniform() throws Exception {
+	public void testRandUniform() {
 		assertEquals(0, Rand.randUniform(0, 0));
 	}
-	
+
 	/**
 	 * Tests for randUniform2.
 	 */
 	@Test
-	public void testRandUniform2() throws Exception {
+	public void testRandUniform2() {
 		for (int i = 0; i < 10; i++) {
-			assertThat(Rand.randUniform(-1, 0), isIn(Arrays.asList(0, -1)));
-			assertThat(Rand.randUniform(0, -1), isIn(Arrays.asList(0, -1)));
-			assertThat(Rand.randUniform(1, -1), isIn(Arrays.asList(1, 0, -1)));
-			assertThat(Rand.randUniform(-1, 1), isIn(Arrays.asList(1, 0, -1)));
-			assertThat(Rand.randUniform(100, 102), isIn(Arrays.asList(100, 101, 102)));
+			assertThat(Rand.randUniform(-1, 0), is(in(Arrays.asList(0, -1))));
+			assertThat(Rand.randUniform(0, -1), is(in(Arrays.asList(0, -1))));
+			assertThat(Rand.randUniform(1, -1), is(in(Arrays.asList(1, 0, -1))));
+			assertThat(Rand.randUniform(-1, 1), is(in(Arrays.asList(1, 0, -1))));
+			assertThat(Rand.randUniform(100, 102), is(in(Arrays.asList(100, 101, 102))));
 		}
 	}
 
