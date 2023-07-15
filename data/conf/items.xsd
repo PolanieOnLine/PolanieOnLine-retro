@@ -51,7 +51,7 @@
 			<element name="rate" type="Q1:attribute" minOccurs="0"></element>
 			<element name="lifesteal" type="Q1:attribute" minOccurs="0"></element>
 			<element name="persistent" type="Q1:attribute" minOccurs="0"></element>
-			<element name="minlevel" type="Q1:attribute" minOccurs="0"></element>
+			<element name="min_use" type="Q1:attribute" minOccurs="0"/>
 			<element name="min_level" type="Q1:attribute" minOccurs="0"></element>
 			<element name="slot_name" type="Q1:attribute" minOccurs="0"></element>
 			<element name="undroppableondeath" type="Q1:attribute" minOccurs="0"></element>

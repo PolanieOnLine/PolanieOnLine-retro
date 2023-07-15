@@ -27,7 +27,7 @@
 		<implementation class-name="games.stendhal.server.entity.item.Item"/>
 		<attributes>
 			<def value="26"/>
-			<minlevel value="100"/>
+			<min_use value="100"/>
 			<min_level value="200"/>
 		</attributes>
 		<weight value="45.0"/>

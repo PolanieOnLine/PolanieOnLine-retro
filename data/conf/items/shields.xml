@@ -8,7 +8,7 @@
 		<implementation class-name="games.stendhal.server.entity.item.Item"/>
 		<attributes>
 			<def value="42"/>
-			<minlevel value="100"/>
+			<min_use value="100"/>
 			<min_level value="200"/>
 		</attributes>
 		<weight value="34.0"/>
@@ -213,7 +213,7 @@
 		<implementation class-name="games.stendhal.server.entity.item.Item"/>
 		<attributes>
 			<def value="40"/>
-			<minlevel value="50"/>
+			<min_use value="50"/>
 			<min_level value="100"/>
 		</attributes>
 		<weight value="24.0"/>
@@ -258,7 +258,7 @@
 		<implementation class-name="games.stendhal.server.entity.item.Item"/>
 		<attributes>
 			<def value="45"/>
-			<minlevel value="150"/>
+			<min_use value="150"/>
 			<min_level value="250"/>
 		</attributes>
 		<weight value="30.0"/>
@@ -320,7 +320,7 @@
 		<implementation class-name="games.stendhal.server.entity.item.Item"/>
 		<attributes>
 			<def value="36"/>
-			<minlevel value="30"/>
+			<min_use value="30"/>
 			<min_level value="50"/>
 		</attributes>
 		<weight value="34.0"/>
