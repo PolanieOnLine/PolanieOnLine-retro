@@ -1,3 +1,0 @@
-set LOCALCLASSPATH=.;build\build_polanieonlinetools;libs\ant.jar
-java -cp "%LOCALCLASSPATH%" games.stendhal.tools.updateprop.UpdateSigner libs\log4j.jar libs\jorbis.jar libs\marauroa-client-only.jar build\lib\polanieonline-1.15.jar build\lib\polanieonline-data-1.15.jar build\lib\polanieonline-sound-data-1.15.jar build\lib\polanieonline-music-data-1.15.jar build\lib\polanieonline-1.16.jar build\lib\polanieonline-data-1.16.jar
-@pause
