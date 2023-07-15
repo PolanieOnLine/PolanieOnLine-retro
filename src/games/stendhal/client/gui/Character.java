@@ -11,7 +11,6 @@
  ***************************************************************************/
 package games.stendhal.client.gui;
 
-import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,12 +19,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
@@ -75,7 +71,7 @@ Inspectable {
 	 * Create a new character window.
 	 */
 	public Character() {
-		super("character", "Character");
+		super("character", "Postać");
 		createLayout(true);
 		// Don't allow the user close this. There's no way to get it back.
 		setCloseable(false);
@@ -108,58 +104,6 @@ Inspectable {
 		refreshContents();
 	}
 
-	private ImageViewWindow showPopup() {
-		final ViewPanel panel = new ViewPanel() {
-			private static final int PAD = 5;
-
-			@Override
-			public void prepareView(Dimension maxSize) {
-				JComponent content = SBoxLayout.createContainer(SBoxLayout.VERTICAL, PADDING);
-				JComponent row = SBoxLayout.createContainer(SBoxLayout.HORIZONTAL, PADDING);
-				JComponent left = SBoxLayout.createContainer(SBoxLayout.VERTICAL, PADDING);
-				JComponent middle = SBoxLayout.createContainer(SBoxLayout.VERTICAL, PADDING);
-				JComponent right = SBoxLayout.createContainer(SBoxLayout.VERTICAL, PADDING);
-
-				left.setAlignmentY(CENTER_ALIGNMENT);
-				right.setAlignmentY(CENTER_ALIGNMENT);
-				row.add(left);
-				row.add(middle);
-				row.add(right);
-				content.add(row);
-
-				Class<? extends IEntity> itemClass = EntityMap.getClass("item", null, null);
-				SpriteStore store = SpriteStore.get();
-
-				left.add(Box.createVerticalStrut(HAND_YSHIFT * 2));
-				ItemPanel panel = createItemPanel(itemClass, store, "neck", "data/gui/slot-neck.png");
-				left.add(panel);
-
-				JButton swapButton = new JButton("Zamień");
-				swapButton.addActionListener(e -> {
-				    // Tutaj umieść logikę zamiany przedmiotów między głównymi miejscami a dodatkowymi miejscami
-
-				    // Na przykład, możesz przenosić panele przedmiotów między odpowiednimi kontenerami
-				    // np. left.add(additionalItemPanels.get(0)) itd.
-				});
-				add(swapButton);
-
-				setContent(content);
-				//setVisible(true);
-			}
-		};
-		return new ImageViewWindow("Styl", panel);
-	}
-
-	private JButton createArrow() {
-		JButton arrowButton = new JButton("<");
-		arrowButton.setPreferredSize(new Dimension(12, 100));
-		arrowButton.setMinimumSize(new Dimension(12, 100));
-		arrowButton.setMaximumSize(new Dimension(12, 100));
-		arrowButton.addActionListener(e -> showPopup());
-
-		return arrowButton;
-	}
-	
 	private void createEquipmentPanels(JComponent left, JComponent middle, JComponent right,
 			Class<? extends IEntity> itemClass, SpriteStore store) {
 		/*
@@ -182,8 +126,6 @@ Inspectable {
 		panel = createItemPanel(itemClass, store, "head", "data/gui/slot-helmet.png");
 		middle.add(panel);
 		panel = createItemPanel(itemClass, store, "armor", "data/gui/slot-armor.png");
-		middle.add(panel);
-		panel = createItemPanel(itemClass, store, "pas", "data/gui/slot-belt.png");
 		middle.add(panel);
 		panel = createItemPanel(itemClass, store, "legs", "data/gui/slot-legs.png");
 		middle.add(panel);
@@ -237,17 +179,11 @@ Inspectable {
 		// Layout containers
 		JComponent content = SBoxLayout.createContainer(SBoxLayout.VERTICAL, PADDING);
 		JComponent row = SBoxLayout.createContainer(SBoxLayout.HORIZONTAL, PADDING);
-		JComponent arrow = SBoxLayout.createContainer(SBoxLayout.VERTICAL, PADDING);
 		JComponent left = SBoxLayout.createContainer(SBoxLayout.VERTICAL, PADDING);
 		JComponent middle = SBoxLayout.createContainer(SBoxLayout.VERTICAL, PADDING);
 		JComponent right = SBoxLayout.createContainer(SBoxLayout.VERTICAL, PADDING);
-
-		arrow.add(createArrow());
-		arrow.setAlignmentY(CENTER_ALIGNMENT);
-
 		left.setAlignmentY(CENTER_ALIGNMENT);
 		right.setAlignmentY(CENTER_ALIGNMENT);
-		row.add(arrow);
 		row.add(left);
 		row.add(middle);
 		row.add(right);
