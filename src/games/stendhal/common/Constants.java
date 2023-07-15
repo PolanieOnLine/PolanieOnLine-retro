@@ -23,5 +23,5 @@ public final class Constants {
 	public static final String[] CARRYING_SLOTS = {
 			"pouch", "bag", "magicbag", "portfolio", "keyring", "back", "belt", "neck",
 			"head", "cloak", "lhand", "armor", "rhand", "finger", "fingerb",
-			"glove", "pas", "legs", "feet" };
+			"glove", "legs", "feet" };
 }

@@ -167,7 +167,6 @@ public class StendhalWebsiteDAO {
 		params.put("armor", extractName(player.getArmor()));
 		params.put("lhand", extractHandName(player, "lhand"));
 		params.put("rhand", extractHandName(player, "rhand"));
-		params.put("pas", extractName(player.getBelt()));
 		params.put("legs", extractName(player.getLegs()));
 		params.put("feet", extractName(player.getBoots()));
 		params.put("cloak", extractName(player.getCloak()));

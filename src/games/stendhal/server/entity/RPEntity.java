@@ -78,17 +78,16 @@ public abstract class RPEntity extends CombatEntity {
 	 */
 	protected static final String ATTR_TITLE = "title";
 
-	private static final float WEAPON_DEF_MULTIPLIER = 2.0f;
+	private static final float WEAPON_DEF_MULTIPLIER = 3.0f;
+	private static final float RING_DEF_MULTIPLIER = 1.5f;
 	private static final float BOOTS_DEF_MULTIPLIER = 1.0f;
-	private static final float LEG_DEF_MULTIPLIER = 1.5f;
+	private static final float LEG_DEF_MULTIPLIER = 1.0f;
+	private static final float NECKLACE_DEF_MULTIPLIER = 1.0f;
 	private static final float HELMET_DEF_MULTIPLIER = 1.0f;
+	private static final float GLOVE_DEF_MULTIPLIER = 1.0f;
 	private static final float CLOAK_DEF_MULTIPLIER = 1.0f;
 	private static final float ARMOR_DEF_MULTIPLIER = 2.0f;
 	private static final float SHIELD_DEF_MULTIPLIER = 3.0f;
-	private static final float RING_DEF_MULTIPLIER = 1.0f;
-	private static final float NECKLACE_DEF_MULTIPLIER = 1.0f;
-	private static final float GLOVE_DEF_MULTIPLIER = 1.0f;
-	private static final float BELT_DEF_MULTIPLIER = 1.0f;
 	private static Statistics stats;
 
 	protected static final int HIT_CHANCE_MULTIPLIER = 20;
@@ -2769,14 +2768,6 @@ public abstract class RPEntity extends CombatEntity {
 		return getEquippedItemClass("money", "money");
 	}
 
-	public boolean hasBelt() {
-		return isEquippedItemClass("pas", "belts");
-	}
-
-	public Item getBelt() {
-		return getEquippedItemClass("pas", "belts");
-	}
-
 	@Override
 	public String describe() {
 		String text = super.describe();
@@ -2878,8 +2869,6 @@ public abstract class RPEntity extends CombatEntity {
 			ringb += getRingB().getAttack();
 		} if (hasShield()) {
 			shield += getShield().getAttack();
-		} if (hasBelt()) {
-			belt += getBelt().getAttack();
 		} if (hasNecklace()) {
 			neck += getNecklace().getAttack();
 		} if (hasLegs()) {
@@ -2947,7 +2936,6 @@ public abstract class RPEntity extends CombatEntity {
 		int necklace = 0;
 		int ring = 0;
 		int ringb = 0;
-		int belt = 0;
 
 		Item item;
 
@@ -3001,11 +2989,6 @@ public abstract class RPEntity extends CombatEntity {
 			glove = (int) (item.getDefense() / getItemLevelModifier(item));
 		}
 
-		if (hasBelt()) {
-			item = getBelt();
-			belt = (int) (item.getDefense() / getItemLevelModifier(item));
-		}
-
 		final List<Item> targetWeapons = getWeapons();
 		for (final Item weaponItem : targetWeapons) {
 			weapon += (int) (weaponItem.getDefense() / getItemLevelModifier(weaponItem));
@@ -3023,7 +3006,7 @@ public abstract class RPEntity extends CombatEntity {
 				+ HELMET_DEF_MULTIPLIER * helmet + NECKLACE_DEF_MULTIPLIER * necklace
 				+ LEG_DEF_MULTIPLIER * legs + BOOTS_DEF_MULTIPLIER * boots
 				+ RING_DEF_MULTIPLIER * ring + RING_DEF_MULTIPLIER * ringb
-				+ BELT_DEF_MULTIPLIER * belt + WEAPON_DEF_MULTIPLIER * weapon;
+				+ WEAPON_DEF_MULTIPLIER * weapon;
 	}
 
 	/**
@@ -3064,9 +3047,6 @@ public abstract class RPEntity extends CombatEntity {
 		}
 		if (hasGloves()) {
 			items.add(getGloves());
-		}
-		if (hasBelt()) {
-			items.add(getBelt());
 		}
 		return items;
 	}
@@ -3495,14 +3475,6 @@ public abstract class RPEntity extends CombatEntity {
 				if (weaponItem.has("lifesteal")) {
 					sumLifesteal += weaponAttack * weaponItem.getDouble("lifesteal");
 				}
-			}
-			if (hasGloves() && getGloves().has("lifesteal")) {
-				sumLifesteal += sumAll * getGloves().getDouble("lifesteal");
-			}
-			if (hasRing() && getRing().has("lifesteal")) {
-				sumLifesteal += sumAll * getRing().getDouble("lifesteal");
-			} else if (hasRingB() && getRingB().has("lifesteal")) {
-				sumLifesteal += sumAll * getRingB().getDouble("lifesteal");
 			}
 		}
 

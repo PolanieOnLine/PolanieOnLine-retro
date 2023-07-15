@@ -2569,7 +2569,7 @@ public class Player extends DressedEntity implements UseListener {
 			sus *= shield.getSusceptibility(type);
 		}
 
-		String[] armorSlots = { "armor", "head", "legs", "feet", "cloak", "glove", "neck", "finger", "fingerb", "pas" };
+		String[] armorSlots = { "armor", "head", "legs", "feet", "cloak", "glove", "neck", "finger", "fingerb" };
 		for (String slot : armorSlots) {
 			RPObject object = getSlot(slot).getFirst();
 			if (object instanceof Item) {
