@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <items xmlns="stendhal" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="stendhal ../items.xsd ">
+	xsi:schemaLocation="stendhal ../weapons.xsd ">
 
 	<item name="drewniany łuk">
 		<type class="ranged" subclass="wooden_bow" tileid="-1"/>
@@ -10,6 +10,7 @@
 			<atk value="12"/>
 			<range value="3"/>
 			<min_level value="20"/>
+			<rate value="5"/>
 		</attributes>
 		<weight value="1.0"/>
 		<value value="17280"/>
@@ -30,6 +31,7 @@
 			<atk value="14"/>
 			<range value="4"/>
 			<min_level value="40"/>
+			<rate value="5"/>
 		</attributes>
 		<weight value="1.0"/>
 		<value value="27440"/>
@@ -50,6 +52,7 @@
 			<atk value="15"/>
 			<range value="5"/>
 			<min_level value="60"/>
+			<rate value="5"/>
 		</attributes>
 		<weight value="1.0"/>
 		<value value="33750"/>
@@ -70,6 +73,7 @@
 			<atk value="17"/>
 			<range value="3"/>
 			<min_level value="80"/>
+			<rate value="5"/>
 		</attributes>
 		<weight value="3.0"/>
 		<value value="49130"/>
@@ -90,6 +94,7 @@
 			<atk value="21"/>
 			<range value="4"/>
 			<min_level value="150"/>
+			<rate value="5"/>
 		</attributes>
 		<weight value="3.0"/>
 		<value value="92610"/>
@@ -110,6 +115,7 @@
 			<atk value="28"/>
 			<range value="4"/>
 			<min_level value="300"/>
+			<rate value="5"/>
 		</attributes>
 		<weight value="3.0"/>
 		<value value="142610"/>
@@ -130,6 +136,7 @@
 			<atk value="23"/>
 			<range value="5"/>
 			<min_level value="150"/>
+			<rate value="5"/>
 		</attributes>
 		<weight value="1.0"/>
 		<value value="17280"/>
@@ -150,6 +157,7 @@
 			<atk value="30"/>
 			<range value="5"/>
 			<min_level value="175"/>
+			<rate value="5"/>
 		</attributes>
 		<weight value="1.0"/>
 		<value value="17280"/>

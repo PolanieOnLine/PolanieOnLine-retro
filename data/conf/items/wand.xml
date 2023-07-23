@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <items xmlns="stendhal" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="stendhal ../items.xsd ">
+	xsi:schemaLocation="stendhal ../weapons.xsd ">
 
 	<item name="proca">
 		<type class="wand" subclass="slingshot" tileid="-1"/>
@@ -9,6 +9,8 @@
 		<attributes>
 			<atk value="5"/>
 			<range value="4"/>
+			<min_level value="0"/>
+			<rate value="5"/>
 		</attributes>
 		<weight value="1.0"/>
 		<value value="130"/>
@@ -32,6 +34,7 @@
 			<range value="4"/>
 			<min_use value="80"/>
 			<min_level value="100"/>
+			<rate value="5"/>
 		</attributes>
 		<weight value="1.0"/>
 		<value value="49130"/>
@@ -55,6 +58,7 @@
 			<range value="5"/>
 			<min_use value="120"/>
 			<min_level value="150"/>
+			<rate value="5"/>
 		</attributes>
 		<weight value="2.0"/>
 		<value value="49130"/>
@@ -78,6 +82,7 @@
 			<range value="6"/>
 			<min_use value="150"/>
 			<min_level value="175"/>
+			<rate value="5"/>
 		</attributes>
 		<weight value="3.0"/>
 		<value value="49130"/>
@@ -101,6 +106,7 @@
 			<range value="7"/>
 			<min_use value="180"/>
 			<min_level value="200"/>
+			<rate value="5"/>
 		</attributes>
 		<weight value="4.0"/>
 		<value value="49130"/>
@@ -124,6 +130,7 @@
 			<range value="8"/>
 			<min_use value="250"/>
 			<min_level value="300"/>
+			<rate value="5"/>
 		</attributes>
 		<weight value="5.0"/>
 		<value value="49130"/>
@@ -147,6 +154,7 @@
 			<range value="10"/>
 			<min_use value="300"/>
 			<min_level value="400"/>
+			<rate value="5"/>
 		</attributes>
 		<weight value="5.0"/>
 		<value value="49130"/>

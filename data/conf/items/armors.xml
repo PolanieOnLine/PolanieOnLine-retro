@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <items xmlns="stendhal" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="stendhal ../items.xsd ">
+	xsi:schemaLocation="stendhal ../equipment.xsd ">
 
 	<item name="zbroja barbarzyńcy">
 		<type class="armor" subclass="barbarian_armor" tileid="-1"/>
@@ -68,6 +68,7 @@
 		<implementation class-name="games.stendhal.server.entity.item.Item"/>
 		<attributes>
 			<def value="6"/>
+			<min_level value="0"/>
 		</attributes>
 		<weight value="45.0"/>
 		<value value="1512"/>
@@ -86,7 +87,7 @@
 		<implementation class-name="games.stendhal.server.entity.item.Item"/>
 		<attributes>
 			<def value="20"/>
-		<min_level value="100"/>
+			<min_level value="100"/>
 		</attributes>
 		<weight value="45.0"/>
 		<value value="56000"/>
@@ -105,6 +106,7 @@
 		<implementation class-name="games.stendhal.server.entity.item.Item"/>
 		<attributes>
 			<def value="1"/>
+			<min_level value="0"/>
 		</attributes>
 		<weight value="5.0"/>
 		<value value="7"/>
@@ -161,6 +163,7 @@
 		<implementation class-name="games.stendhal.server.entity.item.Item"/>
 		<attributes>
 			<def value="7"/>
+			<min_level value="0"/>
 		</attributes>
 		<weight value="45.0"/>
 		<value value="2401"/>
@@ -238,6 +241,7 @@
 		<implementation class-name="games.stendhal.server.entity.item.Item"/>
 		<attributes>
 			<def value="8"/>
+			<min_level value="0"/>
 		</attributes>
 		<weight value="45.0"/>
 		<value value="3584"/>
@@ -257,6 +261,7 @@
 		<attributes>
 			<def value="3"/>
 			<undroppableondeath value="1" />
+			<min_level value="0"/>
 		</attributes>
 		<weight value="15.0"/>
 		<value value="189"/>
@@ -275,6 +280,7 @@
 		<implementation class-name="games.stendhal.server.entity.item.Item"/>
 		<attributes>
 			<def value="4"/>
+			<min_level value="0"/>
 		</attributes>
 		<weight value="15.0"/>
 		<value value="448"/>
@@ -293,6 +299,7 @@
 		<implementation class-name="games.stendhal.server.entity.item.Item"/>
 		<attributes>
 			<def value="4"/>
+			<min_level value="0"/>
 		</attributes>
 		<weight value="15.0"/>
 		<value value="448"/>
@@ -395,6 +402,7 @@
 		<implementation class-name="games.stendhal.server.entity.item.Item"/>
 		<attributes>
 			<def value="5"/>
+			<min_level value="0"/>
 		</attributes>
 		<weight value="15.0"/>
 		<value value="875"/>
@@ -451,6 +459,7 @@
 		<implementation class-name="games.stendhal.server.entity.item.Item"/>
 		<attributes>
 			<def value="7"/>
+			<min_level value="0"/>
 		</attributes>
 		<weight value="45.0"/>
 		<value value="3584"/>
@@ -511,6 +520,7 @@
 		<implementation class-name="games.stendhal.server.entity.item.Item"/>
 		<attributes>
 			<def value="5"/>
+			<min_level value="0"/>
 		</attributes>
 		<weight value="25.0"/>
 		<value value="875"/>
@@ -529,7 +539,7 @@
 		<implementation class-name="games.stendhal.server.entity.item.Item"/>
 		<attributes>
 			<def value="21"/>
-		<min_level value="120"/>
+			<min_level value="120"/>
 		</attributes>
 		<weight value="45.0"/>
 		<value value="76000"/>
@@ -548,6 +558,7 @@
 		<implementation class-name="games.stendhal.server.entity.item.Item"/>
 		<attributes>
 			<def value="9"/>
+			<min_level value="0"/>
 		</attributes>
 		<weight value="45.0"/>
 		<value value="7000"/>
@@ -566,6 +577,7 @@
 		<implementation class-name="games.stendhal.server.entity.item.Item"/>
 		<attributes>
 			<def value="18"/>
+			<min_level value="0"/>
 		</attributes>
 		<weight value="45.0"/>
 		<value value="28672"/>
@@ -584,6 +596,7 @@
 		<implementation class-name="games.stendhal.server.entity.item.Item"/>
 		<attributes>
 			<def value="18"/>
+			<min_level value="0"/>
 		</attributes>
 		<weight value="45.0"/>
 		<value value="28672"/>
@@ -602,6 +615,7 @@
 		<implementation class-name="games.stendhal.server.entity.item.Item"/>
 		<attributes>
 			<def value="19"/>
+			<min_level value="0"/>
 		</attributes>
 		<weight value="15.0"/>
 		<value value="33625"/>
@@ -620,6 +634,7 @@
 		<implementation class-name="games.stendhal.server.entity.item.Item"/>
 		<attributes>
 			<def value="23"/>
+			<min_level value="0"/>
 		</attributes>
 		<weight value="45.0"/>
 		<value value="86000"/>

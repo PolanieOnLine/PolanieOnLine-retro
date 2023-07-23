@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <items xmlns="stendhal" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="stendhal ../items.xsd ">
+	xsi:schemaLocation="stendhal ../equipment.xsd ">
 
 	<item name="śnieżka">
 		<type class="missile" subclass="snowballs" tileid="-1"/>
@@ -12,10 +12,10 @@
 			<quantity value="1"/>
 			<max_quantity value="99"/>
 			<min_level value="20"/>
+			<damagetype value="ice"/>
 		</attributes>
 		<weight value="0.1"/>
 		<value value="80"/>
-		<damage type="ice"/>
 		<equipable>
 			<slot name="ground"/>
 			<slot name="content"/>
@@ -35,6 +35,7 @@
 			<range value="5"/>
 			<quantity value="1"/>
 			<max_quantity value="2147483647"/>
+			<min_level value="0"/>
 		</attributes>
 		<weight value="0.1"/>
 		<value value="2"/>
@@ -126,10 +127,11 @@
 			<range value="3"/>
 			<quantity value="1"/>
 			<max_quantity value="2147483647"/>
+			<min_level value="0"/>
+			<damagetype value="fire"/>
 		</attributes>
 		<weight value="0.1"/>
 		<value value="2160"/>
-		<damage type="fire"/>
 		<equipable>
 			<slot name="ground"/>
 			<slot name="content"/>
