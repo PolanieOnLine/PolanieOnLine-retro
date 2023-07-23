@@ -78,9 +78,9 @@
 		<attributes>
 			<parameter name="color_method">time</parameter>
 		</attributes>
-		<configurator class-name="games.stendhal.server.maps.pol.zakopane.gorasmoka.AddBalloonListener"/>
-		<configurator class-name="games.stendhal.server.maps.pol.zakopane.gorasmoka.OzoNPC"/>
-		<configurator class-name="games.stendhal.server.maps.pol.zakopane.plains.RatownikNPC"/>
+		<configurator class-name="games.stendhal.server.maps.zakopane.gorasmoka.AddBalloonListener"/>
+		<configurator class-name="games.stendhal.server.maps.zakopane.gorasmoka.OzoNPC"/>
+		<configurator class-name="games.stendhal.server.maps.zakopane.plains.RatownikNPC"/>
 		<entity x="1" y="1">
 			<implementation class-name="games.stendhal.server.entity.mapstuff.sound.BackgroundMusicSource">
 				<parameter name="sound">pol-littlemeadow2</parameter>
@@ -752,10 +752,10 @@
 		<attributes>
 			<parameter name="color_method">time</parameter>
 		</attributes>
-		<configurator class-name="games.stendhal.server.maps.pol.zakopane.city.GazdaJedrzejNPC"/>
-		<configurator class-name="games.stendhal.server.maps.pol.zakopane.city.BuklakNPC"/>
-		<configurator class-name="games.stendhal.server.maps.pol.zakopane.city.ButelkaNPC"/>
-		<configurator class-name="games.stendhal.server.maps.pol.zakopane.city.ButeleczkaNPC"/>
+		<configurator class-name="games.stendhal.server.maps.zakopane.city.GazdaJedrzejNPC"/>
+		<configurator class-name="games.stendhal.server.maps.zakopane.city.BuklakNPC"/>
+		<configurator class-name="games.stendhal.server.maps.zakopane.city.ButelkaNPC"/>
+		<configurator class-name="games.stendhal.server.maps.zakopane.city.ButeleczkaNPC"/>
 		<entity x="1" y="1">
 			<implementation class-name="games.stendhal.server.entity.mapstuff.sound.BackgroundMusicSource">
 				<parameter name="sound">pol-littlemeadow2</parameter>
@@ -912,11 +912,11 @@
 		<attributes>
 			<parameter name="color_method">time</parameter>
 		</attributes>
-		<configurator class-name="games.stendhal.server.maps.pol.zakopane.city.CommonChest"/>
-		<configurator class-name="games.stendhal.server.maps.pol.zakopane.city.BacaZbyszekNPC"/>
-		<configurator class-name="games.stendhal.server.maps.pol.zakopane.city.FryderykNPC"/>
-		<configurator class-name="games.stendhal.server.maps.pol.zakopane.city.GawedziarzNPC"/>
-		<configurator class-name="games.stendhal.server.maps.pol.zakopane.city.HeroldNPC"/>
+		<configurator class-name="games.stendhal.server.maps.zakopane.city.CommonChest"/>
+		<configurator class-name="games.stendhal.server.maps.zakopane.city.BacaZbyszekNPC"/>
+		<configurator class-name="games.stendhal.server.maps.zakopane.city.FryderykNPC"/>
+		<configurator class-name="games.stendhal.server.maps.zakopane.city.GawedziarzNPC"/>
+		<configurator class-name="games.stendhal.server.maps.zakopane.city.HeroldNPC"/>
 		<entity x="1" y="1">
 			<implementation class-name="games.stendhal.server.entity.mapstuff.sound.BackgroundMusicSource">
 				<parameter name="sound">pol-goralskie</parameter>
@@ -1232,8 +1232,8 @@ Turniej organizuje Faruska i ona udziela informacji.
 
 	<!-- Bakery -->
 	<zone name="int_zakopane_bakery" file="interiors/zakopane/bakery.tmx">
-		<configurator class-name="games.stendhal.server.maps.pol.zakopane.bakery.ChefNPC"/>
-		<configurator class-name="games.stendhal.server.maps.pol.zakopane.bakery.ShopAssistantNPC"/>
+		<configurator class-name="games.stendhal.server.maps.zakopane.bakery.ChefNPC"/>
+		<configurator class-name="games.stendhal.server.maps.zakopane.bakery.ShopAssistantNPC"/>
 		<portal x="26" y="14" ref="entrance_bakery">
 			<destination zone="0_zakopane_se" ref="bakery_entrance"/>
 		</portal>
@@ -1567,9 +1567,9 @@ Turniej organizuje Faruska i ona udziela informacji.
 
 	<!-- Blacksmith -->
 	<zone name="int_zakopane_blacksmith" file="interiors/zakopane/blacksmith.tmx">
-		<configurator class-name="games.stendhal.server.maps.pol.zakopane.blacksmith.KowalAndrzejNPC"/>
-		<configurator class-name="games.stendhal.server.maps.pol.zakopane.blacksmith.KrasnoludNPC"/>
-		<configurator class-name="games.stendhal.server.maps.pol.zakopane.blacksmith.DwojakiElwirkaNPC"/>
+		<configurator class-name="games.stendhal.server.maps.zakopane.blacksmith.KowalAndrzejNPC"/>
+		<configurator class-name="games.stendhal.server.maps.zakopane.blacksmith.KrasnoludNPC"/>
+		<configurator class-name="games.stendhal.server.maps.zakopane.blacksmith.DwojakiElwirkaNPC"/>
 		<entity x="1" y="1">
 			<implementation class-name="games.stendhal.server.entity.mapstuff.sound.PeriodicAmbientSoundSource">
 				<parameter name="sound">hammer-1, smith-1</parameter>
@@ -1600,8 +1600,8 @@ Turniej organizuje Faruska i ona udziela informacji.
 
 	<!-- Hospital -->
 	<zone name="int_zakopane_hospital" file="interiors/zakopane/hospital.tmx">
-		<configurator class-name="games.stendhal.server.maps.pol.zakopane.hospital.BogusNPC"/>
-		<configurator class-name="games.stendhal.server.maps.pol.zakopane.hospital.GazdzinaJadzkaNPC"/>
+		<configurator class-name="games.stendhal.server.maps.zakopane.hospital.BogusNPC"/>
+		<configurator class-name="games.stendhal.server.maps.zakopane.hospital.GazdzinaJadzkaNPC"/>
 		<entity x="7" y="5">
 			<implementation class-name="games.stendhal.server.entity.mapstuff.sign.ShopSign">
 				<parameter name="shop">sellskin</parameter>
@@ -1642,7 +1642,7 @@ Turniej organizuje Faruska i ona udziela informacji.
 
 	<!-- Hostel -->
 	<zone name="int_zakopane_hostel" file="interiors/zakopane/hostel.tmx">
-		<configurator class-name="games.stendhal.server.maps.pol.zakopane.hostel.BronekNPC"/>
+		<configurator class-name="games.stendhal.server.maps.zakopane.hostel.BronekNPC"/>
 		<entity x="16" y="15">
 			<implementation class-name="games.stendhal.server.entity.mapstuff.sign.ShopSign">
 				<parameter name="shop">buydragonitems</parameter>
@@ -1663,7 +1663,7 @@ Turniej organizuje Faruska i ona udziela informacji.
 
 	<!-- House -->
 	<zone name="int_zakopane_seller_house" file="interiors/zakopane/house_200.tmx">
-		<configurator class-name="games.stendhal.server.maps.pol.zakopane.house.AlicjaNPC"/>
+		<configurator class-name="games.stendhal.server.maps.zakopane.house.AlicjaNPC"/>
 		<portal x="19" y="23" ref="house_200_exit">
 			<destination zone="0_zakopane_se" ref="house_200_entrance"/>
 		</portal>
@@ -1876,8 +1876,8 @@ Turniej organizuje Faruska i ona udziela informacji.
 
 	<!-- Home 0 -->
 	<zone name="int_zakopane_home" file="interiors/zakopane/home_xmas.tmx">
-		<configurator class-name="games.stendhal.server.maps.pol.zakopane.home.AdasNPC"/>
-		<configurator class-name="games.stendhal.server.maps.pol.zakopane.home.PietrekNPC"/>
+		<configurator class-name="games.stendhal.server.maps.zakopane.home.AdasNPC"/>
+		<configurator class-name="games.stendhal.server.maps.zakopane.home.PietrekNPC"/>
 		<entity x="1" y="1">
 			<implementation class-name="games.stendhal.server.entity.mapstuff.sound.BackgroundMusicSource">
 				<parameter name="sound">pol-goralskie</parameter>
@@ -2060,7 +2060,7 @@ Jesteś w bezpiecznym miejscu. Zanim zdecydujesz się wyjść zapoznaj się z po
 
 	<!-- Playroom -->
 	<zone name="int_zakopane_playroom" file="interiors/zakopane/playroom.tmx">
-		<configurator class-name="games.stendhal.server.maps.pol.zakopane.playroom.Playroomset"/>
+		<configurator class-name="games.stendhal.server.maps.zakopane.playroom.Playroomset"/>
 		<entity x="1" y="1">
 			<implementation class-name="games.stendhal.server.entity.mapstuff.sound.BackgroundMusicSource">
 				<parameter name="sound">pol-littlemeadow1</parameter>
@@ -2093,7 +2093,7 @@ Jesteś w bezpiecznym miejscu. Zanim zdecydujesz się wyjść zapoznaj się z po
 
 	<!-- Shop -->
 	<zone name="int_zakopane_shop" file="interiors/zakopane/shop.tmx">
-		<configurator class-name="games.stendhal.server.maps.pol.zakopane.shop.market.TradeCenterZoneConfigurator"/>
+		<configurator class-name="games.stendhal.server.maps.zakopane.shop.market.TradeCenterZoneConfigurator"/>
 		<portal x="5" y="19" ref="shop_exit">
 			<destination zone="0_zakopane_c" ref="shop_entrance"/>
 		</portal>
@@ -2121,7 +2121,7 @@ Jesteś w bezpiecznym miejscu. Zanim zdecydujesz się wyjść zapoznaj się z po
 
 	<!-- Tavern -->
 	<zone name="int_zakopane_tavern" file="interiors/zakopane/tavern.tmx">
-		<configurator class-name="games.stendhal.server.maps.pol.zakopane.tavern.JagnaNPC"/>
+		<configurator class-name="games.stendhal.server.maps.zakopane.tavern.JagnaNPC"/>
 		<entity x="1" y="1">
 			<implementation class-name="games.stendhal.server.entity.mapstuff.sound.BackgroundMusicSource">
 				<parameter name="sound">pol-littlemeadow1</parameter>
@@ -2145,7 +2145,7 @@ Jesteś w bezpiecznym miejscu. Zanim zdecydujesz się wyjść zapoznaj się z po
 
 	<!-- Temple -->
 	<zone name="int_zakopane_church" file="interiors/zakopane/church.tmx">
-		<configurator class-name="games.stendhal.server.maps.pol.zakopane.church.WikaryNPC"/>
+		<configurator class-name="games.stendhal.server.maps.zakopane.church.WikaryNPC"/>
 		<entity x="12" y="2">
 			<implementation class-name="games.stendhal.server.entity.mapstuff.sound.PeriodicAmbientSoundSource">
 				<parameter name="sound">pol-bell</parameter>
@@ -2172,7 +2172,7 @@ Jesteś w bezpiecznym miejscu. Zanim zdecydujesz się wyjść zapoznaj się z po
 
 	<!-- Townhall -->
 	<zone name="int_zakopane_townhall" file="interiors/zakopane/townhall.tmx">
-		<configurator class-name="games.stendhal.server.maps.pol.zakopane.townhall.GazdaWojtekNPC"/>
+		<configurator class-name="games.stendhal.server.maps.zakopane.townhall.GazdaWojtekNPC"/>
 		<entity x="1" y="1">
 			<implementation class-name="games.stendhal.server.entity.mapstuff.sound.BackgroundMusicSource">
 				<parameter name="sound">pol-goralskie</parameter>
@@ -2238,7 +2238,7 @@ Aktualne ceny u Gazdy Wojtka:
 
 	<!-- zakopane_e -->
 	<zone name="-2_zakopane_cave" level="-2" x="513440" y="18560" file="Level -2/zakopane/cave.tmx">
-		<configurator class-name="games.stendhal.server.maps.pol.zakopane.cave.BartlomiejNPC"/>
+		<configurator class-name="games.stendhal.server.maps.zakopane.cave.BartlomiejNPC"/>
 		<attributes>
 			<parameter name="color_method">dark</parameter>
 		</attributes>
@@ -2396,7 +2396,7 @@ Aktualne ceny u Gazdy Wojtka:
 	<!-- Level 1 -->
 
 	<zone name="1_football_playground" level="1" x="513312" y="18688" file="Level 1/zakopane/football_playground.tmx">
-		<configurator class-name="games.stendhal.server.maps.pol.zakopane.stadium.KibicNPC"/>
+		<configurator class-name="games.stendhal.server.maps.zakopane.stadium.KibicNPC"/>
 		<entity x="0" y="23">
 			<implementation class-name="games.stendhal.server.entity.mapstuff.sound.LoopedAmbientSoundSource">
 				<parameter name="sound">pol-boisko-tlo</parameter>
@@ -2589,7 +2589,7 @@ Aktualne ceny u Gazdy Wojtka:
 			<parameter name="color_method">time</parameter>
 		</attributes>
 		<configurator class-name="games.stendhal.server.core.config.zone.NoTeleport"/>
-		<configurator class-name="games.stendhal.server.maps.pol.zakopane.clouds.SmokNPC"/>
+		<configurator class-name="games.stendhal.server.maps.zakopane.clouds.SmokNPC"/>
 		<entity x="13" y="13">
 			<implementation class-name="games.stendhal.server.entity.mapstuff.sound.LoopedAmbientSoundSource">
 				<parameter name="sound">pol-halny</parameter>

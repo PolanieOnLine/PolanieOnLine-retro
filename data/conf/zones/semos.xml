@@ -1687,7 +1687,7 @@ Ahh jak miło, już czujesz ten zapach,a pod spodem widnieje dopisek: "Nowe! Pys
 		<configurator class-name="games.stendhal.server.maps.semos.tavern.TraderNPC" />
 		<configurator class-name="games.stendhal.server.maps.semos.tavern.DiceDealerNPC" />
 		<configurator class-name="games.stendhal.server.maps.semos.tavern.market.TradeCenterZoneConfigurator" />
-		<configurator class-name="games.stendhal.server.maps.pol.zakopane.home.JuhasNPC"/>
+		<configurator class-name="games.stendhal.server.maps.zakopane.home.JuhasNPC"/>
 
 		<entity x="1" y="1" condition="!stendhal.christmas">
 			<implementation class-name="games.stendhal.server.entity.mapstuff.sound.BackgroundMusicSource">
