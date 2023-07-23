@@ -34,8 +34,6 @@
 	<property name="build_client_sound_data" value="${buildroot}/build_client_sound_data"/>
 	<property name="build_client_music_data" value="${buildroot}/build_client_music_data"/>
 
-	<property name="build_webclient" value="${buildroot}/build_webclient"/>
-
 	<property name="build_docker" value="${buildroot}/build_docker"/>
 	<property name="buildtools_docker" value="buildtools/docker"/>
 
@@ -196,7 +194,7 @@
 		<schemavalidate>
 			<schema namespace="polanieonline" file="${config_dir}/creatures.xsd"/>
 			<fileset dir="${config_dir}/creatures">
-				<include name="/*/*.xml"/>
+				<include name="*.xml"/>
 			</fileset>
 		</schemavalidate>
 		<schemavalidate>
@@ -473,7 +471,7 @@
 
 	<target name="dist" depends="clean, dist_binary, dist_source, signupdates" description="Creates all the packages needed for a PolanieOnLine release"/>
 
-	<target name="dist_binary" depends="clean, dist_server_binary, dist_client_binary, dist_client_starter, dist_webclient_binary, dist_client_android"/>
+	<target name="dist_binary" depends="clean, dist_server_binary, dist_client_binary, dist_client_starter"/>
 
 
 	<!-- START: source -->
@@ -638,7 +636,7 @@
 		<copy todir="${build_server_xmlconf}/data/conf">
 			<fileset dir="data/conf">
 				<include name="creatures.xml"/>
-				<include name="creatures/*/*.xml"/>
+				<include name="creatures/*.xml"/>
 				<include name="items.xml"/>
 				<include name="items/*.xml"/>
 				<include name="zones.xml"/>
@@ -737,22 +735,14 @@
 
 		<copy todir="${buildroot}/polanieonline-server-${version}/data/conf" file="data/conf/admins.txt"/>
 
-		<antcall target="webclient_build" unless:set="exclude.webclient"/>
-
 		<copy todir="${buildroot}/polanieonline-server-${version}" file="README.md"/>
 		<mkdir dir="${buildroot}/polanieonline-server-${version}/log"/>
 		<touch file="${buildroot}/polanieonline-server-${version}/log/empty"/>
 		<zip destfile="${dist_server_binary}">
 			<zipfileset dir="${buildroot}/polanieonline-server-${version}" excludes="${server_jarname}"/>
 			<zipfileset dir="${buildroot}/polanieonline-server-${version}" includes="${server_jarname}" filemode="755"/>
-			<!-- webclient files -->
-			<zipfileset dir="${build_client_data}" unless:set="exclude.webclient"/>
-			<zipfileset dir="${build_client_music_data}" unless:set="exclude.webclient"/>
-			<zipfileset dir="${build_client_sound_data}" unless:set="exclude.webclient"/>
-			<zipfileset dir="${build_webclient}" prefix="js" unless:set="exclude.webclient"/>
 		</zip>
 		<delete dir="${buildroot}/polanieonline-server-${version}"/>
-		<delete dir="${build_webclient}"/>
 
 	</target> <!-- dist_server_binary -->
 
@@ -778,7 +768,7 @@
 	<target name="docker_push" description="Pushes the container image">
 	</target>
 
-	<target name="server_run" depends="server_build, compilejs" description="Runs the server">
+	<target name="server_run" depends="server_build" description="Runs the server">
 		<mkdir dir="run_srvr"/>
 
 		<copy todir="run_srvr">
@@ -1092,252 +1082,6 @@
 	<target name="run" depends="client_run" description="Runs client for netbeans trick"/>
 
 	<!-- END: java client -->
-
-
-	<!-- START: web client -->
-
-	<target name="js-prepare-marauroa">
-		<mkdir dir="build/js"/>
-		<unzip dest="build" src="libs/marauroa.jar">
-			<patternset>
-				<include name="js/**"/>
-			</patternset>
-		</unzip>
-	</target>
-
-	<target name="js-prepare-build">
-
-		<echo file="build/js/build.js">
-			var stendhal = window.stendhal = window.stendhal || {};
-			stendhal.data = stendhal.data || {};
-
-			stendhal.data.build = {
-				version: "${version}",
-				build: "${timestamp}",
-				dist: "webclient"
-			}
-		</echo>
-	</target>
-
-	<extension-point name="js-prepare" depends="js-prepare-marauroa,js-prepare-build,js-prepare-node"/>
-
-	<target name="js-prepare-node">
-		<exec executable="npm${executable.suffix}" failonerror="true">
-			<arg value="install"/>
-			<arg value="--no-save"/>
-		</exec>
-	</target>
-
-	<target name="js-invoke-compiler">
-		<exec executable="npx${executable.suffix}" dir="srcjs/stendhal" failonerror="true">
-			<arg value="tsc"/>
-		</exec>
-
-		<property name="js-debug"					value="--debug --formatting=PRETTY_PRINT --create_source_map srcjs/polanieonline-compiled.js.map --source_map_include_content"/>
-
-		<property name="js-files-license"	value="srcjs/stendhal/license.js"/>
-		<property name="js-files-marauroa" value="build/js/marauroa.js build/js/client-framework.js build/js/message-factory.js build/js/perception.js build/js/rpfactory.js build/js/inflate.js build/js/deserializer.js"/>
-		<property name="js-files-config"	 value="build/js/build.js"/>
-		<property name="js-files-lib1"		 value="srcjs/jsxgraph-util.js"/>
-		<property name="js-files-lib2"		 value=""/>
-		<property name="js-files-data1"		value="srcjs/stendhal/data/sha3.js"/>
-		<property name="js-files-data2"		value=""/>
-		<property name="js-files-entity5"	value=""/>
-		<property name="js-files-entity6"	value=""/>
-		<property name="js-files-ui1"			value=""/>
-		<property name="js-files-ui2"			value=""/>
-		<property name="js-files-ui3"			value=""/>
-		<property name="js-files-main1"		value=""/>
-		<property name="js-files-ui4"			value=""/>
-		<property name="js-files-main2"		value="srcjs/stendhal/main.js"/>
-		<property name="js-files-main3"		value=""/>
-		<property name="js-files-ts"			 value="build/ts/*.js build/ts/**/*.js"/>
-		<property name="js-files-ts2"			value=""/>
-
-
-		<java jar="buildtools/closure-compiler/compiler.jar"
-				fork="true"
-				failonerror="true"
-				maxmemory="128m">
-			<arg value="--language_in=ECMASCRIPT_2020"/>
-			<arg value="--language_out=STABLE"/>
-			<arg value="--compilation_level"/>
-			<arg value="ADVANCED"/>
-			<arg line="${js-debug}"/>
-			<arg value="--process_common_js_modules"/>
-			<arg value="--module_resolution=node"/>
-			<arg value="--jscomp_off=checkVars"/>
-			<!-- DEBUG: -->
-			<!--<arg value="-\-jscomp_off=globalThis"/>-->
-
-			<arg value="--js_output_file=srcjs/polanieonline-compiled.js"/>
-
-			<arg line="${js-files-license}"/>
-			<arg line="${js-files-marauroa}"/>
-			<arg line="${js-files-config}"/>
-			<arg line="${js-files-lib1}"/>
-			<arg line="${js-files-lib2}"/>
-			<arg line="${js-files-data1}"/>
-			<arg line="${js-files-data2}"/>
-			<arg line="${js-files-entity5}"/>
-			<arg line="${js-files-entity6}"/>
-			<arg line="${js-files-ui1}"/>
-			<arg line="${js-files-ui2}"/>
-			<arg line="${js-files-ui3}"/>
-			<arg line="${js-files-main1}"/>
-			<arg line="${js-files-ui4}"/>
-			<arg line="${js-files-main2}"/>
-			<arg line="${js-files-main3}"/>
-			<arg line="${js-files-ts}"/>
-			<arg line="${js-files-ts2}"/>
-		</java>
-
-		<echo file="srcjs/polanieonline-compiled.js" append="true">
-//# sourceMappingURL=stendhal-compiled.js.map
-		</echo>
-
-		<antcall target="compilejs-hook" />
-	</target> <!-- js-invoke-compiler -->
-
-	<target name="compilejs-hook" if="compilejs-hook">
-		<exec executable="${compilejs-hook}" />
-	</target>
-
-	<target name="compilejs" depends="cleanjs">
-		<antcall target="js-prepare" unless:set="exclude.webclient"/>
-		<antcall target="js-invoke-compiler" unless:set="exclude.webclient"/>
-
-		<echo if:set="exclude.webclient" level="warning"
-			message="WARNING: Node.js is not installed, skipping web client build."/>
-	</target> <!-- compilejs -->
-
-	<target name="webclient_build" depends="compilejs,clean_client_data,build_client_data">
-		<mkdir dir="${build_webclient}"/>
-
-		<copy todir="${build_webclient}">
-			<fileset dir="${srcjs}">
-				<include name="stendhal.html"/>
-				<include name="stendhal.css"/>
-				<include name="polanieonline-compiled.js*"/>
-				<include name="favicon.ico"/>
-			</fileset>
-		</copy>
-		<copy todir="${build_webclient}/marauroa">
-			<fileset dir="${buildroot}/js"/>
-		</copy>
-		<copy todir="${build_webclient}/stendhal">
-			<fileset dir="${buildroot}/ts"/>
-		</copy>
-
-		<replaceregexp file="${build_webclient}/polanieonline.html"
-				match="data-tileset-path=&quot;/tileset&quot;"
-				replace="data-tileset-path=&quot;/data/tileset&quot;"
-				byline="false"/>
-		<replaceregexp file="${build_webclient}/polanieonline-compiled.js.map"
-				match="build/js/"
-				replace="js/marauroa/"
-				byline="true"
-				flags="g"/>
-		<replaceregexp file="${build_webclient}/polanieonline-compiled.js.map"
-				match="build/ts/"
-				replace="js/stendhal/"
-				byline="true"
-				flags="g"/>
-	</target> <!-- webclient_build -->
-
-	<target name="build_webclient" depends="webclient_build"/>
-
-	<target name="dist_webclient_binary" depends="webclient_build">
-		<zip destfile="${buildroot}/polanieonline-webclient-${version}.zip">
-			<zipfileset dir="${build_client_data}"/>
-			<zipfileset dir="${build_client_music_data}"/>
-			<zipfileset dir="${build_client_sound_data}"/>
-			<zipfileset dir="${build_webclient}" prefix="js"/>
-			<zipfileset dir="doc" prefix="doc">
-				<include name="contributors.md"/>
-				<include name="Licenses/**"/>
-				<include name="sources/**"/>
-			</zipfileset>
-			<zipfileset file="LICENSE.txt" prefix="doc"/>
-		</zip>
-		<delete dir="${build_webclient}"/>
-	</target> <!-- dist_webclient_binary -->
-
-	<!-- END: web client -->
-
-
-	<!-- START: android webview client -->
-
-	<target name="client_android_build" description="Builds WebView client for Android devices">
-		<condition property="gradlew.exec" value="cmd">
-			<os family="windows"/>
-		</condition>
-		<condition property="gradlew.script" value="/c &quot;${user.dir}/android/gradlew.bat&quot;">
-			<os family="windows"/>
-		</condition>
-		<property name="gradlew.exec" value="sh"/>
-		<property name="gradlew.script" value="&quot;${user.dir}/android/gradlew&quot;"/>
-
-		<echo
-			if:set="exclude.webview"
-			message="ANDROID_SDK_ROOT environment variable not set. Skipping Android WebView client build."/>
-		<echo
-			unless:set="exclude.webview"
-			message="Building Android WebView client."/>
-		<echo
-			unless:set="exclude.webview"
-			message="Gradle command: ${gradlew.exec} ${gradlew.script}"/>
-
-		<property name="android.build" value="assembleDebug"/>
-
-		<condition property="android.build_wout_rev">
-			<and>
-				<not>
-					<isset property="android.rev"/>
-				</not>
-				<not>
-					<isset property="gradle.params"/>
-				</not>
-			</and>
-		</condition>
-		<condition property="android.build_w_rev">
-			<and>
-				<isset property="android.rev"/>
-				<not>
-					<isset property="gradle.params"/>
-				</not>
-			</and>
-		</condition>
-
-		<exec unless:set="exclude.webview" failonerror="true"
-				executable="${gradlew.exec}" dir="android/">
-			<arg line="${gradlew.script}"/>
-			<arg if:set="gradle.params" line="${gradle.params}"/>
-			<arg if:set="android.build_wout_rev" value="${android.build}"/>
-			<arg if:set="android.build_w_rev" line="-Pandroid.rev=${android.rev} ${android.build}"/>
-		</exec>
-	</target> <!-- client_android_build -->
-
-	<target name="build_android_client" depends="client_android_build" description="Alias for client_android_build"/>
-
-	<target name="dist_client_android" description="Builds Android client distribution package">
-		<echo
-			if:set="exclude.webview"
-			message="ANDROID_SDK_ROOT environment variable not set. Skipping Android WebView client build."/>
-
-		<antcall unless:set="exclude.webview" target="client_android_build"/>
-		<copy unless:set="exclude.webview" todir="${buildroot}" flatten="true">
-			<fileset dir="${buildroot}/build_android_client/outputs/apk/">
-				<include name="**/*.apk"/>
-			</fileset>
-		</copy>
-	</target> <!-- dist_client_android -->
-
-	<!-- alias for "dist_client_android" -->
-	<target name="dist_android_client" depends="dist_client_android"/>
-
-	<!-- END: android webview client -->
-
 
 	<!-- START: tools -->
 

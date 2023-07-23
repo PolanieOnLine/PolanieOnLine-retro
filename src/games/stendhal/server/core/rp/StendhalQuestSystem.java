@@ -24,8 +24,6 @@ import games.stendhal.server.entity.npc.quest.BuiltQuest;
 import games.stendhal.server.entity.npc.quest.QuestManuscript;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.maps.quests.*;
-import games.stendhal.server.maps.quests.antivenom_ring.AntivenomRing;
-import games.stendhal.server.maps.quests.challenges.*;
 
 /**
  * Loads and manages all quests.
@@ -75,15 +73,10 @@ public class StendhalQuestSystem {
 	 * Initializes the QuestSystem.
 	 */
 	public void init() {
-		loadQuest(new AGrandfathersWish());
-		//deactivated AdMemoriaInPortfolio
-		//loadQuest(new AdMemoriaInPortfolio());
 		loadQuest(new AdosDeathmatch());
-		loadQuest(new AdventureIsland());
 		loadQuest(new AmazonPrincess());
-		loadQuest(new AntivenomRing());
 		loadQuest(new ArmorForDagobert());
-		loadQuest(new BalloonForBobby());
+		//loadQuest(new BalloonForBobby());
 		loadQuest(new BeerForHayunn());
 		loadQuest(new Blackjack());
 		loadQuest(new BowsForOuchit());
@@ -98,17 +91,13 @@ public class StendhalQuestSystem {
 		loadQuest(new CloaksForBario());
 		loadQuest(new ClubOfThorns());
 		loadQuest(new CoalForHaunchy());
-		loadQuest(new CodedMessageFromFinnFarmer());
-		loadQuest(new CollectEnemyData());
 		loadQuest(new CrownForTheWannaBeKing());
 		loadQuest(new DailyItemQuest());
 		loadQuest(new DailyMonsterQuest());
 		loadQuest(new DiceGambling());
 		loadQuest(new DragonLair());
-		loadQuest(new EggsForMarianne());
 		loadQuest(new ElfPrincess());
 		loadQuest(new ElvishArmor());
-		loadQuest(new EmotionCrystals());
 		loadQuest(new FindGhosts());
 		loadQuest(new FindJefsMom());
 		loadQuest(new FindRatChildren());
@@ -117,11 +106,10 @@ public class StendhalQuestSystem {
 		loadQuest(new FishSoup());
 		loadQuest(new FishSoupForHughie());
 		loadQuest(new FruitsForCoralia());
-		loadQuest(new GuessKills());
+        loadQuest(new GuessKills());
 		loadQuest(new HatForMonogenes());
 		loadQuest(new HelpTomi());
 		loadQuest(new HelpMrsYeti());
-		loadQuest(new HelpWithTheHarvest());
 		loadQuest(new HerbsForCarmen());
 		loadQuest(new HouseBuying());
 		loadQuest(new HungryJoshua());
@@ -134,7 +122,7 @@ public class StendhalQuestSystem {
 		loadQuest(new LookBookforCeryl());
 		loadQuest(new LookUpQuote());
 		loadQuest(new KanmararnSoldiers());
-		loadQuest(new KillBlordroughs());
+		//loadQuest(new KillBlordroughs());
 		loadQuest(new KillDarkElves());
 		loadQuest(new KillDhohrNuggetcutter());
 		loadQuest(new KillEnemyArmy());
@@ -145,7 +133,6 @@ public class StendhalQuestSystem {
 		loadQuest(new Marriage());
 		loadQuest(new Maze());
 		loadQuest(new McPeglegIOU());
-		loadQuest(new MealForGroongo());
 		loadQuest(new MeetBunny());
 		loadQuest(new MedicineForTad());
 		loadQuest(new MeetHackim());
@@ -158,17 +145,14 @@ public class StendhalQuestSystem {
 		loadQuest(new MeetZynn());
 		loadQuest(new MithrilCloak());
 		loadQuest(new MixtureForOrtiv());
-		loadQuest(new MuseumEntranceFee());
 		loadQuest(new NewsFromHackim());
 		loadQuest(new ObsidianKnife());
 		loadQuest(new PizzaDelivery());
 		loadQuest(new PlinksToy());
 		loadQuest(new RainbowBeans());
-		loadQuest(new RestockFlowerShop());
 		loadQuest(new ReverseArrow());
 		loadQuest(new RingMaker());
 		loadQuest(new SadScientist());
-		loadQuest(new ScubaLicenseQuiz());
 		loadQuest(new SheepGrowing());
 		loadQuest(new SolveRiddles());
 		loadQuest(new SevenCherubs());
@@ -181,9 +165,7 @@ public class StendhalQuestSystem {
 		loadQuest(new TakeGoldforGrafindle());
 		loadQuest(new ThePiedPiper());
 		loadQuest(new ToysCollector());
-		loadQuest(new TrapsForKlaas());
 		loadQuest(new UltimateCollector());
-		loadQuest(new UnicornHornsForZelan());
 		loadQuest(new VampireSword());
 		loadQuest(new WaterForXhiphin());
 		loadQuest(new WeaponsCollector());
@@ -192,141 +174,43 @@ public class StendhalQuestSystem {
 		loadQuest(new WizardBank());
 		loadQuest(new ZekielsPracticalTestQuest());
 		loadQuest(new ZooFood());
-		/** Questy ze świata POL */
-		///////////////////////////
-		/** 					**\
-		 *       ZAKOPANE		 *
-		\**	                    **/
-		loadQuest(new BringMagic());
-		loadQuest(new ClearTower());
-		loadQuest(new ChallengeGreedy());
+		loadQuest(new BramaZrc());
 		loadQuest(new DailyItemZakopaneQuest());
-		loadQuest(new Gornictwo());
 		loadQuest(new HelpKrasnolud());
 		loadQuest(new HerbsForJadzka());
-		loadQuest(new Hunting());
-		loadQuest(new Janosik());
 		loadQuest(new KillDragons());
 		loadQuest(new KillHerszt());
-		loadQuest(new KillMtElves());
-		loadQuest(new KillSkeletons());
-		loadQuest(new KolekcjonerRekawic());
 		loadQuest(new Labirynt());
-		loadQuest(new LearnAboutMining());
-		loadQuest(new LekarstwoDlaCeliny());
-		loadQuest(new LostClub());
+		loadQuest(new MeetGuslarz());
 		loadQuest(new MeetFryderyk());
 		loadQuest(new MeetPietrek());
 		loadQuest(new Oscypek());
-		loadQuest(new PochorowaneKonie());
+		loadQuest(new PierscienBarona());
+		loadQuest(new PierscienMieszczanina());		
+		loadQuest(new PierscienMagnata());		
+		loadQuest(new PierscienRycerza());
 		loadQuest(new PomocChlopcowi());
+		loadQuest(new ProsbaWielkoluda());
 		loadQuest(new Ratownik());
-		loadQuest(new RebornQuest());
 		loadQuest(new ScytheForFryderyk());
-		loadQuest(new WegielNaOpal());
+		loadQuest(new SolveWoodcutterTest());
+		loadQuest(new StazNaGornika());
+		loadQuest(new ZlotaCiupaga());
+		loadQuest(new WawelBrama());
+		loadQuest(new FindDragons());
+		loadQuest(new ZagadkiBrzezdoma());
 		loadQuest(new ZakopaneBank());
 		loadQuest(new ZakopaneClouds());
-		loadQuest(new ZlotaCiupaga());
 		loadQuest(new ZlotaCiupagaDwaWasy());
-		loadQuest(new ZlotyRog());
-		/** 					**\
-		 *         TATRY 		 *
-		\**	                    **/
-		loadQuest(new Burglary());
-		loadQuest(new ChallengeGlutton());
-		loadQuest(new DailyMonsterKuzniceQuest());
-		loadQuest(new GoralskiCollector());
-		loadQuest(new GoralskiCollector2());
-		loadQuest(new GoralskiCollector3());
-		loadQuest(new Imprezowicz());
-		loadQuest(new ZlotyAmulet());
-		loadQuest(new HelpOgi());
-		/** 					**\
-		 *      KOŚCIELISKO 	 *
-		\**	                    **/
-		loadQuest(new BramaZrc());
-		loadQuest(new PierscienRycerza());
-		loadQuest(new ProsbaWielkoluda());
-		loadQuest(new StazNaGornika());
-		loadQuest(new ZagadkiBrzezdoma());
-		/** 					**\
-		 *        KRAKÓW		 *
-		\**	                    **/
-		loadQuest(new CzekoladaNikodema());
-		loadQuest(new KrakowBank());
-		loadQuest(new KrolewskiPlaszcz());
-		loadQuest(new MakaFarmera());
-		loadQuest(new MushroomSoup());
-		loadQuest(new NaprawaLodzi());
-		loadQuest(new PlaszczKapturka());
-		loadQuest(new PierscienBarona());
-		loadQuest(new SolveWoodcutterTest());
-		loadQuest(new WawelBrama());
-		loadQuest(new ZabawkaLeo());
-		loadQuest(new ZamowienieStrazy());
-		loadQuest(new ZlotaCiupagaTrzyWasy());
-		/** 					**\
-		 *       WARSZAWA		 *
-		\**	                    **/
-		loadQuest(new KillMadGuards());
-		loadQuest(new PrinceSupply());
-		/** 					**\
-		 *       WIELICZKA		 *
-		\**	                    **/
-		loadQuest(new SaltForHerbert());
-		loadQuest(new WeeklyItemWieliczkaQuest());
-		loadQuest(new ZlotyPierscien());
-		/** 					**\
-		 *     DRAGON_KNIGHTS	 *
-		\**	                    **/
-		loadQuest(new ClearQuestPierscien());
-		loadQuest(new MeeteD());
-		loadQuest(new PierscienMagnata());
-		loadQuest(new PierscienMieszczanina());
-		/** 					**\
-		 *         DRAGON		 *
-		\**	                    **/
-		loadQuest(new ChallengeDragons());
-		loadQuest(new MagicznaTorba());
-		loadQuest(new SmoczyAmulet());
-		if (Occasion.SECOND_WORLD) {
-			loadQuest(new DragonsGuard());
-		}
-		/** 					**\
-		 *         DESERT		 *
-		\**	                    **/
 		loadQuest(new ZlotaCiupagaJedenWas());
-		/** 					**\
-		 *         GDAŃSK		 *
-		\**	                    **/
-		loadQuest(new BilliardGame());
-		loadQuest(new SkorySmokow());
-		loadQuest(new DailyItemGdanskQuest());
-		loadQuest(new DzikiiWilki());
-		loadQuest(new Pizza());
-		loadQuest(new ProsbyWiedzmy());
-		loadQuest(new RosaBasementRats());
-		/**						**\
-		 *         INNE  	 	 *
-		\**	                    **/
-		loadQuest(new BiletTurystyczny());
-		loadQuest(new MeetGuslarz());
-		loadQuest(new FindDragons());
-		loadQuest(new KolekcjonerPasow());
+		loadQuest(new ZlotyRog());
 
 		if (Occasion.CHRISTMAS) {
 			loadQuest(new GoodiesForRudolph());
 		}
-		if (Occasion.EASTER) {
-			loadQuest(new EasterGiftsForChildren());
-		}
 		if (Occasion.MINETOWN) {
 			loadQuest(new PaperChase()); // needs to be loaded before SemosMineTownRevivalWeeks
 			loadQuest(new MineTownRevivalWeeks());
-			loadQuest(new DynieDlaKatii());
-		}
-		if (Occasion.MINETOWN_CONSTRUCTION) {
-			loadQuest(new MineTownRevivalWeeksConstruction());
 		}
 
 		TurnNotifier.get().notifyInTurns(10, new DumpGameInformationForWebsite());

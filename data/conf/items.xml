@@ -10,11 +10,8 @@
 	<group uri="items/cloaks.xml"/>
 	<group uri="items/clubs.xml"/>
 	<group uri="items/containers.xml"/>
-	<group uri="items/crystals.xml"/>
-	<group uri="items/daggers.xml"/>
 	<group uri="items/documents.xml"/>
 	<group uri="items/drinks.xml"/>
-	<group uri="items/dummy_weapons.xml"/>
   	<group uri="items/flowers.xml"/>
 	<group uri="items/food.xml"/>
 	<group uri="items/helmets.xml"/>
@@ -35,13 +32,11 @@
 	<group uri="items/swords.xml"/>
 	<group uri="items/tokens.xml"/>
 	<group uri="items/tools.xml"/>
-	<group uri="items/whips.xml"/>
 
 	<group uri="items/gloves.xml"/>
 	<group uri="items/magia.xml"/>
 	<group uri="items/necklaces.xml"/>
 	<group uri="items/wand.xml"/>
-	<group uri="items/belts.xml"/>
 
 	<!-- DISABLED ITEMS
 	<group uri="items/capturetheflag.xml"/>
