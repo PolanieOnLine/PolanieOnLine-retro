@@ -58,7 +58,7 @@ public class BramaZrc extends AbstractQuest {
 					} else {
 						if (player.isQuestCompleted(ARMOR_DAGOBERT_QUEST_SLOT)) {
 							if (player.getLevel() >= 150) {
-								if (player.hasKilledSolo("zielone smoczysko")) {
+								if (player.hasKilledSolo("czarne smoczysko")) {
 									if (!player.hasQuest(QUEST_SLOT) || "rejected".equals(player.getQuest(QUEST_SLOT))) {
 										raiser.say("Czyżbyś " + Grammar.genderVerb(player.getGender(), "chciał") + " przekroczyć bramy Zakonu Rycerzy Cienia poznać to co nie poznane? Jesteś zainteresowany?");
 									} else if (player.isQuestCompleted(QUEST_SLOT)) {
@@ -66,7 +66,7 @@ public class BramaZrc extends AbstractQuest {
 										raiser.setCurrentState(ConversationStates.ATTENDING);
 									}
 								} else {
-									npc.say("Rozmawiam tylko z osobami, które wykazały się w walce zabijając samodzielnie zielone smoczysko.");
+									npc.say("Rozmawiam tylko z osobami, które wykazały się w walce zabijając samodzielnie czarne smoczysko.");
 									raiser.setCurrentState(ConversationStates.ATTENDING);
 								}
 							} else {
