@@ -188,7 +188,6 @@
 			<schema namespace="polanieonline" file="${config_dir}/zones.xsd"/>
 			<fileset dir="${config_dir}/zones">
 				<include name="*.xml"/>
-				<include name="/*/*.xml"/>
 			</fileset>
 		</schemavalidate>
 		<schemavalidate>
@@ -204,12 +203,9 @@
 				<exclude name="armors.xml"/>
 				<exclude name="arrows.xml"/>
 				<exclude name="axes.xml"/>
-				<exclude name="belts.xml"/>
 				<exclude name="boots.xml"/>
 				<exclude name="cloaks.xml"/>
 				<exclude name="clubs.xml"/>
-				<exclude name="daggers.xml"/>
-				<exclude name="dummy_weapons.xml"/>
 				<exclude name="gloves.xml"/>
 				<exclude name="helmets.xml"/>
 				<exclude name="legs.xml"/>
@@ -220,7 +216,6 @@
 				<exclude name="shields.xml"/>
 				<exclude name="swords.xml"/>
 				<exclude name="wand.xml"/>
-				<exclude name="whips.xml"/>
 			</fileset>
 		</schemavalidate>
 		<schemavalidate>
@@ -228,10 +223,8 @@
 			<fileset dir="data/conf/items">
 				<include name="armors.xml"/>
 				<include name="arrows.xml"/>
-				<include name="belts.xml"/>
 				<include name="boots.xml"/>
 				<include name="cloaks.xml"/>
-				<include name="dummy_weapons.xml"/>
 				<include name="gloves.xml"/>
 				<include name="helmets.xml"/>
 				<include name="legs.xml"/>
@@ -246,11 +239,9 @@
 			<fileset dir="${config_dir}/items">
 				<include name="axes.xml"/>
 				<include name="clubs.xml"/>
-				<include name="daggers.xml"/>
 				<include name="ranged.xml"/>
 				<include name="swords.xml"/>
 				<include name="wand.xml"/>
-				<include name="whips.xml"/>
 			</fileset>
 		</schemavalidate>
 		<schemavalidate>
@@ -641,7 +632,6 @@
 				<include name="items/*.xml"/>
 				<include name="zones.xml"/>
 				<include name="zones/*.xml"/>
-				<include name="zones/*/*.xml"/>
 				<include name="riddles.xml"/>
 				<include name="spells.xml" />
 				<include name="spells/*.xml" />
