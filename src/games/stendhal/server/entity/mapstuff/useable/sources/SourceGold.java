@@ -59,18 +59,6 @@ public class SourceGold extends SourceEntity {
 		setResistance(100);
 	}
 
-	@Override
-	protected boolean isPrepared(final Player player) {
-		for (final String itemName : NEEDED_PICKS) {
-			if ((itemName != NEEDED_PICKS[0] || itemName != NEEDED_PICKS[1]) && player.isEquipped(itemName)) {
-				return true;
-			}
-		}
-
-		player.sendPrivateText("Potrzebujesz lepszego kilofa do wydobywania takiego kamienia.");
-		return false;
-	}
-
 	/**
 	 * Called when the activity has finished.
 	 *
@@ -81,6 +69,6 @@ public class SourceGold extends SourceEntity {
 	 */
 	@Override
 	protected void onFinished(final Player player, final boolean successful) {
-		setMiningXP(player, successful, itemName, 500);
+		successFinish(player, successful, itemName);
 	}
 }

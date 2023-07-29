@@ -79,6 +79,6 @@ public class SourceSilver extends SourceEntity {
 	 */
 	@Override
 	protected void onFinished(final Player player, final boolean successful) {
-		setMiningXP(player, successful, itemName, 380);
+		successFinish(player, successful, itemName);
 	}
 }

@@ -119,12 +119,6 @@ public class ObtainAchievementsFactory extends AbstractAchievementFactory {
 				new QuestCompletedCondition("cloaks_collector_2")));
 
 		achievements.add(createAchievement(
-				"quest.special.beltscollector", "Kolekcjoner Pasów",
-				"Ukończono zadanie u kolekcjonerki pasów",
-				Achievement.HARD_BASE_SCORE, true,
-				new QuestCompletedCondition("belts_collector")));
-
-		achievements.add(createAchievement(
 				"quest.special.glovescollector", "Kolekcjoner Rękawic",
 				"Ukończono zadanie u kolekcjonerki rękawic",
 				Achievement.HARD_BASE_SCORE, true,

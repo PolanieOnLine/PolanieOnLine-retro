@@ -79,6 +79,6 @@ public class SourceSulfur extends SourceEntity {
 	 */
 	@Override
 	protected void onFinished(final Player player, final boolean successful) {
-		setMiningXP(player, successful, itemName, 50);
+		successFinish(player, successful, itemName);
 	}
 }

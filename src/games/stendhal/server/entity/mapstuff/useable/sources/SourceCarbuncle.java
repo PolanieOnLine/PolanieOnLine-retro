@@ -69,18 +69,6 @@ public class SourceCarbuncle extends SourceEntity {
 		setResistance(100);
 	}
 
-	@Override
-	protected boolean isPrepared(final Player player) {
-		for (final String itemName : NEEDED_PICKS) {
-			if (itemName != NEEDED_PICKS[0] && player.isEquipped(itemName)) {
-				return true;
-			}
-		}
-
-		player.sendPrivateText("Potrzebujesz kilofa do wydobywania kamieni.");
-		return false;
-	}
-
 	/**
 	 * Called when the activity has finished.
 	 *
@@ -91,6 +79,6 @@ public class SourceCarbuncle extends SourceEntity {
 	 */
 	@Override
 	protected void onFinished(final Player player, final boolean successful) {
-		setMiningXP(player, successful, itemName, 630);
+		successFinish(player, successful, itemName);
 	}
 }

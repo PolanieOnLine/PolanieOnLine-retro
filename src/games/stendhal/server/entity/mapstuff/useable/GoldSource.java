@@ -60,7 +60,7 @@ public class GoldSource extends PlayerActivityEntity {
 	 * Create a gold source.
 	 */
 	public GoldSource() {
-		this("gold nugget");
+		this("bryłka złota");
 	}
 
 	/**
@@ -68,7 +68,7 @@ public class GoldSource extends PlayerActivityEntity {
 	 */
 	@Override
 	public String getName() {
-		return("gold rich water");
+		return("woda bogata w złoto");
 	}
 
 	/**

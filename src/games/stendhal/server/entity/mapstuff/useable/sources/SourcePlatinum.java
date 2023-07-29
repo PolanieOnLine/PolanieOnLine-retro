@@ -59,17 +59,6 @@ public class SourcePlatinum extends SourceEntity {
 		setResistance(100);
 	}
 
-	@Override
-	protected boolean isPrepared(final Player player) {
-		if (player.isEquipped(NEEDED_PICKS[3])
-			|| player.isEquipped(NEEDED_PICKS[4])) { 
-			return true;
-		}
-
-		player.sendPrivateText("Potrzebujesz mocniejszego kilofa do wydobywania takiego kamienia.");
-		return false;
-	}
-
 	/**
 	 * Called when the activity has finished.
 	 *
@@ -80,6 +69,6 @@ public class SourcePlatinum extends SourceEntity {
 	 */
 	@Override
 	protected void onFinished(final Player player, final boolean successful) {
-		setMiningXP(player, successful, itemName, 1200);
+		successFinish(player, successful, itemName);
 	}
 }

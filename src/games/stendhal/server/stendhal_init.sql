@@ -20,7 +20,6 @@ create table if not exists character_stats
   atk integer,
   def integer,
   ratk integer,
-  mining integer,
   hp integer,
   karma integer,
 
@@ -31,7 +30,6 @@ create table if not exists character_stats
   lhand varchar(32),
   armor varchar(32),
   rhand varchar(32),
-  pas varchar(32),
   legs varchar(32),
   glove varchar(32),
   finger varchar(32),

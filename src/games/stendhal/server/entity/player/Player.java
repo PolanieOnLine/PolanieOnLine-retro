@@ -42,7 +42,6 @@ import games.stendhal.common.NotificationType;
 import games.stendhal.common.TradeState;
 import games.stendhal.common.Version;
 import games.stendhal.common.constants.Nature;
-import games.stendhal.common.constants.Occasion;
 import games.stendhal.common.constants.SoundID;
 import games.stendhal.common.constants.SoundLayer;
 import games.stendhal.common.constants.Testing;
@@ -188,8 +187,6 @@ public class Player extends DressedEntity implements UseListener {
 			player.put("ratk", 10);
 			player.put("ratk_xp", 0);
 		}
-		player.put("mining", 10);
-		player.put("mining_xp", 0);
 		player.put("level", 0);
 		player.setXP(0);
 		if (Testing.WEIGHT) {
@@ -230,13 +227,6 @@ public class Player extends DressedEntity implements UseListener {
 		entity = SingletonRepository.getEntityManager().getItem("maczuga");
 		slot = player.getSlot("rhand");
 		slot.add(entity);
-
-		if (!Occasion.SECOND_WORLD) {
-			entity = SingletonRepository.getEntityManager().getItem("ciupaga startowa");
-			((Item) entity).setBoundTo(player.getName());
-			slot = player.getSlot("bag");
-			slot.add(entity);
-		}
 
 		return player;
 	}
@@ -2649,18 +2639,6 @@ public class Player extends DressedEntity implements UseListener {
 	}
 
 	@Override
-	protected void setMiningInternal(final int mining, final boolean notify) {
-		final int oldMining = getMining();
-		super.setMiningInternal(mining, notify);
-
-		if (oldMining < mining) {
-			AchievementNotifier.get().onMiningChange(this);
-			this.addEvent(new SoundEvent(SoundID.STAT_UP, SoundLayer.USER_INTERFACE));
-			this.notifyWorldAboutChanges();
-		}
-	}
-
-	@Override
 	protected void setRatkInternal(final int ratk, final boolean notify) {
 		final int oldRatk = getRatk();
 		super.setRatkInternal(ratk, notify);
@@ -3077,19 +3055,6 @@ public class Player extends DressedEntity implements UseListener {
 		AchievementNotifier.get().onTrade(this);
 	}
 
-	/**
-	 * Increases the count of improves item
-	 *
-	 * @param name
-	 *			the item name
-	 * @param quantity
-	 */
-	public void incImprovedForItem(String name, int quantity) {
-		itemCounter.incImprovedForItem(name, quantity);
-		// check achievements in upgrade category
-		AchievementNotifier.get().onUpgrade(this);
-	}
-
 	public int getCommerceTransactionAmount(final String npcName, final boolean soldToNPC) {
 		int amount = 0;
 
@@ -3291,17 +3256,6 @@ public class Player extends DressedEntity implements UseListener {
 	}
 
 	/**
-	 * Get the maximum allowed mining for a level.
-	 *
-	 * @param level
-	 *			checked level
-	 * @return maximum mining
-	 */
-	private int getMaxMiningForLevel(int level) {
-		return (int) (10 * Math.cbrt(level) + 60);
-	}
-
-	/**
 	 * gets the capped atk level, which prevent players from training their atk
 	 * way beyond what is reasonable for their level
 	 *
@@ -3324,19 +3278,6 @@ public class Player extends DressedEntity implements UseListener {
 	public int getCappedDef() {
 		// Red line in https://sourceforge.net/p/arianne/feature-requests/1330/
 		return Math.min(this.def, getMaxDefForLevel(level));
-	}
-
-	/**
-	 * gets the capped mining level, which prevent players from training their mining
-	 * way beyond what is reasonable for their level
-	 *
-	 * @return capped mining
-	 */
-	@Override
-	public int getCappedMining() {
-		// Blue line in https://sourceforge.net/p/arianne/feature-requests/1330/
-		// reduced using median instead of average as reference
-		return Math.min(this.mining, getMaxMiningForLevel(level));
 	}
 
 	/**

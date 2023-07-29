@@ -158,7 +158,7 @@ public class PlayerTransformer implements Transformer {
 	void loadItemsIntoSlots(final Player player) {
 		// load items
 		final String[] slotsItems = { "bag", "rhand", "lhand", "neck", "head", "armor",
-				"legs", "feet", "finger", "fingerb", "glove", "cloak", "back", "belt",
+				"legs", "feet", "finger", "fingerb", "glove", "cloak", "back",
 				"keyring", "magicbag", /*"portfolio",*/ "trade", "pouch", "money" };
 
 		try {

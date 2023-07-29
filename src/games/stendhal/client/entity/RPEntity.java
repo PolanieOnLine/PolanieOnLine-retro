@@ -194,8 +194,6 @@ public abstract class RPEntity extends AudibleEntity {
 
 	private int ratk;
 
-	private int mining;
-
 	private int xp;
 
 	private int hp;
@@ -258,8 +256,6 @@ public abstract class RPEntity extends AudibleEntity {
 	private int defXP;
 
 	private int ratkXP;
-
-	private int miningXP;
 
 	private int atkItem = -1;
 
@@ -401,20 +397,6 @@ public abstract class RPEntity extends AudibleEntity {
 	 */
 	public int getRatkXP() {
 		return ratkXP;
-	}
-
-	/**
-	 * @return Returns the mining.
-	 */
-	public int getMining() {
-		return mining;
-	}
-
-	/**
-	 * @return the mining xp
-	 */
-	public int getMiningXP() {
-		return miningXP;
 	}
 
 	/**
@@ -1506,13 +1488,6 @@ public abstract class RPEntity extends AudibleEntity {
 			ratk = changes.getInt("modified_ratk");
 		}
 
-		if (changes.has("mining")) {
-			mining = changes.getInt("mining");
-		}
-		if (changes.has("modified_mining")) {
-			mining = changes.getInt("modified_mining");
-		} 
-
 		if (changes.has("level")) {
 			level = changes.getInt("level");
 		}
@@ -1530,10 +1505,6 @@ public abstract class RPEntity extends AudibleEntity {
 
 		if (changes.has("ratk_xp")) {
 			ratkXP = changes.getInt("ratk_xp");
-		}
-
-		if (changes.has("mining_xp")) {
-			miningXP = changes.getInt("mining_xp");
 		}
 
 		if (changes.has("atk_item")) {
@@ -1649,7 +1620,6 @@ public abstract class RPEntity extends AudibleEntity {
 		statTypes.put("def", getDef());
 		statTypes.put("atk", getAtk());
 		statTypes.put("ratk", getRatk());
-		statTypes.put("mining", getMining());
 
 		for (final String stat: statTypes.keySet()) {
 			if (changes.has(stat) && object.has(stat)) {
@@ -1676,7 +1646,6 @@ public abstract class RPEntity extends AudibleEntity {
 			stat = stat.replace("def", "obrony");
 			stat = stat.replace("ratk", "strzelnictwa");
 			stat = stat.replace("atk", "ataku");
-			stat = stat.replace("mining", "górnictwa");
 
 			String level = " poziom";
 			if (newlevel < oldlevel) {

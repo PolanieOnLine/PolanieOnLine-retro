@@ -206,7 +206,6 @@ public class ItemLogEvent extends Event<RPEntity> {
 			}
 
 			private final Map<String, String> ITEM_CLASS_MAP = new HashMap<String, String>() {{
-				put("belts", "pasy");
 				put("ring", "pierścionki");
 				put("ranged", "zasięgowe");
 				put("necklace", "naszyjniki");

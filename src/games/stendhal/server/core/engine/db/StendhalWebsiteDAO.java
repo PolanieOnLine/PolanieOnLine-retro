@@ -124,8 +124,8 @@ public class StendhalWebsiteDAO {
 		final String query = "UPDATE character_stats SET "
 			+ " admin=[admin], sentence='[sentence]', age=[age], gender='[gender]', level=[level],"
 			+ " outfit=[outfit], outfit_colors='[outfit_colors]', outfit_layers='[outfit_layers]', xp=[xp], money='[money]',"
-			+ " married='[married]', atk='[atk]', def='[def]', ratk='[ratk]', mining='[mining]', hp='[hp]', karma='[karma]',"
-			+ " neck='[neck]', head='[head]', armor='[armor]', lhand='[lhand]', rhand='[rhand]', pas='[pas]',"
+			+ " married='[married]', atk='[atk]', def='[def]', ratk='[ratk]', hp='[hp]', karma='[karma]',"
+			+ " neck='[neck]', head='[head]', armor='[armor]', lhand='[lhand]', rhand='[rhand]',"
 			+ " legs='[legs]', feet='[feet]', cloak='[cloak]', lastseen='[lastseen]',"
 			+ " glove='[glove]', finger='[finger]', fingerb='[fingerb]', zone='[zone]'"
 			+ " WHERE name='[name]'";
@@ -159,7 +159,6 @@ public class StendhalWebsiteDAO {
 		params.put("atk", player.getAtk());
 		params.put("def", player.getDef());
 		params.put("ratk", player.getRatk());
-		params.put("mining", player.getMining());
 		params.put("hp", player.getHP());
 		params.put("karma", (int) player.getKarma());
 		params.put("neck", extractName(player.getNecklace()));
@@ -194,13 +193,13 @@ public class StendhalWebsiteDAO {
 	protected void insertIntoCharStats(final DBTransaction transaction, final Player player, Timestamp timestamp) throws SQLException {
 		final String query = "INSERT INTO character_stats"
 			+ " (name, admin, sentence, age, gender, level,"
-			+ " outfit, outfit_colors, outfit_layers, xp, money, married, atk, def, ratk, mining, hp,"
-			+ " karma, neck, head, armor, lhand, rhand, pas,"
+			+ " outfit, outfit_colors, outfit_layers, xp, money, married, atk, def, ratk, hp,"
+			+ " karma, neck, head, armor, lhand, rhand,"
 			+ " legs, feet, cloak, glove, finger, fingerb, zone, lastseen)"
 			+ " VALUES ('[name]', '[admin]', '[sentence]', '[age]', '[gender]', '[level]',"
 			+ " '[outfit]', '[outfit_colors]', '[outfit_layers]', '[xp]', '[money]', '[married]',"
-			+ " '[atk]', '[def]', '[ratk]', '[mining]', '[hp]', '[karma]', '[neck]', '[head]', '[armor]',"
-			+ " '[lhand]', '[rhand]', '[pas]', '[legs]', '[feet]', '[cloak]', '[glove]', '[finger]', '[fingerb]',"
+			+ " '[atk]', '[def]', '[ratk]', '[hp]', '[karma]', '[neck]', '[head]', '[armor]',"
+			+ " '[lhand]', '[rhand]', '[legs]', '[feet]', '[cloak]', '[glove]', '[finger]', '[fingerb]',"
 			+ " '[zone]', '[lastseen]')";
 		Map<String, Object> params = getParamsFromPlayer(player);
 		params.put("lastseen", timestamp);

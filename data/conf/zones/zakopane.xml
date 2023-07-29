@@ -974,7 +974,7 @@ Na południe ↓ Tatry
 			<implementation class-name="games.stendhal.server.entity.mapstuff.sign.Sign"/>
 			<attribute name="text">
 #'Przeczytaj REGULAMIN!'
-#'www.gra.PolskaOnLine.org'
+#'https://s2.polanieonline.eu'
 			</attribute>
 			<attribute name="class">default</attribute>
 		</entity>
@@ -983,7 +983,7 @@ Na południe ↓ Tatry
 			<attribute name="text">
 Jeśli masz pytanie dotyczące gry,
 na które nie znalazłeś odpowiedzi
-na stronie #'www.gra.PolskaOnLine.org'
+na stronie #'https://s2.polanieonline.eu'
 w dziale #'Dla początkujących'
 zapytaj GM pisząc #'/support PYTANIE'.
 			</attribute>
@@ -995,7 +995,7 @@ zapytaj GM pisząc #'/support PYTANIE'.
 W związku z tym, że nasza gra
 jest całkowicie darmowa proszę:
 w wolnej chwili wejdź na stronę
-#'www.gra.PolskaOnLine.org'
+#'https://s2.polanieonline.eu'
 i kliknij #'banerek'
 jeśli pojawi się w nagłówku!
 #'DZIĘKUJEMY!'
@@ -1005,8 +1005,8 @@ jeśli pojawi się w nagłówku!
 		<entity x="27" y="21">
 			<implementation class-name="games.stendhal.server.entity.mapstuff.sign.Sign"/>
 			<attribute name="text">
-Filmy produkcji #'PolskaOnLine'
-do obejrzenia na #'www.gra.PolskaOnLine.org'
+Filmy produkcji #'PolanieOnLine'
+do obejrzenia na #'https://s2.polanieonline.eu'
 w dziale #'Filmiki!'. Możesz też pobrać #'tapetki!'
 			</attribute>
 			<attribute name="class">default</attribute>
@@ -1025,19 +1025,6 @@ mile widziany!
 			</attribute>
 			<attribute name="class">default</attribute>
 		</entity>
-<!--		<entity x="31" y="17">
-			<implementation class-name="games.stendhal.server.entity.mapstuff.sign.Sign"/>
-			<attribute name="text">
-Chesz potwierdzić swoją siłę i stać się lokalnym bohaterem?!
-#'Stań do Turnieju Faruski!'
-Jedynie co musisz zrobić to sprostać wyzwaniu potężnych potworów powyżej 150 lvlu w walce na śmierć lub życie. Quest jest 2 częściowy.
-Pierwsza część polega na samodzielnym zabiciu kolejno każdego potwoka od 150 do 300 lvl-u.
-W drugiej części musisz pokonać powyżej 300 lvl-u możesz w tej części skorzystać pomocy innych, ale musisz mieć min. 75% udziału w zabiciu potworka.
-W nagrodę otrzymasz szacunek innych oraz za 1 etap: 200 base_hp, a za 2 etap: +10% punktów ATK i +10% punktów OBR.
-Turniej organizuje Faruska i ona udziela informacji.
-			</attribute>
-			<attribute name="class">default</attribute>
-		</entity>-->
 
 		<portal x="30" y="40" ref="zakopane_1_restart_life">
 			<implementation class-name="games.stendhal.server.entity.mapstuff.portal.OneWayPortalDestination"/>

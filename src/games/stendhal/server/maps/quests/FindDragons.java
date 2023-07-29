@@ -53,7 +53,6 @@ public class FindDragons extends AbstractQuest {
 		dragonHistory.put("Miles",      "Miles przebywał na Desert Pyramid.");
 		dragonHistory.put("Vircassis",  "Vircassis przebywał na Semos Mountain.");
 		dragonHistory.put("Decida",     "Decida przebywał w Krakow Cave.");
-		dragonHistory.put("Hikari",		"Hikari przebywał w Zakopane Mountain Room");
 	}
 
 	@Override
@@ -63,7 +62,7 @@ public class FindDragons extends AbstractQuest {
 		}
 		final String npcDoneText = player.getQuest(QUEST_SLOT);
 		final String[] done = npcDoneText.split(";");
-		final int left = 13 - done.length;
+		final int left = 12 - done.length;
 		return left < 0;
 	}
 
@@ -71,7 +70,7 @@ public class FindDragons extends AbstractQuest {
 		public DragonNPC(final String name, final int x, final int y) {
 			super(name);
 
-			setEntityClass("dragon1npc");
+			setEntityClass("dragonNPC");
 			setPosition(x, y);
 			setCollisionAction(CollisionAction.REROUTE);
 			initHP(100);
@@ -125,7 +124,7 @@ public class FindDragons extends AbstractQuest {
 								if (raiser.getZone().getName().equals("0_kościelisko_e")) {
 									player.addXP(200);
 								} else {
-									player.addXP((13 - left + 1) * 500);
+									player.addXP((12 - left + 1) * 500);
 								}
 							} else {
 								raiser.say(Grammar.genderVerb(player.getGender(), "Udowodniłeś") + ", że jesteś " + Grammar.genderVerb(player.getGender(), "godny") + " tej nagrody!");
@@ -151,7 +150,7 @@ public class FindDragons extends AbstractQuest {
 		fillHistoryMap();
 		fillQuestInfo(
 			"Poszukiwanie Smoków",
-			"Znajdź wszystkie 13 smoków.",
+			"Znajdź wszystkie 12 smoków.",
 			false);
 
 		StendhalRPZone zone;
@@ -203,10 +202,6 @@ public class FindDragons extends AbstractQuest {
 
 		zone = world.getZone("-1_krakow_cave_sw");
 		npc = new DragonNPC("Decida", 86, 44);
-		zone.add(npc);
-
-		zone = world.getZone("int_zakopane_mountain_room");
-		npc = new DragonNPC("Hikari", 6, 7);
 		zone.add(npc);
 	}
 

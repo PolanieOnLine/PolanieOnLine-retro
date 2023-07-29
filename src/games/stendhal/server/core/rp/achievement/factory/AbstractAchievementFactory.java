@@ -65,7 +65,6 @@ public abstract class AbstractAchievementFactory {
 		list.add(new ExperienceAchievementFactory());
 		list.add(new ExperienceDEFAchievementFactory());
 		list.add(new ExperienceATKAchievementFactory());
-		list.add(new ExperienceMININGAchievementFactory());
 		if (Testing.COMBAT) {
 			list.add(new ExperienceRATKAchievementFactory());
 		}
@@ -74,7 +73,6 @@ public abstract class AbstractAchievementFactory {
 		list.add(new InteriorZoneAchievementFactory());
 		list.add(new ItemAchievementFactory());
 		list.add(new ItemSetsAchievementFactory());
-		list.add(new ItemUpgradesAchievementFactory());
 		list.add(new ObtainAchievementsFactory());
 		list.add(new OutsideZoneAchievementFactory());
 		list.add(new PetsWeightAchievementFactory());

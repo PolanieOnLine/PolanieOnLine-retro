@@ -67,19 +67,6 @@ public abstract class UpdateConverter {
 			"chaos sorcerer"
 	);
 
-	private static final List<String> STARE_NAZWY_POL_1_12 = Arrays.asList(
-			"kolczany pas", "złoty kolczany pas", "skórzany pas", "wzmocniony skórzany pas",
-			"karmazynowy pas", "karmazynowe rękawice", "karmazynowa tarcza",
-			"karmazynowy hełm", "lazurowe rękawice", "lazurowa tarcza",
-			"płaszcz truskull", "płaszcz lutinów", "magia lodu"
-	);
-	private static final List<String> NOWE_NAZWY_POL_1_12 = Arrays.asList(
-			"pas kolczy", "złoty pas kolczy", "pas skórzany", "wzmocniony pas skórzany",
-			"pas karmazynowy", "rękawice karmazynowe", "tarcza karmazynowa",
-			"hełm karmazynowy", "rękawice lazurowe", "tarcza lazurowa",
-			"peleryna truskull", "peleryna lutinów", "magia mrozu"
-	);
-
 	private static final HashMap<String, String> ZONE_MAPPING = new HashMap<>();
 	static {
 		ZONE_MAPPING.put("0_deniran_n_w2", "0_deniran_forest_n2_w");
@@ -211,11 +198,6 @@ public abstract class UpdateConverter {
 			idx = ITEM_NAMES_OLD_0_66.indexOf(name);
 			if (idx != -1) {
 				name = ITEM_NAMES_NEW_0_66.get(idx);
-			}
-
-			idx = STARE_NAZWY_POL_1_12.indexOf(name);
-			if (idx != -1) {
-				name = NOWE_NAZWY_POL_1_12.get(idx);
 			}
 		}
 
@@ -447,12 +429,6 @@ public abstract class UpdateConverter {
 
 		// port to 1.31: zone zones
 		transformVisitedSlot(object);
-
-		// port to POL1.17
-		if (!object.has("mining")){
-			object.put("mining", "10");
-    		object.put("mining_xp", "0");
-    	}
 
 		// port to 1.39: keyring size
 		String keyring = object.get("features", "keyring");

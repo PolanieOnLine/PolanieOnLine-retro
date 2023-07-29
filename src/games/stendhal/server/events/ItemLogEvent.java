@@ -37,8 +37,8 @@ public class ItemLogEvent extends RPEvent {
 	private final List<DefaultItem> items;
 	private final List<String> dropped;
 
-	private final String[] itemClasses = { "armor", "ammunition", "axe", "belts",
-			"boots", "cloak", "club", "dagger", "drink", "glove", "helmet",
+	private final String[] itemClasses = { "armor", "ammunition", "axe",
+			"boots", "cloak", "club", "drink", "glove", "helmet",
 			"jewellery", "legs", "magia", "missile", "money", "necklace",
 			"ranged", "resource", "shield", "sword", "wand" };
 
@@ -53,7 +53,7 @@ public class ItemLogEvent extends RPEvent {
 			"sztabka cieni", "sztabka miedzi", "sztabka platyny", "sztabka srebra", "sól", "trzcina cukrowa", "obsydianowy saks",
 			"wypchany baran", "węgiel", "węgiel drzewny", "złote jajo", "świeca", "tarcza jaśniejąca", "miecz leworęczny",
 			"miecz treningowy", "zwój czyszczący", "amulecik", "smocze pazury", "rózga GM", "filiżanka herbaty", "miecz praworęczny",
-			"pas zabójcy", "rękawice zabójcy", "buty zabójcy", "maczuga cierniowa", "płaszcz czerwonego kapturka",
+			"rękawice zabójcy", "buty zabójcy", "maczuga cierniowa", "płaszcz czerwonego kapturka",
 			"wzmocniona drewniana strzała", "zbroja akwalungowa" };
 	private final String[] neededItemNames = { "banan", "borowik", "błazenek", "cebula", "cytryna", "czosnek", "dorsz", "duży ser", "dynia",
 			"straszna dynia", "fasola pinto", "flaczki", "jabłko", "jabłko niezgody", "jajo", "jajo wielkanocne", "kalafior", "kanapka",

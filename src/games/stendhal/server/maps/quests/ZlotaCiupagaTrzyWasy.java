@@ -49,9 +49,8 @@ public class ZlotaCiupagaTrzyWasy extends AbstractQuest {
 	private final SpeakerNPC npc = npcs.get("Hadrin");
 
 	private static final String FRIEND_1 = "goralski_kolekcjoner3";
-	private static final String FRIEND_2 = "belts_collector";
-	private static final String FRIEND_3 = "gloves_collector";
-	private static final String FRIEND_4 = "krolewski_plaszcz";
+	private static final String FRIEND_2 = "gloves_collector";
+	private static final String FRIEND_3 = "krolewski_plaszcz";
 
 	private static final int REQUIRED_HOURS = 24;
 
@@ -67,43 +66,38 @@ public class ZlotaCiupagaTrzyWasy extends AbstractQuest {
 					if (player.isQuestCompleted(FRIEND_1)) {
 						if (player.isQuestCompleted(FRIEND_2)) {
 							if (player.isQuestCompleted(FRIEND_3)) {
-								if (player.isQuestCompleted(FRIEND_4)) {
-									if(player.getLevel() >= 350) {
-										if(player.getKarma() >= 2000) {
-											if(player.hasKilled("azazel")) {
-												if (!player.hasQuest(QUEST_SLOT) || "rejected".equals(player.getQuest(QUEST_SLOT))) {
-													raiser.say("Musisz być dzielnym wojownikiem skoro " + Grammar.genderVerb(player.getGender(), "dotarłeś") + " aż tu. Mam dla ciebie zadanie, czy jesteś gotów?");
-												} else if (player.getQuest(QUEST_SLOT, 0).equals("start")) {
-													raiser.say("Już się Ciebie pytałem czy chcesz ulepszyć złotą ciupagę!");
-												} else if (player.isQuestCompleted(QUEST_SLOT)) {
-													raiser.say("Już ulepszyłem dla Ciebie złotą ciupagę.");
-													raiser.setCurrentState(ConversationStates.ATTENDING);
-												} else {
-													raiser.say("Dlaczego zawracasz mi głowę skoro nie " + Grammar.genderVerb(player.getGender(), "ukończyłeś") + " zadania?");
-													raiser.setCurrentState(ConversationStates.ATTENDING);
-												}
+								if(player.getLevel() >= 350) {
+									if(player.getKarma() >= 2000) {
+										if(player.hasKilled("azazel")) {
+											if (!player.hasQuest(QUEST_SLOT) || "rejected".equals(player.getQuest(QUEST_SLOT))) {
+												raiser.say("Musisz być dzielnym wojownikiem skoro " + Grammar.genderVerb(player.getGender(), "dotarłeś") + " aż tu. Mam dla ciebie zadanie, czy jesteś gotów?");
+											} else if (player.getQuest(QUEST_SLOT, 0).equals("start")) {
+												raiser.say("Już się Ciebie pytałem czy chcesz ulepszyć złotą ciupagę!");
+											} else if (player.isQuestCompleted(QUEST_SLOT)) {
+												raiser.say("Już ulepszyłem dla Ciebie złotą ciupagę.");
+												raiser.setCurrentState(ConversationStates.ATTENDING);
 											} else {
-												npc.say("Rozmawiam tylko z osobami, które wykazały się w walce zabijając azazela.");
+												raiser.say("Dlaczego zawracasz mi głowę skoro nie " + Grammar.genderVerb(player.getGender(), "ukończyłeś") + " zadania?");
 												raiser.setCurrentState(ConversationStates.ATTENDING);
 											}
 										} else {
-											npc.say("Twoja karma jest zbyt słaba aby podołać temu zadaniu. Postaraj się, aby była 2000 lub więcej!");
+											npc.say("Rozmawiam tylko z osobami, które wykazały się w walce zabijając azazela.");
 											raiser.setCurrentState(ConversationStates.ATTENDING);
 										}
 									} else {
-										npc.say("Twój stan społeczny jest zbyt niski aby podjąć te zadanie. Wróć gdy zdobędziesz 350 poziom.");
+										npc.say("Twoja karma jest zbyt słaba aby podołać temu zadaniu. Postaraj się, aby była 2000 lub więcej!");
 										raiser.setCurrentState(ConversationStates.ATTENDING);
 									}
 								} else {
-									npc.say("Jeśli pomożesz Królowi Krakowi, ja jako pierwszy o tym się dowiem.");
+									npc.say("Twój stan społeczny jest zbyt niski aby podjąć te zadanie. Wróć gdy zdobędziesz 350 poziom.");
 									raiser.setCurrentState(ConversationStates.ATTENDING);
 								}
 							} else {
-								npc.say("Poprosiła mnie o pomoc Anastazja, dobrze się składa. Ty jej pomożesz.");
+								npc.say("Jeśli pomożesz Królowi Krakowi, ja jako pierwszy o tym się dowiem.");
 								raiser.setCurrentState(ConversationStates.ATTENDING);
 							}
 						} else {
-							npc.say("Wesprzyj moją przyjaciółkę Eltefię w jej marzeniu.");
+							npc.say("Poprosiła mnie o pomoc Anastazja, dobrze się składa. Ty jej pomożesz.");
 							raiser.setCurrentState(ConversationStates.ATTENDING);
 						}
 					} else {

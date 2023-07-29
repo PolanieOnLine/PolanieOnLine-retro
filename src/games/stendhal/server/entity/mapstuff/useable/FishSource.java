@@ -96,11 +96,9 @@ public class FishSource extends PlayerActivityEntity {
 		double probability = 0.05;
 
 		final String skill = player.getSkill("fishing");
-
 		if (skill != null) {
 			probability = Math.max(probability, MathHelper.parseDouble(skill));
 		}
-
 		return probability + player.useKarma(0.05);
 	}
 

@@ -79,6 +79,6 @@ public class SourceIron extends SourceEntity {
 	 */
 	@Override
 	protected void onFinished(final Player player, final boolean successful) {
-		setMiningXP(player, successful, itemName, 100);
+		successFinish(player, successful, itemName);
 	}
 }

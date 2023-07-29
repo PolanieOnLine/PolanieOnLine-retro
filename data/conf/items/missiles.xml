@@ -5,7 +5,7 @@
 	<item name="śnieżka">
 		<type class="missile" subclass="snowballs" tileid="-1"/>
 		<description>Oto śnieżka. Raczej lepsza do zabawy niż do walki.</description>
-		<implementation class-name="games.stendhal.server.entity.item.NoStatsStackableItem"/>
+		<implementation class-name="games.stendhal.server.entity.item.NoStatsProjectile"/>
 		<attributes>
 			<atk value="-1"/>
 			<range value="8"/>
@@ -29,7 +29,7 @@
 	<item name="wymioty">
 		<type class="missile" subclass="vomit" tileid="-1"/>
 		<description>Oto wymioty. Fuj!</description>
-		<implementation class-name="games.stendhal.server.entity.item.NoStatsStackableItem"/>
+		<implementation class-name="games.stendhal.server.entity.item.NoStatsProjectile"/>
 		<attributes>
 			<atk value="-1"/>
 			<range value="5"/>

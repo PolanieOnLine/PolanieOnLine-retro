@@ -89,8 +89,6 @@ public abstract class CombatEntity extends GuidedEntity {
 			rpclass.addAttribute("ratk_xp", Type.INT, (byte) (Definition.PRIVATE | Definition.VOLATILE));
 			rpclass.addAttribute("def", Type.SHORT);
 			rpclass.addAttribute("def_xp", Type.INT, Definition.PRIVATE);
-			rpclass.addAttribute("mining", Type.SHORT, Definition.PRIVATE);
-			rpclass.addAttribute("mining_xp", Type.INT, Definition.PRIVATE);
 
 			rpclass.addAttribute("atk_item", Type.INT,
 					(byte) (Definition.PRIVATE | Definition.VOLATILE));

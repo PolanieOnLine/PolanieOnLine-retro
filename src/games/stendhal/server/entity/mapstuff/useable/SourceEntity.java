@@ -1,7 +1,5 @@
 package games.stendhal.server.entity.mapstuff.useable;
 
-import java.util.stream.Stream;
-
 import org.apache.log4j.Logger;
 
 import games.stendhal.common.Rand;
@@ -9,7 +7,6 @@ import games.stendhal.common.constants.SoundLayer;
 import games.stendhal.common.grammar.Grammar;
 import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.entity.item.Item;
-import games.stendhal.server.entity.item.StackableItem;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.events.ImageEffectEvent;
 import games.stendhal.server.events.SoundEvent;
@@ -21,22 +18,10 @@ public class SourceEntity extends PlayerActivityEntity {
 	 * The chance that prospecting is successful.
 	 */
 	private static final double FINDING_PROBABILITY = 0.02;
-	private static final double UPGRADED_FINDING_PROBABILITY = 0.035;
 
 	private final String startSound = "pickaxe_01";
 	private final String successSound = "rocks-1";
 	private final int SOUND_RADIUS = 20;
-
-	/**
-	 * The equipment needed.
-	 * [0] - zardzewiały kilof,
-	 * [1] - kilof,
-	 * [2] - kilof stalowy,
-	 * [3] - kilof złoty,
-	 * [4] - kilof obsydianowy.
-	 */
-	public static final String[] NEEDED_PICKS = { "zardzewiały kilof", "kilof",
-			"kilof stalowy", "kilof złoty", "kilof obsydianowy" };
 
 	/**
 	 * Calculates the probability that the given player finds stone. This is
@@ -53,38 +38,24 @@ public class SourceEntity extends PlayerActivityEntity {
 
 		final String skill = player.getSkill("mining");
 		if (skill != null) {
-			probability = UPGRADED_FINDING_PROBABILITY;
-			probability = probability * (player.getMining()/5);
+			probability = Math.max(probability, Double.parseDouble(skill));
 		}
-
 		return probability + player.useKarma(0.02);
 	}
 
 	@Override
 	protected int getDuration(final Player player) {
-		if (player.isEquipped(NEEDED_PICKS[4])) {
-			return 6 + Rand.rand(4);
-		} else if (player.isEquipped(NEEDED_PICKS[3])) {
-			return 12 + Rand.rand(4);
-		} else if (player.isEquipped(NEEDED_PICKS[2])) {
-			return 16 + Rand.rand(4);
-		} else if (player.isEquipped(NEEDED_PICKS[1])) {
-			return 20 + Rand.rand(4);
-		}
-
-		return 30 + Rand.rand(4);
+		return 7 + Rand.rand(4);
 	}
 
 	@Override
 	protected boolean isPrepared(final Player player) {
-		for (final String itemName : NEEDED_PICKS) {
-			if (player.isEquipped(itemName)) {
-				return true;
-			}
+		if (!player.isEquipped("kilof")) {
+			player.sendPrivateText("Potrzebujesz kilofa do wydobywania minerału.");
+			return false;
 		}
 
-		player.sendPrivateText("Potrzebujesz kilofa do wydobywania minerału.");
-		return false;
+		return true;
 	}
 
 	/**
@@ -96,51 +67,6 @@ public class SourceEntity extends PlayerActivityEntity {
 	protected boolean isSuccessful(final Player player) {
 		final int random = Rand.roll1D100();
 		return (random <= (getSuccessProbability(player) * 100));
-	}
-
-	/**
-	 * Called when the activity has finished.
-	 *
-	 * @param player
-	 *            The player that did the activity.
-	 * @param successful
-	 *            If the activity was successful.
-	 * @param itemName
-	 *            The name of the item to be prospected.
-	 * @param xp
-	 *            The xp how much we will get.
-	 */
-	public void setMiningXP(final Player player, final boolean successful, final String itemName, final int xp) {
-		final String skill = player.getSkill("mining");
-
-		if (successful) {
-			addEvent(new SoundEvent(successSound, SOUND_RADIUS, 100, SoundLayer.AMBIENT_SOUND));
-	        notifyWorldAboutChanges();
-
-			final Item item = SingletonRepository.getEntityManager().getItem(itemName);
-			if (item != null) {
-				String lastItem = Stream.of(NEEDED_PICKS).reduce((first,last) -> last).get();
-				if (player.isEquipped(lastItem)) {
-					int amount = Rand.throwCoin();
-					((StackableItem) item).setQuantity(amount);
-				}
-
-				player.equipOrPutOnGround(item);
-				player.incMinedForItem(item.getName(), item.getQuantity());
-				if (skill != null) {
-					player.incMiningXP(xp);
-				}
-
-				player.sendPrivateText(Grammar.genderVerb(player.getGender(), "Wydobyłeś") + " " + item.getTitle() + ".");
-			} else {
-				logger.error("could not find item: " + itemName);
-			}
-		} else {
-			if (skill != null) {
-				player.incMiningXP((xp) / 10);
-			}
-			player.sendPrivateText("Nic nie " + Grammar.genderVerb(player.getGender(), "wydobyłeś") + ".");
-		}
 	}
 
 	/**
@@ -169,7 +95,25 @@ public class SourceEntity extends PlayerActivityEntity {
 	 */
 	@Override
 	protected void onFinished(final Player player, final boolean successful) {
-		// Do nothing
+		// do nothing
+	}
+
+	protected void successFinish(final Player player, final boolean successful, String itemName) {
+		if (successful) {
+			addEvent(new SoundEvent(successSound, SOUND_RADIUS, 100, SoundLayer.AMBIENT_SOUND));
+	    	final Item item = SingletonRepository.getEntityManager().getItem(itemName);
+
+			if (item != null) {
+				player.equipOrPutOnGround(item);
+				player.incMinedForItem(item.getName(), item.getQuantity());
+			    SingletonRepository.getAchievementNotifier().onObtain(player);
+			    player.sendPrivateText(Grammar.genderVerb(player.getGender(), "Wydobyłeś") + " " + item.getTitle() + ".");
+			} else {
+				logger.error("could not find item: " + itemName);
+			}
+	    } else {
+	    	player.sendPrivateText("Nic nie " + Grammar.genderVerb(player.getGender(), "wydobyłeś") + ".");
+	    }
 	}
 
 	/**

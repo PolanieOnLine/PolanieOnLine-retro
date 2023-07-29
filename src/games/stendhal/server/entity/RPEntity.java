@@ -99,8 +99,6 @@ public abstract class RPEntity extends CombatEntity {
 	private int def_xp;
 	protected int ratk;
 	private int ratk_xp;
-	protected int mining;
-	private int mining_xp;
 	private int base_hp;
 	private int hp;
 	protected int lv_cap;
@@ -398,11 +396,6 @@ public abstract class RPEntity extends CombatEntity {
 		if (Testing.COMBAT && has("ratk_xp")) {
 			ratk_xp = getInt("ratk_xp");
 			setRatkXPInternal(ratk_xp, false);
-		}
-
-		if (has("mining_xp")) {
-			mining_xp = getInt("mining_xp");
-			setMiningXpInternal(mining_xp, false);
 		}
 
 		if (has("base_hp")) {
@@ -958,51 +951,6 @@ public abstract class RPEntity extends CombatEntity {
 	}
 
 /* ### --- END RANGED --- ### */
-
-	public void setMining(final int mining) {
-		setMiningInternal(mining, true);
-	}
-
-	protected void setMiningInternal(final int mining, boolean notify) {
-		this.mining = mining;
-		put("mining", mining); // visible mining
-		if(notify) {
-			this.updateModifiedAttributes();
-		}
-	}
-
-	public int getMining() {
-		return this.mining;
-	}
-
-	public int getCappedMining() {
-		return this.mining;
-	}
-
-	public void setMiningXP(final int miningXP) {
-		setMiningXpInternal(miningXP, true);
-	}
-
-	private void setMiningXpInternal(final int miningXP, boolean notify) {
-		this.mining_xp = miningXP;
-		put("mining_xp", mining_xp);
-
-		// Handle level changes
-		final long newLevel = Level.getLevel(mining_xp);
-		final long levels = newLevel - (this.mining - 10);
-		if (levels != 0) {
-			setMiningInternal((int) (this.mining + levels), notify);
-			new GameEvent(getName(), "mining", Integer.toString(this.mining)).raise();
-		}
-	}
-
-	public int getMiningXP() {
-		return mining_xp;
-	}
-
-	public void incMiningXP(final int amount) {
-		setMiningXP(mining_xp + amount);
-	}
 
 	/**
 	 * Set the base and current HP.
@@ -2854,7 +2802,6 @@ public abstract class RPEntity extends CombatEntity {
 		int ring = 0;
 		int ringb = 0;
 		int shield = 0;
-		int belt = 0;
 		int neck = 0;
 		int legs = 0;
 		int helmet = 0;
@@ -2881,7 +2828,7 @@ public abstract class RPEntity extends CombatEntity {
 			boots += getBoots().getAttack();
 		}
 
-		return weapon + glove + ring + ringb + shield + belt + neck + legs + helmet + cloak + boots;
+		return weapon + glove + ring + ringb + shield + neck + legs + helmet + cloak + boots;
 	}
 
 	/**

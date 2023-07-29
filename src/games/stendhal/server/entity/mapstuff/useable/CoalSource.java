@@ -11,10 +11,15 @@
  ***************************************************************************/
 package games.stendhal.server.entity.mapstuff.useable;
 
+import org.apache.log4j.Logger;
+
 import games.stendhal.common.Rand;
 import games.stendhal.common.constants.SoundLayer;
+import games.stendhal.common.grammar.Grammar;
+import games.stendhal.server.core.engine.SingletonRepository;
 import games.stendhal.server.core.events.TurnListener;
 import games.stendhal.server.core.events.TurnNotifier;
+import games.stendhal.server.entity.item.Item;
 import games.stendhal.server.entity.player.Player;
 import games.stendhal.server.events.ImageEffectEvent;
 import games.stendhal.server.events.SoundEvent;
@@ -32,6 +37,8 @@ import games.stendhal.server.events.SoundEvent;
  * @author hendrik
  */
 public class CoalSource extends SourceEntity {
+	private static final Logger logger = Logger.getLogger(CoalSource.class);
+
 	/**
 	 * The name of the item to be found.
 	 */
@@ -97,10 +104,22 @@ public class CoalSource extends SourceEntity {
 	 */
 	@Override
 	protected void onFinished(final Player player, final boolean successful) {
-	    setMiningXP(player, successful, itemName, 50);
 	    if (successful) {
+	    	final Item item = SingletonRepository.getEntityManager().getItem(itemName);
+
+			if (item != null) {
+				player.equipOrPutOnGround(item);
+				player.incMinedForItem(item.getName(), item.getQuantity());
+			    SingletonRepository.getAchievementNotifier().onObtain(player);
+			    player.sendPrivateText(Grammar.genderVerb(player.getGender(), "Wydobyłeś") + " " + item.getTitle() + ".");
+			} else {
+				logger.error("could not find item: " + itemName);
+			}
+
 	    	setState(getState()- 1);
 			handleRespawn();
+	    } else {
+	    	player.sendPrivateText("Nic nie " + Grammar.genderVerb(player.getGender(), "wydobyłeś") + ".");
 	    }
 	}
 

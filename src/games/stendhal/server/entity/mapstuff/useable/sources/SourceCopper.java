@@ -69,6 +69,6 @@ public class SourceCopper extends SourceEntity {
 	 */
 	@Override
 	protected void onFinished(final Player player, final boolean successful) {
-		setMiningXP(player, successful, itemName, 180);
+		successFinish(player, successful, itemName);
 	}
 }

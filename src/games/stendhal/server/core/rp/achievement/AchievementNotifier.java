@@ -176,10 +176,6 @@ public final class AchievementNotifier {
 		getAndCheckAchievementsInCategory(player, Category.EXPERIENCE_RATK);
 	}
 
-	public void onMiningChange(final Player player) {
-		getAndCheckAchievementsInCategory(player, Category.EXPERIENCE_MINING);
-	}
-
 	/**
 	 * checks all achievements for a player that should be checked when a player kills sth
 	 *
@@ -261,15 +257,6 @@ public final class AchievementNotifier {
 	 */
 	public void onProduction(final Player player) {
 		getAndCheckAchievementsInCategory(player, Category.PRODUCTION);
-	}
-
-	/**
-	 * check all achievements for a player that belong to the upgrade category
-	 *
-	 * @param player
-	 */
-	public void onUpgrade(final Player player) {
-		getAndCheckAchievementsInCategory(player, Category.ITEMUPGRADES);
 	}
 
 	/**
