@@ -21,7 +21,6 @@ import games.stendhal.server.core.rp.achievement.condition.QuestWithPrefixComple
 import games.stendhal.server.entity.Entity;
 import games.stendhal.server.entity.npc.ChatCondition;
 import games.stendhal.server.entity.npc.condition.AndCondition;
-import games.stendhal.server.entity.npc.condition.OrCondition;
 import games.stendhal.server.entity.npc.condition.QuestActiveCondition;
 import games.stendhal.server.entity.npc.condition.QuestCompletedCondition;
 import games.stendhal.server.entity.npc.condition.QuestNotInStateCondition;
@@ -85,12 +84,7 @@ public class FriendAchievementFactory extends AbstractAchievementFactory {
 						// Hughie, Ados farmhouse
 						new AndCondition(new QuestActiveCondition("fishsoup_for_hughie"), new QuestNotInStateCondition("fishsoup_for_hughie", "start")),
 						// Finn Farmer, George
-						new QuestCompletedCondition("coded_message"),
-						// Marianne, Deniran City S
-						new AndCondition(
-								new QuestActiveCondition("eggs_for_marianne"),
-								new QuestNotInStateCondition("eggs_for_marianne", "start")
-						)
+						new QuestCompletedCondition("coded_message")
 				)));
 
 		achievements.add(createAchievement(
@@ -143,7 +137,7 @@ public class FriendAchievementFactory extends AbstractAchievementFactory {
 								}
 								final String npcDoneText = player.getQuest("where_dragon");
 								final String[] done = npcDoneText.split(";");
-								final int left = 13 - done.length;
+								final int left = 12 - done.length;
 								return left < 0;
 							}
 						})));
@@ -199,9 +193,7 @@ public class FriendAchievementFactory extends AbstractAchievementFactory {
 				ID_PIZZA_DELIVERY, "Dostawca Pizzy",
 				"Rozwieziono pizze w krainie Faiumoni lub Prasłowiańskiej",
 				Achievement.EASY_BASE_SCORE, true,
-				new OrCondition(
-						new QuestCompletedCondition("pizza_delivery"),
-						new QuestCompletedCondition("dostawca_pizzy2"))));
+				new QuestCompletedCondition("pizza_delivery")));
 
 		achievements.add(createAchievement(
 				ID_MARRIAGE, "Współmałżonkowie",

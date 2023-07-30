@@ -139,12 +139,6 @@ public class ProductionAchievementFactory extends AbstractAchievementFactory {
 				Achievement.EASY_BASE_SCORE, true,
 				new PlayerProducedNumberOfItemsCondition(50, ITEMS_SMOKINGFOOD)));
 
-		achievements.add(createAchievement(
-				"production.boiledpot.1000", "Ziemniaczany Kociołek",
-				"Ugotowano 1,000 ziemniaków",
-				Achievement.MEDIUM_BASE_SCORE, true,
-				new PlayerProducedNumberOfItemsCondition(1000, "gotowane ziemniaki")));
-
 		return achievements;
 	}
 

@@ -65,12 +65,6 @@ public class InteriorZoneAchievementFactory extends AbstractAchievementFactory {
 				new PlayerVisitedZonesInRegionCondition("magic city", Boolean.FALSE, Boolean.FALSE)));
 
 		achievements.add(createAchievement(
-				"zone.interior.deniran", "Samotna Kraina",
-				"Odwiedzono wszystkie pomieszczenia w regionie Deniran",
-				Achievement.EASY_BASE_SCORE, true,
-				new PlayerVisitedZonesInRegionCondition("deniran", Boolean.FALSE, Boolean.FALSE)));
-	
-		achievements.add(createAchievement(
 				"zone.interior.kirdneh", "Centralny Rynkowicz",
 				"Odwiedzono wszystkie pomieszczenia w regionie Kirdneh",
 				Achievement.EASY_BASE_SCORE, true,
@@ -94,12 +88,6 @@ public class InteriorZoneAchievementFactory extends AbstractAchievementFactory {
 				"Odwiedzono wszystkie pomieszczenia w regionie Wieliczki",
 				Achievement.MEDIUM_BASE_SCORE, true,
 				new PlayerVisitedZonesInRegionCondition("wieliczka", Boolean.FALSE, Boolean.FALSE)));
-
-		achievements.add(createAchievement(
-				"zone.interior.gdanskcity", "Miasto Gdańsk",
-				"Odwiedzono wszystkie pomieszczenia w regionie Gdańska",
-				Achievement.MEDIUM_BASE_SCORE, true,
-				new PlayerVisitedZonesInRegionCondition("gdansk", Boolean.FALSE, Boolean.FALSE)));
 
 		achievements.add(createAchievement(
 				"zone.interior.zakopanecity", "Miasto Zakopane",

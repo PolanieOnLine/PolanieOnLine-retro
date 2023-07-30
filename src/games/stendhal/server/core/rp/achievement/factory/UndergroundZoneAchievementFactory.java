@@ -65,12 +65,6 @@ public class UndergroundZoneAchievementFactory extends AbstractAchievementFactor
 				new PlayerVisitedZonesInRegionCondition("ados", Boolean.TRUE, Boolean.FALSE)));
 
 		achievements.add(createAchievement(
-				"zone.underground.deniran", "Speleolog",
-				"Odwiedzono wszystkie podziemne obszary w regionie Deniran",
-				Achievement.HARD_BASE_SCORE, true,
-				new PlayerVisitedZonesInRegionCondition("deniran", Boolean.TRUE, Boolean.FALSE)));
-
-		achievements.add(createAchievement(
 				"zone.underground.fado", "Ogromne Jaskiniowce",
 				"Odwiedzono wszystkie podziemne obszary w regionie Fado",
 				Achievement.MEDIUM_BASE_SCORE, true,
@@ -94,12 +88,6 @@ public class UndergroundZoneAchievementFactory extends AbstractAchievementFactor
 				"Odwiedzono wszystkie podziemne obszary w regionie Wieliczka", 
 				Achievement.HARD_BASE_SCORE, true,
 				new PlayerVisitedZonesInRegionCondition("wieliczka", Boolean.TRUE, Boolean.FALSE)));
-
-		achievements.add(createAchievement(
-				"zone.underground.gdansk", "Podmorski Szperacz",
-				"Odwiedzono wszystkie podziemne obszary w regionie Gdańsk", 
-				Achievement.EASY_BASE_SCORE, true,
-				new PlayerVisitedZonesInRegionCondition("gdansk", Boolean.TRUE, Boolean.FALSE)));
 
 		achievements.add(createAchievement(
 				"zone.underground.warszawa", "Badacz",

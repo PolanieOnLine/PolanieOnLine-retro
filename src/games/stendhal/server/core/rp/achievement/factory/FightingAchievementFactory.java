@@ -73,7 +73,6 @@ public class FightingAchievementFactory extends AbstractAchievementFactory {
 	public static final String ID_LAWINY = "fight.general.lawiny";
 	public static final String ID_ZBOJNICYLESNI = "fight.general.zbojnicylesni";
 	public static final String ID_ZBOJNICYGORSCY = "fight.general.zbojnicygorscy";
-	public static final String ID_ALIENS = "fight.general.szaraki";
 
 	public static final String[] ENEMIES_EXTERMINATOR = {
 			"szczur", "szczur jaskiniowy", "wściekły szczur", "szczur zombie", "krwiożerczy szczur",
@@ -86,8 +85,8 @@ public class FightingAchievementFactory extends AbstractAchievementFactory {
 			"szkielet smoka", "zgniły szkielet smoka", "złoty smok", "zielony smok", "błękitny smok",
 			"czerwony smok", "pustynny smok", "czarny smok", "czarne smoczysko", "smok arktyczny",
 			"dwugłowy zielony smok", "dwugłowy czerwony smok", "dwugłowy niebieski smok", "dwugłowy czarny smok",
-			"dwugłowy lodowy smok", "lodowy smok", "latający czarny smok", "latający złoty smok", "Smok Wawelski",
-			"purpurowy smok", "czerwone smoczysko", "zielone smoczysko", "niebieskie smoczysko"
+			"latający czarny smok", "latający złoty smok", "Smok Wawelski",
+			"purpurowy smok"
 	};
 	public static final String[] ENEMIES_SERAFINS = {
 			"serafin", "azazel"
@@ -141,14 +140,10 @@ public class FightingAchievementFactory extends AbstractAchievementFactory {
 	public static final String[] ENEMIES_GNOMES2 = {
 			"skrzat leśny", "skrzat leśny wojownik", "skrzat leśny bohater",
 			"skrzat leśny komandor", "skrzat leśny lider", "skrzat leśny starszy",
-			"skrzat leśny starszy komandor", "skrzat leśny starszy wojownik",
-			"skrzat leśny starszy strzelec"
+			"skrzat leśny starszy komandor", "skrzat leśny starszy wojownik"
 	};
 	public static final String[] ENEMIES_SPIDERS = {
 			"pająk", "pająk ptasznik", "królowa pająków", "arachne"
-	};
-	public static final String[] ENEMIES_LIGHTORDARK = {
-			"lilith", "cherubin"
 	};
 	public static final String[] ENEMIES_PIRATES = {
 			"pirat", "kamrat", "marynarz", "krwawy pirat",
@@ -176,12 +171,6 @@ public class FightingAchievementFactory extends AbstractAchievementFactory {
 	public static final String[] ENEMIES_ZBOJNICYGORSCY = {
 			"zbójnik górski", "zbójnik górski goniec", "zbójnik górski złośliwy",
 			"zbójnik górski zwiadowca", "zbójnik górski starszy", "zbójnik górski herszt"
-	};
-	public static final String[] ENEMIES_SZARAKI = {
-			"szarak", "szarak uzbrojony", "szarak wojownik", "szarak defensywy",
-			"szarak strażnik", "szarak kapitan strażników", "szarak kapitan wojowników",
-			"szarak lider defensywy", "szarak uzbrojony wyższy", "szarak najwyższy",
-			"szarak gigant"
 	};
 
 	@Override
@@ -440,12 +429,6 @@ public class FightingAchievementFactory extends AbstractAchievementFactory {
 				new PlayerHasKilledNumberOfCreaturesCondition(25, ENEMIES_SPIDERS)));
 
 		achievements.add(createAchievement(
-				ID_LIGHTORDARK, "Światłość czy Mrok",
-				"Pokonano cherubina i lilith",
-				Achievement.HARD_BASE_SCORE, true,
-				new PlayerHasKilledNumberOfCreaturesCondition(1, ENEMIES_LIGHTORDARK)));
-
-		achievements.add(createAchievement(
 				ID_PIRATES, "Nowa Załoga",
 				"Pokonano łącznie 1,000 piratów z wysp",
 				Achievement.MEDIUM_BASE_SCORE, true,
@@ -542,12 +525,6 @@ public class FightingAchievementFactory extends AbstractAchievementFactory {
 					}
 				}
 		));
-
-		achievements.add(createAchievement(
-				ID_ALIENS, "Życie Poza Nami",
-				"Pokonano po 50 różnych szaraków",
-				Achievement.HARD_BASE_SCORE, true,
-				new PlayerHasKilledNumberOfCreaturesCondition(50, ENEMIES_SZARAKI)));
 
 		return achievements;
 	}

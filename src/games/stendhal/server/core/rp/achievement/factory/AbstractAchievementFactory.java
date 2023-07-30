@@ -81,13 +81,10 @@ public abstract class AbstractAchievementFactory {
 		list.add(new SemosMonsterQuestAchievementFactory());
 		list.add(new UndergroundZoneAchievementFactory());
 		list.add(new KirdnehItemAchievementFactory());
-		list.add(new KuzniceMonsterQuestAchievementFactory());
 		list.add(new MithrilbourghEnemyArmyAchievementFactory());
 		list.add(new CommerceAchievementFactory());
 		list.add(new KillBlordroughsAchievementFactory());
 		list.add(new ZakopaneItemQuestAchievementsFactory());
-		list.add(new GdanskJewelleryQuestAchievementFactory());
-		list.add(new RebornAchievementFactory());
 		list.add(new CiupagaAchievementFactory());
 		return list;
 	}

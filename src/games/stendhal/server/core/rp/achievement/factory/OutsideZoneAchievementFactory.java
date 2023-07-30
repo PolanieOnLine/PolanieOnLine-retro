@@ -78,12 +78,6 @@ public class OutsideZoneAchievementFactory extends AbstractAchievementFactory {
 				new PlayerVisitedZonesInRegionCondition("kikareukin", Boolean.TRUE, Boolean.TRUE)));
 
 		achievements.add(createAchievement(
-				"zone.outside.deniran", "Człowiek z Zachodu",
-				"Odwiedzono wszystkie obszary w regionie Deniran",
-				Achievement.EASY_BASE_SCORE, true,
-				new PlayerVisitedZonesInRegionCondition("deniran", Boolean.TRUE, Boolean.TRUE)));
-
-		achievements.add(createAchievement(
 				"zone.outside.kirdneh", "Kulturalny Przybysz",
 				"Odwiedzono wszystkie obszary w regionie Kirdneh",
 				Achievement.EASY_BASE_SCORE, true,
@@ -107,12 +101,6 @@ public class OutsideZoneAchievementFactory extends AbstractAchievementFactory {
 				"Odwiedzono wszystkie obszary w regionie Zakopane",
 				Achievement.MEDIUM_BASE_SCORE, true,
 				new PlayerVisitedZonesInRegionCondition("zakopane", Boolean.TRUE, Boolean.TRUE)));
-
-		achievements.add(createAchievement(
-				"zone.outside.gdansk", "Nadmorska Kraina",
-				"Odwiedzono wszystkie obszary w regionie Gdańsk",
-				Achievement.MEDIUM_BASE_SCORE, true,
-				new PlayerVisitedZonesInRegionCondition("gdansk", Boolean.TRUE, Boolean.TRUE)));
 
 		achievements.add(createAchievement(
 				"zone.outside.wieliczka", "Kraina Soli",
@@ -148,8 +136,7 @@ public class OutsideZoneAchievementFactory extends AbstractAchievementFactory {
 				"zone.outside.dragonland", "Smocza Kraina",
 				"Odwiedzono wszystkie obszary smoczej krainy",
 				Achievement.HARD_BASE_SCORE, true,
-				new PlayerVisitedZonesCondition("0_dragon_land_s", "0_dragon_land_n", "0_dragon_land_nw",
-						"0_dragon_land_sw", "0_dragon_land_ne", "0_dragon_land_se")));
+				new PlayerVisitedZonesCondition("0_dragon_land_s", "0_dragon_land_n")));
 
 		//All interior zone achievements
 
@@ -158,9 +145,8 @@ public class OutsideZoneAchievementFactory extends AbstractAchievementFactory {
 				"zone.special.bank", "Depozyt",
 				"Odwiedzono wszystkie banki",
 				Achievement.MEDIUM_BASE_SCORE, true,
-				new PlayerVisitedZonesCondition("int_semos_bank", "int_nalwor_bank", "int_kirdneh_bank", "int_gdansk_bank",
-						"int_fado_bank", "int_magic_bank", "int_ados_bank", "int_deniran_bank_blue_roof", "int_zakopane_bank_0",
-						"int_krakow_bank_0")));
+				new PlayerVisitedZonesCondition("int_semos_bank", "int_nalwor_bank", "int_kirdneh_bank",
+						"int_fado_bank", "int_magic_bank", "int_ados_bank", "int_zakopane_bank_0")));
 
 		achievements.add(createAchievement(
 				"zone.special.afterlife", "Widziałem Światło",

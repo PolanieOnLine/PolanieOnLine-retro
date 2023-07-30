@@ -908,7 +908,7 @@
 	</zone>
 
 	<!-- zakopane_s -->
-	<zone name="0_zakopane_s" level="0" x="513312" y="18688" file="Level 0/zakopane/zakopane_s_xmas.tmx">
+	<zone name="0_zakopane_s" level="0" x="513312" y="18688" file="Level 0/zakopane/zakopane_s.tmx">
 		<attributes>
 			<parameter name="color_method">time</parameter>
 		</attributes>
