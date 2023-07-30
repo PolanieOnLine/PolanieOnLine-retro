@@ -25,7 +25,7 @@ import games.stendhal.server.entity.mapstuff.area.Allotment;
  * example to create an area at (15,25) with widht of 10 and height of 20
  * <p>
  * &lt;configurator
- * class-name="games.stendhal.server.maps.semos.city.FertileGrounds" &gt;
+ * class-name="games.stendhal.server.maps.FertileGrounds" &gt;
  * <p>
  * &lt;parameter name="x"&gt;15&lt;/parameter&gt;
  * <p>

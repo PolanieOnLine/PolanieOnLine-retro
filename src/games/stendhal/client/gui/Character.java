@@ -11,7 +11,6 @@
  ***************************************************************************/
 package games.stendhal.client.gui;
 
-import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -20,7 +19,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.swing.Box;
-import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 
@@ -32,8 +30,6 @@ import games.stendhal.client.entity.IEntity;
 import games.stendhal.client.entity.Inspector;
 import games.stendhal.client.entity.User;
 import games.stendhal.client.entity.factory.EntityMap;
-import games.stendhal.client.gui.imageviewer.ImageViewWindow;
-import games.stendhal.client.gui.imageviewer.ViewPanel;
 import games.stendhal.client.gui.layout.SBoxLayout;
 import games.stendhal.client.listener.FeatureChangeListener;
 import games.stendhal.client.sprite.SpriteStore;
@@ -64,8 +60,6 @@ Inspectable {
 	private JComponent specialSlots;
 
 	private static final List<FeatureChangeListener> featureChangeListeners = new ArrayList<>();
-
-	private static FeatureEnabledItemPanel pouch;
 
 	/**
 	 * Create a new character window.
@@ -145,6 +139,8 @@ Inspectable {
 		right.add(panel);
 		panel = createItemPanel(itemClass, store, "glove", "data/gui/slot-gloves.png");
 		right.add(panel);
+		panel = createItemPanel(itemClass, store, "pouch", "data/gui/slot-pouch.png");
+		right.add(panel);
 	}
 
 	private void createItemPanels(JComponent left, JComponent middle, JComponent right, JComponent content, boolean createSpecials) {
@@ -154,12 +150,6 @@ Inspectable {
 		createEquipmentPanels(left, middle, right, itemClass, store);
 
 		if (createSpecials) {
-			pouch = new FeatureEnabledItemPanel("pouch", SpriteStore.get().getSprite("data/gui/slot-pouch.png"));
-			slotPanels.put("pouch", pouch);
-			pouch.setAcceptedTypes(itemClass);
-			right.add(pouch);
-			featureChangeListeners.add(pouch);
-
 			// Bag, keyring, etc
 			specialSlots = SBoxLayout.createContainer(SBoxLayout.HORIZONTAL, PADDING);
 			specialSlots.setAlignmentX(CENTER_ALIGNMENT);

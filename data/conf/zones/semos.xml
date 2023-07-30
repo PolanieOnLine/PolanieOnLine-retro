@@ -13,14 +13,15 @@
 		<attributes>
 			<parameter name="color_method">time</parameter>
 		</attributes>
-		<configurator class-name="games.stendhal.server.entity.mapstuff.portal.GateConfigurator">
-			<parameter name="x">77</parameter>
-			<parameter name="y">47</parameter>
-			<parameter name="image">fence_gate</parameter>
-			<parameter name="orientation">v</parameter>
-			<parameter name="condition">new AlwaysFalseCondition()</parameter>
-			<parameter name="message">Brama jest zamknięta.</parameter>
-		</configurator>
+
+		<entity x="77" y="47">
+			<implementation class-name="games.stendhal.server.entity.mapstuff.portal.Gate">
+				<parameter name="image">fence_gate</parameter>
+				<parameter name="orientation">v</parameter>
+				<parameter name="condition">new AlwaysFalseCondition()</parameter>
+				<parameter name="message">Brama jest zamknięta.</parameter>
+			</implementation>
+		</entity>
 
 
 		<portal x="61" y="38" ref="kikareukin_entrance">
@@ -789,41 +790,45 @@
 <!--		<portal x="7" y="28" ref="portal_to_malleus_plain">
 			<destination zone="malleus_plain" ref="portal_to_malleus" />
 		</portal> -->
-		<configurator class-name="games.stendhal.server.entity.mapstuff.portal.GateConfigurator">
-			<parameter name="x">9</parameter>
-			<parameter name="y">15</parameter>
-			<parameter name="image">wooden_door</parameter>
-			<parameter name="orientation">h</parameter>
-			<parameter name="autoclose">300</parameter>
-		</configurator>
-		<configurator class-name="games.stendhal.server.entity.mapstuff.portal.GateConfigurator">
-			<parameter name="x">9</parameter>
-			<parameter name="y">31</parameter>
-			<parameter name="image">wooden_door</parameter>
-			<parameter name="orientation">h</parameter>
-			<parameter name="autoclose">300</parameter>
-		</configurator>
-		<configurator class-name="games.stendhal.server.entity.mapstuff.portal.GateConfigurator">
-			<parameter name="x">33</parameter>
-			<parameter name="y">15</parameter>
-			<parameter name="image">wooden_door</parameter>
-			<parameter name="orientation">h</parameter>
-			<parameter name="autoclose">300</parameter>
-		</configurator>
-		<configurator class-name="games.stendhal.server.entity.mapstuff.portal.GateConfigurator">
-			<parameter name="x">33</parameter>
-			<parameter name="y">31</parameter>
-			<parameter name="image">wooden_door</parameter>
-			<parameter name="orientation">h</parameter>
-			<parameter name="autoclose">300</parameter>
-		</configurator>
-		<configurator class-name="games.stendhal.server.entity.mapstuff.portal.GateConfigurator">
-			<parameter name="x">21</parameter>
-			<parameter name="y">31</parameter>
-			<parameter name="image">wooden_door</parameter>
-			<parameter name="orientation">h</parameter>
-			<parameter name="autoclose">300</parameter>
-		</configurator>
+		<entity x="9" y="15">
+			<implementation class-name="games.stendhal.server.entity.mapstuff.portal.Gate">
+				<parameter name="image">wooden_door</parameter>
+				<parameter name="orientation">h</parameter>
+				<parameter name="autoclose">300</parameter>
+			</implementation>
+		</entity>
+
+		<entity x="9" y="31">
+			<implementation class-name="games.stendhal.server.entity.mapstuff.portal.Gate">
+				<parameter name="image">wooden_door</parameter>
+				<parameter name="orientation">h</parameter>
+				<parameter name="autoclose">300</parameter>
+			</implementation>
+		</entity>
+
+		<entity x="33" y="15">
+			<implementation class-name="games.stendhal.server.entity.mapstuff.portal.Gate">
+				<parameter name="image">wooden_door</parameter>
+				<parameter name="orientation">h</parameter>
+				<parameter name="autoclose">300</parameter>
+			</implementation>
+		</entity>
+
+		<entity x="33" y="31">
+			<implementation class-name="games.stendhal.server.entity.mapstuff.portal.Gate">
+				<parameter name="image">wooden_door</parameter>
+				<parameter name="orientation">h</parameter>
+				<parameter name="autoclose">300</parameter>
+			</implementation>
+		</entity>
+
+		<entity x="21" y="31">
+			<implementation class-name="games.stendhal.server.entity.mapstuff.portal.Gate">
+				<parameter name="image">wooden_door</parameter>
+				<parameter name="orientation">h</parameter>
+				<parameter name="autoclose">300</parameter>
+			</implementation>
+		</entity>
 	</zone>
 
 	<!-- Interiors of the wizards tower -->
@@ -850,27 +855,29 @@
 			<destination zone="int_semos_wizards_tower_8" ref="portal_from_spire_2" />
 			<attribute name="hidden"/>
 		</portal>
-		<configurator class-name="games.stendhal.server.entity.mapstuff.portal.GateConfigurator">
-			<parameter name="x">12</parameter>
-			<parameter name="y">17</parameter>
-			<parameter name="image">wooden_door</parameter>
-			<parameter name="orientation">h</parameter>
-			<parameter name="autoclose">300</parameter>
-		</configurator>
-		<configurator class-name="games.stendhal.server.entity.mapstuff.portal.GateConfigurator">
-			<parameter name="x">21</parameter>
-			<parameter name="y">23</parameter>
-			<parameter name="image">wooden_door</parameter>
-			<parameter name="orientation">h</parameter>
-			<parameter name="autoclose">300</parameter>
-		</configurator>
-		<configurator class-name="games.stendhal.server.entity.mapstuff.portal.GateConfigurator">
-			<parameter name="x">30</parameter>
-			<parameter name="y">17</parameter>
-			<parameter name="image">wooden_door</parameter>
-			<parameter name="orientation">h</parameter>
-			<parameter name="autoclose">300</parameter>
-		</configurator>
+		<entity x="12" y="17">
+			<implementation class-name="games.stendhal.server.entity.mapstuff.portal.Gate">
+				<parameter name="image">wooden_door</parameter>
+				<parameter name="orientation">h</parameter>
+				<parameter name="autoclose">300</parameter>
+			</implementation>
+		</entity>
+
+		<entity x="21" y="23">
+			<implementation class-name="games.stendhal.server.entity.mapstuff.portal.Gate">
+				<parameter name="image">wooden_door</parameter>
+				<parameter name="orientation">h</parameter>
+				<parameter name="autoclose">300</parameter>
+			</implementation>
+		</entity>
+
+		<entity x="30" y="17">
+			<implementation class-name="games.stendhal.server.entity.mapstuff.portal.Gate">
+				<parameter name="image">wooden_door</parameter>
+				<parameter name="orientation">h</parameter>
+				<parameter name="autoclose">300</parameter>
+			</implementation>
+		</entity>
 	</zone>
 	<!-- Plains of the wizards -->
 	<zone name="malleus_plain" file="interiors/abstract/malleus_plain.tmx" accessible="false">
@@ -887,14 +894,14 @@
 			<destination zone="bone_pillar" ref="exit_bone_pillar_2" />
 		</portal>
 
-		<configurator class-name="games.stendhal.server.entity.mapstuff.portal.GateConfigurator">
-			<parameter name="x">32</parameter>
-			<parameter name="y">60</parameter>
-			<parameter name="image">ice_path</parameter>
-			<parameter name="orientation">h</parameter>
-			<parameter name="condition">new PlayerHasItemWithHimCondition("ice scroll")</parameter>
-			<parameter name="autoclose">2</parameter>
-		</configurator>
+		<entity x="32" y="60">
+			<implementation class-name="games.stendhal.server.entity.mapstuff.portal.Gate">
+				<parameter name="image">ice_path</parameter>
+				<parameter name="orientation">h</parameter>
+				<parameter name="condition">new PlayerHasItemWithHimCondition("ice scroll")</parameter>
+				<parameter name="autoclose">2</parameter>
+			</implementation>
+		</entity>
 	</zone>
 
 	<zone name="bone_pillar" file="interiors/abstract/malleus_plain_bone_pillar.tmx" accessible="false">
@@ -920,27 +927,65 @@
 		</attributes>
 		<configurator class-name="games.stendhal.server.maps.semos.plains.LittleBoyNPC"/>
 		<configurator class-name="games.stendhal.server.maps.semos.plains.AddPostmanListener"/>
-		<configurator class-name="games.stendhal.server.maps.semos.city.FertileGrounds">
+
+		<configurator class-name="games.stendhal.server.maps.FertileGrounds">
 			<parameter name="x">60</parameter>
 			<parameter name="y">44</parameter>
 			<parameter name="width">16</parameter>
 			<parameter name="height">26</parameter>
 		</configurator>
-		<configurator class-name="games.stendhal.server.entity.mapstuff.portal.GateConfigurator">
-			<parameter name="x">75</parameter>
-			<parameter name="y">109</parameter>
-			<parameter name="image">fence_gate</parameter>
-			<parameter name="orientation">v</parameter>
-			<parameter name="condition">new AlwaysFalseCondition()</parameter>
-			<parameter name="message">Brama jest zamknięta.</parameter>
+		
+		<configurator class-name="games.stendhal.server.maps.FertileGrounds">
+			<parameter name="x">104</parameter>
+			<parameter name="y">10</parameter>
+			<parameter name="width">20</parameter>
+			<parameter name="height">22</parameter>
 		</configurator>
-		<configurator class-name="games.stendhal.server.entity.mapstuff.portal.GateConfigurator">
-			<parameter name="x">83</parameter>
-			<parameter name="y">89</parameter>
-			<parameter name="image">fence_gate</parameter>
-			<parameter name="orientation">v</parameter>
-			<parameter name="autoclose">2</parameter>
+
+		<configurator class-name="games.stendhal.server.maps.FertileGrounds">
+			<parameter name="x">109</parameter>
+			<parameter name="y">9</parameter>
+			<parameter name="width">7</parameter>
+			<parameter name="height">1</parameter>
 		</configurator>
+
+		<configurator class-name="games.stendhal.server.maps.FertileGrounds">
+			<parameter name="x">103</parameter>
+			<parameter name="y">11</parameter>
+ 			<parameter name="width">1</parameter>
+			<parameter name="height">21</parameter>
+		</configurator>
+
+		<configurator class-name="games.stendhal.server.maps.FertileGrounds">
+			<parameter name="x">108</parameter>
+			<parameter name="y">32</parameter>
+			<parameter name="width">15</parameter>
+			<parameter name="height">1</parameter>
+		</configurator>
+
+		<configurator class-name="games.stendhal.server.maps.FertileGrounds">
+			<parameter name="x">124</parameter>
+			<parameter name="y">20</parameter>
+			<parameter name="width">1</parameter>
+			<parameter name="height">11</parameter>
+		</configurator>
+
+		<entity x="75" y="109">
+			<implementation class-name="games.stendhal.server.entity.mapstuff.portal.Gate">
+				<parameter name="image">fence_gate</parameter>
+				<parameter name="orientation">v</parameter>
+				<parameter name="condition">new AlwaysFalseCondition()</parameter>
+				<parameter name="message">Brama jest zamknięta.</parameter>
+			</implementation>
+		</entity>
+
+		<entity x="83" y="89">
+			<implementation class-name="games.stendhal.server.entity.mapstuff.portal.Gate">
+				<parameter name="image">fence_gate</parameter>
+				<parameter name="orientation">v</parameter>
+				<parameter name="autoclose">2</parameter>
+			</implementation>
+		</entity>
 
 		<portal x="92" y="101" ref="catacombs_entrance">
 			<destination zone="-1_semos_catacombs_se" ref="entrance" />
@@ -1168,14 +1213,14 @@ Oszuści wśród prostaków wolą nacisnąć na potworze. To też działa!
 		<portal x="29" y="40" ref="hostel_entrance">
 			<destination zone="int_semos_hostel" ref="entrance_right" />
 		</portal>
-		<configurator class-name="games.stendhal.server.entity.mapstuff.portal.GateConfigurator">
-			<parameter name="x">38</parameter>
-			<parameter name="y">42</parameter>
-			<parameter name="image">fence_gate</parameter>
-			<parameter name="orientation">h</parameter>
-			<parameter name="condition">new AlwaysFalseCondition()</parameter>
-			<parameter name="message">Brama jest zamknięta.</parameter>
-		</configurator>
+		<entity x="38" y="42">
+			<implementation class-name="games.stendhal.server.entity.mapstuff.portal.Gate">
+				<parameter name="image">fence_gate</parameter>
+				<parameter name="orientation">h</parameter>
+				<parameter name="condition">new AlwaysFalseCondition()</parameter>
+				<parameter name="message">Brama jest zamknięta.</parameter>
+			</implementation>
+		</entity>
 
 	<!-- 
 		<entity x="1" y="1">
@@ -1308,14 +1353,15 @@ Potrzebna dojrzała owca: Proszę rozmawiać z Sato.
 		<configurator class-name="games.stendhal.server.maps.semos.city.SignLessorNPC" />
 		<configurator class-name="games.stendhal.server.maps.semos.city.MagicTeacherNPC" />
 		<configurator class-name="games.stendhal.server.maps.semos.city.RudolphNPC" condition="stendhal.christmas" />
-		<configurator class-name="games.stendhal.server.entity.mapstuff.portal.GateConfigurator">
-			<parameter name="x">53</parameter>
-			<parameter name="y">23</parameter>
-			<parameter name="image">fence_gate</parameter>
-			<parameter name="orientation">h</parameter>
-			<parameter name="condition">new AlwaysFalseCondition()</parameter>
-			<parameter name="message">Brama jest zamknięta.</parameter>
-		</configurator>
+
+		<entity x="53" y="23">
+			<implementation class-name="games.stendhal.server.entity.mapstuff.portal.Gate">
+				<parameter name="image">fence_gate</parameter>
+				<parameter name="orientation">h</parameter>
+				<parameter name="condition">new AlwaysFalseCondition()</parameter>
+				<parameter name="message">Brama jest zamknięta.</parameter>
+			</implementation>
+		</entity>
 
 		<!-- writing on sign east -->
 		<entity x="61" y="43">
@@ -2552,14 +2598,15 @@ Poszukiwacze przygód opisali mi skutki trucizn potworów i grzybów. Są nie ty
 		<attributes>
 			<parameter name="color_method">time</parameter>
 		</attributes>
-		<configurator class-name="games.stendhal.server.entity.mapstuff.portal.GateConfigurator">
-			<parameter name="x">103</parameter>
-			<parameter name="y">49</parameter>
-			<parameter name="image">fence_gate</parameter>
-			<parameter name="orientation">v</parameter>
-			<parameter name="condition">new AlwaysFalseCondition()</parameter>
-			<parameter name="message">Brama jest zamknięta.</parameter>
-		</configurator>
+
+		<entity x="103" y="49">
+			<implementation class-name="games.stendhal.server.entity.mapstuff.portal.Gate">
+				<parameter name="image">fence_gate</parameter>
+				<parameter name="orientation">v</parameter>
+				<parameter name="condition">new AlwaysFalseCondition()</parameter>
+				<parameter name="message">Brama jest zamknięta.</parameter>
+			</implementation>
+		</entity>
 
 		<portal x="108" y="47" ref="pad_entrance">
 			<destination zone="int_semos_swanky_pad" ref="entrance" />
@@ -3783,14 +3830,15 @@ Potrzebna dorosła owca: proszę rozmawiać z Sato
 	<zone name="-4_semos_dungeon" level="-4" x="500096" y="500064"
 		file="Level -4/semos/dungeon.tmx">
 		<configurator class-name="games.stendhal.server.maps.semos.dungeon.SheepBuyerNPC" />
-		<configurator class-name="games.stendhal.server.entity.mapstuff.portal.GateConfigurator">
-			<parameter name="x">61</parameter>
-			<parameter name="y">18</parameter>
-			<parameter name="image">fence_gate</parameter>
-			<parameter name="orientation">h</parameter>
-			<parameter name="condition">new AlwaysFalseCondition()</parameter>
-			<parameter name="message">Brama jest zamknięta.</parameter>
-		</configurator>
+
+		<entity x="61" y="18">
+			<implementation class-name="games.stendhal.server.entity.mapstuff.portal.Gate">
+				<parameter name="image">fence_gate</parameter>
+				<parameter name="orientation">h</parameter>
+				<parameter name="condition">new AlwaysFalseCondition()</parameter>
+				<parameter name="message">Brama jest zamknięta.</parameter>
+			</implementation>
+		</entity>
 
 		<entity x="1" y="1">
 			<implementation class-name="games.stendhal.server.entity.mapstuff.sound.BackgroundMusicSource">

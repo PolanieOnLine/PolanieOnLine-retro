@@ -75,12 +75,12 @@ public class CommerceAchievementFactory extends AbstractAchievementFactory {
 	public static final String[] ITEMS_HEALTH_IMPORTANT = { "mały eliksir", "eliksir", "duży eliksir", "wielki eliksir" };
 	public static final String[] ITEMS_VANILLA_OR_CHOCOLATE = { "shake waniliowy", "shake czekoladowy" };
 	public static final String[] ITEMS_LOVE_HOTDOGS = { "hotdog", "hotdog z serem" };
-	public static final String[] ITEMS_SANDWICHES = { "kanapka", "kanapka z tuńczykiem" };
+	public static final String[] ITEMS_SANDWICHES = { "kanapka" };
 	public static final String[] ITEMS_SCROLLS = {
-			"zwój ados", "zwój deniran", "zwój fado", "zwój gdański",
-			"zwój kalavan", "zwój kirdneh", "zwój krakowski", "zwój nalwor",
-			"zwój semos", "zwój tatrzański", "zwój wieliczka",
-			"bilet na mecz", "niezapisany zwój", "zwój tarnów"
+			"zwój ados", "zwój fado", "zwój kalavan", "zwój kirdneh",
+			"zwój krakowski", "zwój nalwor", "zwój semos",
+			"zwój tatrzański", "zwój wieliczka", "bilet na mecz",
+			"niezapisany zwój"
 	};
 
 	public static final String[] ITEMS_CHEESE_MERCHANT = { "ser" };
@@ -90,26 +90,24 @@ public class CommerceAchievementFactory extends AbstractAchievementFactory {
 	};
 	public static final String[] ITEMS_NAILS = { "pazury wilcze", "niedźwiedzie pazury", "pazury tygrysie" };
 	public static final String[] ITEMS_SKINS = {
-			"skóra arktycznego smoka", "skóra czarnego smoka", "skóra czerwonego smoka",
+			"skóra czarnego smoka", "skóra czerwonego smoka",
 			"skóra niebieskiego smoka", "skóra zielonego smoka", "skóra złotego smoka",
 			"skóra tygrysa", "skóra lwa", "skóra białego tygrysa", "skóra zwierzęca"
 	};
 	public static final String[] ITEMS_MUSHROOMS = { "borowik", "pieczarka", "muchomor" };
 	public static final String[] ITEMS_MAGICS = {
-			"magia ziemi", "magia płomieni", "magia deszczu", "magia wiatru",
-			"magia mrozu", "magia mroku", "magia światła"
+			"magia ziemi", "magia płomieni", "magia deszczu",
+			"magia mroku", "magia światła"
 	};
 	public static final String[] ITEMS_BARS = { "sztabka złota", "sztabka mithrilu" };
 
 	// NPCs involved in "Community Supporter"
 	public static final Map<String, Integer> TRADE_ALL_AMOUNTS = new HashMap<String, Integer>() {{
 		put("Adena", 500);
-		put("Akutagawa", 1000);
 		put("Aldrin", 2000);
 		put("Barbarus", 400); // 1 pick
 		put("Carmen", 2000);
 		put("Coralia", 500);
-		put("D J Smith", 4000);
 		put("Dale", 500);
 		put("Diehelm Brui", 1000);
 		put("Dr. Feelgood", 8000);
@@ -119,7 +117,6 @@ public class CommerceAchievementFactory extends AbstractAchievementFactory {
 		put("Hazel", 16000);
 		put("Ilisa", 4000);
 		put("Jenny", 1000);
-		put("Jimbo", 2000);
 		put("Jynath", 16000);
 		put("Karl", 50);
 		put("Kendra Mattori", 16000);
@@ -128,7 +125,6 @@ public class CommerceAchievementFactory extends AbstractAchievementFactory {
 		put("Margaret", 1000);
 		put("Mayor Chalmers", 10000);
 		put("Mia", 2000);
-		put("Mirielle", 20000);
 		put("Mrotho", 2500);
 		put("Nishiya", 60); // 2 sheep (need to update so buying animals is supported)
 		put("Old Mother Helena", 2500);
@@ -141,14 +137,12 @@ public class CommerceAchievementFactory extends AbstractAchievementFactory {
 		put("Sarzina", 17000);
 		put("Sue", 1000);
 		put("Trillium", 2500);
-		put("Wanda", 20000);
 		put("Wrvil", 300);
 		put("Wrviliza", 200);
 		put("Xhiphin Zohos", 12000);
 		put("Xin Blanca", 190); // 1 of each item
 		put("Xoderos", 570); // 1 of each item
 		put("Stary Baca", 300); // 1 owczarek
-		put("Kajetan", 60); // 1 goat
 		put("Baca Zbyszek", 60); // 2 sheep
 	}};
 

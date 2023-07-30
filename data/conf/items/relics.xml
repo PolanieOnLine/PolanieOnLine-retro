@@ -24,7 +24,7 @@
 	<item name="pierścień z czaszką">
 		<type class="relic" subclass="skull_ring" tileid="-1"/>
 		<description>Oto pierścień z czaszką.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Ring"/>
+		<implementation class-name="games.stendhal.server.entity.item.Item"/>
 		<attributes>
 		</attributes>
 		<weight value="1.0"/>

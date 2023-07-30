@@ -190,12 +190,12 @@
 		</portal>
 	</zone>
 
-	<zone name="int_koscielisko_goldsmith" file="interiors/krakow/goldsmith.tmx">
-		<configurator class-name="games.stendhal.server.maps.krakow.jeweller.SilverNPC" />
-		<configurator class-name="games.stendhal.server.maps.krakow.jeweller.ObsidianNPC" />
-		<configurator class-name="games.stendhal.server.maps.krakow.jeweller.CarbuncleNPC" />
-		<configurator class-name="games.stendhal.server.maps.krakow.jeweller.EmeraldNPC" />
-		<configurator class-name="games.stendhal.server.maps.krakow.jeweller.SapphireNPC" />
+	<zone name="int_koscielisko_goldsmith" file="interiors/koscielisko/goldsmith.tmx">
+		<configurator class-name="games.stendhal.server.maps.koscielisko.jeweller.SilverNPC" />
+		<configurator class-name="games.stendhal.server.maps.koscielisko.jeweller.ObsidianNPC" />
+		<configurator class-name="games.stendhal.server.maps.koscielisko.jeweller.CarbuncleNPC" />
+		<configurator class-name="games.stendhal.server.maps.koscielisko.jeweller.EmeraldNPC" />
+		<configurator class-name="games.stendhal.server.maps.koscielisko.jeweller.SapphireNPC" />
 		<portal x="15" y="46" ref="zlotnik_1_enterance">
 			<destination zone="1_koscielisko_zamek" ref="zlotnik_1_exit"/>
 		</portal>
