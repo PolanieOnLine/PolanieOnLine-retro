@@ -252,7 +252,7 @@
 			<name>Tunele Athor</name>
 			<type>dungeon</type>
 			<description>Spadłeś na dół do tuneli Athor? Pod ziemią żyją silniejsze i bardziej okrutne potwory niż na powierzchni. Uważaj na mnichów, smoki i złego króla minotaurów! Zabij króla minotaurów! Czeka na Ciebie!</description>
-			<url>http://gra.polskaonline.org/athor</url>
+			<url>https://s2.polanieonline.eu/athor</url>
 		</point-of-interest>
 
 		<portal x="60" y="66" ref="pool">

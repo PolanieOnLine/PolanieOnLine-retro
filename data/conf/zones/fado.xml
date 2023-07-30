@@ -94,7 +94,7 @@
 				<name>Bank Fado</name>
 				<type>bank</type>
 				<description>Miejsce na przechowanie twojego dobytku.</description>
-				<url>http://gra.polskaonline.org/faq</url>
+				<url>https://s2.polanieonline.eu/faq</url>
 			</point-of-interest>
 
 		<portal x="56" y="38" ref="bakery_entrance">
@@ -820,7 +820,7 @@ na przykład powiedz:  11  jeżeli chcesz pokój Water of Love.
 		<title>Wielkie Jasknie Fado</title>
 		<type>dungeon</type>
 		<description>Wejście do Wielkich Jaskiń Fado. Ogromne podziemia, które ciągną sie na południe pod rzeką Orril.</description>
-		<url>http://gra.polskaonline.org/fado</url>
+		<url>https://s2.polanieonline.eu/fado</url>
 	</point-of-interest>
 
 	</zone>
@@ -914,7 +914,7 @@ na przykład powiedz:  11  jeżeli chcesz pokój Water of Love.
 			<title>Wielkie Jasknie Fado</title>
 			<type>dungeon</type>
 			<description>Wejście do Wielkich Jaskiń Fado. Ogromne podziemia, które ciągną sie na południe pod rzeką Orril.</description>
-			<url>http://gra.polskaonline.org/fado</url>
+			<url>https://s2.polanieonline.eu/fado</url>
 		</point-of-interest>
 
 	</zone>
@@ -929,7 +929,7 @@ na przykład powiedz:  11  jeżeli chcesz pokój Water of Love.
 			<title>Wielkie Jasknie Fado</title>
 			<type>dungeon</type>
 			<description>Wejście do Wielkich Jaskiń Fado. Ogromne podziemia, które ciągną się na południe pod rzeką Orril.</description>
-			<url>http://gra.polskaonline.org/fado</url>
+			<url>https://s2.polanieonline.eu/fado</url>
 		</point-of-interest>
 
 		<portal x="26" y="42" ref="hut1_entrance">
@@ -944,7 +944,7 @@ na przykład powiedz:  11  jeżeli chcesz pokój Water of Love.
 			<title>Wielkie Jasknie Fado</title>
 			<type>dungeon</type>
 			<description>Wejście do Wielkich Jaskiń Fado. Ogromne podziemia, które ciągną sie na południe pod rzeką Orril.</description>
-			<url>http://gra.polskaonline.org/fado</url>
+			<url>https://s2.polanieonline.eu/fado</url>
 		</point-of-interest>
 
 		<portal x="97" y="85" ref="hut3_entrance">

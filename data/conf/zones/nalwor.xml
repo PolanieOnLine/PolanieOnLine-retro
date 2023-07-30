@@ -633,7 +633,7 @@ kupić 100 niezapisany zwój
 			<title>Tunele Mrocznych Elfów w Nalwor</title>
 			<type>dungeon</type>
 			<description>Tunele Mrocznych Elfów są zamieszkane przez złe mroczne elfy, które są bardzo niebezpieczne. Występuje też tam mityczny potór, który tylko czeka na swoją następną ofiarę... (Poziom Wojownika 60 - 597)</description>
-			<url>http://gra.polskaonline.org/nalwor</url>
+			<url>https://s2.polanieonline.eu/nalwor</url>
 		</point-of-interest>
 		
 		<point-of-interest x="18" y="52">
@@ -641,7 +641,7 @@ kupić 100 niezapisany zwój
 			<title>Tunele Mrocznych Elfów w Nalwor</title>
 			<type>dungeon</type>
 			<description>Tunele Mrocznych Elfów są zamieszkane przez złe mroczne elfy, które są bardzo niebezpieczne. Występuje też tam mityczny potór, który tylko czeka na swoją następną ofiarę... (Poziom Wojownika 60 - 597)</description>
-			<url>http://gra.polskaonline.org/nalwor</url>
+			<url>https://s2.polanieonline.eu/nalwor</url>
 		</point-of-interest>
 
 		<portal x="40" y="60" ref="nalwor_restart_life">
@@ -683,7 +683,7 @@ kupić 100 niezapisany zwój
 			<title>Tunele Mrocznych Elfów w Nalwor</title>
 			<type>dungeon</type>
 			<description>Tunele Mrocznych Elfów są zamieszkane przez złe mroczne elfy, które są bardzo niebezpieczne. Występuje też tam mityczny potór, który tylko czeka na swoją następną ofiarę... (Poziom Wojownika 60 - 597)</description>
-			<url>http://gra.polskaonline.org/nalwor</url>
+			<url>https://s2.polanieonline.eu/nalwor</url>
 		</point-of-interest>
 
 		<portal x="48" y="82" ref="flowershop_entrance">
@@ -719,7 +719,7 @@ kupić 100 niezapisany zwój
 			<title>Bank Nalwor</title>
 			<type>bank</type>
 			<description>Miejsce do przechowywania dobytku. Ten dom także należy do banku Semos.</description>
-			<url>http://gra.polskaonline.org/faq</url>
+			<url>https://s2.polanieonline.eu/faq</url>
 		</point-of-interest>
 
 		<portal x="84" y="70" ref="bank_entrance_right">
@@ -731,7 +731,7 @@ kupić 100 niezapisany zwój
 			<title>Bank Nalwor</title>
 			<type>bank</type>
 			<description>Miejsce do przechowywania dobytku. Ten dom także należy do banku Semos.</description>
-			<url>http://gra.polskaonline.org/faq</url>
+			<url>https://s2.polanieonline.eu/faq</url>
 		</point-of-interest>
 	</zone>
 
@@ -788,7 +788,7 @@ kupić 100 niezapisany zwój
 			<title>Tunele Mrocznych Elfów w Nalwor</title>
 			<type>dungeon</type>
 			<description>Tunele Mrocznych Elfów są zamieszkane przez złe mroczne elfy, które są bardzo niebezpieczne. Występuje też tam mityczny potór, który tylko czeka na swoją następną ofiarę... (Poziom Wojownika 60 - 597)</description>
-			<url>http://gra.polskaonline.org/nalwor</url>
+			<url>https://s2.polanieonline.eu/nalwor</url>
 		</point-of-interest>
 	</zone>
 
