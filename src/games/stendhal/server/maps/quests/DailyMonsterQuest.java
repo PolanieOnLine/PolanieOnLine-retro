@@ -22,7 +22,6 @@ import java.util.Random;
 import org.apache.log4j.Logger;
 
 import games.stendhal.common.MathHelper;
-import games.stendhal.common.constants.Occasion;
 import games.stendhal.common.grammar.Grammar;
 import games.stendhal.common.parser.Sentence;
 import games.stendhal.server.core.engine.SingletonRepository;
@@ -33,8 +32,6 @@ import games.stendhal.server.entity.npc.ConversationPhrases;
 import games.stendhal.server.entity.npc.ConversationStates;
 import games.stendhal.server.entity.npc.EventRaiser;
 import games.stendhal.server.entity.npc.SpeakerNPC;
-import games.stendhal.server.entity.npc.action.IncreaseAtkXPDependentOnLevelAction;
-import games.stendhal.server.entity.npc.action.IncreaseDefXPDependentOnLevelAction;
 import games.stendhal.server.entity.npc.action.IncreaseKarmaAction;
 import games.stendhal.server.entity.npc.action.IncreaseXPDependentOnLevelAction;
 import games.stendhal.server.entity.npc.action.IncrementQuestAction;
@@ -396,10 +393,6 @@ public class DailyMonsterQuest extends AbstractQuest {
 		actions.add(new IncrementQuestAction(QUEST_SLOT, 2, 1));
 		actions.add(new SetQuestAction(QUEST_SLOT, 0, "done"));
 		actions.add(new IncreaseXPDependentOnLevelAction(5, 95.0));
-		if (!Occasion.SECOND_WORLD) {
-			actions.add(new IncreaseAtkXPDependentOnLevelAction(5, 95.0));
-			actions.add(new IncreaseDefXPDependentOnLevelAction(5, 95.0));
-		}
 		actions.add(new IncreaseKarmaAction(5.0));
 
 		// player killed creature

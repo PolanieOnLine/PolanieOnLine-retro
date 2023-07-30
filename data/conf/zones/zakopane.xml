@@ -676,7 +676,7 @@
 	</zone>
 
 	<!-- zakopane_c -->
-	<zone name="0_zakopane_c" level="0" x="513312" y="18560" file="Level 0/zakopane/zakopane_c_xmas.tmx">
+	<zone name="0_zakopane_c" level="0" x="513312" y="18560" file="Level 0/zakopane/zakopane_c.tmx">
 		<attributes>
 			<parameter name="color_method">time</parameter>
 		</attributes>
@@ -1227,7 +1227,7 @@ mile widziany!
 	</zone>
 
 	<!-- Bank 0 -->
-	<zone name="int_zakopane_bank_0" file="interiors/zakopane/bank_0_xmas.tmx">
+	<zone name="int_zakopane_bank_0" file="interiors/zakopane/bank_0.tmx">
 		<configurator class-name="games.stendhal.server.core.config.zone.NoTeleportIn"/>
 		<entity x="11" y="7">
 			<implementation class-name="games.stendhal.server.entity.mapstuff.sound.PeriodicAmbientSoundSource">
@@ -1862,7 +1862,7 @@ mile widziany!
 	</zone>
 
 	<!-- Home 0 -->
-	<zone name="int_zakopane_home" file="interiors/zakopane/home_xmas.tmx">
+	<zone name="int_zakopane_home" file="interiors/zakopane/home.tmx">
 		<configurator class-name="games.stendhal.server.maps.zakopane.home.AdasNPC"/>
 		<configurator class-name="games.stendhal.server.maps.zakopane.home.PietrekNPC"/>
 		<entity x="1" y="1">
