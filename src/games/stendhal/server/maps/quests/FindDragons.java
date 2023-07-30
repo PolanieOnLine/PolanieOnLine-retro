@@ -184,7 +184,7 @@ public class FindDragons extends AbstractQuest {
 		npc = new DragonNPC("Adamantis", 73, 40);
 		zone.add(npc);
 
-		zone = world.getZone("0_warszawa_w");
+		zone = world.getZone("0_warszawa_nw");
 		npc = new DragonNPC("Cruorordis", 16, 65);
 		zone.add(npc);
 

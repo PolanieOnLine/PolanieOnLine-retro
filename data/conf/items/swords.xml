@@ -5,7 +5,7 @@
 	<item name="sztylet mordercy">
 		<type class="sword" subclass="assassin_dagger" tileid="-1"/>
 		<description>Oto sztylet mordercy, łatwo nim wyrwać serce wrogowi.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="6"/>
 			<min_level value="50"/>
@@ -26,7 +26,7 @@
 	<item name="miecz zaczepny">
 		<type class="sword" subclass="biting_sword" tileid="-1"/>
 		<description>Oto miecz zaczepny. Ostrze tego miecza zadaje śmiertelne szarpane rany.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="25"/>
 			<min_level value="35"/>
@@ -47,7 +47,7 @@
 	<item name="czarny miecz">
 		<type class="sword" subclass="black_sword" tileid="-1"/>
 		<description>Oto czarny miecz. Jego mrok z pewnością cię osłoni.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="40"/>
 			<min_use value="50"/>
@@ -70,7 +70,7 @@
 	<item name="pałasz">
 		<type class="sword" subclass="broadsword" tileid="-1"/>
 		<description>Oto potężny pałasz. Przeciwnicy już widzą swoją śmierć.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="34"/>
 			<min_level value="10"/>
@@ -91,7 +91,7 @@
 	<item name="pogromca">
 		<type class="sword" subclass="buster" tileid="-1"/>
 		<description>Oto pogromca z niszczycielskim, przedłużonym ostrzem.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="21"/>
 			<min_level value="40"/>
@@ -112,7 +112,7 @@
 	<item name="sztylet chaosu">
 		<type class="sword" subclass="chaos_dagger" tileid="-1"/>
 		<description>Oto sztylet chaosu. Jest on bardzo lekki i ostry. Użycie go w walce w magiczny sposób dodaje ci sił.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="7"/>
 			<lifesteal value="0.1"/>
@@ -134,7 +134,7 @@
 	<item name="miecz chaosu">
 		<type class="sword" subclass="chaos_sword" tileid="-1"/>
 		<description>Oto miecz chaosu. Nie tylko zabija potwory, ale zwraca ci życie.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="32"/>
 			<lifesteal value="0.3"/>
@@ -157,7 +157,7 @@
 	<item name="miecz dwuręczny">
 		<type class="sword" subclass="claymore" tileid="-1"/>
 		<description>Ten miecz dwuręczny, który był używany przez górali z dalekiej krainy, gdzie mężczyźni biegają w spódnicach. :)</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="36"/>
 			<min_level value="75"/>
@@ -178,7 +178,7 @@
 	<item name="sztylecik">
 		<type class="sword" subclass="dagger" tileid="-1"/>
 		<description>Widzisz sztylecik, jest bardziej dekoracją niż szybką bronią.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="8"/>
 			<min_level value="0"/>
@@ -199,7 +199,7 @@
 	<item name="sztylet mroku">
 		<type class="sword" subclass="dark_dagger" tileid="-1"/>
 		<description>Widzisz sztylet mroku. Jest zaprojektowany tak, aby zadawać nim szybkie ciosy.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="8"/>
 			<min_use value="30"/>
@@ -222,7 +222,7 @@
 	<item name="ognisty miecz demonów">
 		<type class="sword" subclass="demon_fire_sword" tileid="-1"/>
 		<description>Oto ognisty miecz demonów. Został wykradziony z najgłębszych czeluści tego świata.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="58"/>
 			<lifesteal value="0.3"/>
@@ -246,7 +246,7 @@
 	<item name="miecz demonów">
 		<type class="sword" subclass="kilij" tileid="-1"/>
 		<description>Oto miecz demonów. Szkielety powróciły z piekieł z tym mieczem.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="22"/>
 			<min_level value="50"/>
@@ -268,7 +268,7 @@
 	<item name="miecz elfów ciemności">
 		<type class="sword" subclass="blooddrinker" tileid="-1"/>
 		<description>Oto miecz elfów ciemności.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="31"/>
 			<min_level value="85"/>
@@ -290,7 +290,7 @@
 	<item name="miecz elficki">
 		<type class="sword" subclass="elvish_sword" tileid="-1"/>
 		<description>Oto miecz elficki. Wygląda na to, że jest zrobiony z liścia!</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="16"/>
 			<lifesteal value="0.1"/>
@@ -313,7 +313,7 @@
 	<item name="miecz ognisty">
 		<type class="sword" subclass="fire_sword" tileid="-1"/>
 		<description>Oto miecz ognisty. Kiedy nim wymachujesz wydaje się, jakby płonął.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="30"/>
 			<min_level value="45"/>
@@ -335,7 +335,7 @@
 	<item name="złota klinga">
 		<type class="sword" subclass="golden_blade" tileid="-1"/>
 		<description>Oto złota klinga. Śmierć zadana przez nią jest szybka i bezbolesna.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="5"/>
 			<lifesteal value="0.1"/>
@@ -359,7 +359,7 @@
 	<item name="złota klinga orków">
 		<type class="sword" subclass="golden_orc_sword" tileid="-1"/>
 		<description>Oto złota klinga orków. Wygląda na zadającą śmiertelne rany i jest także cenna.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="32"/>
 			<min_level value="180"/>
@@ -380,7 +380,7 @@
 	<item name="półtorak">
 		<type class="sword" subclass="great_sword" tileid="-1"/>
 		<description>Oto półtorak. Ten rzadki, wielki miecz można dzierżyć w jednej lub obu rękach.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="60"/>
 			<min_level value="50"/>
@@ -401,7 +401,7 @@
 	<item name="piekielny sztylet">
 		<type class="sword" subclass="hell_dagger" tileid="-1"/>
 		<description>Widzisz piekielny sztylet. Czy błyszczą to ognie piekielne?</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="9"/>
 			<min_level value="70"/>
@@ -423,7 +423,7 @@
 	<item name="miecz lodowy">
 		<type class="sword" subclass="ice_sword" tileid="-1"/>
 		<description>Oto miecz lodowy. Zmroziło cię na samą myśl, że to chyba najlepsza broń jaką można zdobyć.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="29"/>
 			<min_level value="40"/>
@@ -445,7 +445,7 @@
 	<item name="miecz cesarski">
 		<type class="sword" subclass="imperator_sword" tileid="-1"/>
 		<description>Oto miecz cesarski. Nie możesz odgadnąć z czego został zrobiony.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="14"/>
 			<min_level value="50"/>
@@ -466,7 +466,7 @@
 	<item name="miecz nieśmiertelnych">
 		<type class="sword" subclass="magic_sword" tileid="-1"/>
 		<description>Oto miecz nieśmiertelnych. Ten oto miecz jest darem od bogów dla Wybrańca.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="35"/>
 			<min_level value="80"/>
@@ -488,7 +488,7 @@
 	<item name="katana">
 		<type class="sword" subclass="katana" tileid="-1"/>
 		<description>Oto dalekowschodnia katana. Jej ostrze wydaje się zadawać śmiertelne rany.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="15"/>
 			<min_level value="20"/>
@@ -509,7 +509,7 @@
 	<item name="mieczyk">
 		<type class="sword" subclass="knife" tileid="-1"/>
 		<description>Widzisz tępy mieczyk, który zadaje małe obrażenia.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="7"/>
 			<min_level value="0"/>
@@ -530,7 +530,7 @@
 	<item name="miecz leworęczny">
 		<type class="sword" subclass="l_hand_sword" tileid="-1"/>
 		<description>Oto miecz leworęczny. Musi być użyty z praworęcznym mieczem.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="12"/>
 			<def value="6"/>
@@ -551,7 +551,7 @@
 	<item name="czarny sztylet">
 		<type class="sword" subclass="black_dagger" tileid="-1"/>
 		<description>Oto czarny sztylet. Być może był używany przez złodziei.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="2"/>
 			<min_level value="50"/>
@@ -573,7 +573,7 @@
 	<item name="nihonto">
 		<type class="sword" subclass="nihonto" tileid="-1"/>
 		<description>Oto prawdziwy samurajski miecz nihonto z bardzo ostrym zakończeniem.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="20"/>
 			<min_level value="70"/>
@@ -594,7 +594,7 @@
 	<item name="obsydianowy saks">
 		<type class="sword" subclass="obsidian_knife" tileid="-1"/>
 		<description>Widzisz obsydianowy saks, którego ostrze zrobione jest z drogocennego kamienia.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="4"/>
 			<min_use value="50"/>
@@ -617,7 +617,7 @@
 	<item name="klinga orków">
 		<type class="sword" subclass="orc_sword" tileid="-1"/>
 		<description>Oto klinga orków, jest ciężka i ma zabójczy wygląd.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="24"/>
 			<min_level value="0"/>
@@ -638,7 +638,7 @@
 	<item name="miecz orków">
 		<type class="sword" subclass="orcish_sword" tileid="-1"/>
 		<description>Oto miecz orków. Ten miecz orków jest niezdarnie wykuty i niezmiernie ciężki.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="38"/>
 			<min_level value="40"/>
@@ -659,7 +659,7 @@
 	<item name="miecz praworęczny">
 		<type class="sword" subclass="r_hand_sword" tileid="-1"/>
 		<description>Oto miecz praworęczny. Musi być użyty razem z leworęcznym mieczem.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="12"/>
 			<def value="6"/>
@@ -680,7 +680,7 @@
 	<item name="bułat">
 		<type class="sword" subclass="scimitar" tileid="-1"/>
 		<description>Ten saraceński bułat to dobra broń.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="14"/>
 			<min_level value="10"/>
@@ -701,7 +701,7 @@
 	<item name="krótki miecz">
 		<type class="sword" subclass="short_sword" tileid="-1"/>
 		<description>Oto zadbany krótki miecz, który doskonale nadaje się na każdą wyprawę.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="11"/>
 			<min_level value="0"/>
@@ -722,7 +722,7 @@
 	<item name="miecz dusz">
 		<type class="sword" subclass="soul_dagger" tileid="-1"/>
 		<description>Widzisz miecz dusz. Jest tak lekki i ostry, że możesz nim szybko atakować.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="5"/>
 			<min_use value="60"/>
@@ -745,7 +745,7 @@
 	<item name="miecz">
 		<type class="sword" subclass="sword" tileid="-1"/>
 		<description>Oto ostry miecz. Jeśli znajdziesz kupca, być może coś za niego zapłaci.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="12"/>
 			<min_level value="5"/>
@@ -766,7 +766,7 @@
 	<item name="krwiopijca">
 		<type class="sword" subclass="vampire_sword" tileid="-1"/>
 		<description>To osławiony krwiopijca, miecz który zabiera życie tym, których atakujesz.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="22"/>
 			<lifesteal value="0.1"/>
@@ -788,7 +788,7 @@
 	<item name="miecz xenocyjski">
 		<type class="sword" subclass="xeno_sword" tileid="-1"/>
 		<description>Oto miecz xenocyjski. Jest silny i lekki.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="38"/>
 			<min_level value="150"/>
@@ -809,7 +809,7 @@
 	<item name="miecz krasnoludów">
 		<type class="sword" subclass="dwarfish_sword" tileid="-1"/>
 		<description>Oto miecz krasnoludów. Dość krótkie ostrze w sam raz do walk w ciasnych korytarzach.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="17"/>
 			<min_level value="0"/>
@@ -830,7 +830,7 @@
 	<item name="krwawy miecz orków">
 		<type class="sword" subclass="orc_blood" tileid="-1"/>
 		<description>Widzisz krwawy miecz orków. Niejednego wroga rozpłatał na dwie połowy.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="33"/>
 			<lifesteal value="-0.2"/>
@@ -852,7 +852,7 @@
 	<item name="sztylet orków">
 		<type class="sword" subclass="orc_dagger" tileid="-1"/>
 		<description>Oto sztylet orków. Podręczna i wygodna broń.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="15"/>
 			<lifesteal value="-0.1"/>
@@ -874,7 +874,7 @@
 	<item name="szczerbiec">
 		<type class="sword" subclass="polish_szczerbiec" tileid="-1"/>
 		<description>Oto szczerbiec. Miecz królów polskich.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="105"/>
 			<def value="7"/>
@@ -898,7 +898,7 @@
 	<item name="maczeta">
 		<type class="sword" subclass="machete" tileid="-1"/>
 		<description>Oto maczeta. Idealna do walki i przedzierania się przez gąszcz lasu.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="21"/>
 			<min_level value="0"/>
@@ -919,7 +919,7 @@
 	<item name="miecz cieni">
 		<type class="sword" subclass="shadow_sword" tileid="-1"/>
 		<description>Oto miecz cieni. Nawet gdy nosisz go w słońcu, półmrok skrywa jego ostrze.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="39"/>
 			<min_level value="30"/>
@@ -941,7 +941,7 @@
 	<item name="chopesz">
 		<type class="sword" subclass="ancient_egyptian_khopesh" tileid="-1"/>
 		<description>Oto chopesz. To niezwykłe ostrze pochodzi z kraju dziwnych piramid.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="35"/>
 			<min_level value="0"/>
@@ -962,7 +962,7 @@
 	<item name="zatruty sztylet egipski">
 		<type class="sword" subclass="ancient_egyptian_poisoned" tileid="-1"/>
 		<description>Oto zatruty sztylet egipski. To trujące ostrze pochodzi z kraju dziwnych piramid.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="31"/>
 			<lifesteal value="-0.1"/>
@@ -984,7 +984,7 @@
 	<item name="nóż z kości">
 		<type class="sword" subclass="boneknife" tileid="-1"/>
 		<description/>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="3"/>
 			<min_level value="0"/>

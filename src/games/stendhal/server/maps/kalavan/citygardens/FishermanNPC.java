@@ -65,10 +65,9 @@ public class FishermanNPC implements ZoneConfigurator {
 		npc.setDirection(Direction.RIGHT);
 		npc.setPosition(116, 47);
 		npc.setGender("M");
-		Outfit outfit = new Outfit("body=0,dress=34,head=0,mouth=0,eyes=0,mask=0,hair=6,hat=23,detail=0");
+		Outfit outfit = new Outfit("body=0,dress=34,head=0,hair=6,detail=0");
 		npc.setOutfit(outfit);
 		npc.setOutfitColor("dress", 0xffe1b01e);
-		npc.setOutfitColor("hat", 0x00ffe01e);
 		zone.add(npc);
 	}
 }

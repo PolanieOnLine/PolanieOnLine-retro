@@ -126,7 +126,7 @@ public class PotionsDealerNPC implements ZoneConfigurator {
 		npc.setPosition(nodes.get(0).getX(), nodes.get(0).getY());
 		npc.setPath(new FixedPath(nodes, true));
 		npc.setCollisionAction(CollisionAction.STOP);
-		npc.setOutfit(new Outfit("body=4,head=0,mouth=2,eyes=1,dress=29,mask=1,hair=20"));
+		npc.setOutfit(new Outfit("body=4,head=0,dress=29,hair=20"));
 		npc.setGender("F");
 
 		zone.add(npc);

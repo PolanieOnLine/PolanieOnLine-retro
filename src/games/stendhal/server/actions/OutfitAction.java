@@ -59,14 +59,6 @@ public class OutfitAction implements ActionListener {
 					player.remove(COLOR_MAP, "hair");
 				}
 
-				// Players may change eyes color
-				color = action.get("eyes");
-				if (color != null) {
-					player.put(COLOR_MAP, "eyes", color);
-				} else {
-					player.remove(COLOR_MAP, "eyes");
-				}
-
 				// Players may change dress color
 				color = action.get("dress");
 				if (color != null) {

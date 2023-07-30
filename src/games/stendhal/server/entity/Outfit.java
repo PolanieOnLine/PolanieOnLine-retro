@@ -105,45 +105,12 @@ public class Outfit {
 				this.layers.put("body", code % 100);
 				this.layers.put("dress", code / 100 % 100);
 				this.layers.put("head", (int) (code / Math.pow(100, 2) % 100));
-				this.layers.put("eyes", 0);
-				this.layers.put("mouth", 0);
-				this.layers.put("mask", 0);
 				this.layers.put("hair", (int) (code / Math.pow(100, 3) % 100));
-				this.layers.put("hat", 0);
 				this.layers.put("detail", (int) (code / Math.pow(100, 4) % 100));
 			} catch (NumberFormatException e) {
 				LOGGER.warn("Can't parse outfit code, setting failsafe outfit.");
 			}
 		}
-	}
-
-	/**
-	 * This method is added for backwards compatibility. Anything using this should be updated
-	 * for new method.
-	 *
-	 * Creates a new outfit. Set some of the parameters to null if you want an
-	 * entity that put on this outfit to keep on the corresponding parts of its
-	 * current outfit.
-	 *
-	 * @param detail
-	 *            The index of the detail style, or null
-	 * @param hair
-	 *            The index of the hair style, or null
-	 * @param head
-	 *            The index of the head style, or null
-	 * @param dress
-	 *            The index of the dress style, or null
-	 * @param body
-	 *            The index of the body style, or null
-	 */
-	@Deprecated
-	public Outfit(final Integer detail, Integer hair, Integer head,
-			Integer dress, Integer body) {
-		layers.put("body", body);
-		layers.put("dress", dress);
-		layers.put("head", head);
-		layers.put("hair", hair);
-		layers.put("detail", detail);
 	}
 
 	public Integer getLayer(final String layerName) {
@@ -223,11 +190,7 @@ public class Outfit {
 		Integer newBody = layers.get("body");
 		Integer newDress = layers.get("dress");
 		Integer newHead = layers.get("head");
-		Integer newMouth = layers.get("mouth");
-		Integer newEyes = layers.get("eyes");
-		Integer newMask = layers.get("mask");
 		Integer newHair = layers.get("hair");
-		Integer newHat = layers.get("hat");
 		Integer newDetail = layers.get("detail");
 
 		// wear the this outfit 'over' the other outfit;
@@ -241,26 +204,14 @@ public class Outfit {
 		if (newHead == null) {
 			newHead = old.getLayer("head");
 		}
-		if (newMouth == null) {
-			newMouth = old.getLayer("mouth");
-		}
-		if (newEyes == null) {
-			newEyes = old.getLayer("eyes");
-		}
-		if (newMask == null) {
-			newMask = old.getLayer("mask");
-		}
 		if (newHair == null) {
 			newHair = old.getLayer("hair");
-		}
-		if (newHat == null) {
-			newHat = old.getLayer("hat");
 		}
 		if (newDetail == null) {
 			newDetail = old.getLayer("detail");
 		}
 
-		return new Outfit(newBody, newDress, newHead, newMouth, newEyes, newMask, newHair, newHat, newDetail);
+		return new Outfit(newBody, newDress, newHead, newHair, newDetail);
 	}
 
 	/**
@@ -276,11 +227,7 @@ public class Outfit {
 		Integer newBody = layers.get("body");
 		Integer newDress = layers.get("dress");
 		Integer newHead = layers.get("head");
-		Integer newMouth = layers.get("mouth");
-		Integer newEyes = layers.get("eyes");
-		Integer newMask = layers.get("mask");
 		Integer newHair = layers.get("hair");
-		Integer newHat = layers.get("hat");
 		Integer newDetail = layers.get("detail");
 
 		// wear the this outfit 'over' the other outfit;
@@ -294,26 +241,14 @@ public class Outfit {
 		if ((newHead == null) || newHead.equals(other.getLayer("head"))) {
 			newHead = 0;
 		}
-		if ((newMouth == null) || newMouth.equals(other.getLayer("mouth"))) {
-			newMouth = 0;
-		}
-		if ((newEyes == null) || newEyes.equals(other.getLayer("eyes"))) {
-			newEyes = 0;
-		}
-		if ((newMask == null) || newMask.equals(other.getLayer("mask"))) {
-			newMask = 0;
-		}
 		if ((newHair == null) || newHair.equals(other.getLayer("hair"))) {
 			newHair = 0;
-		}
-		if ((newHat == null) || newHat.equals(other.getLayer("hat"))) {
-			newHat = 0;
 		}
 		if ((newDetail == null) || newDetail.equals(other.getLayer("detail"))) {
 			newDetail = 0;
 		}
 
-		return new Outfit(newBody, newDress, newHead, newMouth, newEyes, newMask, newHair, newHat, newDetail);
+		return new Outfit(newBody, newDress, newHead, newHair, newDetail);
 	}
 
 	/**
@@ -348,21 +283,13 @@ public class Outfit {
 	 * @return true iff this outfit is part of the given outfit.
 	 */
 	public boolean isPartOf(final Outfit other) {
-		Integer hat = layers.get("hat");
-		Integer mask = layers.get("mask");
-		Integer eyes = layers.get("eyes");
-		Integer mouth = layers.get("mouth");
 		Integer detail = layers.get("detail");
 		Integer hair = layers.get("hair");
 		Integer head = layers.get("head");
 		Integer dress = layers.get("dress");
 		Integer body = layers.get("body");
 
-		return ((hat == null) || hat.equals(other.getLayer("hat")))
-				&& ((mask == null) || mask.equals(other.getLayer("mask")))
-				&& ((eyes == null) || eyes.equals(other.getLayer("eyes")))
-				&& ((mouth == null) || mouth.equals(other.getLayer("mouth")))
-				&& ((detail == null) || detail.equals(other.getLayer("detail")))
+		return ((detail == null) || detail.equals(other.getLayer("detail")))
 				&& ((hair == null) || hair.equals(other.getLayer("hair")))
 				&& ((head == null) || head.equals(other.getLayer("head")))
 				&& ((dress == null) || dress.equals(other.getLayer("dress")))
@@ -387,21 +314,13 @@ public class Outfit {
 	 * @return true if it is a normal outfit
 	 */
 	public boolean isChoosableByPlayers() {
-		Integer hat = layers.get("hat");
-		Integer mask = layers.get("mask");
-		Integer eyes = layers.get("eyes");
-		Integer mouth = layers.get("mouth");
 		Integer detail = layers.get("detail");
 		Integer hair = layers.get("hair");
 		Integer head = layers.get("head");
 		Integer dress = layers.get("dress");
 		Integer body = layers.get("body");
 
-		return (hat == null || (hat < Outfits.HAT_OUTFITS) && (hat >= 0))
-			&& (mask == null || (mask < Outfits.MASK_OUTFITS) && (mask >= 0))
-			&& (eyes == null || (eyes < Outfits.EYES_OUTFITS) && (eyes >= 0))
-			&& (mouth == null || (mouth < Outfits.MOUTH_OUTFITS) && (mouth >= 0))
-			&& (detail == null || detail == 0)
+		return (detail == null || detail == 0)
 			&& (hair == null || (hair < Outfits.HAIR_OUTFITS) && (hair >= 0))
 			&& (head == null || (head < Outfits.HEAD_OUTFITS) && (head >= 0))
 			&& (dress == null || (dress < Outfits.CLOTHES_OUTFITS) && (dress >= 0))
@@ -436,17 +355,15 @@ public class Outfit {
 	 * @return the new random outfit
 	 */
 	public static Outfit getRandomOutfit() {
-		final int newEyes = Rand.randUniform(0, Outfits.EYES_OUTFITS - 1);
-		final int newMouth = Rand.randUniform(0, Outfits.MOUTH_OUTFITS - 1);
 		final int newHair = Rand.randUniform(0, Outfits.HAIR_OUTFITS - 1);
 		final int newHead = Rand.randUniform(0, Outfits.HEAD_OUTFITS - 1);
 		final int newDress = Rand.randUniform(1, Outfits.CLOTHES_OUTFITS - 1);
 		final int newBody = Rand.randUniform(0, Outfits.BODY_OUTFITS - 1);
 
 		LOGGER.debug("chose random outfit: "
-				+ " " + newEyes + " " + newMouth + " " + newHair
-				+ " " + newHead + " " + newDress + " " + newBody);
-		return new Outfit(newBody, newDress, newHead, newMouth, newEyes, 0, newHair, 0, 0);
+				+ " " + newHair + " " + newHead
+				+ " " + newDress + " " + newBody);
+		return new Outfit(newBody, newDress, newHead, newHair, 0);
 	}
 
 	/**
@@ -491,16 +408,8 @@ public class Outfit {
 		sb.append(Integer.toHexString(MathHelper.parseIntDefault(colors.get("dress"), 0)));
 		sb.append("_head-" + getLayer("head") + "-");
 		sb.append(Integer.toHexString(MathHelper.parseIntDefault(colors.get("skin"), 0)));
-		sb.append("_mouth-" + getLayer("mouth") + "-");
-		sb.append(Integer.toHexString(MathHelper.parseIntDefault(colors.get("mouth"), 0)));
-		sb.append("_eyes-" + getLayer("eyes") + "-");
-		sb.append(Integer.toHexString(MathHelper.parseIntDefault(colors.get("eyes"), 0)));
-		sb.append("_mask-" + getLayer("mask") + "-");
-		sb.append(Integer.toHexString(MathHelper.parseIntDefault(colors.get("mask"), 0)));
 		sb.append("_hair-" + getLayer("hair") + "-");
 		sb.append(Integer.toHexString(MathHelper.parseIntDefault(colors.get("hair"), 0)));
-		sb.append("_hat-" + getLayer("hat") + "-");
-		sb.append(Integer.toHexString(MathHelper.parseIntDefault(colors.get("hat"), 0)));
 		sb.append("_detail-" + getLayer("detail") + "-");
 		sb.append(Integer.toHexString(MathHelper.parseIntDefault(colors.get("detail"), 0)));
 		return sb.toString();

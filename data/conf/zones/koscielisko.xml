@@ -235,46 +235,6 @@
 			</implementation>
 		</entity>
 
-		<entity x="4" y="49">
-			<implementation class-name="games.stendhal.server.entity.mapstuff.useable.SourceAmetyst"/>
-		</entity>
-		<entity x="25" y="5">
-			<implementation class-name="games.stendhal.server.entity.mapstuff.useable.SourceCarbuncle"/>
-		</entity>
-		<entity x="54" y="4">
-			<implementation class-name="games.stendhal.server.entity.mapstuff.useable.SourceEmerald"/>
-		</entity>
-		<entity x="60" y="4">
-			<implementation class-name="games.stendhal.server.entity.mapstuff.useable.SourceEmerald"/>
-		</entity>
-		<entity x="42" y="24">
-			<implementation class-name="games.stendhal.server.entity.mapstuff.useable.SourceGold"/>
-		</entity>
-		<entity x="47" y="59">
-			<implementation class-name="games.stendhal.server.entity.mapstuff.useable.SourceIron"/>
-		</entity>
-		<entity x="39" y="7">
-			<implementation class-name="games.stendhal.server.entity.mapstuff.useable.SourceIron"/>
-		</entity>
-		<entity x="54" y="58">
-			<implementation class-name="games.stendhal.server.entity.mapstuff.useable.SourceMithril"/>
-		</entity>
-		<entity x="61" y="37">
-			<implementation class-name="games.stendhal.server.entity.mapstuff.useable.SourceObsidian"/>
-		</entity>
-		<entity x="6" y="60">
-			<implementation class-name="games.stendhal.server.entity.mapstuff.useable.SourceSapphire"/>
-		</entity>
-		<entity x="60" y="58">
-			<implementation class-name="games.stendhal.server.entity.mapstuff.useable.SourceSilver"/>
-		</entity>
-		<entity x="14" y="53">
-			<implementation class-name="games.stendhal.server.entity.mapstuff.useable.SourceSulfur"/>
-		</entity>
-		<entity x="28" y="7">
-			<implementation class-name="games.stendhal.server.entity.mapstuff.useable.SourceSulfur"/>
-		</entity>
-
 		<portal x="0" y="25" ref="do_tunelu">
 			<destination zone="int_koscielisko_tunel_zrc" ref="do_kopalni"/>
 			<implementation class-name="games.stendhal.server.entity.mapstuff.portal.KeyedPortal">

@@ -70,7 +70,7 @@ public class AlicjaNPC implements ZoneConfigurator {
 		};
 
 		npc.setDescription("Oto Alicja, córka Domiesława. Wygląda na strasznie zmęczoną.");
-		npc.setEntityClass("npcdziecko3");
+		npc.setEntityClass("npcdziewczynka");
 		npc.setGender("F");
 		npc.setPosition(3, 15);
 		zone.add(npc);

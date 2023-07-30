@@ -29,7 +29,7 @@ import games.stendhal.server.entity.npc.SpeakerNPC;
  * <p>Creates a normal version of Susi in the ross house.
  */
 public class LittleGirlNPC implements ZoneConfigurator {
-	public final static String SUSI_OUTFIT = "body=2,dress=32,head=0,eyes=0,hair=4";
+	public final static String SUSI_OUTFIT = "body=2,dress=32,head=0,hair=4";
 
 	/**
 	 * Configure a zone.

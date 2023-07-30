@@ -28,45 +28,44 @@ public class Outfits {
 	 */
 
 	/** number of player selectable heads */
-	public static final int HEAD_OUTFITS = 4;
+	public static final int HEAD_OUTFITS = 36;
 
 	/** number of player selectable dresses */
-	public static final int CLOTHES_OUTFITS = 92;
+	public static final int CLOTHES_OUTFITS = 100;
 
 	/** number of player selectable hair styles */
-	public static final int HAIR_OUTFITS = 50;
+	public static final int HAIR_OUTFITS = 117;
 
 	/** number of player selectable body shapes */
-	public static final int BODY_OUTFITS = 6;
-	private static final List<Integer> DRESS_COMPATIBLE_BODIES = Arrays.asList(980, 981); // populate with any other bodies that a dress layer can be worn over
-	private static final List<Integer> FEMALE_BODIES = Arrays.asList(1, 2, 4, 5, 994, 996);
+	public static final int BODY_OUTFITS = 37;
+	private static final List<Integer> DRESS_COMPATIBLE_BODIES = Arrays.asList(); // populate with any other bodies that a dress layer can be worn over
+	private static final List<Integer> FEMALE_BODIES = Arrays.asList(6, 7, 8, 9, 10, 11, 13, 25, 29, 30, 35);
 
 	/** number of player selectable hats */
-	public static final int HAT_OUTFITS = 24;
+	public static final int HAT_OUTFITS = 0;
 
 	/** number of player selectable eyes */
-	public static final int EYES_OUTFITS = 28;
+	public static final int EYES_OUTFITS = 0;
 
 	/** number of player selectable mouths */
-	public static final int MOUTH_OUTFITS = 8;
+	public static final int MOUTH_OUTFITS = 0;
 
 	/** number of player selectable masks */
-	public static final int MASK_OUTFITS = 15;
+	public static final int MASK_OUTFITS = 0;
 
 	// hair should not be drawn with hat indexes in this list
-	public static final List<Integer> HATS_NO_HAIR = Arrays.asList(3, 4, 5, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 996, 997);
+	public static final List<Integer> HATS_NO_HAIR = Arrays.asList();
 	// some outfit layers should not be drawn with ship dress indexes in this list
-	public static final List<Integer> SHIPS_NO_LAYERS = Arrays.asList(950, 951);
+	public static final List<Integer> SHIPS_NO_LAYERS = Arrays.asList(50, 51);
 
 	// layers used for building outfits
 	public static final List<String> LAYER_NAMES = Arrays.asList(
-					"body", "dress", "head", "mouth", "eyes", "mask",
-					"hair", "hat", "detail");
+					"body", "dress", "head", "hair", "detail");
 	public static final int LAYERS_COUNT = LAYER_NAMES.size();
 
 	// layers that can be re-colored
 	public static final List<String> RECOLORABLE_OUTFIT_PARTS = Arrays.asList(
-					"detail", "detail-rear", "dress", "hair", "body", "head", "eyes", "mask", "hat");
+					"detail", "detail-rear", "dress", "hair", "body", "head");
 
 	public static final List<String> SKIN_LAYERS = Arrays.asList("body", "head");
 

@@ -66,7 +66,7 @@ public class DealerNPC implements ZoneConfigurator {
 		final Map<String, String> addLayers = new HashMap<>();
 		if (inventory != null) {
 			for (final String name: inventory.keySet()) {
-				addLayers.put(name, "body=0,head=0,eyes=0,dress=11,hair=11");
+				addLayers.put(name, "body=0,head=0,dress=11,hair=11");
 			}
 		}
 		final OutfitShopSign sign = new OutfitShopSign("deniran_accessories", "Deniran - Akcesoria",

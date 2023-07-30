@@ -5,7 +5,7 @@
 	<item name="strzała">
 		<type class="ammunition" subclass="wooden_arrow" tileid="-1"/>
 		<description>To strzała. Z zapasem strzał w jednej ręce i łukiem w drugiej, możesz atakowac z dystansu.</description>
-		<implementation class-name="games.stendhal.server.entity.item.StackableItem"/>
+		<implementation class-name="games.stendhal.server.entity.item.Projectile"/>
 		<attributes>
 			<atk value="1"/>
 			<range value="2"/>
@@ -27,7 +27,7 @@
 	<item name="strzała żelazna">
 		<type class="ammunition" subclass="steel_arrow" tileid="-1"/>
 		<description>To strzała żelazna. Z mnóstwem ich i dobrym łukiem, będziesz onieśmilającym łucznikiem.</description>
-		<implementation class-name="games.stendhal.server.entity.item.StackableItem"/>
+		<implementation class-name="games.stendhal.server.entity.item.Projectile"/>
 		<attributes>
 			<atk value="3"/>
 			<range value="2"/>
@@ -49,7 +49,7 @@
 	<item name="strzała złota">
 		<type class="ammunition" subclass="golden_arrow" tileid="-1"/>
 		<description>To strzała złota. Z pełną garścią strzał i dobrym łukiem, na pewno będziesz szybciej gromił przeciwników.</description>
-		<implementation class-name="games.stendhal.server.entity.item.StackableItem"/>
+		<implementation class-name="games.stendhal.server.entity.item.Projectile"/>
 		<attributes>
 			<atk value="4"/>
 			<range value="3"/>
@@ -71,7 +71,7 @@
 	<item name="strzała płonąca">
 		<type class="ammunition" subclass="power_arrow" tileid="-1"/>
 		<description>To strzała płonąca. Grot tej strzały na pewno pokona twoich przeciwników, kiedy masz ją z łukiem.</description>
-		<implementation class-name="games.stendhal.server.entity.item.StackableItem"/>
+		<implementation class-name="games.stendhal.server.entity.item.Projectile"/>
 		<attributes>
 			<atk value="6"/>
 			<range value="4"/>
@@ -93,7 +93,7 @@
 	<item name="bełt">
 		<type class="ammunition" subclass="wooden_bolt" tileid="-1"/>
 		<description>Oto bełt. Unieś kuszę i załaduj. Trafiaj celnie, a zranisz wroga.</description>
-		<implementation class-name="games.stendhal.server.entity.item.StackableItem"/>
+		<implementation class-name="games.stendhal.server.entity.item.Projectile"/>
 		<attributes>
 			<atk value="2"/>
 			<range value="2"/>
@@ -115,7 +115,7 @@
 	<item name="bełt stalowy">
 		<type class="ammunition" subclass="steel_bolt" tileid="-1"/>
 		<description>Oto bełt stalowy. Może przebić łuskową zbroję o ile trafisz z odległości w jej słaby punkt.</description>
-		<implementation class-name="games.stendhal.server.entity.item.StackableItem"/>
+		<implementation class-name="games.stendhal.server.entity.item.Projectile"/>
 		<attributes>
 			<atk value="4"/>
 			<range value="2"/>
@@ -137,7 +137,7 @@
 	<item name="bełt złoty">
 		<type class="ammunition" subclass="golden_bolt" tileid="-1"/>
 		<description>Widzisz bełt złoty. Zbierz ich więcej, a wielu wrogów zginie nawet cię nie dostrzegając.</description>
-		<implementation class-name="games.stendhal.server.entity.item.StackableItem"/>
+		<implementation class-name="games.stendhal.server.entity.item.Projectile"/>
 		<attributes>
 			<atk value="5"/>
 			<range value="4"/>
@@ -159,7 +159,7 @@
 	<item name="bełt płonący">
 		<type class="ammunition" subclass="power_bolt" tileid="-1"/>
 		<description>Oto bełt płonący. Użyty z kuszą bywa zabójczy.</description>
-		<implementation class-name="games.stendhal.server.entity.item.StackableItem"/>
+		<implementation class-name="games.stendhal.server.entity.item.Projectile"/>
 		<attributes>
 			<atk value="7"/>
 			<range value="5"/>

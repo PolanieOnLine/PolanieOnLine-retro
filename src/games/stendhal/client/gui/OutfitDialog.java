@@ -11,7 +11,6 @@
  ***************************************************************************/
 package games.stendhal.client.gui;
 
-import static games.stendhal.common.Outfits.HATS_NO_HAIR;
 import static games.stendhal.common.Outfits.SHIPS_NO_LAYERS;
 
 import java.awt.Color;
@@ -71,11 +70,6 @@ class OutfitDialog extends JDialog {
 	private final SelectorModel body = new SelectorModel(Outfits.BODY_OUTFITS);
 	private final SelectorModel dress = new SelectorModel(Outfits.CLOTHES_OUTFITS);
 
-	private final SelectorModel eyes = new SelectorModel(Outfits.EYES_OUTFITS);
-	private final SelectorModel mouth = new SelectorModel(Outfits.MOUTH_OUTFITS);
-	private final SelectorModel hat = new SelectorModel(Outfits.HAT_OUTFITS);
-	private final SelectorModel mask = new SelectorModel(Outfits.MASK_OUTFITS);
-
 	/**
 	 * Coloring data used to get the initial colors, and to adjust colors should
 	 * the player want those.
@@ -101,12 +95,6 @@ class OutfitDialog extends JDialog {
 	/** Label containing the full outfit image. */
 	private OutfitLabel outfitLabel;
 
-	// extended outfit parts
-	private OutfitLabel eyesLabel;
-	private OutfitLabel mouthLabel;
-	private OutfitLabel hatLabel;
-	private OutfitLabel maskLabel;
-
 	/** Selector for the sprite direction. */
 	private JSlider directionSlider;
 
@@ -126,20 +114,12 @@ class OutfitDialog extends JDialog {
 		// Follow the model changes; the whole outfit follows them all
 		hair.addListener(hairLabel);
 		hair.addListener(outfitLabel);
-		eyes.addListener(eyesLabel);
-		eyes.addListener(outfitLabel);
-		mouth.addListener(mouthLabel);
-		mouth.addListener(outfitLabel);
 		head.addListener(headLabel);
 		head.addListener(outfitLabel);
 		body.addListener(bodyLabel);
 		body.addListener(outfitLabel);
 		dress.addListener(dressLabel);
 		dress.addListener(outfitLabel);
-		hat.addListener(outfitLabel);
-		hat.addListener(hatLabel);
-		mask.addListener(maskLabel);
-		mask.addListener(outfitLabel);
 
 		final Map<String, Integer> layer_map = new HashMap<>();
 		for (String layer: strcode.split(",")) {
@@ -152,11 +132,7 @@ class OutfitDialog extends JDialog {
 		Integer bodiesIndex = layer_map.get("body");
 		Integer clothesIndex = layer_map.get("dress");
 		Integer headsIndex = layer_map.get("head");
-		Integer mouthsIndex = layer_map.get("mouth");
-		Integer eyesIndex = layer_map.get("eyes");
-		Integer masksIndex = layer_map.get("mask");
 		Integer hairsIndex = layer_map.get("hair");
-		Integer hatsIndex = layer_map.get("hat");
 
 		// failsafes
 		if (bodiesIndex == null) {
@@ -168,31 +144,12 @@ class OutfitDialog extends JDialog {
 		if (headsIndex == null) {
 			headsIndex = 0;
 		}
-		if (mouthsIndex == null) {
-			mouthsIndex = 0;
-		}
-		if (eyesIndex == null) {
-			eyesIndex = 0;
-		}
-		if (masksIndex == null) {
-			masksIndex = 0;
-		}
-		if (hairsIndex == null) {
-			hairsIndex = 0;
-		}
-		if (hatsIndex == null) {
-			hatsIndex = 0;
-		}
 
 		// set current outfit; this will update labels as well
 		body.setIndex(checkIndex(bodiesIndex, body));
 		dress.setIndex(checkIndex(clothesIndex, dress));
 		head.setIndex(checkIndex(headsIndex, head));
-		mouth.setIndex(checkIndex(mouthsIndex, mouth));
-		eyes.setIndex(checkIndex(eyesIndex, eyes));
-		mask.setIndex(checkIndex(masksIndex, mask));
 		hair.setIndex(checkIndex(hairsIndex, hair));
-		hat.setIndex(checkIndex(hatsIndex, hat));
 
 		pack();
 		WindowUtils.closeOnEscape(this);
@@ -244,26 +201,6 @@ class OutfitDialog extends JDialog {
 		hairLabel = new OutfitLabel(hairRetriever);
 		partialsColumn1.add(createSelector(hair, hairLabel));
 
-		// Eyes
-		SpriteRetriever eyesRetriever = new SpriteRetriever() {
-			@Override
-			public Sprite getSprite() {
-				return getEyesSprite();
-			}
-		};
-		eyesLabel = new OutfitLabel(eyesRetriever);
-		partialsColumn1.add(createSelector(eyes, eyesLabel));
-
-		// Mouth
-		SpriteRetriever mouthRetriever = new SpriteRetriever() {
-			@Override
-			public Sprite getSprite() {
-				return getMouthSprite();
-			}
-		};
-		mouthLabel = new OutfitLabel(mouthRetriever);
-		partialsColumn1.add(createSelector(mouth, mouthLabel));
-
 		// Head
 		SpriteRetriever headRetriever = new SpriteRetriever() {
 			@Override
@@ -304,11 +241,6 @@ class OutfitDialog extends JDialog {
 		selector.setAlignmentX(CENTER_ALIGNMENT);
 		column.add(selector);
 
-		/* eyes color */
-		selector = createColorSelector("oczu", OutfitColor.EYES, eyesLabel);
-		selector.setAlignmentX(CENTER_ALIGNMENT);
-		column.add(selector);
-
 		/* skin color */
 		selector = createColorSelector("skóry", OutfitColor.SKIN, true, bodyLabel,
 				headLabel);
@@ -326,33 +258,12 @@ class OutfitDialog extends JDialog {
 		final JComponent partialsColumn2 = SBoxLayout.createContainer(SBoxLayout.VERTICAL, pad);
 		content.add(partialsColumn2);
 
-		// Hat
-		SpriteRetriever hatRetriever = new SpriteRetriever() {
-			@Override
-			public Sprite getSprite() {
-				return getHatSprite();
-			}
-		};
-		hatLabel = new OutfitLabel(hatRetriever);
-		partialsColumn2.add(createSelector(hat, hatLabel));
-
-		// Mask
-		SpriteRetriever maskRetriever = new SpriteRetriever() {
-			@Override
-			public Sprite getSprite() {
-				return getMaskSprite();
-			}
-		};
-		maskLabel = new OutfitLabel(maskRetriever);
-		partialsColumn2.add(createSelector(mask, maskLabel));
-
 		// --------- whole outfit side ----------
 		column = SBoxLayout.createContainer(SBoxLayout.VERTICAL, pad);
 		column.setAlignmentY(CENTER_ALIGNMENT);
 		content.add(column);
 
-		outfitLabel = new OutfitLabel(bodyRetriever, dressRetriever, headRetriever, mouthRetriever,
-				eyesRetriever, maskRetriever, hairRetriever, hatRetriever) {
+		outfitLabel = new OutfitLabel(bodyRetriever, dressRetriever, headRetriever, hairRetriever) {
 			@Override
 			public void changed() {
 				// Update image
@@ -361,20 +272,11 @@ class OutfitDialog extends JDialog {
 				g.setColor(Color.WHITE);
 				g.fillRect(0, 0, PLAYER_WIDTH, PLAYER_HEIGHT);
 				for (SpriteRetriever retriever : retrievers) {
-					// hair is not drawn under certain hats/helmets
-					if (retriever.equals(hairRetriever) && HATS_NO_HAIR.contains(hat.getIndex())) {
-						continue;
-					}
-
 					// other outfit layers isn't drawn with cavalery body
 					final boolean ship_without_layers = SHIPS_NO_LAYERS.contains(body.getIndex());
 					if ((retriever.equals(dressRetriever) && ship_without_layers)
 							|| (retriever.equals(headRetriever) && ship_without_layers)
-							|| (retriever.equals(mouthRetriever) && ship_without_layers)
-							|| (retriever.equals(eyesRetriever) && ship_without_layers)
-							|| (retriever.equals(hairRetriever) && ship_without_layers)
-							|| (retriever.equals(maskRetriever) && ship_without_layers)
-							|| (retriever.equals(hatRetriever) && ship_without_layers)) {
+							|| (retriever.equals(hairRetriever) && ship_without_layers)) {
 						continue;
 					}
 
@@ -467,23 +369,9 @@ class OutfitDialog extends JDialog {
 
 		outfitLabel.changed();
 		hairLabel.changed();
-		eyesLabel.changed();
-		mouthLabel.changed();
 		headLabel.changed();
 		dressLabel.changed();
 		bodyLabel.changed();
-		hatLabel.changed();
-		maskLabel.changed();
-	}
-
-	/**
-	 * Get the hat sprite.
-	 *
-	 * @return hat sprite
-	 */
-	private Sprite getHatSprite() {
-		return store.getTile(ostore.getLayerSprite("hat", hat.getIndex()),
-				PLAYER_WIDTH, direction * PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_HEIGHT);
 	}
 
 	/**
@@ -493,36 +381,6 @@ class OutfitDialog extends JDialog {
 	 */
 	private Sprite getHairSprite() {
 		return store.getTile(ostore.getLayerSprite("hair", hair.getIndex(), outfitColor),
-				PLAYER_WIDTH, direction * PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_HEIGHT);
-	}
-
-	/**
-	 * Get the mask sprite.
-	 *
-	 * @return mask sprite
-	 */
-	private Sprite getMaskSprite() {
-		return store.getTile(ostore.getLayerSprite("mask", mask.getIndex()),
-				PLAYER_WIDTH, direction * PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_HEIGHT);
-	}
-
-	/**
-	 * Get the eyes sprite.
-	 *
-	 * @return eyes sprite
-	 */
-	private Sprite getEyesSprite() {
-		return store.getTile(ostore.getLayerSprite("eyes", eyes.getIndex(), outfitColor),
-				PLAYER_WIDTH, direction * PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_HEIGHT);
-	}
-
-	/**
-	 * Get the mouth sprite.
-	 *
-	 * @return mouth sprite
-	 */
-	private Sprite getMouthSprite() {
-		return store.getTile(ostore.getLayerSprite("mouth", mouth.getIndex()),
 				PLAYER_WIDTH, direction * PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_HEIGHT);
 	}
 
@@ -691,13 +549,7 @@ class OutfitDialog extends JDialog {
 			sb.append("body=" + Integer.toString(body.getIndex()) + ",");
 			sb.append("dress=" + Integer.toString(dress.getIndex()) + ",");
 			sb.append("head=" + Integer.toString(head.getIndex()) + ",");
-			if (StendhalClient.serverVersionAtLeast("1.15")) {
-				sb.append("mouth=" + Integer.toString(mouth.getIndex()) + ",");
-				sb.append("eyes=" + Integer.toString(eyes.getIndex()) + ",");
-			}
-			sb.append("mask=" + Integer.toString(mask.getIndex()) + ",");
 			sb.append("hair=" + Integer.toString(hair.getIndex()) + ",");
-			sb.append("hat=" + Integer.toString(hat.getIndex()) + ",");
 
 			rpOutfitAction.put(Actions.TYPE, Actions.OUTFIT);
 			rpOutfitAction.put(Actions.VALUE, sb.toString());
@@ -729,12 +581,6 @@ class OutfitDialog extends JDialog {
 			rpOutfitAction.put(OutfitColor.SKIN, color.getRGB());
 		}
 
-		/* eyes color */
-		color = outfitColor.getColor(OutfitColor.EYES);
-		if (color != null) {
-			rpOutfitAction.put(OutfitColor.EYES, color.getRGB());
-		}
-
 		client.send(rpOutfitAction);
 	}
 
@@ -748,11 +594,7 @@ class OutfitDialog extends JDialog {
 			bodyLabel.setBorder(style.getBorderDown());
 			dressLabel.setBorder(style.getBorderDown());
 			headLabel.setBorder(style.getBorderDown());
-			mouthLabel.setBorder(style.getBorderDown());
-			eyesLabel.setBorder(style.getBorderDown());
-			maskLabel.setBorder(style.getBorderDown());
 			hairLabel.setBorder(style.getBorderDown());
-			hatLabel.setBorder(style.getBorderDown());
 			outfitLabel.setBorder(style.getBorderDown());
 		}
 	}
@@ -764,7 +606,6 @@ class OutfitDialog extends JDialog {
 		// Copy the original colors
 		outfitColor.setColor(OutfitColor.SKIN, colors.getColor(OutfitColor.SKIN));
 		outfitColor.setColor(OutfitColor.DRESS, colors.getColor(OutfitColor.DRESS));
-		outfitColor.setColor(OutfitColor.EYES, colors.getColor(OutfitColor.EYES));
 		outfitColor.setColor(OutfitColor.HAIR, colors.getColor(OutfitColor.HAIR));
 
 		final Map<String, Integer> layer_map = new HashMap<>();
@@ -778,11 +619,7 @@ class OutfitDialog extends JDialog {
 		Integer bodiesIndex = layer_map.get("body");
 		Integer clothesIndex = layer_map.get("dress");
 		Integer headsIndex = layer_map.get("head");
-		Integer mouthsIndex = layer_map.get("mouth");
-		Integer eyesIndex = layer_map.get("eyes");
-		Integer masksIndex = layer_map.get("mask");
 		Integer hairsIndex = layer_map.get("hair");
-		Integer hatsIndex = layer_map.get("hat");
 
 		// failsafes
 		if (bodiesIndex == null) {
@@ -794,31 +631,15 @@ class OutfitDialog extends JDialog {
 		if (headsIndex == null) {
 			headsIndex = 0;
 		}
-		if (mouthsIndex == null) {
-			mouthsIndex = 0;
-		}
-		if (eyesIndex == null) {
-			eyesIndex = 0;
-		}
-		if (masksIndex == null) {
-			masksIndex = 0;
-		}
 		if (hairsIndex == null) {
 			hairsIndex = 0;
-		}
-		if (hatsIndex == null) {
-			hatsIndex = 0;
 		}
 
 		// set current outfit; this will update labels as well
 		body.setIndex(bodiesIndex);
 		dress.setIndex(clothesIndex);
 		head.setIndex(headsIndex);
-		mouth.setIndex(mouthsIndex);
-		eyes.setIndex(eyesIndex);
-		mask.setIndex(masksIndex);
 		hair.setIndex(hairsIndex);
-		hat.setIndex(hatsIndex);
 
 		// Color selectors, and their toggles
 		for (ResetListener l : resetListeners) {

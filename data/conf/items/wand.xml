@@ -5,7 +5,7 @@
 	<item name="proca">
 		<type class="wand" subclass="slingshot" tileid="-1"/>
 		<description>Oto proca. Podnieś kamień i atakuj z daleka.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="5"/>
 			<range value="4"/>
@@ -27,7 +27,7 @@
 	<item name="różdżka">
 		<type class="wand" subclass="elvish_wand" tileid="-1"/>
 		<description>Oto różdżka z gałęzi urwanej ze Świętego Drzewa. Gdy nią machasz liście drzew milkną.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="15"/>
 			<def value="5"/>
@@ -51,7 +51,7 @@
 	<item name="trójząb Trzygłowa">
 		<type class="wand" subclass="magic_trident" tileid="-1"/>
 		<description>Oto trójząb Trzygłowa. Starcy mówią, iż posiada magiczną moc i potrafi nieźle ugodzić wroga.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="24"/>
 			<def value="6"/>
@@ -75,7 +75,7 @@
 	<item name="różdżka Strzyboga">
 		<type class="wand" subclass="magic_wand_white" tileid="-1"/>
 		<description>Oto różdżka Strzyboga! Podobno ma moc sprowadzania deszczu i odganiania chmur.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="35"/>
 			<def value="7"/>
@@ -99,7 +99,7 @@
 	<item name="różdżka Wołosa">
 		<type class="wand" subclass="magic_wand_blue" tileid="-1"/>
 		<description>Oto różdżka Wołosa co spadła z Nieba! Wielką moc ma, gdy magią władasz.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="56"/>
 			<def value="8"/>
@@ -123,7 +123,7 @@
 	<item name="różdżka Swaroga">
 		<type class="wand" subclass="magic_wand_red" tileid="-1"/>
 		<description>Oto różdżka Swaroga co upadła ze Słońca! Wielką moc ma, gdy magią władasz.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="63"/>
 			<def value="9"/>
@@ -147,7 +147,7 @@
 	<item name="różdżka Peruna">
 		<type class="wand" subclass="magic_wand_of_gods" tileid="-1"/>
 		<description>Oto różdżka Peruna. Lepiej nie przyznawaj się, że ją znalazłeś, bo jego gniew cię porazi.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Item"/>
+		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="99"/>
 			<def value="10"/>
