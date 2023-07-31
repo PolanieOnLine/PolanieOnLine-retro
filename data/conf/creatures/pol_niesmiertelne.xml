@@ -4,6 +4,7 @@
 
 	<creature name="mgła">
 		<type class="pol/niesmiertelne" subclass="mgla" tileid="pol_niesmiertelne.png:0"/>
+		<description>Mgła spowiła pobliskie otoczenie, musisz uważać na zjawy i inne upióry!</description>
 		<attributes>
 			<atk value="99"/>
 			<def value="1"/>

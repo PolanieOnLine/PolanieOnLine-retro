@@ -43,7 +43,6 @@ import games.stendhal.server.entity.slot.Banks;
 import games.stendhal.server.entity.slot.PlayerBagSlot;
 import games.stendhal.server.entity.slot.PlayerKeyringSlot;
 import games.stendhal.server.entity.slot.PlayerMagicBagSlot;
-import games.stendhal.server.entity.slot.PlayerMoneyPouchSlot;
 import games.stendhal.server.entity.slot.PlayerSlot;
 import games.stendhal.server.entity.slot.PlayerTradeSlot;
 import games.stendhal.server.entity.spell.Spell;
@@ -181,8 +180,6 @@ public class PlayerTransformer implements Transformer {
 				*/
 				} else if (slotName.equals("trade")) {
 					newSlot = new PlayerTradeSlot(slotName);
-				} else if (slotName.equals("pouch")) {
-					newSlot = new PlayerMoneyPouchSlot(slotName);
 				} else {
 					newSlot = new PlayerSlot(slotName);
 				}

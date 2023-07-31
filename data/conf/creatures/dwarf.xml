@@ -87,7 +87,7 @@
 			<item value="money" quantity="[9,30]" probability="100.0"/>
 			<item value="żelazna zbroja łuskowa" quantity="[1,1]" probability="5.0"/>
 			<item value="złota kolczuga" quantity="[1,1]" probability="1.0"/>
-			<item value="topór oburęczny" quantity="[1,1]" probability="2.5"/>
+			<item value="topór obosieczny" quantity="[1,1]" probability="2.5"/>
 			<item value="pyrlik" quantity="[1,1]" probability="0.5"/>
 			<item value="buty żelazne" quantity="[1,1]" probability="1.0"/>
 			<item value="płaszcz krasnoludzki" quantity="[1,1]" probability="0.5"/>
@@ -121,7 +121,7 @@
 			<item value="money" quantity="[5,33]" probability="100.0"/>
 			<item value="żelazny kirys z naramiennikami" quantity="[1,1]" probability="4.5"/>
 			<item value="zbroja płytowa" quantity="[1,1]" probability="0.05"/>
-			<item value="topór oburęczny" quantity="[1,1]" probability="3.0"/>
+			<item value="topór obosieczny" quantity="[1,1]" probability="3.0"/>
 			<item value="berdysz" quantity="[1,1]" probability="0.05"/>
 			<item value="buty złote" quantity="[1,1]" probability="0.1"/>
 			<item value="złoty młot" quantity="[1,1]" probability="3.0"/>
@@ -153,7 +153,7 @@
 		<drops>
 			<item value="money" quantity="[3,33]" probability="90.0"/>
 			<item value="zbroja krasnoludzka" quantity="[1,1]" probability="0.025"/>
-			<item value="topór oburęczny" quantity="[1,1]" probability="3.0"/>
+			<item value="topór obosieczny" quantity="[1,1]" probability="3.0"/>
 			<item value="złoty młot" quantity="[1,1]" probability="1.5"/>
 		</drops>
 		<equips>
@@ -304,7 +304,7 @@
 		<drops>
 			<item value="money" quantity="[3,27]" probability="90.0"/>
 			<item value="buty złote" quantity="[1,1]" probability="0.9"/>
-			<item value="topór oburęczny" quantity="[1,1]" probability="3.0"/>
+			<item value="topór obosieczny" quantity="[1,1]" probability="3.0"/>
 			<item value="topór Durina" quantity="[1,1]" probability="0.0010"/>
 		</drops>
 		<equips>
@@ -368,7 +368,7 @@
 			<item value="money" quantity="[20,52]" probability="100.0"/>
 			<item value="złota zbroja" quantity="[1,1]" probability="1.5"/>
 			<item value="zbroja krasnoludzka" quantity="[1,1]" probability="0.25"/>
-			<item value="topór oburęczny" quantity="[1,1]" probability="5.0"/>
+			<item value="topór obosieczny" quantity="[1,1]" probability="5.0"/>
 			<item value="złoty młot" quantity="[1,1]" probability="5.5"/>
 			<item value="buty kamienne" quantity="[1,1]" probability="0.5"/>
 		</drops>
@@ -433,7 +433,7 @@
 			<item value="zbroja krasnoludzka" quantity="[1,1]" probability="0.5"/>
 			<item value="czarne spodnie" quantity="[1,1]" probability="0.0010"/>
 			<item value="halabarda" quantity="[1,1]" probability="0.5"/>
-			<item value="topór oburęczny złoty" quantity="[1,1]" probability="0.01"/>
+			<item value="złoty topór obosieczny" quantity="[1,1]" probability="0.01"/>
 			<item value="buty czarne" quantity="[1,1]" probability="0.0010"/>
 		</drops>
 		<equips>
@@ -502,7 +502,7 @@
 			<item value="kamienna zbroja" quantity="[1,1]" probability="0.05"/>
 			<item value="czarne spodnie" quantity="[1,1]" probability="0.0050"/>
 			<item value="halabarda" quantity="[1,1]" probability="1.5"/>
-			<item value="topór oburęczny złoty" quantity="[1,1]" probability="0.05"/>
+			<item value="złoty topór obosieczny" quantity="[1,1]" probability="0.05"/>
 			<item value="buty czarne" quantity="[1,1]" probability="0.0050"/>
 		</drops>
 		<equips>
@@ -533,8 +533,8 @@
 			<item value="money" quantity="[5,45]" probability="100.0"/>
 			<item value="zbroja krasnoludzka" quantity="[1,1]" probability="2.0"/>
 			<item value="kamienna zbroja" quantity="[1,1]" probability="0.25"/>
-			<item value="topór oburęczny złoty" quantity="[1,1]" probability="0.5"/>
-			<item value="topór oburęczny magiczny" quantity="[1,1]" probability="0.0050"/>
+			<item value="złoty topór obosieczny" quantity="[1,1]" probability="0.5"/>
+			<item value="magiczny topór obosieczny" quantity="[1,1]" probability="0.0050"/>
 			<item value="młot wulkanów" quantity="[1,1]" probability="0.0050"/>
 			<item value="buty czarne" quantity="[1,1]" probability="0.035"/>
 			<item value="bukłak z wodą" quantity="[2,4]" probability="3.0"/>
@@ -598,7 +598,7 @@
 			<item value="money" quantity="[50,200]" probability="100.0"/>
 			<item value="kamienna zbroja" quantity="[1,1]" probability="1.0"/>
 			<item value="magiczna zbroja płytowa" quantity="[1,1]" probability="0.0010"/>
-			<item value="topór oburęczny magiczny" quantity="[1,1]" probability="0.2"/>
+			<item value="magiczny topór obosieczny" quantity="[1,1]" probability="0.2"/>
 			<item value="topór Durina" quantity="[1,1]" probability="0.01"/>
 			<item value="złoty buzdygan" quantity="[1,1]" probability="15.0"/>
 		</drops>

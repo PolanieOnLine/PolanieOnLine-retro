@@ -152,9 +152,9 @@
 		</equipable>
 	</item>
 
-	<item name="topór oburęczny złoty">
+	<item name="złoty topór obosieczny">
 		<type class="axe" subclass="golden_twosided_poleaxe" tileid="-1"/>
-		<description>Oto topór oburęczny złoty. Trudno na niego trafić.</description>
+		<description>Oto złoty topór obosieczny. Trudno na niego trafić.</description>
 		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="35"/>
@@ -215,9 +215,9 @@
 		</equipable>
 	</item>
 
-	<item name="topór oburęczny magiczny">
+	<item name="magiczny topór obosieczny">
 		<type class="axe" subclass="magic_twosided_poleaxe" tileid="-1"/>
-		<description>Widzisz magic twoside axe. Natura magii nie jest Ci do końca jasna.</description>
+		<description>Widzisz magiczny topór obosieczny. Natura magii nie jest Ci do końca jasna.</description>
 		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="40"/>
@@ -321,9 +321,9 @@
 		</equipable>
 	</item>
 
-	<item name="topór oburęczny">
+	<item name="topór obosieczny">
 		<type class="axe" subclass="twosided_poleaxe" tileid="-1"/>
-		<description>Oto świetnie wykuty topór oburęczny.</description>
+		<description>Oto świetnie wykuty topór obosieczny.</description>
 		<implementation class-name="games.stendhal.server.entity.item.Weapon"/>
 		<attributes>
 			<atk value="29"/>

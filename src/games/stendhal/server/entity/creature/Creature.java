@@ -857,7 +857,7 @@ public class Creature extends NPC {
 	}
 
 	/**
-	 * Checks if the creature has "abnormal" or "rare" profile.
+	 * Checks if the creature has "abnormal" or "rare" or "immortal" profile.
 	 *
 	 * @return
 	 * 		<code>true</code> if creature is abnormal or rare.

@@ -251,8 +251,6 @@ public final class CreaturesXMLLoader extends DefaultHandler {
 		} else if (qName.equals("attributes")) {
 			attributes = true;
 		} else if (attributes) {
-			boolean resistanceTag = qName.equals("resistance");
-			boolean visibilityTag = qName.equals("visibility");
 
 			if (qName.equals("atk")) {
 				atk = Integer.parseInt(attrs.getValue("value"));
@@ -270,13 +268,12 @@ public final class CreaturesXMLLoader extends DefaultHandler {
 				sizeWidth = Integer.parseInt(size[0]);
 				sizeHeight = Integer.parseInt(size[1]);
 			}
-
-			if (resistanceTag) {
+			if (qName.equals("resistance")) {
 				resistance = Integer.parseInt(attrs.getValue("value"));
 			} else {
 				resistance = 100;
 			}
-			if (visibilityTag) {
+			if (qName.equals("visibility")) {
 				visibility = Integer.parseInt(attrs.getValue("value"));
 			} else {
 				visibility = 100;

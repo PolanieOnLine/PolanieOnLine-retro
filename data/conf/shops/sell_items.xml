@@ -105,7 +105,6 @@
 		<item name="zwój nalwor" price="400" />
 		<item name="zwój fado" price="600" />
 		<item name="zwój kirdneh" price="600" />
-		<item name="zwój deniran" price="800" />
 		<item name="zwój tatrzański" price="1000" />
 
 		<merchant name="Erodel Bmud"/>
@@ -114,7 +113,6 @@
 	<!-- Xin Blanca sprzedaje: -->
 	<shop name="sellstuff" type="sell">
 		<item name="sierp" price="15" />
-		<item name="nożyk" price="35" />
 		<item name="maczuga" price="40" />
 		<item name="sztylecik" price="75" />
 		<item name="mieczyk" price="120" />
@@ -149,7 +147,6 @@
 		<item name="buty cieni" price="6000" />
 		<item name="płaszcz cieni" price="9000" />
 		<item name="hełm cieni" price="10000" />
-		<item name="pas cieni" price="7000" />
 		<item name="spodnie cieni" price="12000" />
 		<item name="rękawice cieni" price="25000" />
 		<item name="tarcza cieni" price="32000" />
@@ -532,7 +529,6 @@
 		<item name="zwój semos" price="350" />
 		<item name="zwój krakowski" price="400" />
 		<item name="zwój wieliczka" price="600" />
-		<item name="zwój deniran" price="700" />
 		<item name="zwój ados" price="800" />
 		<item name="zwój fado" price="900" />
 		<item name="zwój kirdneh" price="950" />
