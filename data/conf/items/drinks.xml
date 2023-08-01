@@ -248,12 +248,14 @@
 	<item name="antidotum">
 		<type class="drink" subclass="antidote" tileid="-1"/>
 		<description>To jest antidotum, aby odkazić cię i obronić od jadu przez chwilkę.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Drink"/>
+		<implementation class-name="games.stendhal.server.entity.item.StatusHealer"/>
 		<attributes>
+			<immunization value="poisoned"/>
 			<amount value="400"/>
 			<frequency value="1"/>
 			<quantity value="1"/>
 			<regen value="0"/>
+			<menu value="Wypij|Użyj"/>
 		</attributes>
 		<weight value="1.0"/>
 		<value value="1"/>
@@ -270,12 +272,14 @@
 	<item name="mocne antidotum">
 		<type class="drink" subclass="greater_antidote" tileid="-1"/>
 		<description>To jest mocne antidotum, aby odkazić cię i obronić od jadu przez dłuższą chwilkę.</description>
-		<implementation class-name="games.stendhal.server.entity.item.Drink"/>
+		<implementation class-name="games.stendhal.server.entity.item.StatusHealer"/>
 		<attributes>
+			<immunization value="poisoned"/>
 			<amount value="800"/>
 			<frequency value="1"/>
 			<quantity value="1"/>
 			<regen value="0"/>
+			<menu value="Wypij|Użyj"/>
 		</attributes>
 		<weight value="1.0"/>
 		<value value="1"/>

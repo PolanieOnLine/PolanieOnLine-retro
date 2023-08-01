@@ -29,6 +29,7 @@
 		<ai>
 			<says>
 				<noise state="idle follow fight" value="Kose mam, kruca! I kie trza to uzyjem jej!"/>
+				<sound value="pol-wiesniak"/>
 			</says>
 			<profile name="brave"/>
 			<profile name="offensive"/>
@@ -61,6 +62,7 @@
 		<ai>
 			<says>
 				<noise state="idle follow fight" value="Dejcies spokój! Za stary jestem do bitki!"/>
+				<sound value="pol-starzec"/>
 			</says>
 			<profile name="brave"/>
 			<profile name="offensive"/>
@@ -93,6 +95,7 @@
 		<ai>
 			<says>
 				<noise state="idle follow fight" value="Któż Ci zezwolił zabijać leśnego zwierza? Bedzies ukarany!"/>
+				<sound value="pol-gajowy"/>
 			</says>
 			<profile name="brave"/>
 			<profile name="offensive"/>

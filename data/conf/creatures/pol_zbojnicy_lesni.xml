@@ -27,6 +27,7 @@
 		<ai>
 			<says>
 				<noise state="idle follow fight" value="Kruca-fuks! To jest napad!"/>
+				<sound value="pol-zbo_les"/>
 			</says>
 			<profile name="brave"/>
 			<profile name="offensive"/>
@@ -59,6 +60,7 @@
 		<ai>
 			<says>
 				<noise state="idle follow fight" value="Idźze stąd! Jo ino grzyby zbieram."/>
+				<sound value="pol-zbo_les_oszust"/>
 			</says>
 			<profile name="brave"/>
 			<profile name="offensive"/>
@@ -94,6 +96,7 @@
 		<ai>
 			<says>
 				<noise state="idle follow fight" value="Kulawego starca bijesz?!"/>
+				<sound value="pol-zbo_las_starszy"/>
 			</says>
 			<profile name="brave"/>
 			<profile name="offensive"/>
@@ -132,6 +135,7 @@
 		<ai>
 			<says>
 				<noise state="idle follow fight" value="Nie ryzykuj!"/>
+				<sound value="pol-zbo_les_zwiadowca"/>
 			</says>
 			<profile name="brave"/>
 			<profile name="offensive"/>
@@ -166,6 +170,7 @@
 			<says>
 				<noise state="idle follow fight" value="Nie rusz się!"/>
 				<noise state="idle follow fight" value="Nie widzę z której strony atakować!"/>
+				<sound value="pol-zbo_les_tchorzliwy"/>
 			</says>
 			<profile name="coward"/>
 			<profile name="offensive"/>
@@ -204,6 +209,7 @@
 		<ai>
 			<says>
 				<noise state="idle follow fight" value="Ten las to mój dom!"/>
+				<sound value="pol-banita"/>
 			</says>
 			<profile name="brave"/>
 			<profile name="offensive"/>
@@ -238,6 +244,7 @@
 		<ai>
 			<says>
 				<noise state="idle follow fight" value="Nie wynoś drzewa z lasu!"/>
+				<sound value="pol-banita-gajowy"/>
 			</says>
 			<profile name="brave"/>
 			<profile name="offensive"/>
@@ -277,6 +284,7 @@
 		<ai>
 			<says>
 				<noise state="idle follow fight" value="Ka diabeł nie moze, to babe wyśle!"/>
+				<sound value="pol-banitka"/>
 			</says>
 			<profile name="brave"/>
 			<profile name="offensive"/>

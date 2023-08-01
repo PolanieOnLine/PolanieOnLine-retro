@@ -15,9 +15,8 @@ public class AutoEquipItems {
 
 	private final String money = "money";
 	private final String[] potionsAndMagics = { "mały eliksir", "eliksir", "duży eliksir", "wielki eliksir",
-			"gigantyczny eliksir", "eliksir miłości", "smoczy eliksir", "duży smoczy eliksir",
-			"magia ziemi", "magia deszczu", "magia płomieni", "magia mrozu", "magia mroku", "magia wiatru",
-			"magia światła", "zaklęcie pustelnika" };
+			"gigantyczny eliksir", "eliksir miłości",
+			"magia ziemi", "magia deszczu", "magia płomieni", "magia mroku", "magia światła" };
 
 	/**
 	 * Automatically moves items to the appropriate slot.
@@ -49,7 +48,7 @@ public class AutoEquipItems {
 			if (action.has(EquipActionConsts.CLICKED) && targetSlot != null && !targetSlot.equals(SLOT_MAGICBAG)
 					&& source.getEntityName().equals(item)) {
 				RPSlot slot = player.getSlot(SLOT_MAGICBAG);
-				if (!slot.isFull() || player.isEquippedItemInSlot(SLOT_MAGICBAG, item)) {
+				if (slot != null && (!slot.isFull() || player.isEquippedItemInSlot(SLOT_MAGICBAG, item))) {
 					itemMoveAction(player, action, SLOT_MAGICBAG, item);
 				} else {
 					itemMoveAction(player, action, "bag", item);
