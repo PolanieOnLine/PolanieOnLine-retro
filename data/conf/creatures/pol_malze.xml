@@ -2,6 +2,8 @@
 <creatures xmlns="stendhal" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="stendhal ../creatures.xsd ">
 
+	<!-- START: malze -->
+
 	<creature name="małża">
 		<type class="pol/malze" subclass="malza" tileid="pol_malze.png:0"/>
 		<description>Widzisz małżę. Być może ma w środku coś cennego, ale muszla wydaje się być okropnie twarda!</description>
@@ -58,4 +60,7 @@
 			<profile name="patrolling"/>
 		</ai>
 	</creature>
+
+	<!-- END: malze -->
+
 </creatures>

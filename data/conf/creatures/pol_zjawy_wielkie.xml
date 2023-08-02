@@ -2,6 +2,8 @@
 <creatures xmlns="stendhal" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="stendhal ../creatures.xsd ">
 
+	<!-- START: zjawy wielkie -->
+
 	<creature name="czarny szkielet gigant">
 		<type class="pol/zjawy_wielkie" subclass="ae_szkielet_czarny_gigant" tileid="pol_zjawy_wielkie.png:0"/>
 		<description/>
@@ -210,4 +212,7 @@
 			<profile name="patrolling"/>
 		</ai>
 	</creature>
+
+	<!-- END: zjawy wielkie-->
+
 </creatures>

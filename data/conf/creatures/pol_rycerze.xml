@@ -2,6 +2,8 @@
 <creatures xmlns="stendhal" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="stendhal ../creatures.xsd ">
 
+	<!-- START: rycerze -->
+
 	<creature name="rycerz szafirowy">
 		<type class="pol/rycerze" subclass="rycerz_blekitny" tileid="pol_rycerze.png:0"/>
 		<description/>
@@ -237,4 +239,7 @@
 			<profile name="patrolling"/>
 		</ai>
 	</creature>
+
+	<!-- END: rycerze -->
+
 </creatures>

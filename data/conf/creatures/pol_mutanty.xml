@@ -2,6 +2,8 @@
 <creatures xmlns="stendhal" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="stendhal ../creatures.xsd ">
 
+	<!-- START: mutanty -->
+
 	<creature name="dziub dziub">
 		<type class="pol/mutanty" subclass="dziub_dziub" tileid="pol_mutanty.png:0"/>
 		<description>Oto Dziub-Dziub. Właśnie do zobaczyłeś, więc nie zadawaj głupich pytań.</description>
@@ -58,6 +60,7 @@
 				<noise state="idle follow fight" value="Wrrrrrr!"/>
 				<noise state="idle follow fight" value="Hauuuuu!"/>
 				<noise state="idle follow fight" value="Auuuu!"/>
+				<sound value="pol-growl"/>
 			</says>
 			<profile name="brave"/>
 			<profile name="offensive"/>
@@ -88,6 +91,7 @@
 		<ai>
 			<says>
 				<noise state="idle follow fight" value="Rrraar!"/>
+				<sound value="pol-growl"/>
 			</says>
 			<profile name="animal"/>
 			<profile name="offensive"/>
@@ -147,4 +151,7 @@
 			<profile name="patrolling"/>
 		</ai>
 	</creature>
+
+	<!-- END: mutanty -->
+
 </creatures>

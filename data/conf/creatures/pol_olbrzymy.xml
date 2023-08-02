@@ -2,6 +2,8 @@
 <creatures xmlns="stendhal" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="stendhal ../creatures.xsd ">
 
+	<!-- START: olbrzymy -->
+
 	<creature name="superczłowiek olbrzym">
 		<type class="pol/olbrzymy" subclass="superczlowiek_gigant" tileid="pol_olbrzymy.png:0"/>
 		<description/>
@@ -98,4 +100,7 @@
 			<profile name="patrolling"/>
 		</ai>
 	</creature>
+
+	<!-- END: olbrzymy -->
+
 </creatures>

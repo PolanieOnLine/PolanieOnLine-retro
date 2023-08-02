@@ -2,6 +2,8 @@
 <creatures xmlns="stendhal" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="stendhal ../creatures.xsd ">
 
+	<!-- START: pokutniki -->
+
 	<creature name="pokutnik z bagien">
 		<type class="pol/pokutniki" subclass="pit_pokutnik_bronz" tileid="pol_pokutniki.png:0"/>
 		<description/>
@@ -156,4 +158,7 @@
 			<profile name="attack weakest"/>
 		</ai>
 	</creature>
+
+	<!-- END: pokutniki -->
+
 </creatures>

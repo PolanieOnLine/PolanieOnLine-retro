@@ -2,6 +2,8 @@
 <creatures xmlns="stendhal" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="stendhal ../creatures.xsd ">
 
+	<!-- START: zwierzeta male -->
+
 	<creature name="szara mysz">
 		<type class="pol/zwierzeta_male" subclass="mysz_szara" tileid="pol_zwierzeta_male.png:0"/>
 		<description>Oto szara mysz co na zapiecku przed chłodem się chowa.</description>
@@ -61,4 +63,7 @@
 			<profile name="patrolling"/>
 		</ai>
 	</creature>
+
+	<!-- END: zwierzeta male -->
+
 </creatures>

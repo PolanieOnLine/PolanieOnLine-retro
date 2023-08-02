@@ -2,6 +2,8 @@
 <creatures xmlns="stendhal" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="stendhal ../creatures.xsd ">
 
+	<!-- START: zjawy -->
+
 	<creature name="szkielet uzbrojony">
 		<type class="pol/zjawy" subclass="szkielet_waleczny" tileid="pol_zjawy.png:0"/>
 		<description/>
@@ -92,6 +94,9 @@
 		</drops>
 		<equips/>
 		<ai>
+			<says>
+				<sound value="evillaugh-5"/>
+			</says>
 			<profile name="brave"/>
 			<profile name="offensive"/>
 			<profile name="human"/>
@@ -125,6 +130,9 @@
 		</drops>
 		<equips/>
 		<ai>
+			<says>
+				<sound value="evillaugh-5"/>
+			</says>
 			<profile name="brave"/>
 			<profile name="offensive"/>
 			<profile name="human"/>
@@ -324,4 +332,7 @@
 			<profile name="patrolling"/>
 		</ai>
 	</creature>
+
+	<!-- END: zjawy -->
+
 </creatures>

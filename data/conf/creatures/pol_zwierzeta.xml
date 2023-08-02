@@ -2,6 +2,8 @@
 <creatures xmlns="stendhal" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="stendhal ../creatures.xsd ">
 
+	<!-- START: zwierzeta -->
+
 	<creature name="pingwinek">
 		<type class="pol/zwierzeta" subclass="pingwinek" tileid="pol_zwierzeta.png:0"/>
 		<description>Oto mały i głupiutki pingwin.</description>
@@ -283,10 +285,14 @@
 		<ai>
 			<says>
 				<noise state="idle follow fight" value="Rrraar!"/>
+				<sound value="pol-tiger"/>
 			</says>
 			<profile name="animal"/>
 			<profile name="offensive"/>
 			<profile name="patrolling"/>
 		</ai>
 	</creature>
+
+	<!-- END: zwierzeta -->
+
 </creatures>

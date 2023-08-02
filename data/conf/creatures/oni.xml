@@ -2,9 +2,11 @@
 <creatures xmlns="stendhal" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="stendhal ../creatures.xsd ">
 
+	<!-- START: oni -->
+
 	<creature name="oni wojownik">
 		<type class="oni" subclass="oni_warrior" tileid="oni.png:0"/>
-		<description></description>
+		<description>Oto oni wojownik. Jego fioletowy kolor skóry nie powinien uśpić twojej czujności!</description>
 		<attributes>
 			<atk value="499"/>
 			<def value="77"/>
@@ -33,7 +35,7 @@
 
 	<creature name="oni łucznik">
 		<type class="oni" subclass="oni_archer" tileid="oni.png:1"/>
-		<description></description>
+		<description>Oto oni łucznik. Jego strzały będą wszędzie cię ścigać, aby chronić jego królową!</description>
 		<attributes>
 			<atk value="511"/>
 			<def value="77"/>
@@ -95,7 +97,7 @@
 
 	<creature name="oni król">
 		<type class="oni" subclass="oni_king" tileid="oni.png:3"/>
-		<description></description>
+		<description>Oto oni król. Jego władza w królestwie pozwala na dowodzenie odważnymi oddziałami oni.</description>
 		<attributes>
 			<atk value="714"/>
 			<def value="93"/>
@@ -126,7 +128,7 @@
 
 	<creature name="oni królowa">
 		<type class="oni" subclass="oni_queen" tileid="oni.png:4"/>
-		<description></description>
+		<description>Oto oni królowa. Wspiera swojego męża i trzyma  pieczę nad królestwem, gdy on zajmuje się podbojem nowych ziem i walką na polach bitewnych.</description>
 		<attributes>
 			<atk value="737"/>
 			<def value="98"/>
@@ -156,4 +158,7 @@
 			<profile name="human"/>
 		</ai>
 	</creature>
+
+	<!-- END: oni -->
+
 </creatures>

@@ -2,6 +2,8 @@
 <creatures xmlns="stendhal" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="stendhal ../creatures.xsd ">
 
+	<!-- START: ptaki -->
+
 	<creature name="gołąbek">
 		<type class="pol/ptaki" subclass="golabek" tileid="pol_ptaki.png:0"/>
 		<description>Oto gołąbek co ma ostry dziobek. Pewnie domaga się okruszków!</description>
@@ -22,6 +24,9 @@
 		</drops>
 		<equips/>
 		<ai>
+			<says>
+				<sound value="pol-bird_pigeon"/>
+			</says>
 			<profile name="coward"/>
 			<profile name="animal"/>
 			<profile name="offensive"/>
@@ -49,6 +54,9 @@
 		</drops>
 		<equips/>
 		<ai>
+			<says>
+				<sound value="pol-seagull"/>
+			</says>
 			<profile name="brave"/>
 			<profile name="offensive"/>
 			<profile name="patrolling"/>
@@ -74,6 +82,9 @@
 		</drops>
 		<equips/>
 		<ai>
+			<says>
+				<sound value="pol-crow" />
+			</says>
 			<profile name="brave"/>
 			<profile name="offensive"/>
 			<profile name="patrolling"/>
@@ -99,9 +110,16 @@
 		</drops>
 		<equips/>
 		<ai>
+			<says>
+				<sound value="pol-hawk1"/>
+				<sound value="pol-hawk2"/>
+			</says>
 			<profile name="brave"/>
 			<profile name="offensive"/>
 			<profile name="patrolling"/>
 		</ai>
 	</creature>
+
+	<!-- END: ptaki -->
+
 </creatures>

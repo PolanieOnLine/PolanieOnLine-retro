@@ -2,6 +2,8 @@
 <creatures xmlns="stendhal" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="stendhal ../creatures.xsd ">
 
+	<!-- START: serafiny -->
+
 	<creature name="serafin">
 		<type class="pol/serafiny" subclass="serafin" tileid="pol_serafiny.png:0"/>
 		<description/>
@@ -90,4 +92,7 @@
 			<profile name="attack weakest"/>
 		</ai>
 	</creature>
+
+	<!-- END: serafiny -->
+
 </creatures>

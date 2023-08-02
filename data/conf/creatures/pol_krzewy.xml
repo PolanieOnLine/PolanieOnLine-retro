@@ -2,6 +2,8 @@
 <creatures xmlns="stendhal" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="stendhal ../creatures.xsd ">
 
+	<!-- START: krzewy -->
+
 	<creature name="pokrzywy">
 		<type class="pol/krzewy" subclass="pokrzywy" tileid="pol_krzewy.png:0"/>
 		<description>Lepiej omijaj parzące pokrzywy!</description>
@@ -81,6 +83,7 @@
 		<equips/>
 		<ai>
 			<says>
+				<sound value="pol-chochol"/>
 			</says>
 			<profile name="heal" params="5,50"/>
 			<profile name="animal"/>
@@ -89,4 +92,7 @@
 			<profile name="patrolling"/>
 		</ai>
 	</creature>
+
+	<!-- END: krzewy -->
+
 </creatures>

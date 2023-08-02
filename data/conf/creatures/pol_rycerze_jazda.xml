@@ -2,6 +2,8 @@
 <creatures xmlns="stendhal" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="stendhal ../creatures.xsd ">
 
+	<!-- START: rycerze jazda -->
+
 	<creature name="rycerz na białym koniu">
 		<type class="pol/rycerze_jazda" subclass="rycerz_na_bialym_koniu" tileid="pol_rycerze_jazda.png:0"/>
 		<description/>
@@ -32,4 +34,7 @@
 			<profile name="attack weakest"/>
 		</ai>
 	</creature>
+
+	<!-- END: rycerze jazda -->
+
 </creatures>

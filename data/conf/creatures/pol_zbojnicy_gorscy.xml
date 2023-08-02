@@ -2,6 +2,8 @@
 <creatures xmlns="stendhal" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="stendhal ../creatures.xsd ">
 
+	<!-- START: zbojnicy gorscy -->
+
 	<creature name="zbójnik górski">
 		<type class="pol/zbojnicy_gorscy" subclass="zbojnik_gorski" tileid="pol_zbojnicy_gorscy.png:0"/>
 		<description>Oto zbójnik górski, który kryje się w jaskiniach.</description>
@@ -165,4 +167,7 @@
 			<profile name="patrolling"/>
 		</ai>
 	</creature>
+
+	<!-- END: zbojnicy gorscy -->
+
 </creatures>

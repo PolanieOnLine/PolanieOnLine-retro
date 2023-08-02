@@ -2,6 +2,8 @@
 <creatures xmlns="stendhal" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="stendhal ../creatures.xsd ">
 
+	<!-- START: owady -->
+
 	<creature name="chmara much">
 		<type class="pol/owady" subclass="chmara_much" tileid="pol_owady.png:0"/>
 		<description>Oto muchy plujki. Przyciąga je smród padliny.</description>
@@ -22,6 +24,7 @@
 		<ai>
 			<says>
 				<noise state="idle follow fight" value="Bzzzyy!"/>
+				<sound value="pol-buzz"/>
 			</says>
 			<profile name="animal"/>
 			<profile name="offensive"/>
@@ -50,6 +53,7 @@
 		<ai>
 			<says>
 				<noise state="idle follow fight" value="Bzzzzzzzzzzzz!"/>
+				<sound value="pol-buzz"/>
 			</says>
 			<profile name="poisonous" params="3,trucizna"/>
 			<profile name="animal"/>
@@ -78,6 +82,7 @@
 		<ai>
 			<says>
 				<noise state="idle follow fight" value="Bżżżżżżżżż!"/>
+				<sound value="pol-buzz"/>
 			</says>
 			<profile name="heal" params="1,50"/>
 			<profile name="poisonous" params="9,mocna trucizna"/>
@@ -112,4 +117,7 @@
 			<profile name="patrolling"/>
 		</ai>
 	</creature>
+
+	<!-- END: owady -->
+
 </creatures>

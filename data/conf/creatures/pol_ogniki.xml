@@ -2,6 +2,8 @@
 <creatures xmlns="stendhal" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="stendhal ../creatures.xsd ">
 
+	<!-- START: ogniki -->
+
 	<creature name="błędny ognik">
 		<type class="pol/ogniki" subclass="bledny_ognik" tileid="pol_ogniki.png:0"/>
 		<description/>
@@ -29,6 +31,9 @@
 			<susceptibility type="fire" value="0.9"/>
 		</abilities>
 		<ai>
+			<says>
+				<sound value="pol-ognisko"/>
+			</says>
 			<profile name="brave"/>
 			<profile name="offensive"/>
 			<profile name="human"/>
@@ -63,6 +68,9 @@
 			<susceptibility type="fire" value="1.1"/>
 		</abilities>
 		<ai>
+			<says>
+				<sound value="pol-ognisko"/>
+			</says>
 			<profile name="brave"/>
 			<profile name="offensive"/>
 			<profile name="human"/>
@@ -98,6 +106,9 @@
 			<susceptibility type="fire" value="0.8"/>
 		</abilities>
 		<ai>
+			<says>
+				<sound value="pol-lava"/>
+			</says>
 			<profile name="brave"/>
 			<profile name="animal"/>
 			<profile name="offensive"/>
@@ -105,4 +116,7 @@
 			<profile name="attack weakest"/>
 		</ai>
 	</creature>
+
+	<!-- END: ogniki -->
+
 </creatures>

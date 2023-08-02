@@ -2,6 +2,8 @@
 <creatures xmlns="stendhal" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="stendhal ../creatures.xsd ">
 
+	<!-- START: wilkolaki -->
+
 	<creature name="wilkołak żołdak">
 		<type class="pol/wilkolaki" subclass="wilkolak_zoldak" tileid="pol_wilkolaki.png:0"/>
 		<description>Oto wilkołak żołdak. Strzeż się go w księżycową noc.</description>
@@ -104,7 +106,7 @@
 
 	<creature name="wilkołak obrońca">
 		<type class="pol/wilkolaki" subclass="wilkolak_lider" tileid="pol_wilkolaki.png:3"/>
-		<description>Oto wilkołak wojak. Strzeż się go w księżycową noc.</description>
+		<description>Oto wilkołak obrońca. Strzeż się go w księżycową noc.</description>
 		<attributes>
 			<atk value="1150"/>
 			<def value="769"/>
@@ -136,7 +138,7 @@
 
 	<creature name="wilkołak zwiadowca">
 		<type class="pol/wilkolaki" subclass="wilkolak_zwiadowca" tileid="pol_wilkolaki.png:4"/>
-		<description>Oto wilkołak wojak. Strzeż się go w księżycową noc.</description>
+		<description>Oto wilkołak zwiadowca. Strzeż się go w księżycową noc.</description>
 		<attributes>
 			<atk value="1750"/>
 			<def value="269"/>
@@ -168,7 +170,7 @@
 
 	<creature name="wilkołak szaman">
 		<type class="pol/wilkolaki" subclass="wilkolak_szaman" tileid="pol_wilkolaki.png:5"/>
-		<description>Oto wilkołak wojak. Strzeż się go w księżycową noc.</description>
+		<description>Oto wilkołak szaman. Strzeż się go w księżycową noc.</description>
 		<attributes>
 			<atk value="1750"/>
 			<def value="269"/>
@@ -206,7 +208,7 @@
 
 	<creature name="księżniczka wilkołaków">
 		<type class="pol/wilkolaki" subclass="wilkolak_ksiezniczka" tileid="pol_wilkolaki.png:6"/>
-		<description>Oto wilkołak wojak. Strzeż się jej w księżycową noc.</description>
+		<description>Oto księżniczka wilkołaków. Strzeż się jej w księżycową noc.</description>
 		<attributes>
 			<atk value="2150"/>
 			<def value="369"/>
@@ -241,7 +243,7 @@
 
 	<creature name="książę wilkołaków">
 		<type class="pol/wilkolaki" subclass="wilkolak_ksiaze" tileid="pol_wilkolaki.png:7"/>
-		<description>Oto wilkołak wojak. Strzeż się jej w księżycową noc.</description>
+		<description>Oto książę wilkołaków. Strzeż się go w księżycową noc.</description>
 		<attributes>
 			<atk value="2350"/>
 			<def value="469"/>
@@ -271,4 +273,7 @@
 			<profile name="patrolling"/>
 		</ai>
 	</creature>
+
+	<!-- END: wilkolaki -->
+
 </creatures>

@@ -2,6 +2,8 @@
 <creatures xmlns="stendhal" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="stendhal ../creatures.xsd ">
 
+	<!-- START: kamienne wielkie -->
+
 	<creature name="głaz">
 		<type class="pol/kamienne_wielkie" subclass="glaz" tileid="pol_kamienne_wielkie.png:0"/>
 		<attributes>
@@ -25,6 +27,9 @@
 		</drops>
 		<equips/>
 		<ai>
+			<says>
+				<sound value="pol-stones2"/>
+			</says>
 			<profile name="brave"/>
 			<profile name="animal"/>
 			<profile name="offensive"/>
@@ -50,6 +55,9 @@
 		</drops>
 		<equips/>
 		<ai>
+			<says>
+				<sound value="pol-stones2"/>
+			</says>
 			<profile name="brave"/>
 			<profile name="animal"/>
 			<profile name="offensive"/>
@@ -81,10 +89,16 @@
 		</drops>
 		<equips/>
 		<ai>
+			<says>
+				<sound value="pol-giant"/>
+			</says>
 			<profile name="brave"/>
 			<profile name="animal"/>
 			<profile name="offensive"/>
 			<profile name="rare"/>
 		</ai>
 	</creature>
+
+	<!-- END: kamienne wielkie -->
+
 </creatures>

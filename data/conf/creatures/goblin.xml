@@ -2,6 +2,8 @@
 <creatures xmlns="stendhal" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="stendhal ../creatures.xsd ">
 
+	<!-- START: goblin -->
+
 	<creature name="goblin">
 		<type class="goblin" subclass="goblin" tileid="goblin.png:0"/>
 		<description>Oto goblin. Jest naprawdę złym i psotliwym stworzeniem.</description>
@@ -31,7 +33,9 @@
 		</equips>
 		<ai>
 			<says>
-				<noise state="idle follow fight" value="Mmmm! Idzie mięsko!"/>
+				<noise state="idle follow fight" value="Mmmm! Idzie mięsko!" />
+				<sound value="saur-3" />
+				<sound value="saur-4" />
 			</says>
 			<profile name="offensive"/>
 			<profile name="human"/>
@@ -68,7 +72,9 @@
 		</equips>
 		<ai>
 			<says>
-				<noise state="idle follow fight" value="Czas na śniadanko!"/>
+				<noise state="idle follow fight" value="Czas na śniadanko!" />
+				<sound value="saur-3" />
+				<sound value="saur-4" />
 			</says>
 			<profile name="offensive"/>
 			<profile name="human"/>
@@ -106,9 +112,16 @@
 		<equips>
 		</equips>
 		<ai>
+			<says>
+				<sound value="saur-3" />
+				<sound value="saur-4" />
+			</says>
 			<profile name="offensive"/>
 			<profile name="human"/>
 			<profile name="patrolling"/>
 		</ai>
 	</creature>
+
+	<!-- END: goblin -->
+
 </creatures>

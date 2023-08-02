@@ -2,6 +2,8 @@
 <creatures xmlns="stendhal" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="stendhal ../creatures.xsd ">
 
+	<!-- START: sniegowe -->
+
 	<creature name="kula śnieżna">
 		<type class="pol/sniegowe" subclass="kula_sniezna" tileid="pol_sniegowe.png:0"/>
 		<attributes>
@@ -24,6 +26,9 @@
 		</drops>
 		<equips/>
 		<ai>
+			<says>
+				<sound value="pol-snow"/>
+			</says>
 			<profile name="brave"/>
 			<profile name="animal"/>
 			<profile name="offensive"/>
@@ -49,10 +54,16 @@
 		</drops>
 		<equips/>
 		<ai>
+			<says>
+				<sound value="pol-snow"/>
+			</says>
 			<profile name="brave"/>
 			<profile name="animal"/>
 			<profile name="offensive"/>
 			<profile name="rare"/>
 		</ai>
 	</creature>
+
+	<!-- END: sniegowe -->
+
 </creatures>

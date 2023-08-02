@@ -2,6 +2,8 @@
 <creatures xmlns="stendhal" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="stendhal ../creatures.xsd ">
 
+	<!-- START: czart -->
+
 	<creature name="belzebub">
 		<type class="pol/czarty" subclass="czart_belzebub" tileid="pol_czarty.png:0"/>
 		<description/>
@@ -163,4 +165,7 @@
 			<profile name="patrolling"/>
 		</ai>
 	</creature>
+
+	<!-- END: czart -->
+
 </creatures>

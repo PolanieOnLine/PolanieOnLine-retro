@@ -2,6 +2,8 @@
 <creatures xmlns="stendhal" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="stendhal ../creatures.xsd ">
 
+	<!-- START: chochol -->
+
 	<creature name="chochoł">
 		<type class="pol/chocholy" subclass="chochol" tileid="pol_chocholy.png:0"/>
 		<description/>
@@ -21,6 +23,9 @@
 		</drops>
 		<equips/>
 		<ai>
+			<says>
+				<sound value="pol-chochol"/>
+			</says>
 			<profile name="offensive"/>
 			<profile name="coward"/>
 			<profile name="human"/>
@@ -48,6 +53,9 @@
 		</drops>
 		<equips/>
 		<ai>
+			<says>
+				<sound value="pol-chochol"/>
+			</says>
 			<profile name="offensive"/>
 			<profile name="coward"/>
 			<profile name="human"/>
@@ -75,10 +83,16 @@
 		</drops>
 		<equips/>
 		<ai>
+			<says>
+				<sound value="pol-chochol"/>
+			</says>
 			<profile name="offensive"/>
 			<profile name="coward"/>
 			<profile name="human"/>
 			<profile name="patrolling"/>
 		</ai>
 	</creature>
+
+	<!-- END: chochol -->
+
 </creatures>

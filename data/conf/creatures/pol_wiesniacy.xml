@@ -2,6 +2,8 @@
 <creatures xmlns="stendhal" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="stendhal ../creatures.xsd ">
 
+	<!-- START: wiesniacy -->
+
 	<creature name="wieśniak">
 		<type class="pol/wiesniacy" subclass="wiesniak" tileid="pol_wiesniacy.png:0"/>
 		<description/>
@@ -103,4 +105,7 @@
 			<profile name="patrolling"/>
 		</ai>
 	</creature>
+
+	<!-- END: wiesniacy -->
+
 </creatures>

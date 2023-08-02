@@ -2,6 +2,8 @@
 <creatures xmlns="stendhal" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="stendhal ../creatures.xsd ">
 
+	<!-- START: pasterze -->
+
 	<creature name="pasterz drzew">
 		<type class="pol/pasterze_drzew" subclass="pasterz_drzew" tileid="pol_pasterze_drzew.png:0"/>
 		<description></description>
@@ -29,4 +31,7 @@
 			<profile name="patrolling"/>
 		</ai>
 	</creature>
+
+	<!-- END: pasterze -->
+
 </creatures>

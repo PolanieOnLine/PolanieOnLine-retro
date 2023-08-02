@@ -2,6 +2,8 @@
 <creatures xmlns="stendhal" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="stendhal ../creatures.xsd ">
 
+	<!-- START: mutanty wielkie -->
+
 	<creature name="Jožin z lesa">
 		<type class="pol/mutanty_wielkie" subclass="jozin_z_lesa" tileid="pol_mutanty_wielkie.png:0"/>
 		<description/>
@@ -133,4 +135,7 @@
 			<profile name="patrolling"/>
 		</ai>
 	</creature>
+
+	<!-- END: mutanty wielkie -->
+
 </creatures>
