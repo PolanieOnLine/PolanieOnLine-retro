@@ -3,8 +3,6 @@
 # It would be fine to remove it from CVS if it is not used in any maps 
 # If used in very few and not crucial, consider removing from map then remove from CVS
 #
-# This list is now maintained on the wiki. See: https://stendhalgame.org/wiki/Stendhal_missing_images#Tilesets
-#
 # Key: who is doing or has done what:
 # kih means kiheru 
 # kym means kymara
@@ -21,15 +19,15 @@ building/thatched_roof_cottage1.png 1 -   credit   reiners/check
 building/thatched_roof_cottage2.png 1 -   credit   reiners/check  
 kih*/building/decoration/coal_fire.png 11
 kih*/building/decoration/wood_fire.png 17
-ant*/building/decoration/swordfish.png 2
+ant* building/decoration/swordfish.png 2
 kih*/building/decoration/platform.png 4
 del*/building/decoration/chimney_brick_wood.png 
 del*/building/decoration/chimney_brick.png 
 del*/building/decoration/chimney_tan.png 1
 del*/building/decoration/grey_chimney.png 1
-del*/building/column/moss_pillars.png 4
+building/column/moss_pillars.png 4
 del*/building/column/pillar2.png 
-del*/building/column/pillar.png 7
+building/column/pillar.png 7
 building/entrance/int_iron_bars.png 15
 building/entrance/int_broken_bars.png 2
 del*/building/entrance/sandy_rocks_entrance.png 
@@ -119,15 +117,15 @@ kih*/ground/indoor/floors_3.png 36
 del*/ground/ladder/ladder_1.png 
 del*/ground/ladder/wooden_ladder_down.png 1
 del*/ground/ridge/snowy.png 
-ant*/ground/rock/blue_crystal.png 4
-ant*/ground/rock/gold_crystal.png 3
-ant*/ground/rock/green_crystal2.png 4
-ant*/ground/rock/green_crystal3.png 1
-ant /ground/rock/hell.png 8
-ant*/ground/rock/icy_crystal.png 1
+ground/rock/blue_crystal.png 4
+ground/rock/gold_crystal.png 3
+ground/rock/green_crystal2.png 4
+ground/rock/green_crystal3.png 1
+ground/rock/hell.png 8
+ground/rock/icy_crystal.png 1
 del*/ground/rock/mithril.png 
-ant*/ground/rock/purple_crystal.png 3
-ant*/ground/rock/red_crystal.png 1
+ground/rock/purple_crystal.png 3
+ground/rock/red_crystal.png 1
 kym*/ground/rock/rock_snow.png 1
 ground/rock/rocks.png 22
 kih*/ground/rock/rocks_2.png 52
@@ -208,16 +206,16 @@ del*/item/weapon/weapons_large.png
 object/boardwalk.png 3
 del*/object/lion_fountain.png 
 del*/object/rope_ladder.png 
-ant*/object/row_boat.png 1
-del*/object/rowing_boats.png 2 (replaced with row_boat.png)
+object/row_boat.png 1
+object/rowing_boats.png 2
 ble*/object/scarecrow.png 1
-ant  object/ship.png 6 (replacing with structure/boat/ship.png)
+object/ship.png 6
 object/suspension_bridge.png 12
-ant object/tan_tent.png 2
+object/tan_tent.png 2
 del*/object/trellis_large.png 1
 object/trellis_small.png 3
-ant*/plant/cactus_2.png 3
-ant /plant/lily_pads.png 3
+plant/cactus_2.png 3
+plant/lily_pads.png 3
 plant/snowygrass.png 1
 plant/star_shaped_plants.png 6
 plant/flower/flower_bed_1.png 5
@@ -341,7 +339,7 @@ kih*/furniture/table/grey_plain.png 66
 del*/ground/sand2.png 0
 del*/ground/sandy_patches.png 0
 del*/ground/wooden_patio_planter.png 0
-del*/ground/yellow_lava.png 0
+/ground/yellow_lava.png 2
 /ground/fire/flames.png 9
 tig*/ground/indoor/raised_platform.png 1
 tig*/ground/indoor/raised_platform_blue.png 1
@@ -385,7 +383,7 @@ del*/object/drawbridge.png 0
 /object/well_hoist.png 1
 del*/object/wooden_scaffold.png 0
 /object/zekiel.png 2
-ant*/plant/mushroom3.png 3
+/plant/mushroom3.png 3
 del*/plant/patio_planter.png 1
 /plant/flower/foxgloves.png 9
 /plant/flower/purple.png 13

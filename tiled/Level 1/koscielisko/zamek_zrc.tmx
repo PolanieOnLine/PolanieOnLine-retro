@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map SYSTEM "http://mapeditor.org/dtd/1.0/map.dtd">
 <map version="1.0" orientation="orthogonal" width="128" height="128" tilewidth="32" tileheight="32">
  <tileset firstgid="1" name="collision" tilewidth="32" tileheight="32">
   <image source="../../tileset/logic/collision.png" width="32" height="32"/>
@@ -198,7 +199,7 @@
  </layer>
  <layer name="objects" width="128" height="128">
   <data encoding="base64" compression="gzip">
-   H4sIAAAAAAAAC+3aQWrCQBiGYaGYa3jkLoQ2nqmFFmkX9TQuRFpCtamYzGS+59kpKpnE94cMWa0ASLV5qON37nUcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC3eupKHwEAAAAAUMLW3iAAAAAAAAAAAAAAVGPn+V4AiPfcXX9N+/rudN37ma79o/9YdUrdF5g3ueaaN9RH97l0377X9e/v6z6X7nPpvn5T3QPqPpfuc+k+l+7bM3bfXve5dJ9L97l0n0v37bOfn+E/e4C6r9Mcz/LoPpfuc52713+eYffmQI5LvZsD7furc3OgXWP7NgcwBzAHlmd/YW/3p68rnxl+3xzAHGAO7yNmF8vxFn49PyZe/6HQ+Z16XXx7aexcp874z9B1U94RamJz1AAAAQA=
+   H4sIAAAAAAAAC+3aQWrCQBiGYaGYa3jkLoQ2nqmFFmkX9TQuRFpCtamYzGS+59kpKpnE94cMWa0ASLV5qON37nUcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC3eupKHwEAAAAAUMLW3iAAAAAAAAAAAAAAVGPn+V4AiPfcXX9N+/rudN37ma79o/9YdUrdF5g3ueaaN9RH97l0377X9e/v6z6X7nPpvn5T3QPqPpfuc+k+l+7bM3bfXve5dJ9L97l0n0v37bOfn+E/e4C6r9Mcz/LoPpfuc52713+eYffmQI5LvZsD7furc3OgXWP7NgcwBzAHlmd/YW/3p68rnxl+3xwA5vA+YnaxHG/h1/Nj4vUfCp3fqdfFt5fGznXqjP8MXTflHQGT3EzdAAABAA==
   </data>
  </layer>
  <layer name="collision" width="128" height="128">
