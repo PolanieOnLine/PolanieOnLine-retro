@@ -660,46 +660,51 @@ używanie zwojów.
 		</attributes>
 		<configurator class-name="games.stendhal.server.maps.ados.outside.AnimalKeeperNPC" />
 		<configurator class-name="games.stendhal.server.maps.ados.outside.VeterinarianNPC" />
-		<configurator class-name="games.stendhal.server.entity.mapstuff.portal.GateConfigurator">
-			<parameter name="x">48</parameter>
-			<parameter name="y">38</parameter>
-			<parameter name="image">fence_gate</parameter>
-			<parameter name="orientation">h</parameter>
-			<parameter name="condition">new AlwaysFalseCondition()</parameter>
-			<parameter name="message">Brama jest zamknięta.</parameter>
-		</configurator>
-		<configurator class-name="games.stendhal.server.entity.mapstuff.portal.GateConfigurator">
-			<parameter name="x">48</parameter>
-			<parameter name="y">41</parameter>
-			<parameter name="image">fence_gate</parameter>
-			<parameter name="orientation">h</parameter>
-			<parameter name="condition">new AlwaysFalseCondition()</parameter>
-			<parameter name="message">Brama jest zamknięta.</parameter>
-		</configurator>
-		<configurator class-name="games.stendhal.server.entity.mapstuff.portal.GateConfigurator">
-			<parameter name="x">54</parameter>
-			<parameter name="y">30</parameter>
-			<parameter name="image">fence_gate</parameter>
-			<parameter name="orientation">v</parameter>
-			<parameter name="condition">new AlwaysFalseCondition()</parameter>
-			<parameter name="message">Brama jest zamknięta.</parameter>
-		</configurator>
-		<configurator class-name="games.stendhal.server.entity.mapstuff.portal.GateConfigurator">
-			<parameter name="x">66</parameter>
-			<parameter name="y">38</parameter>
-			<parameter name="image">fence_gate</parameter>
-			<parameter name="orientation">h</parameter>
-			<parameter name="condition">new AlwaysFalseCondition()</parameter>
-			<parameter name="message">Brama jest zamknięta.</parameter>
-		</configurator>
-		<configurator class-name="games.stendhal.server.entity.mapstuff.portal.GateConfigurator">
-			<parameter name="x">66</parameter>
-			<parameter name="y">41</parameter>
-			<parameter name="image">fence_gate</parameter>
-			<parameter name="orientation">h</parameter>
-			<parameter name="condition">new AlwaysFalseCondition()</parameter>
-			<parameter name="message">Brama jest zamknięta.</parameter>
-		</configurator>
+
+		<entity x="48" y="38">
+			<implementation class-name="games.stendhal.server.entity.mapstuff.portal.Gate">
+				<parameter name="image">fence_gate</parameter>
+				<parameter name="orientation">h</parameter>
+				<parameter name="condition">new AlwaysFalseCondition()</parameter>
+				<parameter name="message">Brama jest zamknięta.</parameter>
+			</implementation>
+		</entity>
+
+		<entity x="48" y="41">
+			<implementation class-name="games.stendhal.server.entity.mapstuff.portal.Gate">
+				<parameter name="image">fence_gate</parameter>
+				<parameter name="orientation">h</parameter>
+				<parameter name="condition">new AlwaysFalseCondition()</parameter>
+				<parameter name="message">Brama jest zamknięta.</parameter>
+			</implementation>
+		</entity>
+
+		<entity x="54" y="30">
+			<implementation class-name="games.stendhal.server.entity.mapstuff.portal.Gate">
+				<parameter name="image">fence_gate</parameter>
+				<parameter name="orientation">v</parameter>
+				<parameter name="condition">new AlwaysFalseCondition()</parameter>
+				<parameter name="message">Brama jest zamknięta.</parameter>
+			</implementation>
+		</entity>
+
+		<entity x="66" y="38">
+			<implementation class-name="games.stendhal.server.entity.mapstuff.portal.Gate">
+				<parameter name="image">fence_gate</parameter>
+				<parameter name="orientation">h</parameter>
+				<parameter name="condition">new AlwaysFalseCondition()</parameter>
+				<parameter name="message">Brama jest zamknięta.</parameter>
+			</implementation>
+		</entity>
+
+		<entity x="66" y="41">
+			<implementation class-name="games.stendhal.server.entity.mapstuff.portal.Gate">
+				<parameter name="image">fence_gate</parameter>
+				<parameter name="orientation">h</parameter>
+				<parameter name="condition">new AlwaysFalseCondition()</parameter>
+				<parameter name="message">Brama jest zamknięta.</parameter>
+			</implementation>
+		</entity>
 
 		<entity x="56" y="30">
 			<implementation class-name="games.stendhal.server.entity.mapstuff.sound.PeriodicAmbientSoundSource">
@@ -1884,7 +1889,7 @@ W Semos jest jezioro bogate w płotki.
 		<!-- This must be after the NPC configurator -->
 		<entity x="9" y="12">
 			<implementation class-name="games.stendhal.server.entity.mapstuff.chest.NPCOwnedChest">
-				<parameter name="npc">Mr Taxman</parameter>
+				<parameter name="npc">Mr. Taxman</parameter>
 			</implementation>
 		</entity>
 

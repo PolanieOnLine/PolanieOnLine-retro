@@ -111,6 +111,26 @@
 		</equipable>
 	</item>
 
+	<item name="pułapka na gryzonie">
+		<type class="misc" subclass="rodent_trap" tileid="-1"/>
+		<description>Oto pułapka na gryzonie.</description> 
+		<implementation class-name="games.stendhal.server.entity.item.StackableItem"/>
+		<attributes>
+			<quantity value="1"/>
+			<max_quantity value="2147483647"/>
+		</attributes>
+		<weight value="0.05"/>
+		<value value="1"/>
+		<equipable>
+			<slot name="ground"/>
+			<slot name="content"/>
+			<slot name="lhand"/>
+			<slot name="rhand"/>
+			<slot name="bag"/>
+			<slot name="trade"/>
+		</equipable>
+	</item>
+
 	<item name="truchło wampira">
 		<type class="misc" subclass="vampirette_entrails" tileid="-1"/>
 		<description>Oto truchło wampira. Jest dowodem na to, że wampir został zabity.</description>
