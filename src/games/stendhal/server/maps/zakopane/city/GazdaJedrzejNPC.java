@@ -61,7 +61,7 @@ public class GazdaJedrzejNPC implements ZoneConfigurator {
 		};
 
 		npc.setDescription("Oto gazda Jędrzej. Wygląda na bardzo smutnego, jakby potrzebował pomocy.");
-		npc.setEntityClass("npcstarygoral2");
+		npc.setEntityClass("npcgazdajedrzej");
 		npc.setGender("M");
 		npc.setPosition(31, 125);
 		zone.add(npc);

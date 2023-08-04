@@ -37,7 +37,7 @@ public class Outfits {
 	public static final int HAIR_OUTFITS = 117;
 
 	/** number of player selectable body shapes */
-	public static final int BODY_OUTFITS = 37;
+	public static final int BODY_OUTFITS = 38;
 	private static final List<Integer> DRESS_COMPATIBLE_BODIES = Arrays.asList(); // populate with any other bodies that a dress layer can be worn over
 	private static final List<Integer> FEMALE_BODIES = Arrays.asList(6, 7, 8, 9, 10, 11, 13, 25, 29, 30, 35);
 
@@ -56,7 +56,7 @@ public class Outfits {
 	// hair should not be drawn with hat indexes in this list
 	public static final List<Integer> HATS_NO_HAIR = Arrays.asList();
 	// some outfit layers should not be drawn with ship dress indexes in this list
-	public static final List<Integer> SHIPS_NO_LAYERS = Arrays.asList(50, 51);
+	public static final List<Integer> SHIPS_NO_LAYERS = Arrays.asList(17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 50, 51);
 
 	// layers used for building outfits
 	public static final List<String> LAYER_NAMES = Arrays.asList(

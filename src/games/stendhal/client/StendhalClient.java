@@ -815,7 +815,7 @@ public class StendhalClient extends ClientFramework {
 
 		// work around a bug in the chat-action definition in 0.98 and below
 		String type = action.get("type");
-		if (serverVersionAtLeast("0.99") && (RPClass.getRPClass(type) != null)) {
+		if (serverVersionAtLeast("0.01") && (RPClass.getRPClass(type) != null)) {
 			action.setRPClass(type);
 			action.remove("type");
 		}

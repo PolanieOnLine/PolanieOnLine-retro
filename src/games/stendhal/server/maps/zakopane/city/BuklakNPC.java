@@ -60,7 +60,7 @@ public class BuklakNPC implements ZoneConfigurator {
 		};
 
 		npc.setDescription("Oto nosiwoda Gerwazy. Być może napełni trochę źródlanej wody.");
-		npc.setEntityClass("npcgazda2");
+		npc.setEntityClass("npcgazda");
 		npc.setGender("M");
 		npc.setPosition(31, 107);
 		zone.add(npc);

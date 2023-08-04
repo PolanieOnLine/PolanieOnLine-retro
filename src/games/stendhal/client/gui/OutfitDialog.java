@@ -544,7 +544,7 @@ class OutfitDialog extends JDialog {
 		RPAction rpOutfitAction = new RPAction();
 
 		// server version compatibility
-		if (StendhalClient.serverVersionAtLeast("1.06")) {
+		if (StendhalClient.serverVersionAtLeast("0.01")) {
 			final StringBuilder sb = new StringBuilder();
 			sb.append("body=" + Integer.toString(body.getIndex()) + ",");
 			sb.append("dress=" + Integer.toString(dress.getIndex()) + ",");
