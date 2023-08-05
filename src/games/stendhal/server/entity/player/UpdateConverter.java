@@ -402,7 +402,7 @@ public abstract class UpdateConverter {
 
 		// port to 0.89: fix age
 		if (object.has("age")) {
-			if (!object.has("release") || (object.get("release").compareTo("0.88") <= 0)) {
+			if (!object.has("release") || (object.get("release").compareTo("0.44") <= 0)) {
 				object.put("age", object.getInt("age") * 180 / 200);
 			}
 		}
